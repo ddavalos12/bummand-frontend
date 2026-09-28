@@ -1,0 +1,31 @@
+# Node y Dependencias
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# Compilación de Next.js
+.next/
+out/
+build/
+.swc/
+
+# Variables de Entorno
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs y OS
+*.log
+.DS_Store
+
+# Agentes AI (Reglas locales)
+.agents/
+
+# Prototipos Locales
+_prototipos/
