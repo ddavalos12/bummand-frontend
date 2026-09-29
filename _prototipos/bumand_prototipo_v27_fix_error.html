@@ -1,0 +1,3399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BUMAND — Prototipo de diseño</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-950:#063A6B;
+    --navy-900:#0A5CA0;
+    --navy-800:#0E70BC;
+    --navy-700:#1284D6;
+    --teal-500:#17B4C4;
+    --teal-300:#7FE0E6;
+    --teal-100:#E3F9FA;
+    --gold-500:#F5A623;
+    --gold-300:#F8C766;
+    --cream-100:#F6F2E9;
+    --ink-900:#122029;
+    --ink-600:#5B6D77;
+    --ink-400:#8A9BA4;
+    --line:rgba(255,255,255,0.12);
+    --line-soft:rgba(10,33,49,0.10);
+    --success:#3FA66B;
+    --warn:#E2694B;
+    --pending:#D99B2B;
+    --display:'Bricolage Grotesque', sans-serif;
+    --body:'Inter', sans-serif;
+    --mono:'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(23,180,196,0.18), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(245,166,35,0.10), transparent 55%),
+      var(--navy-950);
+    color:var(--cream-100);
+    font-family:var(--body);
+    min-height:100vh;
+    padding:40px 20px 70px;
+  }
+
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  /* header */
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--teal-300);
+    margin:0 0 14px;
+  }
+  h1.title{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:clamp(28px,4vw,44px);
+    line-height:1.05;
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  h1.title span{color:var(--gold-300);}
+  .sub{
+    color:var(--ink-400);
+    font-size:15px;
+    max-width:620px;
+    line-height:1.55;
+    margin:0 0 32px;
+  }
+
+  /* device switch */
+  .switch{
+    display:inline-flex;
+    background:rgba(255,255,255,0.05);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:4px;
+    gap:4px;
+    margin-bottom:18px;
+  }
+  .switch button{
+    font-family:var(--body);
+    font-weight:600;
+    font-size:13.5px;
+    color:var(--ink-400);
+    background:transparent;
+    border:none;
+    padding:10px 20px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:all .2s ease;
+  }
+  .switch button.active{
+    background:var(--teal-500);
+    color:var(--navy-950);
+  }
+  .switch button:not(.active):hover{color:var(--cream-100);}
+
+  /* screen tabs */
+  .tabs{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:34px;
+  }
+  .tabs button{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.03em;
+    color:var(--ink-400);
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--line);
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:all .18s ease;
+  }
+  .tabs button.active{
+    border-color:var(--gold-500);
+    color:var(--gold-300);
+    background:rgba(245,166,35,0.08);
+  }
+  .tabs button:not(.active):hover{
+    border-color:var(--teal-300);
+    color:var(--cream-100);
+  }
+
+  .stage{
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    min-height:680px;
+  }
+
+  /* ---------- PHONE FRAME ---------- */
+  .phone{
+    width:320px;
+    background:var(--navy-900);
+    border:10px solid #071A28;
+    border-radius:42px;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+    overflow:hidden;
+    position:relative;
+  }
+  .notch{
+    position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:120px;height:22px;background:#071A28;border-radius:0 0 16px 16px;
+    z-index:5;
+  }
+  .statusbar{
+    height:40px;
+    display:flex;align-items:flex-end;justify-content:space-between;
+    padding:0 20px 6px;
+    font-family:var(--mono);font-size:11px;color:var(--cream-100);
+    background:var(--navy-900);
+  }
+  .screen{
+    background:var(--cream-100);
+    color:var(--ink-900);
+    min-height:600px;
+    display:none;
+    flex-direction:column;
+  }
+  .screen.active{display:flex;}
+
+  .appbar{
+    background:var(--navy-900);
+    color:#fff;
+    padding:18px 20px 16px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .appbar .logo{
+    width:30px;height:30px;border-radius:9px;
+    background:var(--gold-500);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--display);font-weight:700;color:var(--navy-950);font-size:15px;
+    flex-shrink:0;
+  }
+  .appbar h2{font-family:var(--display);font-size:17px;margin:0;font-weight:600;}
+  .appbar p{margin:2px 0 0;font-size:11px;color:var(--teal-300);font-family:var(--mono);}
+  .appbar .back{font-size:18px;color:var(--cream-100);margin-right:2px;}
+
+  .body-pad{padding:22px 20px 26px;flex:1;}
+
+  /* generic bits */
+  .field-label{font-size:12px;font-weight:600;color:var(--ink-600);margin:0 0 6px;display:block;}
+  .field{
+    background:#fff;border:1.5px solid #E3DCCB;border-radius:12px;
+    padding:12px 14px;font-size:14px;color:var(--ink-900);margin-bottom:16px;
+    display:flex;align-items:center;gap:8px;font-family:var(--body);
+  }
+  .field .ph{color:var(--ink-400);}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    font-family:var(--body);font-weight:700;font-size:14px;
+    padding:14px;border-radius:12px;border:none;cursor:pointer;
+    width:100%;transition:transform .12s ease;
+  }
+  .btn:active{transform:scale(.98);}
+  .btn-teal{background:var(--teal-500);color:#062A2C;}
+  .btn-outline{background:transparent;border:1.5px solid #D8D0BC;color:var(--ink-400);}
+  .btn-gold{background:var(--gold-500);color:#3A2400;}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .link{color:var(--teal-500);font-size:12.5px;font-weight:600;text-align:center;display:block;margin-top:14px;}
+
+  h3.h-screen{font-family:var(--display);font-size:22px;margin:4px 0 4px;font-weight:700;}
+  p.p-sub{font-size:12.5px;color:var(--ink-600);margin:0 0 22px;line-height:1.5;}
+
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;
+    font-family:var(--mono);font-size:11px;font-weight:500;
+    padding:5px 10px;border-radius:999px;
+  }
+  .chip-success{background:rgba(63,166,107,0.14);color:#276B45;}
+  .chip-warn{background:rgba(226,105,75,0.14);color:#A8442D;}
+  .chip-pending{background:rgba(217,155,43,0.16);color:#8A6112;}
+  .chip .dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+
+  /* geofence radar - signature element */
+  .radar-box{
+    background:
+      linear-gradient(rgba(15,48,74,0.94), rgba(15,48,74,0.94)),
+      repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(255,255,255,0.05) 20px),
+      repeating-linear-gradient(90deg, transparent, transparent 19px, rgba(255,255,255,0.05) 20px);
+    border-radius:16px;
+    height:180px;
+    position:relative;
+    overflow:hidden;
+    margin-bottom:14px;
+  }
+  .radar-center{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:14px;height:14px;
+  }
+  .ring{
+    position:absolute;top:50%;left:50%;
+    border:1.5px solid var(--teal-300);
+    border-radius:50%;
+    transform:translate(-50%,-50%);
+    animation:pulse 2.6s ease-out infinite;
+    opacity:0;
+  }
+  .ring.r1{width:30px;height:30px;animation-delay:0s;}
+  .ring.r2{width:30px;height:30px;animation-delay:.7s;}
+  .ring.r3{width:30px;height:30px;animation-delay:1.4s;}
+  @keyframes pulse{
+    0%{width:20px;height:20px;opacity:.9;}
+    80%{opacity:0;}
+    100%{width:150px;height:150px;opacity:0;}
+  }
+  .pin{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);
+    width:16px;height:16px;background:var(--gold-500);border-radius:50% 50% 50% 0;
+    rotate:-45deg;box-shadow:0 0 0 4px rgba(245,166,35,0.2);
+  }
+  .radar-fixed-ring{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:130px;height:130px;border-radius:50%;
+    border:1px dashed rgba(126,219,214,0.35);
+  }
+  .radar-tag{
+    position:absolute;bottom:10px;left:10px;
+    font-family:var(--mono);font-size:10px;color:var(--teal-300);
+    background:rgba(0,0,0,0.3);padding:3px 8px;border-radius:6px;
+  }
+
+  .place-name{font-weight:700;font-size:14.5px;margin:2px 0 2px;}
+  .place-sub{font-size:12px;color:var(--ink-600);margin:0 0 18px;}
+  .time-big{font-family:var(--mono);font-size:34px;font-weight:500;margin:0 0 2px;letter-spacing:-0.02em;}
+  .time-label{font-size:11px;color:var(--ink-600);margin:0 0 18px;font-family:var(--mono);}
+  .btn-row{display:flex;gap:10px;margin-bottom:22px;}
+  .btn-row .btn{flex:1;}
+
+  .day-item{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 0;border-top:1px solid #EAE3D2;
+    font-size:12.5px;
+  }
+  .day-item .dot-status{width:8px;height:8px;border-radius:50%;background:var(--success);flex-shrink:0;}
+  .day-item .day-time{font-family:var(--mono);color:var(--ink-600);margin-left:auto;}
+
+  /* pasajes form */
+  .calc-card{
+    background:var(--navy-900);color:#fff;
+    border-radius:16px;padding:18px;margin:6px 0 20px;
+  }
+  .calc-card .label{font-family:var(--mono);font-size:10.5px;color:var(--teal-300);text-transform:uppercase;letter-spacing:.08em;margin:0 0 6px;}
+  .calc-card .amount{font-family:var(--display);font-size:30px;font-weight:700;color:var(--gold-300);margin:0 0 6px;}
+  .calc-card .formula{font-family:var(--mono);font-size:11px;color:var(--ink-400);}
+
+  /* historial */
+  .summary-card{
+    background:var(--navy-900);color:#fff;border-radius:16px;padding:18px 20px;margin-bottom:20px;
+  }
+  .summary-card .label{font-size:11px;color:var(--teal-300);font-family:var(--mono);margin:0 0 6px;}
+  .summary-card .value{font-family:var(--display);font-size:32px;font-weight:700;margin:0 0 14px;}
+  .minibars{display:flex;align-items:flex-end;gap:6px;height:36px;}
+  .minibars .bar{flex:1;background:var(--teal-500);border-radius:3px 3px 0 0;opacity:.85;}
+  .seg-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
+  .seg-tabs span{
+    font-size:11px;font-family:var(--mono);padding:6px 12px;border-radius:8px;
+    background:#EFE9DA;color:var(--ink-600);cursor:pointer;
+  }
+  .seg-tabs span.on{background:var(--navy-900);color:#fff;}
+  .asis-sub{display:none;}
+  .asis-sub.active{display:block;}
+
+  /* evaluation modules + kardex flow (from sketch) */
+  .eval-cards{
+    display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;
+  }
+  .eval-card{
+    background:#fff;border:1px solid var(--line-soft);border-radius:14px;
+    padding:16px 14px;position:relative;
+  }
+  .eval-card .num-badge{
+    width:24px;height:24px;border-radius:7px;background:var(--navy-900);color:var(--gold-300);
+    font-family:var(--mono);font-weight:600;font-size:12px;
+    display:flex;align-items:center;justify-content:center;margin-bottom:10px;
+  }
+  .eval-card h5{font-family:var(--display);font-size:13px;margin:0 0 4px;line-height:1.25;}
+  .eval-card .evaluator{font-size:11px;color:var(--ink-600);margin:0 0 12px;}
+
+  .flow-strip{
+    display:flex;align-items:center;gap:10px;
+    background:var(--navy-950);border-radius:14px;padding:18px 22px;margin-bottom:20px;
+    overflow-x:auto;
+  }
+  .flow-node{
+    flex:1;min-width:150px;text-align:center;color:#fff;
+  }
+  .flow-node .fn-label{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--teal-300);margin:0 0 4px;}
+  .flow-node .fn-title{font-family:var(--display);font-size:13.5px;font-weight:600;margin:0;}
+  .flow-node .fn-sub{font-size:10.5px;color:var(--ink-400);margin:4px 0 0;}
+  .flow-arrow{color:var(--gold-500);font-size:18px;flex-shrink:0;}
+
+  /* web: period admin control (habilitar / inhabilitar / ver periodo) */
+  .period-row{
+    display:flex;align-items:center;gap:14px;padding:14px 16px;
+    border:1.5px solid var(--line-soft);border-radius:12px;margin-bottom:10px;
+    cursor:pointer;background:#fff;transition:all .15s ease;
+  }
+  .period-row:last-child{margin-bottom:0;}
+  .period-row.viewing{border-color:var(--teal-500);background:var(--teal-100);}
+  .period-row .p-label{flex:1;}
+  .period-row .p-label strong{display:block;font-family:var(--display);font-size:14px;}
+  .period-row .p-label small{font-size:11px;color:var(--ink-600);font-family:var(--mono);}
+  .web-eval-period{display:none;}
+  .web-eval-period.active{display:block;}
+
+  /* mobile evaluation module cards */
+  .eval-mcard{
+    background:#fff;border:1.5px solid #E3DCCB;border-radius:14px;
+    padding:14px 16px;margin-bottom:12px;
+  }
+  .eval-mcard .row-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;}
+  .eval-mcard .num-badge{
+    width:24px;height:24px;border-radius:7px;background:var(--navy-900);color:var(--gold-300);
+    font-family:var(--mono);font-weight:600;font-size:12px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
+  }
+  .eval-mcard .titles{flex:1;}
+  .eval-mcard h5{font-family:var(--display);font-size:14px;margin:0 0 2px;font-weight:700;}
+  .eval-mcard .evaluator{font-size:11px;color:var(--ink-600);margin:0;}
+  .upload-box{
+    border:1.5px dashed #D8D0BC;border-radius:10px;padding:12px 14px;
+    display:flex;align-items:center;gap:10px;
+    font-family:var(--body);font-size:12px;color:var(--ink-400);font-weight:600;
+  }
+  .upload-box .up-icon{
+    width:26px;height:26px;border-radius:7px;background:#F1EBDC;color:var(--ink-400);
+    display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;
+  }
+  .upload-box.done{
+    border-style:solid;border-color:#CDE7DB;background:#F2FAF6;color:var(--ink-900);
+    justify-content:space-between;
+  }
+  .upload-box.done .up-icon{background:rgba(63,166,107,0.16);color:var(--success);}
+  .upload-box.done .file-meta small{display:block;font-family:var(--mono);color:var(--ink-600);font-weight:400;margin-top:1px;}
+  .upload-box.done .view-link{font-size:11px;color:var(--teal-500);font-weight:700;white-space:nowrap;}
+
+  /* semester habilitado / inhabilitado checklist */
+  .semester-list{display:flex;flex-direction:column;gap:10px;margin-bottom:22px;}
+  .semester-row{
+    display:flex;align-items:center;gap:12px;background:#fff;
+    border:1.5px solid #E3DCCB;border-radius:12px;padding:12px 14px;cursor:pointer;
+    transition:border-color .15s ease;
+  }
+  .semester-row.on{border-color:var(--success);}
+  .semester-row .chk{
+    width:20px;height:20px;border-radius:6px;border:1.5px solid #D8D0BC;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    font-size:12px;color:transparent;background:#F1EBDC;transition:all .15s ease;
+  }
+  .semester-row.on .chk{background:var(--success);border-color:var(--success);color:#fff;}
+  .semester-row .s-label{flex:1;}
+  .semester-row .s-label strong{display:block;font-size:13.5px;font-weight:700;}
+  .semester-row .s-label small{font-size:11px;color:var(--ink-600);font-family:var(--mono);}
+  .chip-locked{background:#EFE9DA;color:var(--ink-600);}
+  .chip-late{background:rgba(226,105,75,0.16);color:#A8442D;font-weight:600;}
+  .chip-ontime{background:rgba(63,166,107,0.16);color:#276B45;font-weight:600;}
+
+  .eval-period{display:none;}
+  .eval-period.active{display:block;}
+  .eval-mcard.locked{opacity:.72;}
+  .upload-box.locked{
+    border-style:solid;border-color:#E3DCCB;background:#F1EEE4;color:var(--ink-400);
+  }
+  .upload-box.locked .up-icon{background:#E3DCCB;color:var(--ink-600);}
+  .upload-box.missing{
+    border-style:solid;border-color:#F0D4CB;background:#FBF2EE;color:var(--warn);
+  }
+  .upload-box.missing .up-icon{background:rgba(226,105,75,0.15);color:var(--warn);}
+
+  /* module detail / upload modal (bottom sheet, confined to phone frame) */
+  .modal-overlay{
+    position:absolute;inset:0;background:rgba(10,33,49,0.5);
+    display:none;align-items:flex-end;z-index:60;border-radius:32px;
+  }
+  .modal-overlay.active{display:flex;}
+  .modal-sheet{
+    background:var(--cream-100);width:100%;border-radius:22px 22px 0 0;
+    max-height:86%;overflow-y:auto;padding:14px 22px 26px;position:relative;
+    animation:sheetup .22s ease;
+  }
+  @keyframes sheetup{from{transform:translateY(24px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .modal-handle{width:36px;height:4px;background:#DDD5C0;border-radius:2px;margin:0 auto 16px;}
+  .modal-close{
+    position:absolute;top:16px;right:20px;font-size:13px;color:var(--ink-400);
+    cursor:pointer;width:26px;height:26px;border-radius:50%;background:#EFE9DA;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .modal-num{font-family:var(--mono);font-size:10.5px;color:var(--teal-500);text-transform:uppercase;letter-spacing:.08em;margin:0 0 4px;}
+  .modal-title{font-family:var(--display);font-size:19px;font-weight:700;margin:0 0 3px;padding-right:30px;}
+
+  .pdf-preview{background:#fff;border:1px solid #E3DCCB;border-radius:14px;padding:14px;margin:16px 0;}
+  .pdf-page{
+    background:var(--navy-950);border-radius:8px;height:130px;padding:14px;position:relative;overflow:hidden;margin-bottom:10px;
+  }
+  .pdf-page .pl{height:6px;background:rgba(255,255,255,0.15);border-radius:3px;margin-bottom:8px;}
+  .pdf-page .pl.short{width:55%;}
+  .pdf-page .pl.gold{background:var(--gold-500);width:35%;height:8px;margin-bottom:14px;}
+  .pdf-file-row{display:flex;align-items:center;justify-content:space-between;}
+  .pdf-file-row .fname{font-size:12.5px;font-weight:700;}
+  .pdf-file-row .fdate{font-size:10.5px;color:var(--ink-600);font-family:var(--mono);}
+
+  .score-block{display:flex;align-items:baseline;gap:8px;margin:14px 0 4px;}
+  .score-block .score-num{font-family:var(--display);font-size:36px;font-weight:700;color:var(--navy-900);}
+  .score-block .score-den{font-family:var(--mono);color:var(--ink-400);font-size:14px;}
+  .score-bar{height:6px;border-radius:3px;background:#E3DCCB;overflow:hidden;margin-bottom:18px;}
+  .score-bar span{display:block;height:100%;background:var(--teal-500);border-radius:3px;}
+
+  .comment-box{
+    background:var(--teal-100);border-radius:12px;padding:14px;margin:16px 0 20px;
+  }
+  .comment-box .cb-label{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--teal-500);margin:0 0 6px;}
+  .comment-box p{font-size:12.5px;line-height:1.5;margin:0;color:var(--ink-900);}
+
+  .modal-status-banner{
+    border-radius:12px;padding:12px 14px;font-size:12px;font-weight:600;margin-bottom:16px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .modal-status-banner.locked{background:#EFE9DA;color:var(--ink-600);}
+  .modal-status-banner.missing{background:#FBF2EE;color:var(--warn);}
+
+  .dropzone-lg{
+    border:1.5px dashed #D8D0BC;border-radius:16px;padding:30px 16px;text-align:center;margin:16px 0 20px;
+  }
+  .dropzone-lg .dz-icon{
+    width:44px;height:44px;border-radius:12px;background:var(--teal-100);color:var(--teal-500);
+    display:flex;align-items:center;justify-content:center;font-size:20px;margin:0 auto 12px;
+  }
+  .dropzone-lg p{font-size:12.5px;color:var(--ink-600);margin:0 0 2px;}
+  .dropzone-lg small{font-size:10.5px;color:var(--ink-400);font-family:var(--mono);}
+
+  /* formulario de subida múltiple (Autoevaluación Académica) */
+  .ufb-heading{font-family:var(--display);font-size:20px;font-weight:700;color:#E8734A;margin:22px 0 4px;border-top:1px solid #E3DCCB;padding-top:16px;}
+  .ufb-title{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--ink-600);text-transform:uppercase;margin:22px 0 8px;border-top:1px solid #E3DCCB;padding-top:16px;}
+  .btn-upload-green{background:var(--success);color:#fff;}
+  .ufb-box{border:1.5px solid #E3DCCB;border-radius:14px;padding:16px;background:#fff;}
+  .ufb-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .ufb-choose-btn{
+    background:#EFE9DA;color:var(--ink-900);font-size:12px;font-weight:700;padding:9px 14px;
+    border-radius:8px;cursor:pointer;white-space:nowrap;
+  }
+  .ufb-filename{font-size:12px;color:var(--ink-600);}
+  .ufb-file-list{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;}
+  .ufb-file-list li{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    background:var(--teal-100);border-radius:8px;padding:7px 10px;font-size:11.5px;color:var(--ink-900);
+  }
+  .ufb-file-list .ufb-remove{color:var(--warn);font-weight:700;cursor:pointer;flex-shrink:0;}
+
+  .radio-group{display:flex;flex-direction:column;gap:6px;margin:6px 0 14px;}
+  .radio-group.inline{flex-direction:row;gap:20px;}
+  .radio-group label{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-900);cursor:pointer;}
+  .radio-group input[type="radio"]{accent-color:var(--teal-500);}
+
+  /* monthly pasajes form (matches real Diaconía formulario) */
+  .form-header-card{
+    background:#fff;border:1.5px solid #E3DCCB;border-radius:14px;
+    padding:14px 16px;margin-bottom:16px;
+  }
+  .fh-row{
+    display:flex;justify-content:space-between;gap:10px;
+    padding:6px 0;border-bottom:1px solid #EFE9DA;font-size:12px;
+  }
+  .fh-row:last-child{border-bottom:none;}
+  .fh-label{color:var(--ink-600);}
+  .fh-value{font-weight:700;color:var(--ink-900);text-align:right;}
+
+  .recorrido-list{
+    background:#fff;border:1.5px solid #E3DCCB;border-radius:14px;
+    padding:6px 14px;margin-bottom:6px;
+  }
+  .recorrido-row{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 0;border-bottom:1px solid #EFE9DA;
+  }
+  .recorrido-row:last-child{border-bottom:none;}
+  .rr-fecha{
+    font-family:var(--mono);font-size:10.5px;color:var(--ink-600);
+    background:#F1EBDC;border-radius:6px;padding:3px 6px;flex-shrink:0;
+  }
+  .rr-desc{flex:1;font-size:11px;color:var(--ink-900);line-height:1.35;}
+  .rr-monto{font-family:var(--mono);font-weight:700;font-size:12px;color:var(--navy-900);flex-shrink:0;}
+  .recorrido-row.add-row{cursor:pointer;}
+  .detail-card .recorrido-list{max-height:230px;overflow-y:auto;}
+
+  /* real editable inputs for the add-recorrido modal */
+  .text-input{
+    width:100%;background:#fff;border:1.5px solid #E3DCCB;border-radius:12px;
+    padding:12px 14px;font-size:14px;color:var(--ink-900);margin-bottom:16px;
+    font-family:var(--body);display:block;box-sizing:border-box;
+  }
+  .text-input:focus{outline:none;border-color:var(--teal-500);}
+  textarea.text-input{resize:none;font-family:var(--body);}
+
+  /* formulario F-03 (evaluación del pastor) */
+  .f03-section-title{
+    font-family:var(--display);font-size:14px;font-weight:700;color:var(--navy-900);
+    margin:22px 0 12px;padding-bottom:6px;border-bottom:1.5px solid #E3DCCB;
+  }
+  .f03-q{font-size:12.5px;font-weight:600;color:var(--ink-900);margin:14px 0 8px;}
+  .radio-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px;}
+  .radio-pill{
+    display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid #E3DCCB;
+    border-radius:20px;padding:7px 12px;font-size:11.5px;color:var(--ink-900);cursor:pointer;
+  }
+  .radio-pill input{accent-color:var(--teal-500);margin:0;}
+  .radio-pill:has(input:checked){border-color:var(--teal-500);background:var(--teal-100);font-weight:700;}
+  .two-field-row{display:flex;gap:10px;}
+  .two-field-row > *{flex:1;min-width:0;}
+
+  /* Origen/Destino fields with pin icon, matching the reference screenshot */
+  .field-input-wrap{
+    display:flex;align-items:center;gap:10px;
+    background:#fff;border:1.5px solid #E3DCCB;border-radius:14px;
+    padding:13px 16px;margin-bottom:10px;transition:border-color .15s ease;
+  }
+  .field-input-wrap:focus-within{border-color:var(--teal-500);}
+  .field-input-wrap .pin-icon{font-size:15px;flex-shrink:0;}
+  .field-input{
+    border:none;outline:none;background:transparent;flex:1;min-width:0;
+    font-size:14px;color:var(--ink-900);font-family:var(--body);
+  }
+  .field-input::placeholder{color:var(--ink-400);}
+
+  /* GPS auto-detect button */
+  .gps-btn{
+    display:flex;align-items:center;justify-content:center;gap:7px;
+    width:100%;background:var(--teal-100);border:1.5px solid var(--teal-300);
+    color:#0A5CA0;font-weight:700;font-size:12.5px;font-family:var(--body);
+    padding:11px;border-radius:12px;margin-bottom:18px;cursor:pointer;
+    transition:all .2s ease;
+  }
+  .gps-btn .gps-icon{font-size:14px;}
+  .gps-btn.detecting{opacity:.75;}
+  .gps-btn.detecting .gps-icon{animation:spin 1s linear infinite;}
+  .gps-btn.detected{background:rgba(63,166,107,0.14);border-color:#8FCBA5;color:#276B45;}
+  @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+
+  /* Diaconía banner header (matches reference design) */
+  .diaconia-banner{
+    background:linear-gradient(120deg, #063A6B 0%, #0A5CA0 100%);
+    padding:20px 20px 22px;
+    display:flex;align-items:center;gap:12px;
+    color:#fff;
+  }
+  .diaconia-banner h2{font-family:var(--display);font-size:16px;font-weight:700;margin:0;}
+  .diaconia-banner p{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:#BEE7E9;margin:2px 0 0;}
+  .diaconia-banner .db-logo{
+    width:36px;height:36px;border-radius:50%;flex-shrink:0;
+    background:radial-gradient(circle at 35% 30%, #7FE0E6, #17B4C4 60%, #0A5CA0);
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,0.25);
+  }
+  .diaconia-banner .back{margin-right:2px;font-size:16px;}
+
+  .section-title{
+    font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.07em;
+    color:var(--navy-900);margin:4px 0 14px;
+  }
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .two-col .field-label{margin-top:0;}
+
+  /* floating action button */
+  .fab{
+    position:absolute;bottom:20px;right:20px;
+    width:52px;height:52px;border-radius:50%;
+    background:var(--teal-500);color:#062A2C;border:none;
+    font-size:26px;font-weight:400;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 10px 24px -6px rgba(15,129,137,0.55);
+    cursor:pointer;z-index:20;
+  }
+
+  /* Agregar recorrido modal: date bar */
+  .rr-date-bar{display:flex;align-items:center;justify-content:space-between;margin:-4px 0 18px;}
+  .rr-date-input{
+    border:none;background:transparent;font-family:var(--mono);font-size:14px;
+    font-weight:700;color:var(--navy-900);padding:4px 0;
+  }
+  .modal-close-x{cursor:pointer;color:var(--ink-400);font-size:14px;padding:4px;}
+
+  /* trip sections (IDA / VUELTA) */
+  .trip-section{background:#fff;border:1.5px solid #E3DCCB;border-radius:14px;padding:14px 16px;margin-bottom:14px;}
+  .trip-section.vuelta{border-color:#F0D9A8;}
+  .trip-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+  .trip-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .ida-dot{background:var(--teal-500);}
+  .vuelta-dot{background:var(--gold-500);}
+  .trip-label{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ink-900);flex:1;}
+  .trip-amount{font-family:var(--mono);font-size:12px;font-weight:700;color:#0A5CA0;}
+  .trip-section.vuelta .trip-amount{color:#8A6112;}
+
+  .stop-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .stop-num{
+    width:18px;height:18px;border-radius:50%;background:#F1EBDC;color:var(--ink-600);
+    font-family:var(--mono);font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .pin-icon.clickable{cursor:pointer;flex-shrink:0;}
+  .stop-input{
+    flex:1;border:1.5px solid #E3DCCB;border-radius:10px;padding:9px 12px;
+    font-size:12.5px;color:var(--ink-900);font-family:var(--body);min-width:0;
+  }
+  .stop-input:focus{outline:none;border-color:var(--teal-500);}
+  .stop-input::placeholder{color:var(--ink-400);}
+  .confirm-stop-btn{
+    flex-shrink:0;font-family:var(--body);font-weight:700;font-size:10px;
+    background:#F1EBDC;color:var(--ink-600);border:1.5px solid #E3DCCB;
+    border-radius:8px;padding:8px 10px;cursor:pointer;white-space:nowrap;
+    transition:all .15s ease;
+  }
+  .confirm-stop-btn.confirmed{
+    background:rgba(63,166,107,0.14);border-color:#8FCBA5;color:#276B45;
+  }
+
+  .add-stop-link{display:block;font-size:11px;color:#0A5CA0;font-weight:700;margin:2px 0 12px 26px;cursor:pointer;}
+  .trip-section.vuelta .add-stop-link{color:#8A6112;}
+  .reversa-link{display:block;font-size:11px;color:#0A5CA0;font-weight:700;text-align:right;margin:-4px 0 12px;cursor:pointer;}
+
+  .tarifa-box{background:var(--teal-100);border-radius:10px;padding:12px;}
+  .trip-section.vuelta .tarifa-box{background:#FCEFD9;}
+  .tarifa-label{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.06em;color:#0A5CA0;margin:0 0 8px;}
+  .trip-section.vuelta .tarifa-label{color:#8A6112;}
+  .tarifa-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .tarifa-select{
+    flex:1;border:1.5px solid #C9E5E4;border-radius:8px;padding:8px 10px;
+    font-size:12px;color:var(--ink-900);background:#fff;font-family:var(--body);min-width:0;
+  }
+  .trip-section.vuelta .tarifa-select{border-color:#F0D9A8;}
+  .tarifa-dash{font-family:var(--mono);color:var(--ink-400);font-size:12px;flex-shrink:0;}
+  .tarifa-custom{
+    width:70px;flex-shrink:0;border:1.5px solid #C9E5E4;border-radius:8px;padding:8px 8px;
+    font-size:12px;color:var(--ink-900);font-family:var(--mono);
+  }
+  .tarifa-row{flex-wrap:wrap;row-gap:6px;}
+  .tarifa-transporte{
+    flex:1 1 100%;border:1.5px solid #C9E5E4;border-radius:8px;padding:8px 10px;
+    font-size:12px;color:var(--ink-900);font-family:var(--body);min-width:0;
+  }
+  .trip-section.vuelta .tarifa-transporte{border-color:#F0D9A8;}
+  .add-tramo-link{display:block;font-size:10.5px;color:#0A5CA0;font-weight:700;cursor:pointer;}
+  .trip-section.vuelta .add-tramo-link{color:#8A6112;}
+
+  .capture-status{
+    background:#F6F2E9;border-radius:10px;padding:10px 14px;
+    font-size:11.5px;color:var(--ink-600);text-align:center;margin-bottom:14px;
+  }
+
+  .map-preview{
+    height:130px;border-radius:14px;margin-bottom:14px;overflow:hidden;
+    background:
+      radial-gradient(circle at 30% 40%, rgba(126,219,214,0.35), transparent 50%),
+      radial-gradient(circle at 70% 65%, rgba(245,166,35,0.25), transparent 50%),
+      #EAE4D2;
+    border:1px solid #E3DCCB;
+  }
+  .map-preview svg{width:100%;height:100%;display:block;}
+
+  .monto-dia-bar{
+    display:flex;justify-content:space-between;align-items:center;
+    background:var(--teal-100);border-radius:12px;padding:14px 16px;
+    font-family:var(--mono);font-size:11px;font-weight:700;color:#0A5CA0;letter-spacing:.04em;
+  }
+  .monto-dia-bar span:last-child{font-size:16px;color:#063A6B;}
+
+  /* Historial: sub-tab panels and row items */
+  .hist-panel{display:none;}
+  .hist-panel.active{display:block;}
+  .hist-item{
+    display:flex;justify-content:space-between;align-items:flex-start;gap:10px;
+    padding:12px 0;border-top:1px solid #EAE3D2;
+  }
+  .hist-item:first-child{border-top:none;}
+  .hi-title{font-weight:700;font-size:12.5px;color:var(--ink-900);margin:0;}
+  .hi-sub{font-size:10.5px;color:var(--ink-600);font-family:var(--mono);margin:2px 0 0;}
+  .hi-right{text-align:right;flex-shrink:0;}
+  .hi-amount{font-family:var(--mono);font-weight:700;font-size:13px;color:var(--navy-900);margin:0;}
+  .hist-item.clickable{cursor:pointer;transition:background .15s ease;}
+  .hist-item.clickable:hover{background:#F6F2E9;}
+  .recorrido-summary{
+    text-align:center;font-size:11.5px;color:var(--ink-600);margin-bottom:14px;
+  }
+  .recorrido-summary #recorrido-count{font-weight:700;color:var(--navy-900);font-family:var(--mono);}
+  .recorrido-summary em{color:#0A5CA0;font-style:normal;font-weight:600;}
+  .day-item.clickable{cursor:pointer;transition:background .15s ease;border-radius:8px;}
+  .day-item.clickable:hover{background:#F6F2E9;}
+  .sd-module-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:11px 0;border-top:1px solid #EAE3D2;
+  }
+  .sd-module-row:first-child{border-top:none;}
+  .sd-module-row .smr-num{
+    width:20px;height:20px;border-radius:6px;background:var(--navy-900);color:var(--gold-300);
+    font-family:var(--mono);font-size:10.5px;font-weight:600;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:10px;
+  }
+  .sd-module-row .smr-name{font-weight:700;font-size:12px;color:var(--ink-900);margin:0;}
+  .sd-module-row .smr-eval{font-size:10px;color:var(--ink-600);font-family:var(--mono);margin:1px 0 0;}
+
+  /* GPS-enabled origen/destino fields (matches app field style) */
+  .field-gps{
+    background:#fff;border:1.5px solid #E3DCCB;border-radius:12px;
+    padding:11px 10px 11px 14px;margin-bottom:6px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .field-gps .pin{color:#C0392B;font-size:15px;flex-shrink:0;}
+  .field-gps .field-input{
+    flex:1;border:none;outline:none;background:transparent;
+    font-size:14px;color:var(--ink-900);font-family:var(--body);min-width:0;
+  }
+  .field-gps .field-input::placeholder{color:var(--ink-400);}
+  .field-gps .field-input[readonly]{color:var(--ink-600);}
+  .gps-btn{
+    background:var(--teal-500);color:#fff;border:none;border-radius:8px;
+    padding:8px 11px;font-size:10.5px;font-weight:700;cursor:pointer;flex-shrink:0;
+    display:flex;align-items:center;gap:5px;transition:background .15s ease;
+    font-family:var(--body);
+  }
+  .gps-btn.detecting{background:var(--gold-500);}
+  .gps-btn.done{background:var(--success);}
+  .gps-btn:disabled{cursor:default;}
+  .gps-caption{
+    font-family:var(--mono);font-size:10px;color:var(--teal-500);
+    margin:0 0 16px 4px;display:none;
+  }
+  .gps-caption.show{display:block;}
+  .gps-dot{
+    width:6px;height:6px;border-radius:50%;background:#fff;
+    animation:gpsPulse 1s ease-in-out infinite;flex-shrink:0;
+  }
+  @keyframes gpsPulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+  /* mobile evaluation detail view */
+  .doc-preview{background:#fff;border:1.5px solid #E3DCCB;border-radius:14px;padding:16px;margin-bottom:14px;}
+  .doc-preview-top{display:flex;gap:12px;align-items:center;margin-bottom:14px;}
+  .doc-icon{
+    width:38px;height:44px;background:var(--navy-900);color:var(--gold-300);border-radius:6px;
+    display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:700;flex-shrink:0;
+  }
+  .doc-name{font-weight:700;font-size:13px;margin:0;}
+  .doc-meta{font-size:11px;color:var(--ink-600);margin:2px 0 0;font-family:var(--mono);}
+  .doc-lines{display:flex;flex-direction:column;gap:7px;padding-top:12px;border-top:1px dashed #EAE3D2;}
+  .dl{height:7px;background:#EFE9DA;border-radius:3px;width:100%;}
+  .dl.short{width:60%;}
+  .comment-box{background:var(--navy-900);color:#fff;border-radius:12px;padding:14px 16px;font-size:12.5px;line-height:1.55;font-style:italic;}
+  .missing-box{background:#FBF2EE;border:1.5px solid #F0D4CB;border-radius:14px;padding:16px;color:#A8442D;font-size:12.5px;line-height:1.55;}
+
+  /* ---------- BROWSER FRAME ---------- */
+  .browser{
+    width:100%;
+    max-width:920px;
+    background:var(--cream-100);
+    border-radius:16px;
+    overflow:hidden;
+    box-shadow:0 30px 70px -25px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+  }
+  .browser-chrome{
+    background:#E9E2D1;
+    padding:12px 16px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .browser-chrome .dots{display:flex;gap:6px;}
+  .browser-chrome .dots span{width:9px;height:9px;border-radius:50%;background:#C9BFA5;}
+  .browser-chrome .urlbar{
+    flex:1;background:#fff;border-radius:8px;padding:6px 12px;
+    font-family:var(--mono);font-size:11.5px;color:var(--ink-600);
+  }
+  .app-shell{display:flex;min-height:560px;}
+  .sidebar{
+    width:200px;background:var(--navy-950);color:#fff;padding:22px 16px;flex-shrink:0;
+  }
+  .sidebar .brand{display:flex;align-items:center;gap:9px;margin-bottom:30px;}
+  .sidebar .brand .logo{
+    width:28px;height:28px;border-radius:8px;background:var(--gold-500);
+    display:flex;align-items:center;justify-content:center;font-family:var(--display);
+    font-weight:700;color:var(--navy-950);font-size:13px;
+  }
+  .sidebar .brand span{font-family:var(--display);font-weight:700;font-size:15px;}
+  .navlist{display:flex;flex-direction:column;gap:2px;}
+  .navlist a{
+    font-size:13px;color:var(--ink-400);padding:10px 12px;border-radius:8px;
+    display:flex;align-items:center;gap:9px;
+  }
+  .navlist a .sq{width:6px;height:6px;background:currentColor;border-radius:2px;}
+  .navlist a.on{background:rgba(23,180,196,0.14);color:var(--teal-300);font-weight:600;}
+
+  .content{flex:1;padding:26px 30px;color:var(--ink-900);}
+  .content-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;}
+  .content-head h2{font-family:var(--display);font-size:22px;margin:0 0 4px;}
+  .content-head p{font-size:12.5px;color:var(--ink-600);margin:0;}
+  .range{
+    font-family:var(--mono);font-size:11px;color:var(--ink-600);
+    border:1px solid var(--line-soft);padding:7px 12px;border-radius:8px;
+  }
+
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+  .kpi{
+    background:#fff;border:1px solid var(--line-soft);border-radius:14px;padding:16px;
+  }
+  .kpi .k-label{font-size:11px;color:var(--ink-600);margin:0 0 8px;}
+  .kpi .k-value{font-family:var(--display);font-size:24px;font-weight:700;margin:0;color:var(--navy-900);}
+  .kpi .k-value.gold{color:var(--gold-500);}
+  .kpi .k-value.teal{color:var(--teal-500);}
+
+  .panel{
+    background:#fff;border:1px solid var(--line-soft);border-radius:14px;padding:18px 20px;margin-bottom:18px;
+  }
+  .panel h4{font-family:var(--display);font-size:14.5px;margin:0 0 16px;}
+  .chart{display:flex;align-items:flex-end;gap:10px;height:120px;}
+  .chart .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .chart .col .bar{width:100%;border-radius:4px 4px 0 0;background:var(--teal-500);}
+  .chart .col .bar.gold{background:var(--gold-500);}
+  .chart .col small{font-size:10px;color:var(--ink-600);font-family:var(--mono);}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th{
+    text-align:left;font-family:var(--mono);font-size:10.5px;text-transform:uppercase;
+    letter-spacing:.05em;color:var(--ink-600);padding:8px 10px;border-bottom:1px solid var(--line-soft);
+  }
+  td{padding:11px 10px;border-bottom:1px solid var(--line-soft);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  .name-cell{display:flex;align-items:center;gap:9px;font-weight:600;}
+  .avatar{width:26px;height:26px;border-radius:50%;background:var(--navy-800);color:#fff;font-size:10px;
+    display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;}
+  .mono-cell{font-family:var(--mono);color:var(--ink-600);}
+  .horarios-table{min-width:920px;font-size:11.5px;}
+  .horarios-table th{white-space:nowrap;}
+  .horarios-table td{padding:9px 10px;white-space:nowrap;}
+  .horarios-table .name-cell{display:block;font-weight:600;white-space:normal;}
+  .horarios-table tr.row-highlight td{background:rgba(245,166,35,0.12);}
+  .horarios-table .name-flag{color:#8A6112;font-weight:700;}
+  .dist-row{display:flex;align-items:center;gap:10px;}
+  .dist-label{flex:0 0 46%;font-size:12px;color:var(--ink-900);}
+  .dist-bar{flex:1;background:#EFE9DA;border-radius:6px;height:10px;overflow:hidden;}
+  .dist-fill{height:100%;border-radius:6px;}
+  .dist-count{flex:0 0 24px;text-align:right;font-family:var(--mono);font-size:12px;color:var(--ink-600);font-weight:700;}
+  .approve-row{display:flex;gap:6px;}
+  .mini-btn{
+    font-family:var(--body);font-weight:700;font-size:11px;padding:6px 10px;border-radius:7px;border:none;cursor:pointer;
+  }
+  .mini-btn.approve{background:var(--success);color:#fff;}
+  .mini-btn.reject{background:transparent;border:1px solid #D8D0BC;color:var(--ink-600);}
+
+  .split{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;}
+  .detail-card .map-thumb{
+    height:100px;border-radius:10px;margin-bottom:14px;position:relative;overflow:hidden;
+    background:linear-gradient(rgba(15,48,74,0.92),rgba(15,48,74,0.92)),
+      repeating-linear-gradient(0deg, transparent, transparent 14px, rgba(255,255,255,0.06) 15px),
+      repeating-linear-gradient(90deg, transparent, transparent 14px, rgba(255,255,255,0.06) 15px);
+  }
+  .map-thumb .pin2{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);
+    width:12px;height:12px;background:var(--gold-500);border-radius:50% 50% 50% 0;rotate:-45deg;
+  }
+  .sign-box{
+    border:1.5px dashed #D8D0BC;border-radius:10px;height:56px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:10.5px;color:var(--ink-400);
+  }
+  .detail-row{display:flex;justify-content:space-between;font-size:12px;padding:7px 0;border-bottom:1px solid var(--line-soft);}
+  .detail-row span:first-child{color:var(--ink-600);}
+  .detail-row span:last-child{font-weight:600;}
+
+  footer.note{
+    max-width:1180px;margin:44px auto 0;text-align:center;
+    font-family:var(--mono);font-size:11px;color:var(--ink-400);
+    letter-spacing:.03em;
+  }
+
+  @media (max-width:760px){
+    .kpi-row{grid-template-columns:repeat(2,1fr);}
+    .split{grid-template-columns:1fr;}
+    .app-shell{flex-direction:column;}
+    .sidebar{width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;}
+    .navlist{flex-direction:row;flex-wrap:wrap;}
+    .eval-cards{grid-template-columns:repeat(2,1fr);}
+    .flow-strip{flex-direction:column;}
+    .flow-arrow{transform:rotate(90deg);}
+  }
+</style>
+</head>
+<body>
+<datalist id="tipos-transporte">
+  <option value="Minibús"></option>
+  <option value="Micro"></option>
+  <option value="Trufi"></option>
+  <option value="Taxi"></option>
+  <option value="Radio taxi"></option>
+  <option value="Teleférico"></option>
+  <option value="A pie"></option>
+</datalist>
+<div class="wrap">
+  <p class="eyebrow">Diseño prototípico · UWE / Modelo de presentación</p>
+  <h1 class="title">Sistema BUMAND — <span>prototipo de interfaz</span></h1>
+  <p class="sub">Vista de alta fidelidad de las pantallas clave descritas en el alcance: registro de asistencia con geolocalización, declaración de pasajes, panel administrativo y aprobaciones. App móvil en Flutter · panel web en React.js.</p>
+
+  <div class="switch">
+    <button class="active" data-device="mobile">Becario · App móvil</button>
+    <button data-device="web">Supervisor / Admin · Panel web</button>
+  </div>
+
+  <div class="tabs" id="mobile-tabs">
+    <button class="active" data-screen="login">01 Ingreso</button>
+    <button data-screen="asistencia">02 Asistencia</button>
+    <button data-screen="pasajes">03 Pasajes</button>
+    <button data-screen="evaluacion">04 Evaluación</button>
+    <button data-screen="historial">05 Historial</button>
+  </div>
+
+  <div class="tabs" id="web-tabs" style="display:none;">
+    <button class="active" data-screen="dashboard">01 Dashboard</button>
+    <button data-screen="becarios">02 Becarios</button>
+    <button data-screen="asistencia-web">03 Asistencia</button>
+    <button data-screen="pasajes">04 Pasajes</button>
+    <button data-screen="evaluaciones">05 Evaluaciones</button>
+    <button data-screen="reportes">06 Reportes</button>
+  </div>
+
+  <div class="stage">
+
+    <!-- ================= MOBILE DEVICE ================= -->
+    <div class="phone" id="phone-device">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span>●●●● 5G 87%</span></div>
+
+      <!-- LOGIN -->
+      <div class="screen active" data-screen="login">
+        <div class="appbar">
+          <div class="logo">B</div>
+          <div><h2>BUMAND</h2><p>DIACONÍA FRIF-IFD</p></div>
+        </div>
+        <div class="body-pad">
+          <h3 class="h-screen">Inicia sesión</h3>
+          <p class="p-sub">Accede con tu correo institucional del programa BUMAND.</p>
+          <span class="field-label">Correo institucional</span>
+          <div class="field"><span class="ph">nombre.apellido@bumand.bo</span></div>
+          <span class="field-label">Contraseña</span>
+          <div class="field"><span class="ph">••••••••</span></div>
+          <button class="btn btn-teal" id="login-btn">Ingresar</button>
+          <span class="link">¿Olvidaste tu contraseña?</span>
+        </div>
+      </div>
+
+      <!-- VERIFICACIÓN POST-LOGIN -->
+      <div class="screen" data-screen="verificacion" style="position:relative;">
+        <div class="diaconia-banner">
+          <span class="back" id="vf-back" style="color:#fff;">←</span>
+          <div class="db-logo"></div>
+          <div>
+            <h2>Diaconía IFD</h2>
+            <p>DEVOLUCIÓN DEL 80% DE PASAJES</p>
+          </div>
+        </div>
+        <div class="body-pad">
+
+          <!-- STEP 1: confirmar correo -->
+          <div id="vf-step-email">
+            <p class="section-title">CONFIRMA TU CORREO</p>
+            <p class="p-sub" style="margin-top:-8px;">Por seguridad, verifica tu correo institucional antes de continuar.</p>
+
+            <span class="field-label">Correo electrónico</span>
+            <input type="email" class="text-input" id="vf-correo-1" placeholder="nombre.apellido@bumand.bo" />
+
+            <span class="field-label">Confirmar correo electrónico</span>
+            <input type="email" class="text-input" id="vf-correo-2" placeholder="Vuelve a escribir tu correo" />
+
+            <p class="p-sub" id="vf-correo-error" style="color:var(--warn);display:none;margin-top:-8px;">Los correos no coinciden. Verifica e intenta de nuevo.</p>
+
+            <button class="btn btn-teal" id="vf-guardar-correo-btn">Guardar</button>
+          </div>
+
+          <!-- STEP 2: confirma estos datos (auto, read-only) -->
+          <div id="vf-step-datos" style="display:none;">
+            <p class="section-title">CONFIRMA ESTOS DATOS</p>
+            <p class="p-sub" style="margin-top:-8px;">Verificado con tu correo institucional. Revisa que todo esté correcto.</p>
+
+            <div class="form-header-card">
+              <div class="fh-row"><span class="fh-label">Estudiante</span><span class="fh-value">María Catunta Laime</span></div>
+              <div class="fh-row"><span class="fh-label">Carrera</span><span class="fh-value">Economía</span></div>
+              <div class="fh-row"><span class="fh-label">Universidad</span><span class="fh-value">Universidad Pública de El Alto</span></div>
+              <div class="fh-row"><span class="fh-label">Mes de prácticas</span><span class="fh-value">Marzo</span></div>
+              <div class="fh-row"><span class="fh-label">Fecha de presentación</span><span class="fh-value" id="vf-fecha-presentacion">24/03/2026</span></div>
+              <div class="fh-row"><span class="fh-label">Lugar de prácticas</span><span class="fh-value">Oficina Central</span></div>
+              <div class="fh-row"><span class="fh-label">Unidad</span><span class="fh-value">Créditos</span></div>
+              <div class="fh-row"><span class="fh-label">Responsable / mentor</span><span class="fh-value">Carlos Alanoca</span></div>
+            </div>
+
+            <button class="btn btn-gold" id="vf-confirmar-datos-btn">Confirmar datos</button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ASISTENCIA -->
+      <div class="screen" data-screen="asistencia">
+        <div class="appbar"><span class="back">←</span><div><h2>Registro de asistencia</h2><p>Verificación por geolocalización</p></div></div>
+        <div class="body-pad">
+          <div class="seg-tabs" id="asistencia-subtabs">
+            <span class="on" data-sub="practicas">Registro de Prácticas</span>
+            <span data-sub="escuela">Escuela de Líderes</span>
+            <span data-sub="servicio">Acciones de Servicio</span>
+          </div>
+
+          <!-- SUBTAB: PRÁCTICAS -->
+          <div class="asis-sub active" data-sub="practicas">
+            <div class="radar-box">
+              <div class="radar-fixed-ring"></div>
+              <div class="radar-center">
+                <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+                <div class="pin"></div>
+              </div>
+              <div class="radar-tag">GPS · precisión 6m</div>
+            </div>
+            <span class="chip chip-success" id="practicas-chip-radio"><span class="dot"></span>Dentro del radio permitido · 42 m</span>
+            <p class="place-name" style="margin-top:14px;">Iglesia Bautista Central</p>
+            <p class="place-sub">Zona 16 de Julio, El Alto — becaria: María Catunta Laime</p>
+            <p class="time-big">09:41</p>
+            <p class="time-label">MIÉ 12 AGO 2026</p>
+            <div class="btn-row">
+              <button class="btn btn-teal" id="practicas-ingreso-btn"
+                data-horario-lun="08:00-12:00" data-horario-mar=""
+                data-horario-mie="08:00-12:00" data-horario-jue=""
+                data-horario-vie="08:00-14:00" data-horario-sab="" data-horario-dom="">Marcar ingreso</button>
+              <button class="btn btn-outline">Marcar salida</button>
+            </div>
+            <div id="practicas-alerta" class="chip" style="display:none;margin-top:12px;width:100%;box-sizing:border-box;justify-content:center;font-size:12px;padding:10px 12px;"></div>
+            <div class="day-item"><span class="dot-status"></span>Ingreso registrado <span class="day-time">08:58</span></div>
+            <div class="day-item"><span class="dot-status" style="background:#D8D0BC;"></span>Salida pendiente <span class="day-time">—:—</span></div>
+          </div>
+
+          <!-- SUBTAB: ESCUELA DE LÍDERES -->
+          <div class="asis-sub" data-sub="escuela">
+            <div class="radar-box">
+              <div class="radar-fixed-ring"></div>
+              <div class="radar-center">
+                <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+                <div class="pin"></div>
+              </div>
+              <div class="radar-tag">GPS · precisión 8m</div>
+            </div>
+            <span class="chip chip-pending"><span class="dot"></span>Hora de entrada: 14:30</span>
+            <p class="place-name" style="margin-top:14px;">Escuela de Líderes Diaconales</p>
+            <p class="place-sub">Oficina Central, El Alto — módulo de formación en liderazgo</p>
+            <p class="time-big">09:41</p>
+            <p class="time-label">SÁB 15 AGO 2026 · MÓDULO 6</p>
+            <div class="btn-row">
+              <button class="btn btn-gold" id="escuela-ingreso-btn" data-hora-entrada="14:30">Marcar ingreso</button>
+              <button class="btn btn-outline">Marcar salida</button>
+            </div>
+            <div id="escuela-alerta" class="chip" style="display:none;margin-top:12px;width:100%;box-sizing:border-box;justify-content:center;font-size:12px;padding:10px 12px;"></div>
+            <div class="day-item"><span class="dot-status"></span>Módulo 5 · Liderazgo servicial <span class="day-time">08 ago</span></div>
+            <div class="day-item"><span class="dot-status"></span>Módulo 4 · Ética cristiana <span class="day-time">01 ago</span></div>
+          </div>
+
+          <!-- SUBTAB: ACCIONES DE SERVICIO -->
+          <div class="asis-sub" data-sub="servicio">
+            <div class="radar-box">
+              <div class="radar-fixed-ring"></div>
+              <div class="radar-center">
+                <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+                <div class="pin"></div>
+              </div>
+              <div class="radar-tag">GPS · precisión 7m</div>
+            </div>
+            <span class="chip chip-success"><span class="dot"></span>Dentro del radio permitido · 30 m</span>
+            <p class="place-name" style="margin-top:14px;">Comedor Comunitario San José</p>
+            <p class="place-sub">Zona Villa Adela, El Alto — punto de acción de servicio asignado</p>
+            <p class="time-big">09:41</p>
+            <p class="time-label">SÁB 15 AGO 2026</p>
+            <div class="btn-row">
+              <button class="btn btn-teal">Marcar ingreso</button>
+              <button class="btn btn-outline">Marcar salida</button>
+            </div>
+            <div class="day-item"><span class="dot-status"></span>Acción comunitaria · Apoyo escolar <span class="day-time">09 ago</span></div>
+            <div class="day-item"><span class="dot-status"></span>Acción comunitaria · Campaña de salud <span class="day-time">02 ago</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASAJES -->
+      <div class="screen" data-screen="pasajes" style="position:relative;">
+        <div class="diaconia-banner">
+          <span class="back" style="color:#fff;">←</span>
+          <div class="db-logo"></div>
+          <div>
+            <h2>Diaconía IFD</h2>
+            <p>DEVOLUCIÓN DEL 80% DE PASAJES</p>
+          </div>
+        </div>
+        <div class="body-pad">
+
+          <!-- Correo y datos ya se confirmaron en la verificación post-login -->
+          <div id="step-rest">
+            <div style="text-align:center;margin-bottom:16px;">
+              <span class="chip chip-success"><span class="dot"></span>Correo y datos confirmados</span>
+            </div>
+
+            <p class="p-sub" style="text-align:center;margin:6px 0 18px;">Registra tus viajes del día con paradas, GPS y tarifas.</p>
+
+            <span class="field-label">Apoyo realizado</span>
+            <textarea class="text-input" rows="2" id="pasajes-apoyo-realizado">Envío de reportes, control CAEDEC</textarea>
+
+            <!-- NUEVO RECORRIDO (inline, antes de la lista) -->
+            <div class="rr-date-bar">
+              <input type="date" class="rr-date-input" id="rr-date-input" value="2026-08-18" />
+            </div>
+
+            <!-- indicador de paso 1/2 -->
+            <div class="seg-tabs" id="pasaje-steps">
+              <span class="on" data-step="ida">1 · Ida</span>
+              <span data-step="vuelta">2 · Vuelta</span>
+            </div>
+
+            <!-- PASO 1: IDA -->
+            <div class="pasaje-step active" data-step="ida">
+            <div class="trip-section ida" id="ida-section">
+              <div class="trip-header">
+                <span class="trip-dot ida-dot"></span>
+                <span class="trip-label">IDA</span>
+                <span class="trip-amount" id="ida-amount">Bs 0.00</span>
+              </div>
+              <div class="stop-list" id="ida-stops">
+                <div class="stop-row">
+                  <span class="stop-num">1</span>
+                  <span class="pin-icon clickable" data-section="ida">📍</span>
+                  <input type="text" class="stop-input" placeholder="Origen (toca 📍 o escribe)" />
+                  <button class="confirm-stop-btn" data-section="ida">Confirmar</button>
+                </div>
+                <div class="stop-row">
+                  <span class="stop-num">2</span>
+                  <span class="pin-icon clickable" data-section="ida">📍</span>
+                  <input type="text" class="stop-input" placeholder="Destino (toca 📍 o escribe)" />
+                  <button class="confirm-stop-btn" data-section="ida">Confirmar</button>
+                </div>
+              </div>
+              <span class="add-stop-link" data-section="ida">+ Agregar parada</span>
+
+              <div class="tarifa-box">
+                <p class="tarifa-label">TARIFA DE LA IDA</p>
+                <div class="tarifa-tramos" id="ida-tramos">
+                  <div class="tarifa-row">
+                    <select class="tarifa-select" data-section="ida">
+                      <option value="">Selecciona una tarifa...</option>
+                      <option value="2">Bs 2.00 — Minibús (dentro de El Alto)</option>
+                      <option value="1.5">Bs 1.50 — Micro (dentro de El Alto)</option>
+                      <option value="3.5">Bs 3.50 — Minibús (Centro La Paz – Ceja)</option>
+                      <option value="4">Bs 4.00 — Minibús (UMSA – Ceja)</option>
+                      <option value="3">Bs 3.00 — Teleférico (línea regular)</option>
+                      <option value="2">Bs 2.00 — Teleférico (por transbordo)</option>
+                      <option value="custom">Otro (escribir monto)…</option>
+                    </select>
+                    <span class="tarifa-dash">—</span>
+                  </div>
+                </div>
+                <span class="add-tramo-link" data-section="ida">+ Agregar tramo de tarifa (transbordo)</span>
+              </div>
+
+              <button class="btn btn-outline" id="guardar-ida-btn" style="margin-top:12px;">Guardar ruta ida</button>
+              <div id="ida-guardada-msg" style="display:none;text-align:center;margin-top:10px;">
+                <span class="chip chip-success"><span class="dot"></span>Ruta de ida guardada</span>
+              </div>
+            </div>
+            <button class="btn btn-teal" id="ir-a-vuelta-btn" style="margin-top:14px;">Siguiente: Vuelta →</button>
+            </div>
+
+            <!-- PASO 2: VUELTA -->
+            <div class="pasaje-step" data-step="vuelta" style="display:none;">
+            <span class="link" id="volver-a-ida-btn" style="display:inline-block;margin-bottom:12px;">← Volver a Ida</span>
+            <div class="trip-section vuelta" id="vuelta-section">
+              <div class="trip-header">
+                <span class="trip-dot vuelta-dot"></span>
+                <span class="trip-label">VUELTA</span>
+                <span class="trip-amount" id="vuelta-amount">Bs 0.00</span>
+              </div>
+              <div class="stop-list" id="vuelta-stops">
+                <div class="stop-row">
+                  <span class="stop-num">1</span>
+                  <span class="pin-icon clickable" data-section="vuelta">📍</span>
+                  <input type="text" class="stop-input" placeholder="Origen (toca 📍 o escribe)" />
+                  <button class="confirm-stop-btn" data-section="vuelta">Confirmar</button>
+                </div>
+                <div class="stop-row">
+                  <span class="stop-num">2</span>
+                  <span class="pin-icon clickable" data-section="vuelta">📍</span>
+                  <input type="text" class="stop-input" placeholder="Destino (toca 📍 o escribe)" />
+                  <button class="confirm-stop-btn" data-section="vuelta">Confirmar</button>
+                </div>
+              </div>
+              <span class="add-stop-link" data-section="vuelta">+ Agregar parada</span>
+              <span class="reversa-link" id="usar-ida-reversa">↺ Usar la ida en reversa</span>
+
+              <div class="tarifa-box">
+                <p class="tarifa-label">TARIFA DE LA VUELTA</p>
+                <div class="tarifa-tramos" id="vuelta-tramos">
+                  <div class="tarifa-row">
+                    <select class="tarifa-select" data-section="vuelta">
+                      <option value="">Selecciona una tarifa...</option>
+                      <option value="2">Bs 2.00 — Minibús (dentro de El Alto)</option>
+                      <option value="1.5">Bs 1.50 — Micro (dentro de El Alto)</option>
+                      <option value="3.5">Bs 3.50 — Minibús (Centro La Paz – Ceja)</option>
+                      <option value="4">Bs 4.00 — Minibús (UMSA – Ceja)</option>
+                      <option value="3">Bs 3.00 — Teleférico (línea regular)</option>
+                      <option value="2">Bs 2.00 — Teleférico (por transbordo)</option>
+                      <option value="custom">Otro (escribir monto)…</option>
+                    </select>
+                    <span class="tarifa-dash">—</span>
+                  </div>
+                </div>
+                <span class="add-tramo-link" data-section="vuelta">+ Agregar tramo de tarifa (transbordo)</span>
+              </div>
+
+              <button class="btn btn-outline" id="guardar-vuelta-btn" style="margin-top:12px;">Guardar ruta vuelta</button>
+              <div id="vuelta-guardada-msg" style="display:none;text-align:center;margin-top:10px;">
+                <span class="chip chip-success"><span class="dot"></span>Ruta de vuelta guardada</span>
+              </div>
+            </div>
+
+            <p class="capture-status" id="capture-status">Aún no hay puntos capturados.</p>
+
+            <div class="map-preview">
+              <svg viewBox="0 0 300 130" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10,90 Q60,40 120,60 T220,50 T290,80" fill="none" stroke="#B7DEDD" stroke-width="3"/>
+                <path d="M20,110 Q90,100 140,85 T260,40" fill="none" stroke="#F5A623" stroke-width="2" stroke-dasharray="4 4" opacity="0.6"/>
+                <circle cx="10" cy="90" r="4" fill="#17B4C4"/>
+                <circle cx="120" cy="60" r="4" fill="#17B4C4"/>
+                <circle cx="220" cy="50" r="4" fill="#17B4C4"/>
+                <circle cx="290" cy="80" r="5" fill="#F5A623"/>
+                <text x="150" y="20" font-size="10" fill="#8A9BA4" font-family="'Segoe UI',sans-serif" text-anchor="middle">El Alto — La Paz</text>
+              </svg>
+            </div>
+
+            <div class="monto-dia-bar">
+              <span>MONTO DEL DÍA</span>
+              <span id="monto-dia-total">Bs. 0,00</span>
+            </div>
+
+            <button class="btn btn-gold" id="save-recorrido-btn" style="margin-top:14px;">Guardar recorrido del día</button>
+            <p class="p-sub" id="add-rr-error" style="text-align:center;color:var(--warn);margin-top:10px;display:none;">Completa el origen, destino y tarifa de la ida.</p>
+            </div>
+
+            <div style="height:1px;background:#E3DCCB;margin:22px 0;"></div>
+
+            <div class="recorrido-summary">
+              <span id="recorrido-count">8</span> recorridos registrados este mes — <em>ver detalle en Historial</em>
+            </div>
+            <div class="recorrido-list" id="recorrido-list" style="display:none;">
+              <div class="recorrido-row">
+                <span class="rr-fecha">23-02</span>
+                <span class="rr-desc">Av. Buenos Aires – Oficina Central – Av. Buenos Aires</span>
+                <span class="rr-monto">5.00</span>
+              </div>
+              <div class="recorrido-row">
+                <span class="rr-fecha">25-02</span>
+                <span class="rr-desc">Av. Buenos Aires – Oficina Central – Av. Buenos Aires</span>
+                <span class="rr-monto">5.00</span>
+              </div>
+              <div class="recorrido-row">
+                <span class="rr-fecha">27-02</span>
+                <span class="rr-desc">Av. Buenos Aires – Oficina Central</span>
+                <span class="rr-monto">2.50</span>
+              </div>
+              <div class="recorrido-row">
+                <span class="rr-fecha">02-03</span>
+                <span class="rr-desc">Av. Buenos Aires – Oficina Central – Av. Buenos Aires</span>
+                <span class="rr-monto">5.00</span>
+              </div>
+              <div class="recorrido-row">
+                <span class="rr-fecha">04-03</span>
+                <span class="rr-desc">Av. Buenos Aires – Oficina Central – Av. Buenos Aires</span>
+                <span class="rr-monto">5.00</span>
+              </div>
+              <div class="recorrido-row">
+                <span class="rr-fecha">06-03</span>
+                <span class="rr-desc">Av. Buenos Aires – Oficina Central</span>
+                <span class="rr-monto">2.50</span>
+              </div>
+              <div class="recorrido-row">
+                <span class="rr-fecha">09-03</span>
+                <span class="rr-desc">Av. Buenos Aires – Oficina Central – Av. Buenos Aires</span>
+                <span class="rr-monto">5.00</span>
+              </div>
+              <div class="recorrido-row">
+                <span class="rr-fecha">11-03</span>
+                <span class="rr-desc">Av. Buenos Aires – Oficina Central – Av. Buenos Aires</span>
+                <span class="rr-monto">5.00</span>
+              </div>
+            </div>
+
+            <div class="calc-card" style="margin-top:16px;">
+              <p class="label">Monto total del pasaje</p>
+              <p class="amount" style="font-size:22px;" id="pasaje-total">Bs 35.00</p>
+              <div style="height:1px;background:rgba(255,255,255,0.15);margin:10px 0;"></div>
+              <p class="label">Devolución del 80%</p>
+              <p class="amount" id="pasaje-devolucion">Bs 28.00</p>
+            </div>
+
+            <button class="btn btn-gold" id="enviar-formulario-btn">Enviar formulario mensual</button>
+            <p class="p-sub" id="enviar-formulario-hint" style="text-align:center;margin-top:8px;display:none;"></p>
+            <div style="text-align:center;margin-top:14px;">
+              <span class="chip chip-pending"><span class="dot"></span>Pendiente de firma del mentor</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EVALUACIÓN -->
+      <div class="screen" data-screen="evaluacion">
+        <div class="appbar"><span class="back">←</span><div><h2>Evaluación de Desempeño</h2><p>5 módulos · 1 vez por semestre</p></div></div>
+        <div class="body-pad">
+
+          <span class="field-label">Periodo de evaluación</span>
+          <div class="semester-list" id="semester-list">
+            <div class="semester-row on" data-semester="s2">
+              <div class="chk">✓</div>
+              <div class="s-label"><strong>Semestre II · 2026</strong><small>Periodo actual — jul a dic</small></div>
+              <span class="chip chip-success"><span class="dot"></span>Habilitado</span>
+            </div>
+            <div class="semester-row" data-semester="s1">
+              <div class="chk">✓</div>
+              <div class="s-label"><strong>Semestre I · 2026</strong><small>Cerrado — ene a jun</small></div>
+              <span class="chip chip-locked"><span class="dot"></span>Inhabilitado</span>
+            </div>
+          </div>
+
+          <!-- SEMESTRE II - HABILITADO -->
+          <div class="eval-period active" data-period="s2">
+
+          <div class="eval-mcard">
+            <div class="row-top">
+              <div class="num-badge">1</div>
+              <div class="titles">
+                <h5>Liderazgo en la Iglesia</h5>
+                <p class="evaluator">Evaluador: Pastor</p>
+              </div>
+              <span class="chip chip-success"><span class="dot"></span>18/20</span>
+            </div>
+            <div class="upload-box done" id="f03-trigger-btn" data-score="18" data-max="20">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="up-icon">✓</div>
+                <div class="file-meta">Formulario_liderazgo.pdf<small>Enviado 05 ago · 2026</small></div>
+              </div>
+              <span class="view-link">Llenar / Ver</span>
+            </div>
+          </div>
+
+          <div class="eval-mcard">
+            <div class="row-top">
+              <div class="num-badge">2</div>
+              <div class="titles">
+                <h5>Autoevaluación Académica</h5>
+                <p class="evaluator">Evaluador: Becario</p>
+              </div>
+              <span class="chip chip-success"><span class="dot"></span>20/20</span>
+            </div>
+            <div class="upload-box done eval-trigger" data-state="done" data-multi="true" data-num="02" data-title="Autoevaluación Académica" data-evaluator="Evaluador: Becario" data-score="20" data-max="20" data-file="Record_academico.pdf" data-date="Enviado 06 ago · 2026" data-comment="Rendimiento académico sobresaliente durante el semestre, mantiene el promedio requerido por el programa.">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="up-icon">✓</div>
+                <div class="file-meta">Record_academico.pdf<small>Enviado 06 ago · 2026</small></div>
+              </div>
+              <span class="view-link">Ver</span>
+            </div>
+          </div>
+
+          <div class="eval-mcard">
+            <div class="row-top">
+              <div class="num-badge">3</div>
+              <div class="titles">
+                <h5>Evaluación del Mentor</h5>
+                <p class="evaluator">Evaluador: Supervisor</p>
+              </div>
+              <span class="chip chip-pending"><span class="dot"></span>14/20</span>
+            </div>
+            <div class="upload-box done eval-trigger" data-state="done" data-num="03" data-title="Evaluación del Mentor" data-evaluator="Evaluador: Supervisor" data-score="14" data-max="20" data-file="Formulario_mentor.pdf" data-date="Enviado 09 ago · 2026" data-comment="Cumple con las tareas asignadas, aunque se sugiere mejorar la comunicación de avances semanales.">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="up-icon">✓</div>
+                <div class="file-meta">Formulario_mentor.pdf<small>Enviado 09 ago · 2026</small></div>
+              </div>
+              <span class="view-link">Ver</span>
+            </div>
+          </div>
+
+          <div class="eval-mcard">
+            <div class="row-top">
+              <div class="num-badge">4</div>
+              <div class="titles">
+                <h5>Evaluación Escuela de Líderes</h5>
+                <p class="evaluator">Evaluador: Facilitador</p>
+              </div>
+              <span class="chip chip-success"><span class="dot"></span>17/20</span>
+            </div>
+            <div class="upload-box done eval-trigger" data-state="done" data-num="04" data-title="Evaluación Escuela de Líderes" data-evaluator="Evaluador: Facilitador" data-score="17" data-max="20" data-file="Tareas_modulo6.zip" data-date="Enviado 10 ago · 2026" data-comment="Participación activa en los módulos de formación. Entregó todas las tareas dentro de plazo.">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="up-icon">✓</div>
+                <div class="file-meta">Tareas_modulo6.zip<small>Enviado 10 ago · 2026</small></div>
+              </div>
+              <span class="view-link">Ver</span>
+            </div>
+          </div>
+
+          <div class="eval-mcard">
+            <div class="row-top">
+              <div class="num-badge">5</div>
+              <div class="titles">
+                <h5>Evaluación Socioeconómica</h5>
+                <p class="evaluator">Evaluador: Trabajo Social</p>
+              </div>
+              <span class="chip chip-warn"><span class="dot"></span>Pendiente</span>
+            </div>
+            <div class="upload-box eval-trigger" data-state="pending" data-num="05" data-title="Evaluación Socioeconómica" data-evaluator="Evaluador: Trabajo Social" data-instructions="Sube tus documentos socioeconómicos: recibos, certificado de ingresos o boleta de servicios recientes.">
+              <div class="up-icon">⬆</div>
+              Toca para subir documentos socioeconómicos
+            </div>
+          </div>
+
+          <p class="p-sub" style="text-align:center;margin:16px 0 0;">Los 5 módulos alimentan la Analítica de Datos y el Kardex del panel web.</p>
+          </div>
+
+          <!-- SEMESTRE I - INHABILITADO -->
+          <div class="eval-period" data-period="s1">
+
+          <span class="chip chip-locked" style="margin-bottom:16px;"><span class="dot"></span>Periodo cerrado · solo lectura</span>
+
+          <div class="eval-mcard locked">
+            <div class="row-top">
+              <div class="num-badge">1</div>
+              <div class="titles">
+                <h5>Liderazgo en la Iglesia</h5>
+                <p class="evaluator">Evaluador: Pastor</p>
+              </div>
+              <span class="chip chip-success"><span class="dot"></span>16/20</span>
+            </div>
+            <div class="upload-box locked eval-trigger" data-state="locked" data-num="01" data-title="Liderazgo en la Iglesia" data-evaluator="Evaluador: Pastor" data-score="16" data-max="20" data-file="Formulario_liderazgo.pdf" data-date="Enviado 12 feb · 2026" data-comment="Participación constante en las actividades de la congregación durante el primer semestre.">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="up-icon">🔒</div>
+                <div class="file-meta">Formulario_liderazgo.pdf<small>Enviado 12 feb · 2026</small></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="eval-mcard locked">
+            <div class="row-top">
+              <div class="num-badge">2</div>
+              <div class="titles">
+                <h5>Autoevaluación Académica</h5>
+                <p class="evaluator">Evaluador: Becario</p>
+              </div>
+              <span class="chip chip-success"><span class="dot"></span>19/20</span>
+            </div>
+            <div class="upload-box locked eval-trigger" data-state="locked" data-num="02" data-title="Autoevaluación Académica" data-evaluator="Evaluador: Becario" data-score="19" data-max="20" data-file="Record_academico.pdf" data-date="Enviado 14 feb · 2026" data-comment="Buen desempeño académico general en el primer semestre del año.">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="up-icon">🔒</div>
+                <div class="file-meta">Record_academico.pdf<small>Enviado 14 feb · 2026</small></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="eval-mcard locked">
+            <div class="row-top">
+              <div class="num-badge">3</div>
+              <div class="titles">
+                <h5>Evaluación del Mentor</h5>
+                <p class="evaluator">Evaluador: Supervisor</p>
+              </div>
+              <span class="chip chip-success"><span class="dot"></span>18/20</span>
+            </div>
+            <div class="upload-box locked eval-trigger" data-state="locked" data-num="03" data-title="Evaluación del Mentor" data-evaluator="Evaluador: Supervisor" data-score="18" data-max="20" data-file="Formulario_mentor.pdf" data-date="Enviado 20 feb · 2026" data-comment="Cumplimiento adecuado de las actividades encomendadas durante el periodo.">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="up-icon">🔒</div>
+                <div class="file-meta">Formulario_mentor.pdf<small>Enviado 20 feb · 2026</small></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="eval-mcard locked">
+            <div class="row-top">
+              <div class="num-badge">4</div>
+              <div class="titles">
+                <h5>Evaluación Escuela de Líderes</h5>
+                <p class="evaluator">Evaluador: Facilitador</p>
+              </div>
+              <span class="chip chip-success"><span class="dot"></span>15/20</span>
+            </div>
+            <div class="upload-box locked eval-trigger" data-state="locked" data-num="04" data-title="Evaluación Escuela de Líderes" data-evaluator="Evaluador: Facilitador" data-score="15" data-max="20" data-file="Tareas_modulo3.zip" data-date="Enviado 22 feb · 2026" data-comment="Entrega parcial de tareas del módulo, se recomienda mejorar los tiempos de entrega.">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="up-icon">🔒</div>
+                <div class="file-meta">Tareas_modulo3.zip<small>Enviado 22 feb · 2026</small></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="eval-mcard locked">
+            <div class="row-top">
+              <div class="num-badge">5</div>
+              <div class="titles">
+                <h5>Evaluación Socioeconómica</h5>
+                <p class="evaluator">Evaluador: Trabajo Social</p>
+              </div>
+              <span class="chip chip-warn"><span class="dot"></span>Incompleto</span>
+            </div>
+            <div class="upload-box missing eval-trigger" data-state="missing" data-num="05" data-title="Evaluación Socioeconómica" data-evaluator="Evaluador: Trabajo Social" data-missing-msg="No se recibió el documento antes del cierre del periodo. El módulo quedó registrado como incompleto en el Kardex.">
+              <div class="up-icon">✕</div>
+              No se recibió el documento antes del cierre del periodo
+            </div>
+          </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- HISTORIAL -->
+      <div class="screen" data-screen="historial">
+        <div class="appbar"><span class="back">←</span><div><h2>Mi historial</h2><p>Periodo: agosto 2026</p></div></div>
+        <div class="body-pad">
+
+          <div class="seg-tabs" id="historial-subtabs">
+            <span class="on" data-hist="asistencia">Asistencia</span>
+            <span data-hist="pasajes">Pasajes</span>
+            <span data-hist="evaluaciones">Evaluaciones</span>
+          </div>
+
+          <!-- ASISTENCIA -->
+          <div class="hist-panel active" data-hist="asistencia">
+            <div class="summary-card">
+              <p class="label">Horas acumuladas este mes</p>
+              <p class="value">38.5 h</p>
+              <div class="minibars">
+                <div class="bar" style="height:40%;"></div>
+                <div class="bar" style="height:65%;"></div>
+                <div class="bar" style="height:50%;"></div>
+                <div class="bar" style="height:85%;"></div>
+                <div class="bar" style="height:70%;"></div>
+              </div>
+            </div>
+            <div class="day-item clickable" data-key="lun11"><span class="dot-status"></span>Lun 11 ago <span class="day-time">08:02–13:10</span></div>
+            <div class="day-item clickable" data-key="vie08"><span class="dot-status"></span>Vie 08 ago <span class="day-time">08:55–12:40</span></div>
+            <div class="day-item clickable" data-key="jue07"><span class="dot-status" style="background:var(--warn);"></span>Jue 07 ago <span class="day-time">Fuera de radio</span></div>
+            <div class="day-item clickable" data-key="mie06"><span class="dot-status"></span>Mié 06 ago <span class="day-time">08:47–12:30</span></div>
+          </div>
+
+          <!-- PASAJES -->
+          <div class="hist-panel" data-hist="pasajes">
+            <div class="summary-card">
+              <p class="label">Devolución acumulada 2026</p>
+              <p class="value">Bs 76.00</p>
+              <div class="minibars">
+                <div class="bar" style="height:55%;"></div>
+                <div class="bar" style="height:80%;"></div>
+                <div class="bar" style="height:45%;"></div>
+                <div class="bar" style="height:90%;"></div>
+                <div class="bar" style="height:70%;"></div>
+              </div>
+            </div>
+            <div class="hist-item clickable" data-key="marzo">
+              <div><p class="hi-title">Formulario · Marzo 2026</p><p class="hi-sub">8 recorridos · Créditos</p></div>
+              <div class="hi-right"><p class="hi-amount">Bs 28.00</p><span class="chip chip-pending" style="margin-top:4px;"><span class="dot"></span>Pendiente</span></div>
+            </div>
+            <div class="hist-item clickable" data-key="febrero">
+              <div><p class="hi-title">Formulario · Febrero 2026</p><p class="hi-sub">6 recorridos · Créditos</p></div>
+              <div class="hi-right"><p class="hi-amount">Bs 22.40</p><span class="chip chip-success" style="margin-top:4px;"><span class="dot"></span>Aprobado</span></div>
+            </div>
+            <div class="hist-item clickable" data-key="enero">
+              <div><p class="hi-title">Formulario · Enero 2026</p><p class="hi-sub">7 recorridos · Créditos</p></div>
+              <div class="hi-right"><p class="hi-amount">Bs 25.60</p><span class="chip chip-success" style="margin-top:4px;"><span class="dot"></span>Aprobado</span></div>
+            </div>
+          </div>
+
+          <!-- EVALUACIONES -->
+          <div class="hist-panel" data-hist="evaluaciones">
+            <div class="summary-card">
+              <p class="label">Promedio general histórico</p>
+              <p class="value">85%</p>
+              <div class="minibars">
+                <div class="bar" style="height:90%;"></div>
+                <div class="bar" style="height:75%;"></div>
+                <div class="bar" style="height:85%;"></div>
+                <div class="bar" style="height:70%;"></div>
+                <div class="bar" style="height:100%;"></div>
+              </div>
+            </div>
+            <div class="hist-item clickable" data-key="s2">
+              <div><p class="hi-title">Semestre II · 2026</p><p class="hi-sub">3 de 5 módulos completados</p></div>
+              <div class="hi-right"><p class="hi-amount">55/60</p><span class="chip chip-pending" style="margin-top:4px;"><span class="dot"></span>En curso</span></div>
+            </div>
+            <div class="hist-item clickable" data-key="s1">
+              <div><p class="hi-title">Semestre I · 2026</p><p class="hi-sub">4 de 5 módulos completados</p></div>
+              <div class="hi-right"><p class="hi-amount">85%</p><span class="chip chip-success" style="margin-top:4px;"><span class="dot"></span>Cerrado</span></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- MODULE DETAIL / UPLOAD MODAL -->
+      <div class="modal-overlay" id="eval-modal">
+        <div class="modal-sheet">
+          <div class="modal-handle"></div>
+          <span class="modal-close" id="modal-close">✕</span>
+          <p class="modal-num" id="modal-num"></p>
+          <h3 class="modal-title" id="modal-title"></h3>
+          <p class="evaluator" id="modal-evaluator"></p>
+          <div id="modal-body"></div>
+        </div>
+      </div>
+
+      <!-- F-03 · FORMULARIO DE EVALUACIÓN DEL BECARIO (PASTOR / IGLESIA) -->
+      <div class="modal-overlay" id="f03-modal">
+        <div class="modal-sheet">
+          <div class="modal-handle"></div>
+          <span class="modal-close" id="f03-close">✕</span>
+          <p class="modal-num">Módulo 01 · F-03</p>
+          <h3 class="modal-title">Formulario de Evaluación del Becario</h3>
+          <p class="evaluator">Programa de Becas · Escuela de Líderes BUMAN-D — a llenar por el Pastor</p>
+
+          <p class="ufb-title" style="margin-top:18px;">I. Datos del pastor y de la iglesia local</p>
+          <span class="field-label">Nombre del pastor</span>
+          <input type="text" class="text-input" id="f03-pastor-nombre" placeholder="Nombre completo del pastor" />
+
+          <span class="field-label">Correo del pastor</span>
+          <input type="email" class="text-input" id="f03-pastor-correo" placeholder="pastor@correo.com" />
+
+          <span class="field-label">N.º celular del pastor</span>
+          <input type="text" class="text-input" id="f03-pastor-celular" placeholder="Ej. 71234567" />
+
+          <span class="field-label">Nombre de la iglesia</span>
+          <input type="text" class="text-input" id="f03-iglesia-nombre" placeholder="Nombre de la congregación" />
+
+          <span class="field-label">Dirección de la iglesia</span>
+          <input type="text" class="text-input" id="f03-iglesia-direccion" placeholder="Dirección" />
+
+          <span class="field-label">Nombre de un líder de la congregación</span>
+          <input type="text" class="text-input" id="f03-lider1-nombre" placeholder="Nombre del líder" />
+          <span class="field-label">Cargo del líder</span>
+          <input type="text" class="text-input" id="f03-lider1-cargo" placeholder="Cargo" />
+
+          <p class="ufb-title">II. Referencias acerca del becario universitario</p>
+          <span class="field-label">1. Nombre del becario</span>
+          <input type="text" class="text-input" id="f03-becario-nombre" value="María Catunta Laime" />
+
+          <span class="field-label">2. ¿Con qué frecuencia el becario asiste a la iglesia?</span>
+          <div class="radio-group">
+            <label><input type="radio" name="f03-frecuencia" value="Es miembro en plena comunión" checked /> Es miembro en plena comunión</label>
+            <label><input type="radio" name="f03-frecuencia" value="Asiste sólo domingos" /> Asiste sólo domingos</label>
+            <label><input type="radio" name="f03-frecuencia" value="Viene como visita" /> Viene como visita</label>
+            <label><input type="radio" name="f03-frecuencia" value="No asiste" /> No asiste</label>
+          </div>
+
+          <span class="field-label">3. ¿Demuestra compromiso con el Señor y la Iglesia?</span>
+          <div class="radio-group inline">
+            <label><input type="radio" name="f03-compromiso" value="Sí" checked /> Sí</label>
+            <label><input type="radio" name="f03-compromiso" value="No" /> No</label>
+          </div>
+
+          <span class="field-label">4. ¿Ocupa actualmente algún cargo en la iglesia?</span>
+          <div class="radio-group inline">
+            <label><input type="radio" name="f03-cargo" value="Sí" checked /> Sí</label>
+            <label><input type="radio" name="f03-cargo" value="No" /> No</label>
+          </div>
+          <span class="field-label">Cargo 2025</span>
+          <input type="text" class="text-input" id="f03-cargo-2025" placeholder="Cargo que ocupa este año" />
+
+          <span class="field-label">5. ¿Hasta el momento cómo ha cumplido con sus cargos?</span>
+          <div class="radio-group">
+            <label><input type="radio" name="f03-cumplimiento" value="Muy bien" checked /> Muy bien</label>
+            <label><input type="radio" name="f03-cumplimiento" value="Bien" /> Bien</label>
+            <label><input type="radio" name="f03-cumplimiento" value="Necesita Apoyo" /> Necesita Apoyo</label>
+            <label><input type="radio" name="f03-cumplimiento" value="No cumple" /> No cumple</label>
+          </div>
+
+          <span class="field-label">6. ¿Demuestra convicción al llamado de Dios? Favor de explicar</span>
+          <textarea class="text-input" id="f03-conviccion" rows="2"></textarea>
+
+          <span class="field-label">7. ¿En qué áreas demuestra ejemplo en la congregación?</span>
+          <textarea class="text-input" id="f03-ejemplo" rows="2"></textarea>
+
+          <span class="field-label">8. ¿Demuestra compromiso con las capacitaciones (talleres, cursos, estudios)?</span>
+          <textarea class="text-input" id="f03-capacitaciones" rows="2"></textarea>
+
+          <span class="field-label">9. ¿Cómo es su testimonio como cristiano?</span>
+          <textarea class="text-input" id="f03-testimonio" rows="2"></textarea>
+
+          <span class="field-label">10. ¿Cómo se relaciona con los demás miembros?</span>
+          <textarea class="text-input" id="f03-relacion" rows="2"></textarea>
+
+          <span class="field-label">11. ¿Se encuentra desarrollando a nuevos líderes? ¿A quiénes?</span>
+          <textarea class="text-input" id="f03-nuevos-lideres" rows="2"></textarea>
+
+          <span class="field-label">12. Fortalezas del becario</span>
+          <textarea class="text-input" id="f03-fortalezas" rows="2"></textarea>
+          <span class="field-label">Debilidades del becario</span>
+          <textarea class="text-input" id="f03-debilidades" rows="2"></textarea>
+
+          <span class="field-label">13. ¿Cuál es su opinión general del becario?</span>
+          <textarea class="text-input" id="f03-opinion" rows="2"></textarea>
+
+          <p class="ufb-title">III. Declaración</p>
+          <span class="field-label">Nombre del pastor (declaración)</span>
+          <input type="text" class="text-input" id="f03-declara-nombre" placeholder="Nombre completo" />
+          <span class="field-label">C.I. del pastor</span>
+          <input type="text" class="text-input" id="f03-declara-ci" placeholder="Número de C.I." />
+
+          <label style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--ink-600);margin:12px 0 0;">
+            <input type="checkbox" id="f03-declara-check" style="margin-top:2px;" />
+            Como pastor de la congregación del/la becario, declaro que todos los datos proporcionados son verídicos.
+          </label>
+
+          <p class="p-sub" id="f03-error" style="color:var(--warn);display:none;margin-top:10px;">Completa nombre y correo del pastor, y marca la declaración antes de exportar.</p>
+
+          <button class="btn btn-gold" id="f03-export-btn" style="margin-top:16px;">Exportar PDF (F-03 firmado)</button>
+        </div>
+      </div>
+
+      <!-- PASAJE DETAIL MODAL (historial) -->
+      <div class="modal-overlay" id="pasaje-detail-modal">
+        <div class="modal-sheet">
+          <div class="modal-handle"></div>
+          <span class="modal-close" id="pasaje-detail-close">✕</span>
+          <p class="modal-num" id="pd-num">Formulario mensual</p>
+          <h3 class="modal-title" id="pd-title"></h3>
+          <p class="evaluator" id="pd-sub"></p>
+
+          <div class="calc-card" style="margin:16px 0;">
+            <p class="label">Monto total del pasaje</p>
+            <p class="amount" style="font-size:20px;" id="pd-total"></p>
+            <div style="height:1px;background:rgba(255,255,255,0.15);margin:8px 0;"></div>
+            <p class="label">Devolución del 80%</p>
+            <p class="amount" id="pd-devolucion"></p>
+          </div>
+
+          <span class="field-label">Recorridos declarados</span>
+          <div class="recorrido-list" id="pd-recorridos"></div>
+
+          <div style="text-align:center;margin-top:16px;" id="pd-estado-wrap"></div>
+        </div>
+      </div>
+
+      <!-- SEMESTRE DETAIL MODAL (historial) -->
+      <div class="modal-overlay" id="semestre-detail-modal">
+        <div class="modal-sheet">
+          <div class="modal-handle"></div>
+          <span class="modal-close" id="semestre-detail-close">✕</span>
+          <p class="modal-num" id="sd-num">Evaluación de Desempeño</p>
+          <h3 class="modal-title" id="sd-title"></h3>
+          <p class="evaluator" id="sd-sub"></p>
+
+          <div id="sd-modules" style="margin-top:16px;background:#fff;border:1.5px solid #E3DCCB;border-radius:14px;padding:6px 16px;"></div>
+
+          <div style="text-align:center;margin-top:16px;" id="sd-estado-wrap"></div>
+        </div>
+      </div>
+
+      <!-- ASISTENCIA DETAIL MODAL (historial) -->
+      <div class="modal-overlay" id="asistencia-detail-modal">
+        <div class="modal-sheet">
+          <div class="modal-handle"></div>
+          <span class="modal-close" id="asistencia-detail-close">✕</span>
+          <p class="modal-num" id="ad-num">Registro de asistencia</p>
+          <h3 class="modal-title" id="ad-title"></h3>
+          <p class="evaluator" id="ad-sub"></p>
+
+          <div class="radar-box" style="margin-top:14px;" id="ad-radar-box">
+            <div class="radar-fixed-ring"></div>
+            <div class="radar-center">
+              <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+              <div class="pin"></div>
+            </div>
+            <div class="radar-tag" id="ad-radar-tag">GPS · precisión 6m</div>
+          </div>
+          <div id="ad-chip-wrap" style="margin:0 0 16px;"></div>
+
+          <div class="detail-row"><span>Tipo de registro</span><span id="ad-tipo"></span></div>
+          <div class="detail-row"><span>Lugar</span><span id="ad-lugar"></span></div>
+          <div class="detail-row"><span>Ingreso</span><span id="ad-ingreso"></span></div>
+          <div class="detail-row"><span>Salida</span><span id="ad-salida"></span></div>
+          <div class="detail-row"><span>Horas trabajadas</span><span id="ad-horas"></span></div>
+          <div class="detail-row"><span>Distancia al punto</span><span id="ad-distancia"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= WEB DEVICE ================= -->
+    <div class="browser" id="web-device" style="display:none;">
+      <div class="browser-chrome">
+        <div class="dots"><span></span><span></span><span></span></div>
+        <div class="urlbar">panel.bumand-diaconia.bo/dashboard</div>
+      </div>
+      <div class="app-shell">
+        <div class="sidebar">
+          <div class="brand"><div class="logo">B</div><span>BUMAND</span></div>
+          <div class="navlist" id="sidebar-nav">
+            <a class="on" data-nav="dashboard"><span class="sq"></span>Dashboard</a>
+            <a data-nav="becarios"><span class="sq"></span>Becarios</a>
+            <a data-nav="asistencia-web"><span class="sq"></span>Asistencia</a>
+            <a data-nav="pasajes"><span class="sq"></span>Pasajes</a>
+            <a data-nav="evaluaciones"><span class="sq"></span>Evaluaciones</a>
+            <a data-nav="reportes"><span class="sq"></span>Reportes</a>
+          </div>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div class="content web-screen active" data-screen="dashboard">
+          <div class="content-head">
+            <div><h2>Dashboard general</h2><p>Vista consolidada del programa BUMAND — 20 becarios activos</p></div>
+            <div class="range">1 – 12 ago 2026</div>
+          </div>
+          <div class="kpi-row">
+            <div class="kpi"><p class="k-label">Becarios activos</p><p class="k-value">20</p></div>
+            <div class="kpi"><p class="k-label">Asistencia hoy</p><p class="k-value teal">87%</p></div>
+            <div class="kpi"><p class="k-label">Pasajes pendientes</p><p class="k-value gold">5</p></div>
+            <div class="kpi"><p class="k-label">Puntualidad promedio</p><p class="k-value">92%</p></div>
+          </div>
+          <div class="panel">
+            <h4>Horas registradas por becario · últimos 7 días</h4>
+            <div class="chart">
+              <div class="col"><div class="bar" style="height:60px;"></div><small>D. A.</small></div>
+              <div class="col"><div class="bar gold" style="height:90px;"></div><small>M. Q.</small></div>
+              <div class="col"><div class="bar" style="height:45px;"></div><small>J. P.</small></div>
+              <div class="col"><div class="bar" style="height:75px;"></div><small>R. C.</small></div>
+              <div class="col"><div class="bar" style="height:100px;"></div><small>L. F.</small></div>
+              <div class="col"><div class="bar" style="height:55px;"></div><small>N. H.</small></div>
+              <div class="col"><div class="bar gold" style="height:80px;"></div><small>S. T.</small></div>
+            </div>
+          </div>
+          <div class="panel">
+            <h4>Actividad reciente</h4>
+            <table>
+              <tr><th>Becario</th><th>Acción</th><th>Hora</th><th>Estado</th></tr>
+              <tr><td class="name-cell"><span class="avatar">DA</span>Daniel Ávalos</td><td class="mono-cell">Registro de ingreso</td><td class="mono-cell">08:58</td><td><span class="chip chip-success"><span class="dot"></span>Verificado</span></td></tr>
+              <tr><td class="name-cell"><span class="avatar">MQ</span>María Quenta</td><td class="mono-cell">Solicitud de pasaje</td><td class="mono-cell">09:12</td><td><span class="chip chip-pending"><span class="dot"></span>Pendiente</span></td></tr>
+              <tr><td class="name-cell"><span class="avatar">JP</span>Jhonny Poma</td><td class="mono-cell">Registro fuera de radio</td><td class="mono-cell">09:20</td><td><span class="chip chip-warn"><span class="dot"></span>Revisar</span></td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- APROBACIONES -->
+        <div class="content web-screen" data-screen="pasajes">
+          <div class="content-head">
+            <div><h2>Pasajes</h2><p>Formularios mensuales de devolución del 80% de pasajes — Marzo 2026</p></div>
+            <div class="range">16 formularios · 5 pendientes</div>
+          </div>
+          <div class="split">
+            <div class="panel">
+              <h4>Formularios del mes</h4>
+              <table>
+                <tr><th>Becario</th><th>Unidad</th><th>Recorridos</th><th>Total</th><th>80%</th><th>Estado</th><th></th></tr>
+                <tr>
+                  <td class="name-cell"><span class="avatar">MC</span>María Catunta L.</td>
+                  <td class="mono-cell">Créditos</td>
+                  <td class="mono-cell">8</td>
+                  <td class="mono-cell">Bs 35.00</td>
+                  <td class="mono-cell" style="color:var(--gold-500);font-weight:700;">Bs 28.00</td>
+                  <td><span class="chip chip-pending"><span class="dot"></span>Pendiente</span></td>
+                  <td><div class="approve-row"><button class="mini-btn approve">Aprobar</button><button class="mini-btn reject">Rechazar</button></div></td>
+                </tr>
+                <tr>
+                  <td class="name-cell"><span class="avatar">JS</span>Jose M. Suñagua</td>
+                  <td class="mono-cell">Riesgos</td>
+                  <td class="mono-cell">9</td>
+                  <td class="mono-cell">Bs 73.50</td>
+                  <td class="mono-cell" style="color:var(--gold-500);font-weight:700;">Bs 58.80</td>
+                  <td><span class="chip chip-pending"><span class="dot"></span>Pendiente</span></td>
+                  <td><div class="approve-row"><button class="mini-btn approve">Aprobar</button><button class="mini-btn reject">Rechazar</button></div></td>
+                </tr>
+                <tr>
+                  <td class="name-cell"><span class="avatar">RF</span>Ruddy Flores T.</td>
+                  <td class="mono-cell">Planif. y Presup.</td>
+                  <td class="mono-cell">8</td>
+                  <td class="mono-cell">Bs 43.50</td>
+                  <td class="mono-cell">Bs 34.80</td>
+                  <td><span class="chip chip-success"><span class="dot"></span>Aprobado</span></td>
+                  <td class="mono-cell">—</td>
+                </tr>
+                <tr>
+                  <td class="name-cell"><span class="avatar">AP</span>Alejandro Paredes</td>
+                  <td class="mono-cell">Marketing</td>
+                  <td class="mono-cell">10</td>
+                  <td class="mono-cell">Bs 95.00</td>
+                  <td class="mono-cell">Bs 76.00</td>
+                  <td><span class="chip chip-success"><span class="dot"></span>Aprobado</span></td>
+                  <td class="mono-cell">—</td>
+                </tr>
+                <tr>
+                  <td class="name-cell"><span class="avatar">DD</span>Daniel Dávalos Q.</td>
+                  <td class="mono-cell">Seguridad Física</td>
+                  <td class="mono-cell">7</td>
+                  <td class="mono-cell">Bs 66.00</td>
+                  <td class="mono-cell" style="color:var(--gold-500);font-weight:700;">Bs 52.80</td>
+                  <td><span class="chip chip-pending"><span class="dot"></span>Pendiente</span></td>
+                  <td><div class="approve-row"><button class="mini-btn approve">Aprobar</button><button class="mini-btn reject">Rechazar</button></div></td>
+                </tr>
+              </table>
+            </div>
+            <div class="panel detail-card">
+              <h4>Detalle · María Catunta Laime</h4>
+              <div class="detail-row"><span>Lugar de prácticas</span><span>Oficina Central</span></div>
+              <div class="detail-row"><span>Unidad</span><span>Créditos</span></div>
+              <div class="detail-row"><span>Responsable / Mentor</span><span>Carlos Alanoca</span></div>
+              <div class="detail-row"><span>Apoyo realizado</span><span style="text-align:right;max-width:160px;">Envío de reportes, control CAEDEC</span></div>
+
+              <p class="field-label" style="margin-top:14px;">Recorridos declarados</p>
+              <div class="recorrido-list" style="margin-bottom:12px;">
+                <div class="recorrido-row"><span class="rr-fecha">23-02</span><span class="rr-desc">Av. Buenos Aires – Of. Central – Av. Buenos Aires</span><span class="rr-monto">5.00</span></div>
+                <div class="recorrido-row"><span class="rr-fecha">25-02</span><span class="rr-desc">Av. Buenos Aires – Of. Central – Av. Buenos Aires</span><span class="rr-monto">5.00</span></div>
+                <div class="recorrido-row"><span class="rr-fecha">27-02</span><span class="rr-desc">Av. Buenos Aires – Of. Central</span><span class="rr-monto">2.50</span></div>
+                <div class="recorrido-row"><span class="rr-fecha">02-03</span><span class="rr-desc">Av. Buenos Aires – Of. Central – Av. Buenos Aires</span><span class="rr-monto">5.00</span></div>
+                <div class="recorrido-row"><span class="rr-fecha">04-03</span><span class="rr-desc">Av. Buenos Aires – Of. Central – Av. Buenos Aires</span><span class="rr-monto">5.00</span></div>
+                <div class="recorrido-row"><span class="rr-fecha">06-03</span><span class="rr-desc">Av. Buenos Aires – Of. Central</span><span class="rr-monto">2.50</span></div>
+                <div class="recorrido-row"><span class="rr-fecha">09-03</span><span class="rr-desc">Av. Buenos Aires – Of. Central – Av. Buenos Aires</span><span class="rr-monto">5.00</span></div>
+                <div class="recorrido-row"><span class="rr-fecha">11-03</span><span class="rr-desc">Av. Buenos Aires – Of. Central – Av. Buenos Aires</span><span class="rr-monto">5.00</span></div>
+              </div>
+
+              <div class="detail-row"><span>Monto total del pasaje</span><span>Bs 35.00</span></div>
+              <div class="detail-row"><span>Devolución del 80%</span><span style="color:var(--gold-500);">Bs 28.00</span></div>
+
+              <p class="field-label" style="margin-top:16px;">Firma digital del supervisor</p>
+              <div class="sign-box">Toca para firmar</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BECARIOS -->
+        <div class="content web-screen" data-screen="becarios">
+          <div class="content-head">
+            <div><h2>Becarios</h2><p>20 becarios activos en el programa BUMAND — municipios de La Paz y El Alto</p></div>
+            <button class="mini-btn approve" style="background:var(--gold-500);color:#3A2400;padding:9px 16px;">+ Nuevo becario</button>
+          </div>
+          <div class="panel">
+            <table>
+              <tr><th>Becario</th><th>Universidad</th><th>Carrera</th><th>Lugar de prácticas</th><th>Supervisor</th><th>Estado</th><th></th></tr>
+              <tr>
+                <td class="name-cell"><span class="avatar">DA</span>Daniel Ávalos</td>
+                <td class="mono-cell">UMSA</td><td class="mono-cell">Informática</td>
+                <td class="mono-cell">Igl. Bautista Central</td><td class="mono-cell">P. Sánchez</td>
+                <td><span class="chip chip-success"><span class="dot"></span>Activo</span></td>
+                <td><span class="link" style="margin:0;">Ver perfil</span></td>
+              </tr>
+              <tr>
+                <td class="name-cell"><span class="avatar">MQ</span>María Quenta</td>
+                <td class="mono-cell">UPEA</td><td class="mono-cell">Enfermería</td>
+                <td class="mono-cell">Parroquia Sur</td><td class="mono-cell">R. Zeballos</td>
+                <td><span class="chip chip-success"><span class="dot"></span>Activo</span></td>
+                <td><span class="link" style="margin:0;">Ver perfil</span></td>
+              </tr>
+              <tr>
+                <td class="name-cell"><span class="avatar">JP</span>Jhonny Poma</td>
+                <td class="mono-cell">UMSA</td><td class="mono-cell">Derecho</td>
+                <td class="mono-cell">Igl. Emanuel</td><td class="mono-cell">P. Sánchez</td>
+                <td><span class="chip chip-warn"><span class="dot"></span>Observado</span></td>
+                <td><span class="link" style="margin:0;">Ver perfil</span></td>
+              </tr>
+              <tr>
+                <td class="name-cell"><span class="avatar">RC</span>Rosa Chura</td>
+                <td class="mono-cell">UPEA</td><td class="mono-cell">Contaduría</td>
+                <td class="mono-cell">Igl. Betania</td><td class="mono-cell">R. Zeballos</td>
+                <td><span class="chip chip-success"><span class="dot"></span>Activo</span></td>
+                <td><span class="link" style="margin:0;">Ver perfil</span></td>
+              </tr>
+              <tr>
+                <td class="name-cell"><span class="avatar">LF</span>Luis Flores</td>
+                <td class="mono-cell">UMSA</td><td class="mono-cell">Ing. Civil</td>
+                <td class="mono-cell">Igl. Emanuel</td><td class="mono-cell">P. Sánchez</td>
+                <td><span class="chip chip-success"><span class="dot"></span>Activo</span></td>
+                <td><span class="link" style="margin:0;">Ver perfil</span></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- ASISTENCIA WEB -->
+        <div class="content web-screen" data-screen="asistencia-web">
+          <div class="content-head">
+            <div><h2>Asistencia</h2><p>Historial consolidado de ingresos y salidas verificados por geolocalización</p></div>
+            <div class="range">1 – 12 ago 2026</div>
+          </div>
+          <div class="kpi-row">
+            <div class="kpi"><p class="k-label">Asistencia hoy</p><p class="k-value teal">87%</p></div>
+            <div class="kpi"><p class="k-label">Tardanzas</p><p class="k-value gold">3</p></div>
+            <div class="kpi"><p class="k-label">Fuera de radio</p><p class="k-value" style="color:var(--warn);">1</p></div>
+            <div class="kpi"><p class="k-label">Horas totales semana</p><p class="k-value">612 h</p></div>
+          </div>
+          <div class="panel">
+            <h4>Registros recientes</h4>
+            <table>
+              <tr><th>Becario</th><th>Fecha</th><th>Ingreso</th><th>Salida</th><th>Horas</th><th>Ubicación</th><th>Estado</th></tr>
+              <tr>
+                <td class="name-cell"><span class="avatar">DA</span>Daniel Ávalos</td>
+                <td class="mono-cell">12/08</td><td class="mono-cell">08:58</td><td class="mono-cell">13:10</td>
+                <td class="mono-cell">4h 12m</td><td class="mono-cell">42 m</td>
+                <td><span class="chip chip-success"><span class="dot"></span>Verificado</span></td>
+              </tr>
+              <tr>
+                <td class="name-cell"><span class="avatar">MQ</span>María Quenta</td>
+                <td class="mono-cell">12/08</td><td class="mono-cell">09:15</td><td class="mono-cell">12:40</td>
+                <td class="mono-cell">3h 25m</td><td class="mono-cell">18 m</td>
+                <td><span class="chip chip-pending"><span class="dot"></span>Tardanza</span></td>
+              </tr>
+              <tr>
+                <td class="name-cell"><span class="avatar">JP</span>Jhonny Poma</td>
+                <td class="mono-cell">12/08</td><td class="mono-cell">09:20</td><td class="mono-cell">—</td>
+                <td class="mono-cell">—</td><td class="mono-cell">310 m</td>
+                <td><span class="chip chip-warn"><span class="dot"></span>Fuera de radio</span></td>
+              </tr>
+              <tr>
+                <td class="name-cell"><span class="avatar">RC</span>Rosa Chura</td>
+                <td class="mono-cell">11/08</td><td class="mono-cell">08:47</td><td class="mono-cell">12:30</td>
+                <td class="mono-cell">3h 43m</td><td class="mono-cell">9 m</td>
+                <td><span class="chip chip-success"><span class="dot"></span>Verificado</span></td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="panel">
+            <h4>Horarios de apoyo BUMAND · 2do Semestre 2026</h4>
+            <p style="font-size:12px;color:var(--ink-600);margin:-6px 0 12px;">Horario semanal asignado por becario — referencia usada para calcular puntualidad en Registro de Prácticas</p>
+            <div style="overflow-x:auto;">
+            <table class="horarios-table">
+              <tr><th>N°</th><th>Nombres y Apellidos</th><th>C.I.</th><th>Cant. Materias</th><th>Periodo</th><th>Lunes</th><th>Martes</th><th>Miércoles</th><th>Jueves</th><th>Viernes</th></tr>
+              <tr><td class="mono-cell">1</td><td class="name-cell">Adai Belen Huayta Cardozo</td><td class="mono-cell">13696496 LP</td><td class="mono-cell">—</td><td>Semestral</td><td class="mono-cell">13:00-16:30</td><td class="mono-cell">—</td><td class="mono-cell">13:00-16:30</td><td class="mono-cell">—</td><td class="mono-cell">09:00-14:00</td></tr>
+              <tr><td class="mono-cell">2</td><td class="name-cell">Alejandro Roberth Paredes Tarquino</td><td class="mono-cell">10064956 LP</td><td class="mono-cell">—</td><td>Anual</td><td class="mono-cell">—</td><td class="mono-cell">10:30-13:30</td><td class="mono-cell">—</td><td class="mono-cell">10:30-13:30</td><td class="mono-cell">10:30-13:30</td></tr>
+              <tr><td class="mono-cell">3</td><td class="name-cell">Aydee Ruth Ali Condori</td><td class="mono-cell">9952878 LP</td><td class="mono-cell">—</td><td>Anual</td><td class="mono-cell">—</td><td class="mono-cell">10:00-13:00</td><td class="mono-cell">—</td><td class="mono-cell">10:00-13:00</td><td class="mono-cell">10:00-13:00</td></tr>
+              <tr class="row-highlight"><td class="mono-cell">4</td><td class="name-cell">Carlos Oscar Luna Lizarraga</td><td class="mono-cell">9943280 LP</td><td class="mono-cell">—</td><td>Semestral</td><td class="mono-cell">—</td><td class="mono-cell">08:00-12:00</td><td class="mono-cell">—</td><td class="mono-cell">08:00-12:00</td><td class="mono-cell">08:00-14:00</td></tr>
+              <tr><td class="mono-cell">5</td><td class="name-cell">Daniel Davalos Quiñoñez</td><td class="mono-cell">9107373 LP</td><td class="mono-cell">4</td><td>Semestral</td><td class="mono-cell">—</td><td class="mono-cell">13:00-16:00</td><td class="mono-cell">—</td><td class="mono-cell">—</td><td class="mono-cell">08:00-14:00</td></tr>
+              <tr><td class="mono-cell">6</td><td class="name-cell name-flag">Edgar Elias Alarcon Huanca</td><td class="mono-cell">9160054 LP</td><td class="mono-cell">—</td><td>Semestral</td><td class="mono-cell">08:00-16:00</td><td class="mono-cell">—</td><td class="mono-cell">—</td><td class="mono-cell">—</td><td class="mono-cell">10:00-14:00</td></tr>
+              <tr><td class="mono-cell">7</td><td class="name-cell">Isaias Daniel Herrera Mamani</td><td class="mono-cell">10920862 LP</td><td class="mono-cell">—</td><td>Semestral</td><td class="mono-cell">09:00-15:00</td><td class="mono-cell">—</td><td class="mono-cell">08:00-16:00</td><td class="mono-cell">—</td><td class="mono-cell">—</td></tr>
+              <tr><td class="mono-cell">8</td><td class="name-cell">Jhoselin Quispe Morales</td><td class="mono-cell">6950093 LP</td><td class="mono-cell">No corresponde</td><td>N/C</td><td class="mono-cell">08:30-16:30</td><td class="mono-cell">—</td><td class="mono-cell">08:30-16:30</td><td class="mono-cell">—</td><td class="mono-cell">—</td></tr>
+              <tr><td class="mono-cell">9</td><td class="name-cell">José Marcos Suñagua Quispe</td><td class="mono-cell">14378720 LP</td><td class="mono-cell">Aún falta fecha</td><td>Semestral</td><td class="mono-cell">—</td><td class="mono-cell">—</td><td class="mono-cell">08:30-11:30</td><td class="mono-cell">08:30-11:30</td><td class="mono-cell">08:30-13:30</td></tr>
+              <tr><td class="mono-cell">10</td><td class="name-cell">Luis Santiago Enrriquez Conde</td><td class="mono-cell">9927657 LP</td><td class="mono-cell">No corresponde</td><td>Anual</td><td class="mono-cell">08:00</td><td class="mono-cell">12:00-16:00</td><td class="mono-cell">—</td><td class="mono-cell">12:00-16:00</td><td class="mono-cell">—</td></tr>
+              <tr><td class="mono-cell">11</td><td class="name-cell">Mariela Dayana Jimenez Chambi</td><td class="mono-cell">12959656 LP</td><td class="mono-cell">8</td><td>Anual</td><td class="mono-cell">14:00</td><td class="mono-cell">11:00-16:20</td><td class="mono-cell">—</td><td class="mono-cell">11:00-16:20</td><td class="mono-cell">—</td></tr>
+              <tr class="row-highlight" id="fila-maria-catunta"><td class="mono-cell">12</td><td class="name-cell">Mario Catunta Laime</td><td class="mono-cell">7077936 LP</td><td class="mono-cell">No corresponde</td><td>N/C</td><td class="mono-cell">08:00-12:00</td><td class="mono-cell">—</td><td class="mono-cell">08:00-12:00</td><td class="mono-cell">—</td><td class="mono-cell">08:00-14:00</td></tr>
+              <tr><td class="mono-cell">13</td><td class="name-cell">Mayherli Alejandra Loza Villalobos</td><td class="mono-cell">9925727 LP</td><td class="mono-cell">Aún falta fecha</td><td>Anual</td><td class="mono-cell">08:15-14:30</td><td class="mono-cell">—</td><td class="mono-cell">10:00-15:00</td><td class="mono-cell">—</td><td class="mono-cell">10:00-14:00</td></tr>
+              <tr><td class="mono-cell">14</td><td class="name-cell">Mónica Mamani Mamani</td><td class="mono-cell">10369104 LP</td><td class="mono-cell">No corresponde</td><td>N/C</td><td class="mono-cell">—</td><td class="mono-cell">—</td><td class="mono-cell">—</td><td class="mono-cell">08:30-16:00</td><td class="mono-cell">09:00-13:30</td></tr>
+              <tr><td class="mono-cell">15</td><td class="name-cell">Nilda Amalia Churata Paye</td><td class="mono-cell">10028341 LP</td><td class="mono-cell">No corresponde</td><td>N/C</td><td class="mono-cell">—</td><td class="mono-cell">08:00-13:00</td><td class="mono-cell">—</td><td class="mono-cell">—</td><td class="mono-cell">08:00-13:00</td></tr>
+              <tr><td class="mono-cell">16</td><td class="name-cell">Noemi Callisaya Alvarez</td><td class="mono-cell">7093658 LP</td><td class="mono-cell">Aún falta fecha</td><td>Semestral</td><td class="mono-cell">08:30-12:30</td><td class="mono-cell">—</td><td class="mono-cell">—</td><td class="mono-cell">—</td><td class="mono-cell">08:30-13:30</td></tr>
+              <tr><td class="mono-cell">17</td><td class="name-cell">Ronald Mauricio Quiquijana Mayta</td><td class="mono-cell">6172054 LP</td><td class="mono-cell">7</td><td>Semestral</td><td class="mono-cell">08:00-16:00</td><td class="mono-cell">—</td><td class="mono-cell">—</td><td class="mono-cell">14:00-16:00</td><td class="mono-cell">—</td></tr>
+              <tr><td class="mono-cell">18</td><td class="name-cell">Ruddy Flores Tapia</td><td class="mono-cell">9974211 LP</td><td class="mono-cell">4</td><td>Semestral</td><td class="mono-cell">09:00-16:00</td><td class="mono-cell">09:00-16:00</td><td class="mono-cell">—</td><td class="mono-cell">—</td><td class="mono-cell">—</td></tr>
+            </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- EVALUACIONES -->
+        <div class="content web-screen" data-screen="evaluaciones">
+          <div class="content-head">
+            <div><h2>Evaluación de Desempeño</h2><p>5 módulos de evaluación integral · periodicidad: 1 vez por semestre</p></div>
+            <div class="range" id="eval-range-label">Semestre II · 2026</div>
+          </div>
+
+          <div class="panel">
+            <h4>Periodos de evaluación</h4>
+            <div class="period-row viewing" id="period-row-s2" data-period="s2">
+              <div class="p-label"><strong>Semestre II · 2026</strong><small>Periodo actual — jul a dic</small></div>
+              <span class="chip chip-success status-chip"><span class="dot"></span> Habilitado</span>
+              <button class="mini-btn reject toggle-btn">Cerrar periodo</button>
+            </div>
+            <div class="period-row" id="period-row-s1" data-period="s1">
+              <div class="p-label"><strong>Semestre I · 2026</strong><small>Cerrado — ene a jun</small></div>
+              <span class="chip chip-locked status-chip"><span class="dot"></span> Inhabilitado</span>
+              <button class="mini-btn approve toggle-btn">Habilitar periodo</button>
+            </div>
+          </div>
+
+          <!-- SEMESTRE II DATA -->
+          <div class="web-eval-period active" data-period="s2">
+            <div class="eval-cards">
+              <div class="eval-card">
+                <div class="num-badge">1</div>
+                <h5>Liderazgo en la Iglesia</h5>
+                <p class="evaluator">Evaluador: Pastor</p>
+                <span class="chip chip-success"><span class="dot"></span>18/20</span>
+              </div>
+              <div class="eval-card">
+                <div class="num-badge">2</div>
+                <h5>Autoevaluación Académica</h5>
+                <p class="evaluator">Evaluador: Becario</p>
+                <span class="chip chip-success"><span class="dot"></span>20/20</span>
+              </div>
+              <div class="eval-card">
+                <div class="num-badge">3</div>
+                <h5>Evaluación del Mentor</h5>
+                <p class="evaluator">Evaluador: Supervisor</p>
+                <span class="chip chip-pending"><span class="dot"></span>14/20</span>
+              </div>
+              <div class="eval-card">
+                <div class="num-badge">4</div>
+                <h5>Evaluación Escuela de Líderes</h5>
+                <p class="evaluator">Evaluador: Facilitador</p>
+                <span class="chip chip-success"><span class="dot"></span>17/20</span>
+              </div>
+              <div class="eval-card">
+                <div class="num-badge">5</div>
+                <h5>Evaluación Socioeconómica</h5>
+                <p class="evaluator">Evaluador: Trabajo Social</p>
+                <span class="chip chip-warn"><span class="dot"></span>Pendiente</span>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h4>Kardex — Ranking de Becarios · Semestre II 2026</h4>
+              <table>
+                <tr>
+                  <th>Pos.</th><th>Becario</th>
+                  <th>Liderazgo Iglesia</th><th>Académico</th><th>Mentor</th>
+                  <th>Esc. Líderes</th><th>Socioeconómica</th><th>Promedio</th>
+                </tr>
+                <tr>
+                  <td class="mono-cell" style="color:var(--gold-500);font-weight:700;">01</td>
+                  <td class="name-cell"><span class="avatar">LF</span>Luis Flores</td>
+                  <td class="mono-cell">19</td><td class="mono-cell">20</td><td class="mono-cell">18</td>
+                  <td class="mono-cell">19</td><td class="mono-cell">20</td>
+                  <td class="mono-cell" style="color:var(--success);font-weight:700;">96%</td>
+                </tr>
+                <tr>
+                  <td class="mono-cell">02</td>
+                  <td class="name-cell"><span class="avatar">DA</span>Daniel Ávalos</td>
+                  <td class="mono-cell">18</td><td class="mono-cell">20</td><td class="mono-cell">14</td>
+                  <td class="mono-cell">17</td><td class="mono-cell">—</td>
+                  <td class="mono-cell" style="color:var(--success);font-weight:700;">86%</td>
+                </tr>
+                <tr>
+                  <td class="mono-cell">03</td>
+                  <td class="name-cell"><span class="avatar">RC</span>Rosa Chura</td>
+                  <td class="mono-cell">16</td><td class="mono-cell">18</td><td class="mono-cell">17</td>
+                  <td class="mono-cell">15</td><td class="mono-cell">18</td>
+                  <td class="mono-cell" style="font-weight:700;">84%</td>
+                </tr>
+                <tr>
+                  <td class="mono-cell">04</td>
+                  <td class="name-cell"><span class="avatar">JP</span>Jhonny Poma</td>
+                  <td class="mono-cell">12</td><td class="mono-cell">15</td><td class="mono-cell">11</td>
+                  <td class="mono-cell">13</td><td class="mono-cell">14</td>
+                  <td class="mono-cell" style="color:var(--warn);font-weight:700;">65%</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <!-- SEMESTRE I DATA (histórico, solo lectura) -->
+          <div class="web-eval-period" data-period="s1">
+            <div class="eval-cards">
+              <div class="eval-card">
+                <div class="num-badge">1</div>
+                <h5>Liderazgo en la Iglesia</h5>
+                <p class="evaluator">Evaluador: Pastor</p>
+                <span class="chip chip-success"><span class="dot"></span>16/20</span>
+              </div>
+              <div class="eval-card">
+                <div class="num-badge">2</div>
+                <h5>Autoevaluación Académica</h5>
+                <p class="evaluator">Evaluador: Becario</p>
+                <span class="chip chip-success"><span class="dot"></span>19/20</span>
+              </div>
+              <div class="eval-card">
+                <div class="num-badge">3</div>
+                <h5>Evaluación del Mentor</h5>
+                <p class="evaluator">Evaluador: Supervisor</p>
+                <span class="chip chip-success"><span class="dot"></span>18/20</span>
+              </div>
+              <div class="eval-card">
+                <div class="num-badge">4</div>
+                <h5>Evaluación Escuela de Líderes</h5>
+                <p class="evaluator">Evaluador: Facilitador</p>
+                <span class="chip chip-success"><span class="dot"></span>15/20</span>
+              </div>
+              <div class="eval-card">
+                <div class="num-badge">5</div>
+                <h5>Evaluación Socioeconómica</h5>
+                <p class="evaluator">Evaluador: Trabajo Social</p>
+                <span class="chip chip-warn"><span class="dot"></span>Incompleto</span>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h4>Kardex — Ranking de Becarios · Semestre I 2026 <span style="font-family:var(--mono);font-size:10.5px;color:var(--ink-400);font-weight:400;">· histórico</span></h4>
+              <table>
+                <tr>
+                  <th>Pos.</th><th>Becario</th>
+                  <th>Liderazgo Iglesia</th><th>Académico</th><th>Mentor</th>
+                  <th>Esc. Líderes</th><th>Socioeconómica</th><th>Promedio</th>
+                </tr>
+                <tr>
+                  <td class="mono-cell" style="color:var(--gold-500);font-weight:700;">01</td>
+                  <td class="name-cell"><span class="avatar">DA</span>Daniel Ávalos</td>
+                  <td class="mono-cell">18</td><td class="mono-cell">19</td><td class="mono-cell">18</td>
+                  <td class="mono-cell">17</td><td class="mono-cell">18</td>
+                  <td class="mono-cell" style="color:var(--success);font-weight:700;">90%</td>
+                </tr>
+                <tr>
+                  <td class="mono-cell">02</td>
+                  <td class="name-cell"><span class="avatar">LF</span>Luis Flores</td>
+                  <td class="mono-cell">17</td><td class="mono-cell">18</td><td class="mono-cell">17</td>
+                  <td class="mono-cell">16</td><td class="mono-cell">17</td>
+                  <td class="mono-cell" style="color:var(--success);font-weight:700;">85%</td>
+                </tr>
+                <tr>
+                  <td class="mono-cell">03</td>
+                  <td class="name-cell"><span class="avatar">RC</span>Rosa Chura</td>
+                  <td class="mono-cell">16</td><td class="mono-cell">17</td><td class="mono-cell">16</td>
+                  <td class="mono-cell">15</td><td class="mono-cell">17</td>
+                  <td class="mono-cell" style="font-weight:700;">81%</td>
+                </tr>
+                <tr>
+                  <td class="mono-cell">04</td>
+                  <td class="name-cell"><span class="avatar">JP</span>Jhonny Poma</td>
+                  <td class="mono-cell">13</td><td class="mono-cell">15</td><td class="mono-cell">12</td>
+                  <td class="mono-cell">13</td>
+                  <td class="mono-cell" style="color:var(--warn);">— <span style="font-size:9.5px;">Incompleto</span></td>
+                  <td class="mono-cell" style="color:var(--warn);font-weight:700;">66%</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <div class="flow-strip">
+            <div class="flow-node">
+              <p class="fn-label">Base de datos</p>
+              <p class="fn-title">Evaluaciones Semestrales</p>
+              <p class="fn-sub">Consolida los 5 módulos por becario</p>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">
+              <p class="fn-label">Procesamiento</p>
+              <p class="fn-title">Analítica de Datos · IA</p>
+              <p class="fn-sub">Pondera indicadores y detecta patrones</p>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">
+              <p class="fn-label">Salida</p>
+              <p class="fn-title">Kardex / Ranking de Becarios</p>
+              <p class="fn-sub">Historial comparativo por periodo</p>
+            </div>
+          </div>
+
+          <!-- ANÁLISIS DE DATOS — DATASET REAL IMPORTADO -->
+          <div class="content-head" style="margin-top:8px;">
+            <div><h2>Análisis de Datos · Evaluación General BUMAND</h2><p>Dataset real importado — Semestre II 2025 · 21 becarios evaluados</p></div>
+            <div class="range">II · 2025</div>
+          </div>
+
+          <div class="kpi-row">
+            <div class="kpi">
+              <p class="k-label">BECARIOS EVALUADOS</p>
+              <p class="k-value">21</p>
+            </div>
+            <div class="kpi">
+              <p class="k-label">PERCEPCIÓN DE PUNTUALIDAD</p>
+              <p class="k-value teal">76%</p>
+            </div>
+            <div class="kpi">
+              <p class="k-label">PROMEDIO ACADÉMICO</p>
+              <p class="k-value">71.3</p>
+            </div>
+            <div class="kpi">
+              <p class="k-label">PROMEDIO LIDERAZGO</p>
+              <p class="k-value gold">18.9 / 20</p>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h4>Distribución por Universidad</h4>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+              <div class="dist-row"><span class="dist-label">Universidad Mayor de San Andrés (UMSA)</span><div class="dist-bar"><div class="dist-fill" style="width:100%;background:var(--navy-900);"></div></div><span class="dist-count">11</span></div>
+              <div class="dist-row"><span class="dist-label">Universidad Pública de El Alto (UPEA)</span><div class="dist-bar"><div class="dist-fill" style="width:64%;background:var(--teal-500);"></div></div><span class="dist-count">7</span></div>
+              <div class="dist-row"><span class="dist-label">Universidad de Aquino Bolivia</span><div class="dist-bar"><div class="dist-fill" style="width:9%;background:var(--gold-500);"></div></div><span class="dist-count">1</span></div>
+              <div class="dist-row"><span class="dist-label">Escuela Militar de Ingeniería</span><div class="dist-bar"><div class="dist-fill" style="width:9%;background:var(--gold-500);"></div></div><span class="dist-count">1</span></div>
+              <div class="dist-row"><span class="dist-label">Universidad Central Sede La Paz</span><div class="dist-bar"><div class="dist-fill" style="width:9%;background:var(--gold-500);"></div></div><span class="dist-count">1</span></div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="panel">
+              <h4>Modalidad de la beca</h4>
+              <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+                <div class="dist-row"><span class="dist-label">Semestral</span><div class="dist-bar"><div class="dist-fill" style="width:100%;background:var(--navy-900);"></div></div><span class="dist-count">13</span></div>
+                <div class="dist-row"><span class="dist-label">Anual</span><div class="dist-bar"><div class="dist-fill" style="width:54%;background:var(--teal-500);"></div></div><span class="dist-count">7</span></div>
+                <div class="dist-row"><span class="dist-label">Mixta</span><div class="dist-bar"><div class="dist-fill" style="width:8%;background:var(--gold-500);"></div></div><span class="dist-count">1</span></div>
+              </div>
+            </div>
+            <div class="panel">
+              <h4>Autoevaluación de desempeño general (1–10)</h4>
+              <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+                <div class="dist-row"><span class="dist-label">Nota 7</span><div class="dist-bar"><div class="dist-fill" style="width:67%;background:var(--teal-300);"></div></div><span class="dist-count">6</span></div>
+                <div class="dist-row"><span class="dist-label">Nota 8</span><div class="dist-bar"><div class="dist-fill" style="width:100%;background:var(--teal-500);"></div></div><span class="dist-count">9</span></div>
+                <div class="dist-row"><span class="dist-label">Nota 9</span><div class="dist-bar"><div class="dist-fill" style="width:44%;background:var(--navy-800);"></div></div><span class="dist-count">4</span></div>
+                <div class="dist-row"><span class="dist-label">Nota 10</span><div class="dist-bar"><div class="dist-fill" style="width:22%;background:var(--gold-500);"></div></div><span class="dist-count">2</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h4>Casos que requieren seguimiento <span style="font-family:var(--mono);font-size:10.5px;color:var(--ink-400);font-weight:400;">· 7 de 21 becarios con observaciones</span></h4>
+            <table>
+              <tr><th>Becario</th><th>Observación</th></tr>
+              <tr><td class="name-cell"><span class="avatar">CL</span>Carlos Oscar Luna Lizarraga</td><td>Aún no es miembro de la iglesia; requiere mayor contacto con la congregación.</td></tr>
+              <tr><td class="name-cell"><span class="avatar">JQ</span>Jhoselin Quispe Morales</td><td>No desempeña algún cargo de liderazgo.</td></tr>
+              <tr><td class="name-cell"><span class="avatar">JS</span>José Marcos Suñagua Quispe</td><td>Trabajar en debilidades: puntualidad en la iglesia.</td></tr>
+              <tr><td class="name-cell"><span class="avatar">LE</span>Luis Santiago Enrriquez Conde</td><td>No desempeña algún cargo; no forma a nuevos líderes, pero tiene potencial.</td></tr>
+              <tr><td class="name-cell"><span class="avatar">MJ</span>Mariela Dayana Jimenez Chambi</td><td>No desempeña algún cargo de liderazgo.</td></tr>
+              <tr><td class="name-cell"><span class="avatar">ML</span>Mayherli Alejandra Loza Villalobos</td><td>No desempeña algún cargo; se encuentra en formación.</td></tr>
+              <tr><td class="name-cell"><span class="avatar">NC</span>Nilda Amalia Churata Paye</td><td>Asiste solo domingos; falta mejorar el compromiso e involucrarse más.</td></tr>
+            </table>
+          </div>
+
+          <div class="panel">
+            <h4>Detalle por becario · Semestre II 2025</h4>
+            <p style="font-size:12px;color:var(--ink-600);margin:-6px 0 12px;">Mismos campos de Universidad y Carrera que confirma el becario al iniciar sesión en la app móvil.</p>
+            <div style="overflow-x:auto;">
+            <table class="horarios-table">
+              <tr><th>Becario</th><th>Universidad</th><th>Carrera</th><th>Modalidad</th><th>Académica</th><th>Liderazgo</th><th>Puntualidad</th></tr>
+              <tr><td class="name-cell">Adai Belen Huayta Cardozo</td><td>UMSA</td><td>Estadística</td><td>Semestral</td><td class="mono-cell">53</td><td class="mono-cell">19.7</td><td><span class="chip chip-success"><span class="dot"></span>Puntual</span></td></tr>
+              <tr><td class="name-cell">Alejandro Roberth Paredes Tarquino</td><td>UPEA</td><td>Cs. de la Comunicación Social</td><td>Anual</td><td class="mono-cell">84</td><td class="mono-cell">19.7</td><td><span class="chip chip-success"><span class="dot"></span>Puntual</span></td></tr>
+              <tr><td class="name-cell">Aydee Ruth Ali Condori</td><td>UPEA</td><td>Contaduría Pública</td><td>Anual</td><td class="mono-cell">71</td><td class="mono-cell">19.7</td><td><span class="chip chip-success"><span class="dot"></span>Puntual</span></td></tr>
+              <tr class="row-highlight"><td class="name-cell">Carlos Oscar Luna Lizarraga</td><td>UMSA</td><td>Economía</td><td>Semestral</td><td class="mono-cell">62</td><td class="mono-cell">13.7</td><td><span class="chip chip-success"><span class="dot"></span>Puntual</span></td></tr>
+              <tr><td class="name-cell">Cristhian Alejandro Soto Apaza</td><td>UPEA</td><td>Administración de Empresas</td><td>Anual</td><td class="mono-cell">71</td><td class="mono-cell">19.7</td><td><span class="chip chip-pending"><span class="dot"></span>Regular</span></td></tr>
+              <tr><td class="name-cell">Daniel Davalos Quiñonez</td><td>UMSA</td><td>Informática</td><td>Semestral</td><td class="mono-cell">75</td><td class="mono-cell">19.7</td><td><span class="chip chip-success"><span class="dot"></span>Puntual</span></td></tr>
+              <tr><td class="name-cell">Edgar Elias Alarcon Huanca</td><td>U. de Aquino Bolivia</td><td>Medicina</td><td>Semestral</td><td class="mono-cell">74</td><td class="mono-cell">20</td><td><span class="chip chip-success"><span class="dot"></span>Puntual</span></td></tr>
+              <tr><td class="name-cell">Fernando Rene Yujra Quispe</td><td>UMSA</td><td>Ingeniería Civil</td><td>Semestral</td><td class="mono-cell">61</td><td class="mono-cell">19.7</td><td><span class="chip chip-success"><span class="dot"></span>Puntual</span></td></tr>
+              <tr><td class="name-cell">Isaias Daniel Herrera Mamani</td><td>UPEA</td><td>Arquitectura</td><td>Semestral</td><td class="mono-cell">62</td><td class="mono-cell">19.7</td><td><span class="chip chip-success"><span class="dot"></span>Puntual</span></td></tr>
+              <tr><td class="name-cell">Jhoselin Quispe Morales</td><td>UMSA</td><td>Comunicación Social</td><td>Anual</td><td class="mono-cell">83</td><td class="mono-cell">18</td><td><span class="chip chip-success"><span class="dot"></span>Puntual</span></td></tr>
+              <tr><td class="name-cell">José Marcos Suñagua Quispe</td><td>UMSA</td><td>Informática</td><td>Semestral</td><td class="mono-cell">59</td><td class="mono-cell">19</td><td><span class="chip chip-success"><span class="dot"></span>Puntual</span></td></tr>
+              <tr><td class="name-cell">Luis Santiago Enrriquez Conde</td><td>UMSA</td><td>Cs. de la Comunicación Social</td><td>Anual</td><td class="mono-cell">61</td><td class="mono-cell">18</td><td><span class="chip chip-success"><span class="dot"></span>Puntual</span></td></tr>
+              <tr><td class="name-cell">Mariela Dayana Jimenez Chambi</td><td>UMSA</td><td>Contaduría Pública</td><td>Anual</td><td class="mono-cell">68</td><td class="mono-cell">18</td><td><span class="chip chip-pending"><span class="dot"></span>Regular</span></td></tr>
+              <tr class="row-highlight" id="fila-analisis-catunta"><td class="name-cell">Mario Catunta Laime</td><td>UPEA</td><td>Economía</td><td>Mixta</td><td class="mono-cell">77</td><td class="mono-cell">19.7</td><td><span class="chip chip-success"><span class="dot"></span>Puntual</span></td></tr>
+              <tr><td class="name-cell">Mayherli Alejandra Loza Villalobos</td><td>UMSA</td><td>Contaduría Pública</td><td>Anual</td><td class="mono-cell">68</td><td class="mono-cell">18</td><td><span class="chip chip-pending"><span class="dot"></span>Regular</span></td></tr>
+              <tr><td class="name-cell">Mónica Mamani Mamani</td><td>UMSA</td><td>Lingüística e Idiomas</td><td>Semestral</td><td class="mono-cell">78</td><td class="mono-cell">20</td><td><span class="chip chip-success"><span class="dot"></span>Puntual</span></td></tr>
+              <tr><td class="name-cell">Nilda Amalia Churata Paye</td><td>UPEA</td><td>Educación Parvularia</td><td>Semestral</td><td class="mono-cell">92</td><td class="mono-cell">15</td><td><span class="chip chip-success"><span class="dot"></span>Puntual</span></td></tr>
+              <tr><td class="name-cell">Noemi Callisaya Alvarez</td><td>UPEA</td><td>Psicomotricidad y Deportes</td><td>Semestral</td><td class="mono-cell">62</td><td class="mono-cell">20</td><td><span class="chip chip-success"><span class="dot"></span>Puntual</span></td></tr>
+              <tr><td class="name-cell">Ronald Mauricio Quiquijana Mayta</td><td>EMI</td><td>Ing. en Telecomunicaciones</td><td>Semestral</td><td class="mono-cell">70</td><td class="mono-cell">19.7</td><td><span class="chip chip-pending"><span class="dot"></span>Regular</span></td></tr>
+              <tr><td class="name-cell">Ruddy Flores Tapia</td><td>UMSA</td><td>Informática</td><td>Semestral</td><td class="mono-cell">72</td><td class="mono-cell">20</td><td><span class="chip chip-pending"><span class="dot"></span>Regular</span></td></tr>
+              <tr><td class="name-cell">Ruth Alesandra Choque Huanca</td><td>U. Central Sede La Paz</td><td>Ingeniería Comercial</td><td>Semestral</td><td class="mono-cell">94</td><td class="mono-cell">20</td><td><span class="chip chip-success"><span class="dot"></span>Puntual</span></td></tr>
+            </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- REPORTES -->
+        <div class="content web-screen" data-screen="reportes">
+          <div class="content-head">
+            <div><h2>Reportes</h2><p>Generación de reportes consolidados equivalentes a los formularios físicos actuales</p></div>
+          </div>
+          <div class="kpi-row" style="grid-template-columns:repeat(2,1fr);gap:16px;">
+            <div class="panel" style="margin-bottom:0;">
+              <h4>Informe mensual del becario</h4>
+              <p class="place-sub" style="margin-bottom:16px;">Horas, pasajes y evaluaciones consolidadas por becario y periodo.</p>
+              <div class="approve-row">
+                <button class="mini-btn approve">Generar PDF</button>
+                <button class="mini-btn reject">Exportar Excel</button>
+              </div>
+              <p class="field-label" style="margin-top:14px;">Último generado: 05/08/2026</p>
+            </div>
+            <div class="panel" style="margin-bottom:0;">
+              <h4>Formulario de devolución 80% de pasajes</h4>
+              <p class="place-sub" style="margin-bottom:16px;">Detalle de recorridos declarados y montos aprobados del periodo.</p>
+              <div class="approve-row">
+                <button class="mini-btn approve">Generar PDF</button>
+                <button class="mini-btn reject">Exportar Excel</button>
+              </div>
+              <p class="field-label" style="margin-top:14px;">Último generado: 08/08/2026</p>
+            </div>
+            <div class="panel" style="margin-bottom:0;">
+              <h4>Reporte de asistencia</h4>
+              <p class="place-sub" style="margin-bottom:16px;">Ingresos, salidas y horas trabajadas verificadas por geolocalización.</p>
+              <div class="approve-row">
+                <button class="mini-btn approve">Generar PDF</button>
+                <button class="mini-btn reject">Exportar Excel</button>
+              </div>
+              <p class="field-label" style="margin-top:14px;">Último generado: 12/08/2026</p>
+            </div>
+            <div class="panel" style="margin-bottom:0;">
+              <h4>Reporte de evaluaciones</h4>
+              <p class="place-sub" style="margin-bottom:16px;">Historial de puntualidad y cumplimiento comparado por periodo.</p>
+              <div class="approve-row">
+                <button class="mini-btn approve">Generar PDF</button>
+                <button class="mini-btn reject">Exportar Excel</button>
+              </div>
+              <p class="field-label" style="margin-top:14px;">Último generado: 31/07/2026</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <footer class="note">Prototipo de alta fidelidad — Flutter (app móvil) · React.js (panel web) · Google Maps API (geolocalización)</footer>
+</div>
+
+<script>
+  const deviceBtns = document.querySelectorAll('.switch button');
+  const mobileTabs = document.getElementById('mobile-tabs');
+  const webTabs = document.getElementById('web-tabs');
+  const phoneDevice = document.getElementById('phone-device');
+  const webDevice = document.getElementById('web-device');
+
+  deviceBtns.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      deviceBtns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const isMobile = btn.dataset.device === 'mobile';
+      mobileTabs.style.display = isMobile ? 'flex' : 'none';
+      webTabs.style.display = isMobile ? 'none' : 'flex';
+      phoneDevice.style.display = isMobile ? 'block' : 'none';
+      webDevice.style.display = isMobile ? 'none' : 'block';
+    });
+  });
+
+  function wireTabs(tabContainerId, screenSelector, screenAttr){
+    const container = document.getElementById(tabContainerId);
+    const buttons = container.querySelectorAll('button');
+    buttons.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        buttons.forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll(screenSelector).forEach(s=>s.classList.remove('active'));
+        document.querySelector(screenSelector + '[' + screenAttr + '="' + btn.dataset.screen + '"]').classList.add('active');
+      });
+    });
+  }
+
+  wireTabs('mobile-tabs', '.phone .screen', 'data-screen');
+  wireTabs('web-tabs', '.web-screen', 'data-screen');
+
+  // REGISTRO DE PRÁCTICAS — puntualidad según horario semanal (BUMAND 2do Semestre 2026)
+  const practicasBtn = document.getElementById('practicas-ingreso-btn');
+  if(practicasBtn){
+    practicasBtn.addEventListener('click', ()=>{
+      const dias = ['dom','lun','mar','mie','jue','vie','sab'];
+      const ahora = new Date();
+      const claveDia = dias[ahora.getDay()];
+      const horario = practicasBtn.dataset['horario' + claveDia.charAt(0).toUpperCase() + claveDia.slice(1)];
+
+      const horaTexto = ahora.toLocaleTimeString('es-BO', {hour:'2-digit', minute:'2-digit', hour12:false});
+      const timeBig = practicasBtn.closest('.asis-sub').querySelector('.time-big');
+      if(timeBig) timeBig.textContent = horaTexto;
+
+      const alerta = document.getElementById('practicas-alerta');
+      alerta.style.display = 'flex';
+
+      if(!horario){
+        alerta.className = 'chip chip-locked';
+        alerta.textContent = 'Sin horario de apoyo asignado para hoy';
+        return;
+      }
+
+      const horaInicio = horario.split('-')[0];
+      const [hEntrada, mEntrada] = horaInicio.split(':').map(Number);
+      const limite = new Date(ahora);
+      limite.setHours(hEntrada, mEntrada, 0, 0);
+
+      if(ahora > limite){
+        const diffMin = Math.round((ahora - limite) / 60000);
+        alerta.className = 'chip chip-late';
+        alerta.textContent = '⚠ Ingreso registrado con retraso de ' + diffMin + ' min (hora prevista ' + horaInicio + ')';
+      } else {
+        alerta.className = 'chip chip-ontime';
+        alerta.textContent = '✓ Ingreso puntual — dentro del horario (' + horaInicio + ')';
+      }
+    });
+  }
+
+  // ESCUELA DE LÍDERES — validación de puntualidad al marcar ingreso
+  const escuelaBtn = document.getElementById('escuela-ingreso-btn');
+  if(escuelaBtn){
+    escuelaBtn.addEventListener('click', ()=>{
+      const [hEntrada, mEntrada] = escuelaBtn.dataset.horaEntrada.split(':').map(Number);
+      const ahora = new Date();
+      const limite = new Date(ahora);
+      limite.setHours(hEntrada, mEntrada, 0, 0);
+
+      const horaTexto = ahora.toLocaleTimeString('es-BO', {hour:'2-digit', minute:'2-digit', hour12:false});
+      const timeBig = escuelaBtn.closest('.asis-sub').querySelector('.time-big');
+      if(timeBig) timeBig.textContent = horaTexto;
+
+      const alerta = document.getElementById('escuela-alerta');
+      alerta.style.display = 'flex';
+      if(ahora > limite){
+        const diffMin = Math.round((ahora - limite) / 60000);
+        alerta.className = 'chip chip-late';
+        alerta.textContent = '⚠ Ingreso registrado con retraso de ' + diffMin + ' min (hora prevista 14:30)';
+      } else {
+        alerta.className = 'chip chip-ontime';
+        alerta.textContent = '✓ Ingreso puntual — dentro del horario (14:30)';
+      }
+    });
+  }
+
+  function goToWebScreen(name){
+    document.querySelectorAll('#web-tabs button').forEach(b=>b.classList.toggle('active', b.dataset.screen===name));
+    document.querySelectorAll('#sidebar-nav a').forEach(a=>a.classList.toggle('on', a.dataset.nav===name));
+    document.querySelectorAll('.web-screen').forEach(s=>s.classList.toggle('active', s.dataset.screen===name));
+  }
+  document.querySelectorAll('#sidebar-nav a').forEach(a=>{
+    a.style.cursor='pointer';
+    a.addEventListener('click', ()=>goToWebScreen(a.dataset.nav));
+  });
+
+  const asisSubtabs = document.querySelectorAll('#asistencia-subtabs span');
+  asisSubtabs.forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      asisSubtabs.forEach(t=>t.classList.remove('on'));
+      tab.classList.add('on');
+      document.querySelectorAll('.asis-sub').forEach(p=>p.classList.remove('active'));
+      document.querySelector('.asis-sub[data-sub="'+tab.dataset.sub+'"]').classList.add('active');
+    });
+  });
+
+  const histSubtabs = document.querySelectorAll('#historial-subtabs span');
+  histSubtabs.forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      histSubtabs.forEach(t=>t.classList.remove('on'));
+      tab.classList.add('on');
+      document.querySelectorAll('.hist-panel').forEach(p=>p.classList.remove('active'));
+      document.querySelector('.hist-panel[data-hist="'+tab.dataset.hist+'"]').classList.add('active');
+    });
+  });
+
+  /* ---- Historial detail modal: Asistencia (daily geolocation record) ---- */
+  const ASISTENCIA_DATA = {
+    lun11: {
+      title: 'Lunes 11 de agosto', sub: 'Registro de prácticas · 2026',
+      tipo: 'Prácticas pre profesionales', lugar: 'Iglesia Bautista Central',
+      ingreso: '08:02', salida: '13:10', horas: '5h 08m', distancia: '38 m',
+      estado: 'success', estadoLabel: 'Dentro del radio permitido', radarTag: 'GPS · precisión 5m'
+    },
+    vie08: {
+      title: 'Viernes 08 de agosto', sub: 'Registro de prácticas · 2026',
+      tipo: 'Prácticas pre profesionales', lugar: 'Iglesia Bautista Central',
+      ingreso: '08:55', salida: '12:40', horas: '3h 45m', distancia: '22 m',
+      estado: 'success', estadoLabel: 'Dentro del radio permitido', radarTag: 'GPS · precisión 6m'
+    },
+    jue07: {
+      title: 'Jueves 07 de agosto', sub: 'Registro de prácticas · 2026',
+      tipo: 'Prácticas pre profesionales', lugar: 'Iglesia Bautista Central',
+      ingreso: '—', salida: '—', horas: '— (no válido)', distancia: '310 m',
+      estado: 'warn', estadoLabel: 'Fuera del radio permitido — no se registró asistencia', radarTag: 'GPS · precisión 9m'
+    },
+    mie06: {
+      title: 'Miércoles 06 de agosto', sub: 'Registro de prácticas · 2026',
+      tipo: 'Prácticas pre profesionales', lugar: 'Iglesia Bautista Central',
+      ingreso: '08:47', salida: '12:30', horas: '3h 43m', distancia: '15 m',
+      estado: 'success', estadoLabel: 'Dentro del radio permitido', radarTag: 'GPS · precisión 5m'
+    }
+  };
+
+  const asistenciaDetailModal = document.getElementById('asistencia-detail-modal');
+  document.getElementById('asistencia-detail-close').addEventListener('click', ()=> asistenciaDetailModal.classList.remove('active'));
+  asistenciaDetailModal.addEventListener('click', (e)=>{ if(e.target === asistenciaDetailModal) asistenciaDetailModal.classList.remove('active'); });
+
+  document.querySelectorAll('.hist-panel[data-hist="asistencia"] .day-item').forEach(item=>{
+    item.addEventListener('click', ()=>{
+      const d = ASISTENCIA_DATA[item.dataset.key];
+      if(!d) return;
+      document.getElementById('ad-title').textContent = d.title;
+      document.getElementById('ad-sub').textContent = d.sub;
+      document.getElementById('ad-radar-tag').textContent = d.radarTag;
+      document.getElementById('ad-tipo').textContent = d.tipo;
+      document.getElementById('ad-lugar').textContent = d.lugar;
+      document.getElementById('ad-ingreso').textContent = d.ingreso;
+      document.getElementById('ad-salida').textContent = d.salida;
+      document.getElementById('ad-horas').textContent = d.horas;
+      document.getElementById('ad-distancia').textContent = d.distancia;
+
+      const radarBox = document.getElementById('ad-radar-box');
+      radarBox.style.opacity = d.estado === 'warn' ? '0.55' : '1';
+
+      const chipClass = d.estado === 'success' ? 'chip-success' : 'chip-warn';
+      document.getElementById('ad-chip-wrap').innerHTML =
+        '<span class="chip '+chipClass+'"><span class="dot"></span>'+d.estadoLabel+'</span>';
+      asistenciaDetailModal.classList.add('active');
+    });
+  });
+
+  /* ---- Historial detail modals: Pasajes (monthly formularios) ---- */
+  const PASAJE_DATA = {
+    marzo: {
+      title: 'Formulario · Marzo 2026', sub: 'Créditos · Carlos Alanoca',
+      total: 35.00, devolucion: 28.00,
+      estado: 'pending', estadoLabel: 'Pendiente de firma del mentor',
+      rows: [
+        ['23-02','Av. Buenos Aires – Oficina Central – Av. Buenos Aires','5.00'],
+        ['25-02','Av. Buenos Aires – Oficina Central – Av. Buenos Aires','5.00'],
+        ['27-02','Av. Buenos Aires – Oficina Central','2.50'],
+        ['02-03','Av. Buenos Aires – Oficina Central – Av. Buenos Aires','5.00'],
+        ['04-03','Av. Buenos Aires – Oficina Central – Av. Buenos Aires','5.00'],
+        ['06-03','Av. Buenos Aires – Oficina Central','2.50'],
+        ['09-03','Av. Buenos Aires – Oficina Central – Av. Buenos Aires','5.00'],
+        ['11-03','Av. Buenos Aires – Oficina Central – Av. Buenos Aires','5.00']
+      ]
+    },
+    febrero: {
+      title: 'Formulario · Febrero 2026', sub: 'Créditos · Carlos Alanoca',
+      total: 28.00, devolucion: 22.40,
+      estado: 'success', estadoLabel: 'Aprobado el 03/03/2026',
+      rows: [
+        ['02-02','Av. Buenos Aires – Oficina Central – Av. Buenos Aires','5.00'],
+        ['04-02','Av. Buenos Aires – Oficina Central – Av. Buenos Aires','5.00'],
+        ['06-02','Av. Buenos Aires – Oficina Central','2.50'],
+        ['09-02','Av. Buenos Aires – Oficina Central – Av. Buenos Aires','5.00'],
+        ['11-02','Av. Buenos Aires – Oficina Central – Av. Buenos Aires','5.00'],
+        ['13-02','Av. Buenos Aires – Oficina Central','5.50']
+      ]
+    },
+    enero: {
+      title: 'Formulario · Enero 2026', sub: 'Créditos · Carlos Alanoca',
+      total: 32.00, devolucion: 25.60,
+      estado: 'success', estadoLabel: 'Aprobado el 05/02/2026',
+      rows: [
+        ['12-01','Av. Buenos Aires – Oficina Central – Av. Buenos Aires','5.00'],
+        ['14-01','Av. Buenos Aires – Oficina Central – Av. Buenos Aires','5.00'],
+        ['16-01','Av. Buenos Aires – Oficina Central','2.50'],
+        ['19-01','Av. Buenos Aires – Oficina Central – Av. Buenos Aires','5.00'],
+        ['21-01','Av. Buenos Aires – Oficina Central – Av. Buenos Aires','5.00'],
+        ['23-01','Av. Buenos Aires – Oficina Central','5.00'],
+        ['26-01','Av. Buenos Aires – Oficina Central','4.50']
+      ]
+    }
+  };
+
+  const pasajeDetailModal = document.getElementById('pasaje-detail-modal');
+  document.getElementById('pasaje-detail-close').addEventListener('click', ()=> pasajeDetailModal.classList.remove('active'));
+  pasajeDetailModal.addEventListener('click', (e)=>{ if(e.target === pasajeDetailModal) pasajeDetailModal.classList.remove('active'); });
+
+  document.querySelectorAll('.hist-panel[data-hist="pasajes"] .hist-item').forEach(item=>{
+    item.addEventListener('click', ()=>{
+      const d = PASAJE_DATA[item.dataset.key];
+      if(!d) return;
+      document.getElementById('pd-title').textContent = d.title;
+      document.getElementById('pd-sub').textContent = d.sub;
+      document.getElementById('pd-total').textContent = 'Bs ' + d.total.toFixed(2);
+      document.getElementById('pd-devolucion').textContent = 'Bs ' + d.devolucion.toFixed(2);
+      document.getElementById('pd-recorridos').innerHTML = d.rows.map(r =>
+        '<div class="recorrido-row"><span class="rr-fecha">'+r[0]+'</span><span class="rr-desc">'+r[1]+'</span><span class="rr-monto">'+r[2]+'</span></div>'
+      ).join('');
+      const chipClass = d.estado === 'success' ? 'chip-success' : 'chip-pending';
+      document.getElementById('pd-estado-wrap').innerHTML =
+        '<span class="chip '+chipClass+'"><span class="dot"></span>'+d.estadoLabel+'</span>';
+      pasajeDetailModal.classList.add('active');
+    });
+  });
+
+  /* ---- Historial detail modals: Evaluaciones (semester summary) ---- */
+  const SEMESTRE_DATA = {
+    s2: {
+      title: 'Semestre II · 2026', sub: 'En curso · julio a diciembre',
+      estado: 'pending', estadoLabel: '3 de 5 módulos completados',
+      modules: [
+        {n:1, name:'Liderazgo en la Iglesia', ev:'Evaluador: Pastor', score:'18/20'},
+        {n:2, name:'Autoevaluación Académica', ev:'Evaluador: Becario', score:'20/20'},
+        {n:3, name:'Evaluación del Mentor', ev:'Evaluador: Supervisor', score:'En revisión'},
+        {n:4, name:'Evaluación Escuela de Líderes', ev:'Evaluador: Facilitador', score:'17/20'},
+        {n:5, name:'Evaluación Socioeconómica', ev:'Evaluador: Trabajo Social', score:'Pendiente'}
+      ]
+    },
+    s1: {
+      title: 'Semestre I · 2026', sub: 'Cerrado · enero a junio',
+      estado: 'success', estadoLabel: 'Periodo cerrado · promedio 85%',
+      modules: [
+        {n:1, name:'Liderazgo en la Iglesia', ev:'Evaluador: Pastor', score:'16/20'},
+        {n:2, name:'Autoevaluación Académica', ev:'Evaluador: Becario', score:'19/20'},
+        {n:3, name:'Evaluación del Mentor', ev:'Evaluador: Supervisor', score:'18/20'},
+        {n:4, name:'Evaluación Escuela de Líderes', ev:'Evaluador: Facilitador', score:'15/20'},
+        {n:5, name:'Evaluación Socioeconómica', ev:'Evaluador: Trabajo Social', score:'Incompleto'}
+      ]
+    }
+  };
+
+  const semestreDetailModal = document.getElementById('semestre-detail-modal');
+  document.getElementById('semestre-detail-close').addEventListener('click', ()=> semestreDetailModal.classList.remove('active'));
+  semestreDetailModal.addEventListener('click', (e)=>{ if(e.target === semestreDetailModal) semestreDetailModal.classList.remove('active'); });
+
+  document.querySelectorAll('.hist-panel[data-hist="evaluaciones"] .hist-item').forEach(item=>{
+    item.addEventListener('click', ()=>{
+      const d = SEMESTRE_DATA[item.dataset.key];
+      if(!d) return;
+      document.getElementById('sd-title').textContent = d.title;
+      document.getElementById('sd-sub').textContent = d.sub;
+      document.getElementById('sd-modules').innerHTML = d.modules.map(m => {
+        let color = 'var(--ink-900)';
+        if(m.score === 'Pendiente' || m.score === 'En revisión') color = 'var(--pending)';
+        if(m.score === 'Incompleto') color = 'var(--warn)';
+        return '<div class="sd-module-row"><div style="display:flex;align-items:center;"><span class="smr-num">'+m.n+'</span><div><p class="smr-name">'+m.name+'</p><p class="smr-eval">'+m.ev+'</p></div></div><span style="font-family:var(--mono);font-weight:700;font-size:12px;color:'+color+';">'+m.score+'</span></div>';
+      }).join('');
+      const chipClass = d.estado === 'success' ? 'chip-success' : 'chip-pending';
+      document.getElementById('sd-estado-wrap').innerHTML =
+        '<span class="chip '+chipClass+'"><span class="dot"></span>'+d.estadoLabel+'</span>';
+      semestreDetailModal.classList.add('active');
+    });
+  });
+
+  const semesterRows = document.querySelectorAll('#semester-list .semester-row');
+  semesterRows.forEach(row=>{
+    row.addEventListener('click', ()=>{
+      semesterRows.forEach(r=>{
+        r.classList.remove('on');
+        const chip = r.querySelector('.chip');
+        chip.className = 'chip chip-locked';
+        chip.querySelector('.dot') || chip.insertAdjacentHTML('afterbegin','<span class="dot"></span>');
+        chip.lastChild.textContent = 'Inhabilitado';
+      });
+      row.classList.add('on');
+      const activeChip = row.querySelector('.chip');
+      activeChip.className = 'chip chip-success';
+      activeChip.lastChild.textContent = 'Habilitado';
+
+      document.querySelectorAll('.eval-period').forEach(p=>p.classList.remove('active'));
+      document.querySelector('.eval-period[data-period="'+row.dataset.semester+'"]').classList.add('active');
+    });
+  });
+
+  /* ---- module detail / upload modal ---- */
+  const evalModal = document.getElementById('eval-modal');
+  const modalNum = document.getElementById('modal-num');
+  const modalTitle = document.getElementById('modal-title');
+  const modalEvaluator = document.getElementById('modal-evaluator');
+  const modalBody = document.getElementById('modal-body');
+  const modalClose = document.getElementById('modal-close');
+
+  function openEvalModal(d){
+    modalNum.textContent = 'Módulo ' + d.num;
+    modalTitle.textContent = d.title;
+    modalEvaluator.textContent = d.evaluator;
+
+    let bodyHtml = '';
+    if(d.state === 'done' || d.state === 'locked'){
+      const pct = Math.round((d.score / d.max) * 100);
+      bodyHtml = `
+        ${d.state === 'locked' ? '<div class="modal-status-banner locked">🔒 Periodo cerrado — documento de solo lectura</div>' : ''}
+        <div class="score-block"><span class="score-num">${d.score}</span><span class="score-den">/ ${d.max} pts</span></div>
+        <div class="score-bar"><span style="width:${pct}%;"></span></div>
+        <div class="pdf-preview">
+          <div class="pdf-page">
+            <div class="pl gold"></div>
+            <div class="pl" style="width:80%;"></div>
+            <div class="pl" style="width:92%;"></div>
+            <div class="pl short"></div>
+          </div>
+          <div class="pdf-file-row">
+            <span class="fname">${d.file}</span>
+            <span class="fdate">${d.date}</span>
+          </div>
+        </div>
+        <div class="comment-box">
+          <p class="cb-label">Comentario del evaluador</p>
+          <p>${d.comment}</p>
+        </div>
+        <button class="btn btn-outline">Descargar PDF</button>
+      `;
+    } else if(d.state === 'pending'){
+      bodyHtml = `
+        <p class="p-sub" style="margin:4px 0 0;">${d.instructions}</p>
+        <div class="dropzone-lg">
+          <div class="dz-icon">⬆</div>
+          <p>Arrastra tu archivo aquí</p>
+          <small>PDF, JPG o PNG · máx. 10 MB</small>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-outline">Tomar foto</button>
+          <button class="btn btn-gold">Elegir archivo</button>
+        </div>
+      `;
+    } else if(d.state === 'missing'){
+      bodyHtml = `
+        <div class="modal-status-banner missing">✕ Módulo incompleto</div>
+        <p class="p-sub" style="margin:4px 0 20px;">${d.missingMsg}</p>
+        <div class="dropzone-lg" style="opacity:.5;">
+          <div class="dz-icon">🔒</div>
+          <p>Carga deshabilitada</p>
+          <small>El periodo ya no acepta documentos</small>
+        </div>
+      `;
+    }
+
+    if(d.multi){
+      bodyHtml += `
+        <p class="ufb-heading">Subir archivos</p>
+        <p class="ufb-title" style="border-top:none;margin-top:0;">Formulario de subida — documentos adicionales</p>
+        <div class="ufb-box">
+          <div class="ufb-row">
+            <label class="ufb-choose-btn" for="academic-multi-input">Elegir archivos</label>
+            <input type="file" id="academic-multi-input" multiple accept=".pdf,.jpg,.jpeg,.png" style="display:none" />
+            <span class="ufb-filename" id="academic-multi-filename">Ningún archivo seleccionado</span>
+          </div>
+          <ul class="ufb-file-list" id="academic-multi-list"></ul>
+          <button class="btn btn-upload-green" id="academic-multi-submit" style="margin-top:14px;width:100%;">Subir</button>
+          <p class="p-sub" id="academic-multi-status" style="text-align:center;margin-top:10px;display:none;"></p>
+        </div>
+      `;
+    }
+
+    modalBody.innerHTML = bodyHtml;
+
+    if(d.multi){
+      let seleccionados = [];
+      const input = document.getElementById('academic-multi-input');
+      const filenameEl = document.getElementById('academic-multi-filename');
+      const listEl = document.getElementById('academic-multi-list');
+      const submitBtn = document.getElementById('academic-multi-submit');
+      const statusEl = document.getElementById('academic-multi-status');
+
+      function renderLista(){
+        listEl.innerHTML = seleccionados.map((nombre, i) =>
+          '<li><span>📄 ' + nombre + '</span><span class="ufb-remove" data-i="' + i + '">✕</span></li>'
+        ).join('');
+        filenameEl.textContent = seleccionados.length === 0
+          ? 'Ningún archivo seleccionado'
+          : seleccionados.length + ' archivo(s) seleccionado(s)';
+        listEl.querySelectorAll('.ufb-remove').forEach(x=>{
+          x.addEventListener('click', ()=>{
+            seleccionados.splice(Number(x.dataset.i), 1);
+            renderLista();
+          });
+        });
+      }
+
+      input.addEventListener('change', ()=>{
+        Array.from(input.files).forEach(f => seleccionados.push(f.name));
+        input.value = '';
+        renderLista();
+      });
+
+      submitBtn.addEventListener('click', ()=>{
+        if(seleccionados.length === 0){
+          statusEl.style.display = 'block';
+          statusEl.style.color = 'var(--warn)';
+          statusEl.textContent = 'Elige al menos un archivo antes de subir.';
+          return;
+        }
+        statusEl.style.display = 'block';
+        statusEl.style.color = 'var(--success)';
+        statusEl.textContent = '✓ ' + seleccionados.length + ' documento(s) subido(s) correctamente.';
+        seleccionados = [];
+        renderLista();
+      });
+    }
+
+    evalModal.classList.add('active');
+  }
+
+  document.querySelectorAll('.eval-trigger').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      openEvalModal({
+        state: el.dataset.state,
+        multi: el.dataset.multi === 'true',
+        num: el.dataset.num,
+        title: el.dataset.title,
+        evaluator: el.dataset.evaluator,
+        score: el.dataset.score,
+        max: el.dataset.max,
+        file: el.dataset.file,
+        date: el.dataset.date,
+        comment: el.dataset.comment,
+        instructions: el.dataset.instructions,
+        missingMsg: el.dataset.missingMsg
+      });
+    });
+  });
+  modalClose.addEventListener('click', ()=> evalModal.classList.remove('active'));
+  evalModal.addEventListener('click', (e)=>{ if(e.target === evalModal) evalModal.classList.remove('active'); });
+
+  /* ---- F-03: Formulario de Evaluación del Becario (Pastor / Iglesia) ---- */
+  const f03Modal = document.getElementById('f03-modal');
+  const f03TriggerBtn = document.getElementById('f03-trigger-btn');
+  const f03Close = document.getElementById('f03-close');
+  const f03Error = document.getElementById('f03-error');
+
+  if(f03TriggerBtn){
+    f03TriggerBtn.addEventListener('click', ()=> f03Modal.classList.add('active'));
+  }
+  f03Close.addEventListener('click', ()=> f03Modal.classList.remove('active'));
+  f03Modal.addEventListener('click', (e)=>{ if(e.target === f03Modal) f03Modal.classList.remove('active'); });
+
+  function f03Val(id){ return document.getElementById(id).value.trim(); }
+  function f03Radio(name){
+    const el = document.querySelector('input[name="'+name+'"]:checked');
+    return el ? el.value : '—';
+  }
+  function f03Esc(s){
+    return (s || '—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  }
+
+  document.getElementById('f03-export-btn').addEventListener('click', ()=>{
+    const pastorNombre = f03Val('f03-pastor-nombre');
+    const pastorCorreo = f03Val('f03-pastor-correo');
+    const declaraCheck = document.getElementById('f03-declara-check').checked;
+
+    if(!pastorNombre || !pastorCorreo || !pastorCorreo.includes('@') || !declaraCheck){
+      f03Error.style.display = 'block';
+      return;
+    }
+    f03Error.style.display = 'none';
+
+    const hoy = new Date();
+    const fechaTexto = hoy.toLocaleDateString('es-BO', {day:'2-digit', month:'long', year:'numeric'});
+
+    const html = `
+    <html><head><meta charset="utf-8"><title>F-03 · ${f03Esc(f03Val('f03-becario-nombre'))}</title>
+    <style>
+      body{font-family:Georgia,'Times New Roman',serif;color:#1a1a1a;max-width:780px;margin:30px auto;padding:0 20px;line-height:1.5;}
+      .hdr{display:flex;justify-content:flex-end;margin-bottom:6px;}
+      .hdr b{font-size:20px;color:#0A5CA0;}
+      .hdr small{display:block;font-size:8px;color:#17B4C4;text-align:right;}
+      h1{font-size:16px;text-align:center;margin:4px 0 2px;}
+      h2{font-size:13px;text-align:center;margin:0 0 3px;}
+      p.lead{font-size:11.5px;font-weight:bold;margin:14px 0;}
+      hr{border:none;border-top:1px solid #333;margin:14px 0;}
+      h3{font-size:12.5px;margin:18px 0 10px;}
+      .row{margin:8px 0;font-size:12px;}
+      .row b{display:inline-block;min-width:230px;}
+      .q{margin:14px 0 4px;font-size:12px;font-weight:bold;}
+      .a{font-size:12px;border-bottom:1px dotted #999;padding-bottom:4px;min-height:16px;}
+      .foot{margin-top:40px;font-size:12px;}
+      @media print{ .noprint{display:none;} }
+    </style></head><body>
+      <div class="hdr"><div><b>Diaconía</b><small>INSTITUCIÓN FINANCIERA DE DESARROLLO</small></div></div>
+      <h1>F-03</h1>
+      <h2>PROGRAMA DE BECAS - ESCUELA DE LÍDERES BUMAN-D<br>FORMULARIO DE EVALUACIÓN DEL BECARIO</h2>
+      <p class="lead">Se sugiere al Pastor y Líderes principales evaluar el aporte a su Iglesia del Programa BUMAN-D a través del líder que es parte del programa. Las respuestas comprometen el testimonio e integridad de toda la iglesia, por ello se piden con toda sinceridad.</p>
+      <hr>
+      <h3>I. Datos del pastor y de la iglesia local</h3>
+      <div class="row"><b>Nombre del pastor:</b> ${f03Esc(pastorNombre)}</div>
+      <div class="row"><b>Correo del pastor:</b> ${f03Esc(pastorCorreo)}</div>
+      <div class="row"><b>N.º celular:</b> ${f03Esc(f03Val('f03-pastor-celular'))}</div>
+      <div class="row"><b>Nombre de la iglesia:</b> ${f03Esc(f03Val('f03-iglesia-nombre'))}</div>
+      <div class="row"><b>Dirección de la iglesia:</b> ${f03Esc(f03Val('f03-iglesia-direccion'))}</div>
+      <div class="row"><b>Líder de la congregación:</b> ${f03Esc(f03Val('f03-lider1-nombre'))} — ${f03Esc(f03Val('f03-lider1-cargo'))}</div>
+
+      <h3>II. Referencias acerca del Becario Universitario</h3>
+      <div class="row"><b>1. Nombre del becario:</b> ${f03Esc(f03Val('f03-becario-nombre'))}</div>
+      <div class="row"><b>2. Frecuencia de asistencia:</b> ${f03Esc(f03Radio('f03-frecuencia'))}</div>
+      <div class="row"><b>3. ¿Demuestra compromiso con el Señor y la Iglesia?</b> ${f03Esc(f03Radio('f03-compromiso'))}</div>
+      <div class="row"><b>4. ¿Ocupa actualmente algún cargo?</b> ${f03Esc(f03Radio('f03-cargo'))} — Cargo 2025: ${f03Esc(f03Val('f03-cargo-2025'))}</div>
+      <div class="row"><b>5. ¿Cómo ha cumplido con sus cargos?</b> ${f03Esc(f03Radio('f03-cumplimiento'))}</div>
+
+      <div class="q">6. ¿Demuestra convicción al llamado de Dios?</div><div class="a">${f03Esc(f03Val('f03-conviccion'))}</div>
+      <div class="q">7. ¿En qué áreas demuestra ejemplo en la congregación?</div><div class="a">${f03Esc(f03Val('f03-ejemplo'))}</div>
+      <div class="q">8. ¿Demuestra compromiso con las capacitaciones?</div><div class="a">${f03Esc(f03Val('f03-capacitaciones'))}</div>
+      <div class="q">9. ¿Cómo es su testimonio como cristiano?</div><div class="a">${f03Esc(f03Val('f03-testimonio'))}</div>
+      <div class="q">10. ¿Cómo se relaciona con los demás miembros?</div><div class="a">${f03Esc(f03Val('f03-relacion'))}</div>
+      <div class="q">11. ¿Se encuentra desarrollando a nuevos líderes? ¿A quiénes?</div><div class="a">${f03Esc(f03Val('f03-nuevos-lideres'))}</div>
+      <div class="q">12. a) Fortalezas</div><div class="a">${f03Esc(f03Val('f03-fortalezas'))}</div>
+      <div class="q">b) Debilidades</div><div class="a">${f03Esc(f03Val('f03-debilidades'))}</div>
+      <div class="q">13. ¿Cuál es su opinión general del becario?</div><div class="a">${f03Esc(f03Val('f03-opinion'))}</div>
+
+      <h3>III. Declaración</h3>
+      <p style="font-size:12px;">Como pastor de la congregación del/la becario, declaro que todos los datos proporcionados son verídicos.</p>
+      <div class="foot">
+        <div class="row"><b>Nombre:</b> ${f03Esc(f03Val('f03-declara-nombre') || pastorNombre)}</div>
+        <div class="row"><b>C.I.:</b> ${f03Esc(f03Val('f03-declara-ci'))}</div>
+        <div class="row"><b>Correo (verificación digital):</b> ${f03Esc(pastorCorreo)}</div>
+        <div class="row"><b>PASTOR LOCAL</b></div>
+        <div class="row" style="margin-top:20px;">El Alto, ${fechaTexto}</div>
+      </div>
+      <script>window.onload = function(){ window.print(); };<\/script>
+    </body></html>`;
+
+    const ventana = window.open('', '_blank');
+    if(ventana){
+      ventana.document.open();
+      ventana.document.write(html);
+      ventana.document.close();
+    } else {
+      alert('Permite las ventanas emergentes para exportar el PDF del formulario F-03.');
+    }
+  });
+
+  /* ---- Login -> Verificación (confirma correo -> confirma datos) -> Asistencia ---- */
+  const vfStepEmail = document.getElementById('vf-step-email');
+  const vfStepDatos = document.getElementById('vf-step-datos');
+  const vfCorreo1 = document.getElementById('vf-correo-1');
+  const vfCorreo2 = document.getElementById('vf-correo-2');
+  const vfCorreoError = document.getElementById('vf-correo-error');
+
+  function irAPantallaMovil(nombre){
+    document.querySelectorAll('.phone .screen').forEach(s=>s.classList.remove('active'));
+    document.querySelector('.phone .screen[data-screen="' + nombre + '"]').classList.add('active');
+    document.querySelectorAll('#mobile-tabs button').forEach(b=>b.classList.toggle('active', b.dataset.screen===nombre));
+  }
+
+  document.getElementById('login-btn').addEventListener('click', ()=>{
+    // Reinicia el flujo de verificación a su primer paso (Confirma tu correo)
+    vfStepDatos.style.display = 'none';
+    vfStepEmail.style.display = 'block';
+    vfCorreo1.value = '';
+    vfCorreo2.value = '';
+    vfCorreoError.style.display = 'none';
+
+    // Fecha de presentación: siempre el 24 del mes en curso
+    const hoy = new Date();
+    const dia24 = new Date(hoy.getFullYear(), hoy.getMonth(), 24);
+    const fechaTexto = String(dia24.getDate()).padStart(2,'0') + '/' + String(dia24.getMonth()+1).padStart(2,'0') + '/' + dia24.getFullYear();
+    document.getElementById('vf-fecha-presentacion').textContent = fechaTexto;
+
+    irAPantallaMovil('verificacion');
+  });
+
+  document.getElementById('vf-back').addEventListener('click', ()=> irAPantallaMovil('login'));
+
+  document.getElementById('vf-guardar-correo-btn').addEventListener('click', ()=>{
+    const a = vfCorreo1.value.trim().toLowerCase();
+    const b = vfCorreo2.value.trim().toLowerCase();
+    if(!a || !b || a !== b || !a.includes('@')){
+      vfCorreoError.style.display = 'block';
+      return;
+    }
+    vfCorreoError.style.display = 'none';
+    // Guardar correo -> automáticamente muestra "Confirma estos datos"
+    vfStepEmail.style.display = 'none';
+    vfStepDatos.style.display = 'block';
+  });
+
+  document.getElementById('vf-confirmar-datos-btn').addEventListener('click', ()=>{
+    // Datos confirmados -> entra a la app (pestaña Asistencia)
+    irAPantallaMovil('asistencia');
+  });
+
+  /* ---- Pasajes: 2 pantallas — Paso 1 (Ida) y Paso 2 (Vuelta) ---- */
+  function irAPasoPasaje(paso){
+    document.querySelectorAll('.pasaje-step').forEach(el=>{
+      el.style.display = (el.dataset.step === paso) ? 'block' : 'none';
+    });
+    document.querySelectorAll('#pasaje-steps span').forEach(s=>{
+      s.classList.toggle('on', s.dataset.step === paso);
+    });
+  }
+  document.getElementById('ir-a-vuelta-btn').addEventListener('click', ()=> irAPasoPasaje('vuelta'));
+  document.getElementById('volver-a-ida-btn').addEventListener('click', ()=> irAPasoPasaje('ida'));
+  document.querySelectorAll('#pasaje-steps span').forEach(s=>{
+    s.addEventListener('click', ()=> irAPasoPasaje(s.dataset.step));
+  });
+
+  /* Enviar formulario mensual: solo habilitado el día 24 de cada mes */
+  (function(){
+    const btn = document.getElementById('enviar-formulario-btn');
+    const hint = document.getElementById('enviar-formulario-hint');
+    const hoy = new Date();
+    if(hoy.getDate() === 24){
+      btn.disabled = false;
+      hint.style.display = 'none';
+    } else {
+      btn.disabled = true;
+      hint.style.display = 'block';
+      hint.textContent = 'Se habilita el 24 de cada mes para el envío del formulario.';
+    }
+  })();
+
+  /* ---- add recorrido (Pasajes) — IDA / VUELTA flow (inline, siempre visible) ---- */
+  const recorridoList = document.getElementById('recorrido-list');
+  const pasajeTotalEl = document.getElementById('pasaje-total');
+  const pasajeDevolucionEl = document.getElementById('pasaje-devolucion');
+  const rrDateInput = document.getElementById('rr-date-input');
+  const addRrError = document.getElementById('add-rr-error');
+  const captureStatus = document.getElementById('capture-status');
+  const idaAmountEl = document.getElementById('ida-amount');
+  const vueltaAmountEl = document.getElementById('vuelta-amount');
+  const montoDiaEl = document.getElementById('monto-dia-total');
+  const LUGAR_PRACTICA = 'Oficina Central';
+
+  let pasajeTotal = 35.00;
+  let idaTotal = 0, vueltaTotal = 0;
+
+  function fmtBs(n){ return 'Bs. ' + n.toFixed(2).replace('.', ','); }
+
+  function recalcMontos(){
+    idaTotal = 0;
+    document.querySelectorAll('#ida-tramos .tarifa-select').forEach(sel=>{
+      const v = sel.dataset.customValue !== undefined ? parseFloat(sel.dataset.customValue) : parseFloat(sel.value);
+      if(!isNaN(v)) idaTotal += v;
+    });
+    vueltaTotal = 0;
+    document.querySelectorAll('#vuelta-tramos .tarifa-select').forEach(sel=>{
+      const v = sel.dataset.customValue !== undefined ? parseFloat(sel.dataset.customValue) : parseFloat(sel.value);
+      if(!isNaN(v)) vueltaTotal += v;
+    });
+    idaAmountEl.textContent = 'Bs ' + idaTotal.toFixed(2);
+    vueltaAmountEl.textContent = 'Bs ' + vueltaTotal.toFixed(2);
+    montoDiaEl.textContent = fmtBs(idaTotal + vueltaTotal);
+  }
+
+  function updateCaptureStatus(){
+    const filled = document.querySelectorAll('.stop-input').length
+      ? Array.from(document.querySelectorAll('.stop-input')).filter(i=>i.value.trim()!=='').length
+      : 0;
+    captureStatus.textContent = filled === 0
+      ? 'Aún no hay puntos capturados.'
+      : filled + ' punto' + (filled>1?'s':'') + ' capturado' + (filled>1?'s':'') + '.';
+  }
+
+  function wireTarifaSelect(select){
+    select.addEventListener('change', ()=>{
+      if(select.value === 'custom'){
+        const transporte = document.createElement('input');
+        transporte.type = 'text';
+        transporte.className = 'tarifa-transporte';
+        transporte.placeholder = 'Tipo de transporte (escribe o elige)';
+        transporte.setAttribute('list', 'tipos-transporte');
+
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.className = 'tarifa-custom';
+        input.placeholder = 'Bs';
+        input.step = '0.5';
+        input.min = '0';
+        input.addEventListener('input', ()=>{
+          select.dataset.customValue = input.value || '0';
+          recalcMontos();
+        });
+        select.insertAdjacentElement('afterend', transporte);
+        transporte.insertAdjacentElement('afterend', input);
+        delete select.dataset.customValue;
+      } else {
+        const existingCustom = select.parentElement.querySelector('.tarifa-custom');
+        if(existingCustom) existingCustom.remove();
+        const existingTransporte = select.parentElement.querySelector('.tarifa-transporte');
+        if(existingTransporte) existingTransporte.remove();
+        delete select.dataset.customValue;
+      }
+      recalcMontos();
+    });
+  }
+  document.querySelectorAll('.tarifa-select').forEach(wireTarifaSelect);
+
+  function wireStopPin(pin){
+    pin.addEventListener('click', ()=>{
+      const input = pin.nextElementSibling;
+      const original = pin.textContent;
+      pin.textContent = '◎';
+      const fill = (place) => {
+        input.value = place;
+        pin.textContent = '✓';
+        updateCaptureStatus();
+        setTimeout(()=> pin.textContent = original, 1200);
+      };
+      if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(
+          (pos)=> fill('GPS (' + pos.coords.latitude.toFixed(4) + ', ' + pos.coords.longitude.toFixed(4) + ')'),
+          ()=> setTimeout(()=> fill('Villa Adela, El Alto'), 700),
+          { timeout: 3000 }
+        );
+      } else {
+        setTimeout(()=> fill('Villa Adela, El Alto'), 800);
+      }
+    });
+  }
+  document.querySelectorAll('.pin-icon.clickable').forEach(wireStopPin);
+  document.querySelectorAll('.stop-input').forEach(inp=> inp.addEventListener('input', updateCaptureStatus));
+
+  /* Confirmar parada: confirma que el becario se encuentra en ese punto de la ruta */
+  function wireConfirmBtn(btn){
+    btn.addEventListener('click', ()=>{
+      const row = btn.closest('.stop-row');
+      const input = row.querySelector('.stop-input');
+      if(!input.value.trim()){
+        input.focus();
+        return;
+      }
+      const isConfirmed = btn.classList.contains('confirmed');
+      if(isConfirmed){
+        btn.classList.remove('confirmed');
+        btn.textContent = 'Confirmar';
+      } else {
+        btn.classList.add('confirmed');
+        btn.textContent = '✓ En esta parada';
+      }
+    });
+  }
+  document.querySelectorAll('.confirm-stop-btn').forEach(wireConfirmBtn);
+
+  /* + Agregar parada: dynamically insert a new numbered stop */
+  document.querySelectorAll('.add-stop-link').forEach(link=>{
+    link.addEventListener('click', ()=>{
+      const section = link.dataset.section;
+      const list = document.getElementById(section + '-stops');
+      const count = list.querySelectorAll('.stop-row').length + 1;
+      const row = document.createElement('div');
+      row.className = 'stop-row';
+      row.innerHTML = '<span class="stop-num">'+count+'</span><span class="pin-icon clickable" data-section="'+section+'">📍</span><input type="text" class="stop-input" placeholder="Parada '+count+' (toca 📍 o escribe)" /><button class="confirm-stop-btn" data-section="'+section+'">Confirmar</button>';
+      list.appendChild(row);
+      wireStopPin(row.querySelector('.pin-icon'));
+      wireConfirmBtn(row.querySelector('.confirm-stop-btn'));
+      row.querySelector('.stop-input').addEventListener('input', updateCaptureStatus);
+    });
+  });
+
+  /* Guardar ruta ida: confirma la ruta de ida de forma independiente */
+  document.getElementById('guardar-ida-btn').addEventListener('click', ()=>{
+    const idaValues = Array.from(document.querySelectorAll('#ida-stops .stop-input')).map(i=>i.value.trim()).filter(v=>v!=='');
+    if(idaValues.length < 2 || idaTotal <= 0){
+      document.getElementById('ida-section').style.borderColor = 'var(--warn)';
+      setTimeout(()=> document.getElementById('ida-section').style.borderColor = '', 900);
+      return;
+    }
+    document.getElementById('ida-guardada-msg').style.display = 'block';
+    setTimeout(()=> irAPasoPasaje('vuelta'), 700);
+  });
+
+  document.getElementById('guardar-vuelta-btn').addEventListener('click', ()=>{
+    const vueltaValues = Array.from(document.querySelectorAll('#vuelta-stops .stop-input')).map(i=>i.value.trim()).filter(v=>v!=='');
+    if(vueltaValues.length < 2 || vueltaTotal <= 0){
+      document.getElementById('vuelta-section').style.borderColor = 'var(--warn)';
+      setTimeout(()=> document.getElementById('vuelta-section').style.borderColor = '', 900);
+      return;
+    }
+    document.getElementById('vuelta-guardada-msg').style.display = 'block';
+  });
+
+  /* + Agregar tramo de tarifa (transbordo) */
+  const TARIFA_OPTIONS_HTML = '<option value="">Selecciona una tarifa...</option>'
+    + '<option value="2">Bs 2.00 — Minibús (dentro de El Alto)</option>'
+    + '<option value="1.5">Bs 1.50 — Micro (dentro de El Alto)</option>'
+    + '<option value="3.5">Bs 3.50 — Minibús (Centro La Paz – Ceja)</option>'
+    + '<option value="4">Bs 4.00 — Minibús (UMSA – Ceja)</option>'
+    + '<option value="3">Bs 3.00 — Teleférico (línea regular)</option>'
+    + '<option value="2">Bs 2.00 — Teleférico (por transbordo)</option>'
+    + '<option value="custom">Otro (escribir monto)…</option>';
+  document.querySelectorAll('.add-tramo-link').forEach(link=>{
+    link.addEventListener('click', ()=>{
+      const section = link.dataset.section;
+      const tramos = document.getElementById(section + '-tramos');
+      const row = document.createElement('div');
+      row.className = 'tarifa-row';
+      row.innerHTML = '<select class="tarifa-select" data-section="'+section+'">'+TARIFA_OPTIONS_HTML+'</select><span class="tarifa-dash">—</span>';
+      tramos.appendChild(row);
+      wireTarifaSelect(row.querySelector('.tarifa-select'));
+    });
+  });
+
+  /* ↺ Usar la ida en reversa */
+  document.getElementById('usar-ida-reversa').addEventListener('click', ()=>{
+    const idaValues = Array.from(document.querySelectorAll('#ida-stops .stop-input')).map(i=>i.value.trim()).filter(v=>v!=='');
+    if(idaValues.length === 0) return;
+    const reversed = idaValues.slice().reverse();
+
+    const vueltaList = document.getElementById('vuelta-stops');
+    vueltaList.innerHTML = '';
+    reversed.forEach((val, i)=>{
+      const row = document.createElement('div');
+      row.className = 'stop-row';
+      row.innerHTML = '<span class="stop-num">'+(i+1)+'</span><span class="pin-icon clickable" data-section="vuelta">📍</span><input type="text" class="stop-input" value="'+val+'" /><button class="confirm-stop-btn" data-section="vuelta">Confirmar</button>';
+      vueltaList.appendChild(row);
+      wireStopPin(row.querySelector('.pin-icon'));
+      wireConfirmBtn(row.querySelector('.confirm-stop-btn'));
+      row.querySelector('.stop-input').addEventListener('input', updateCaptureStatus);
+    });
+
+    // copy ida fare total into vuelta as a single tramo
+    document.getElementById('vuelta-tramos').innerHTML =
+      '<div class="tarifa-row"><select class="tarifa-select" data-section="vuelta">'+TARIFA_OPTIONS_HTML+'</select><span class="tarifa-dash">—</span></div>';
+    const newSel = document.querySelector('#vuelta-tramos .tarifa-select');
+    wireTarifaSelect(newSel);
+    if(idaTotal > 0){
+      const presetMatch = [2, 1.5, 3.5, 4, 3].find(v => Math.abs(v - idaTotal) < 0.01);
+      if(presetMatch){
+        newSel.value = String(presetMatch);
+      } else {
+        newSel.value = 'custom';
+        newSel.dispatchEvent(new Event('change'));
+        const custom = document.querySelector('#vuelta-tramos .tarifa-custom');
+        if(custom){ custom.value = idaTotal.toFixed(2); newSel.dataset.customValue = idaTotal.toFixed(2); }
+      }
+    }
+    updateCaptureStatus();
+    recalcMontos();
+  });
+
+  document.getElementById('save-recorrido-btn').addEventListener('click', ()=>{
+    const idaValues = Array.from(document.querySelectorAll('#ida-stops .stop-input')).map(i=>i.value.trim()).filter(v=>v!=='');
+    const vueltaValues = Array.from(document.querySelectorAll('#vuelta-stops .stop-input')).map(i=>i.value.trim()).filter(v=>v!=='');
+    const monto = idaTotal + vueltaTotal;
+
+    if(idaValues.length < 2 || idaTotal <= 0){
+      addRrError.style.display = 'block';
+      return;
+    }
+    addRrError.style.display = 'none';
+
+    const dateVal = rrDateInput.value; // yyyy-mm-dd
+    const fecha = dateVal ? dateVal.slice(8,10) + '-' + dateVal.slice(5,7) : '—';
+
+    let desc = idaValues.join(' – ');
+    if(vueltaValues.length > 1){
+      desc += ' – ' + vueltaValues.slice(1).join(' – ');
+    } else if(vueltaValues.length === 0){
+      desc += ' – ' + idaValues[0];
+    }
+
+    const row = document.createElement('div');
+    row.className = 'recorrido-row';
+    row.innerHTML = '<span class="rr-fecha">'+fecha+'</span><span class="rr-desc">'+desc+'</span><span class="rr-monto">'+monto.toFixed(2)+'</span>';
+    recorridoList.appendChild(row);
+
+    const countEl = document.getElementById('recorrido-count');
+    countEl.textContent = parseInt(countEl.textContent, 10) + 1;
+
+    pasajeTotal += monto;
+    pasajeTotalEl.textContent = 'Bs ' + pasajeTotal.toFixed(2);
+    pasajeDevolucionEl.textContent = 'Bs ' + (pasajeTotal * 0.8).toFixed(2);
+
+    // Deja el formulario listo para registrar el siguiente día
+    document.querySelectorAll('#ida-stops .stop-input, #vuelta-stops .stop-input').forEach(i=> i.value = '');
+    document.querySelectorAll('.confirm-stop-btn').forEach(b=>{ b.classList.remove('confirmed'); b.textContent = 'Confirmar'; });
+    document.getElementById('ida-guardada-msg').style.display = 'none';
+    document.getElementById('vuelta-guardada-msg').style.display = 'none';
+    idaTotal = 0; vueltaTotal = 0;
+    recalcMontos();
+    updateCaptureStatus();
+  });
+
+  /* ---- web: period admin control ---- */
+  const periodRows = document.querySelectorAll('.period-row');
+  const evalRangeLabel = document.getElementById('eval-range-label');
+
+  function showWebPeriod(key){
+    document.querySelectorAll('.web-eval-period').forEach(p=>p.classList.toggle('active', p.dataset.period===key));
+    periodRows.forEach(r=>r.classList.toggle('viewing', r.dataset.period===key));
+    const row = document.querySelector('.period-row[data-period="'+key+'"]');
+    const isEnabled = row.querySelector('.status-chip').classList.contains('chip-success');
+    evalRangeLabel.textContent = row.querySelector('.p-label strong').textContent + (isEnabled ? '' : ' · Cerrado');
+  }
+
+  periodRows.forEach(row=>{
+    row.addEventListener('click', (e)=>{
+      if(e.target.closest('.toggle-btn')) return;
+      showWebPeriod(row.dataset.period);
+    });
+    row.querySelector('.toggle-btn').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const chip = row.querySelector('.status-chip');
+      const btn = e.currentTarget;
+      const enabling = !chip.classList.contains('chip-success');
+
+      if(enabling){
+        periodRows.forEach(r=>{
+          const c = r.querySelector('.status-chip');
+          c.className = 'chip chip-locked status-chip';
+          c.lastChild.textContent = ' Inhabilitado';
+          const b = r.querySelector('.toggle-btn');
+          b.textContent = 'Habilitar periodo';
+          b.className = 'mini-btn approve toggle-btn';
+        });
+        chip.className = 'chip chip-success status-chip';
+        chip.lastChild.textContent = ' Habilitado';
+        btn.textContent = 'Cerrar periodo';
+        btn.className = 'mini-btn reject toggle-btn';
+      } else {
+        chip.className = 'chip chip-locked status-chip';
+        chip.lastChild.textContent = ' Inhabilitado';
+        btn.textContent = 'Habilitar periodo';
+        btn.className = 'mini-btn approve toggle-btn';
+      }
+      showWebPeriod(row.dataset.period);
+    });
+  });
+</script>
+</body>
+</html>
