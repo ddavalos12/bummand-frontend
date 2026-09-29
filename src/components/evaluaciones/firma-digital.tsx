@@ -23,7 +23,7 @@ export function FirmaDigital({ alFirmar }: { alFirmar: (firma_base64: string) =>
         contexto.lineJoin = "round";
         contexto.lineCap = "round";
         contexto.lineWidth = 2.5;
-        contexto.strokeStyle = "#063A6B"; // Navy
+        contexto.strokeStyle = "#063A6B";
       }
     }
   }, []);

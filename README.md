@@ -6,13 +6,14 @@ Este es el cliente web oficial del ecosistema Bumand, desarrollado con **Next.js
 
 El proyecto sigue una arquitectura modular enfocada en componentes reutilizables y en estricto idioma español (reglas idiomáticas declaradas en `.agents/`):
 - `src/app/`: Define el enrutador de la aplicación (App Router) y las vistas principales (`page.tsx`, `layout.tsx`).
+- `src/contextos/`: Contextos reactivos globales (`autenticacion-contexto.tsx`).
 - `src/components/`: Almacena todos los componentes modulares clasificados por dominios:
-  - `asistencia/`: Componentes de registro de horas.
-  - `dashboard/`: Paneles administrativos y analíticas (`recharts`).
-  - `evaluaciones/`: Formularios interactivos F-03 y firma digital.
-  - `recorridos/`: Visualizaciones de mapas y geocercas (Radar).
+  - `asistencia/`: Componentes de registro de horas (`registro-horas.tsx`).
+  - `panel-control/`: Paneles administrativos y analíticas (`panel-administrativo.tsx`, `recharts`).
+  - `evaluaciones/`: Formularios interactivos F-03, lista de evaluaciones y firma digital (`formulario-f03.tsx`, `lista-evaluaciones.tsx`, `firma-digital.tsx`).
+  - `recorridos/`: Visualizaciones de mapas y geocercas (`radar-geocerca.tsx`, `registro-recorrido.tsx`).
   - `ui/`: Componentes base reutilizables de Shadcn UI (botones, inputs, select, date-picker).
-- `src/lib/`: Utilidades compartidas (`utils.ts` para clases CSS combinadas con `clsx` y `tailwind-merge`).
+- `src/lib/`: Utilidades compartidas (`utils.ts`).
 
 ## Convenciones y Estándares (Sprints Completados)
 

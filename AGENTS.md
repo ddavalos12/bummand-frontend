@@ -28,12 +28,13 @@ Dado que el framework obliga ciertas convenciones en inglés, la estructura conv
 - `src/lib/` (Estándar Shadcn/Next: Utilidades compartidas, validadores, utilidades de Tailwind `utils.ts`).
 - `src/tipos/` (Tipados globales, DTOs e Interfaces en TypeScript).
 
-## 3. Nomenclatura Estricta (Español)
-- **kebab-case:** EXCLUSIVO para nombres de rutas (carpetas en `app/`) y archivos que NO exportan componentes UI (ej. `src/lib/formatear-fecha.ts`).
-- **PascalCase:** ESTRICTAMENTE OBLIGATORIO para archivos de Componentes UI en `src/componentes/` (ej. `BotonSecundario.tsx`, `TablaPacientes.tsx`).
-- **Excepción Nativa:** Como se mencionó, en `src/app/`, el archivo principal siempre se llamará `page.tsx` o `layout.tsx`, independientemente de que su función principal en código interno esté en español.
-- **Variables y Funciones:** `camelCase` en español.
-- **Interfaces/Tipos:** `PascalCase` en español.
+## 3. Estándar de Código y Nombrado
+- **snake_case:** Variables y Atributos.
+- **camelCase:** Métodos y funciones.
+- **PascalCase (ESPAÑOL):** Clases, Interfaces, DTOs, Entidades y Componentes UI (ej. `BotonSecundario`, `TablaPacientes`).
+- **UPPER_SNAKE_CASE:** Constantes.
+- **kebab-case:** Nombres de carpetas y archivos (ej. `factura.controlador.ts`, `panel-administrativo.tsx`, `autenticacion-contexto.tsx`), y rutas de red REST.
+- **Excepción Nativa:** En `src/app/`, el archivo principal siempre se llamará `page.tsx`, `layout.tsx`, etc., por convención obligatoria del App Router de Next.js.
 
 ## 4. Estilos y Componentes UI
 - Estilos exclusivamente a través de **Tailwind CSS**. 

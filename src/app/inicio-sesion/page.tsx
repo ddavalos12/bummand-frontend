@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { usarAutenticacion } from "@/context/AutenticacionContexto";
+import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +22,8 @@ export default function PaginaInicioSesion() {
     set_error_form("");
 
     try {
-      const respuesta = await fetch("http://localhost:3000/autenticacion/inicio-sesion", {
+      const url_base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      const respuesta = await fetch(`${url_base}/autenticacion/inicio-sesion`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, contrasena }),
@@ -105,4 +106,3 @@ export default function PaginaInicioSesion() {
     </div>
   );
 }
-

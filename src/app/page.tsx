@@ -6,13 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { EvaluacionList } from "@/components/evaluaciones/EvaluacionList";
-import { FormularioF03 } from "@/components/evaluaciones/FormularioF03";
-import { FirmaDigital } from "@/components/evaluaciones/FirmaDigital";
-import { RadarGeofence } from "@/components/recorridos/RadarGeofence";
-import { RegistroRecorrido } from "@/components/recorridos/RegistroRecorrido";
-import { RegistroHoras } from "@/components/asistencia/RegistroHoras";
-import { PanelAdministrativo } from "@/components/dashboard/PanelAdministrativo";
+import { ListaEvaluaciones } from "@/components/evaluaciones/lista-evaluaciones";
+import { FormularioF03 } from "@/components/evaluaciones/formulario-f03";
+import { FirmaDigital } from "@/components/evaluaciones/firma-digital";
+import { RadarGeocerca } from "@/components/recorridos/radar-geocerca";
+import { RegistroRecorrido } from "@/components/recorridos/registro-recorrido";
+import { RegistroHoras } from "@/components/asistencia/registro-horas";
+import { PanelAdministrativo } from "@/components/panel-control/panel-administrativo";
 
 export default function PaginaInicio() {
   const [rol_usuario, set_rol_usuario] = useState<"becario" | "supervisor">("becario");
@@ -22,10 +22,10 @@ export default function PaginaInicio() {
       <header className="p-6 flex justify-between items-start">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-widest text-[#7FE0E6] mb-3">
-            BUMAND PORTAL
+            PORTAL BUMAND
           </p>
           <h1 className="font-display font-bold text-4xl text-primary-foreground dark:text-primary mb-2">
-            Dashboard <span className="text-[#F8C766]">BUMAND</span>
+            Panel de Control <span className="text-[#F8C766]">BUMAND</span>
           </h1>
           <p className="text-muted-foreground text-[15px] max-w-xl">
             Gestiona tus rutas, horas, y evalúa el rendimiento en el nuevo sistema BUMAND.
@@ -33,7 +33,7 @@ export default function PaginaInicio() {
         </div>
         <div className="flex flex-col items-end gap-2">
           <Badge variant="outline" className="border-[#17B4C4] text-[#063A6B]">
-            Modo Demo: {rol_usuario.toUpperCase()}
+            Modo Demostración: {rol_usuario.toUpperCase()}
           </Badge>
           <Button 
             variant="ghost" 
@@ -47,25 +47,25 @@ export default function PaginaInicio() {
       </header>
 
       <main className="flex-1 px-6 w-full max-w-5xl mx-auto">
-        <Tabs defaultValue={rol_usuario === "supervisor" ? "admin" : "overview"} className="w-full">
+        <Tabs defaultValue={rol_usuario === "supervisor" ? "administracion" : "resumen"} className="w-full">
           <TabsList className="mb-6 h-auto flex-wrap bg-muted/50 p-1 gap-1">
             {rol_usuario === "supervisor" && (
-              <TabsTrigger value="admin" className="rounded-md font-mono text-xs h-8 px-4 data-[state=active]:bg-[#17B4C4]/10 data-[state=active]:text-[#063A6B] data-[state=active]:border-[#17B4C4]/30 border border-transparent font-bold">
-                Panel Admin
+              <TabsTrigger value="administracion" className="rounded-md font-mono text-xs h-8 px-4 data-[state=active]:bg-[#17B4C4]/10 data-[state=active]:text-[#063A6B] data-[state=active]:border-[#17B4C4]/30 border border-transparent font-bold">
+                Panel Administración
               </TabsTrigger>
             )}
-            <TabsTrigger value="overview" className="rounded-md font-mono text-xs h-8 px-4 data-[state=active]:bg-[#17B4C4]/10 data-[state=active]:text-[#063A6B] data-[state=active]:border-[#17B4C4]/30 border border-transparent font-bold">
+            <TabsTrigger value="resumen" className="rounded-md font-mono text-xs h-8 px-4 data-[state=active]:bg-[#17B4C4]/10 data-[state=active]:text-[#063A6B] data-[state=active]:border-[#17B4C4]/30 border border-transparent font-bold">
               Resumen
             </TabsTrigger>
             <TabsTrigger value="asistencia" className="rounded-md font-mono text-xs h-8 px-4 data-[state=active]:bg-[#17B4C4]/10 data-[state=active]:text-[#063A6B] data-[state=active]:border-[#17B4C4]/30 border border-transparent font-bold">
               Asistencia
             </TabsTrigger>
-            <TabsTrigger value="eval" className="rounded-md font-mono text-xs h-8 px-4 data-[state=active]:bg-[#17B4C4]/10 data-[state=active]:text-[#063A6B] data-[state=active]:border-[#17B4C4]/30 border border-transparent font-bold">
+            <TabsTrigger value="evaluacion" className="rounded-md font-mono text-xs h-8 px-4 data-[state=active]:bg-[#17B4C4]/10 data-[state=active]:text-[#063A6B] data-[state=active]:border-[#17B4C4]/30 border border-transparent font-bold">
               Evaluación
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="admin" className="space-y-6">
+          <TabsContent value="administracion" className="space-y-6">
             <PanelAdministrativo />
           </TabsContent>
 
@@ -75,7 +75,7 @@ export default function PaginaInicio() {
             </div>
           </TabsContent>
 
-          <TabsContent value="overview" className="space-y-6">
+          <TabsContent value="resumen" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <Card className="bg-[#063A6B] text-white border-none">
                 <CardHeader className="pb-2">
@@ -85,7 +85,7 @@ export default function PaginaInicio() {
                 </CardHeader>
                 <CardContent>
                   <div className="font-display text-3xl font-bold text-[#F8C766] mb-1">
-                    $ 345.00
+                    Bs 345.00
                   </div>
                   <p className="font-mono text-[11px] text-white/60">
                     Gastado este mes
@@ -126,12 +126,12 @@ export default function PaginaInicio() {
             </div>
 
             <div className="flex flex-col md:flex-row gap-6 mt-6">
-              {/* Radar Column */}
+              {/* Columna Radar */}
               <div className="flex-1">
-                <RadarGeofence />
+                <RadarGeocerca />
               </div>
 
-              {/* Actions Column */}
+              {/* Columna Acciones */}
               <div className="flex-1 flex flex-col gap-4 justify-end">
                 <Dialog>
                   {/* @ts-ignore */}
@@ -172,11 +172,11 @@ export default function PaginaInicio() {
             </div>
           </TabsContent>
 
-          <TabsContent value="eval" className="space-y-4">
+          <TabsContent value="evaluacion" className="space-y-4">
             <Card className="border-[#E3DCCB]">
               <CardContent className="pt-6">
                 <p className="text-sm font-bold text-[#063A6B] mb-4">Módulos de evaluación de desempeño.</p>
-                <EvaluacionList />
+                <ListaEvaluaciones />
               </CardContent>
             </Card>
           </TabsContent>

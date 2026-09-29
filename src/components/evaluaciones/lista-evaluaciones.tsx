@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { usarAutenticacion } from "@/context/AutenticacionContexto";
+import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 
 interface Evaluacion {
   id: number;
@@ -11,21 +11,21 @@ interface Evaluacion {
   semestre: string;
   estado: string;
   puntuacion?: number;
-  createdAt: string;
+  creado_en?: string;
 }
 
-export function EvaluacionList() {
-  const [evaluaciones, setEvaluaciones] = useState<Evaluacion[]>([]);
-  const [cargando, setCargando] = useState(true);
+export function ListaEvaluaciones() {
+  const [evaluaciones, set_evaluaciones] = useState<Evaluacion[]>([]);
+  const [cargando, set_cargando] = useState(true);
   const { usuario, token } = usarAutenticacion();
 
   useEffect(() => {
     if (!usuario || !token) return;
 
-    // Obtener el ID del becario asociado al usuario logueado
     const becario_id = usuario.becario_id || 1; 
+    const url_base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
     
-    fetch(`http://localhost:3000/evaluaciones/becario/${becario_id}`, {
+    fetch(`${url_base}/evaluaciones/becario/${becario_id}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then((respuesta) => {
@@ -33,13 +33,13 @@ export function EvaluacionList() {
         return respuesta.json();
       })
       .then((datos) => {
-        setEvaluaciones(Array.isArray(datos) ? datos : []);
+        set_evaluaciones(Array.isArray(datos) ? datos : []);
       })
       .catch((error) => {
         console.error("Error cargando evaluaciones:", error);
       })
       .finally(() => {
-        setCargando(false);
+        set_cargando(false);
       });
   }, [usuario, token]);
 
@@ -51,11 +51,11 @@ export function EvaluacionList() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {evaluaciones.map((ev, index) => (
+      {evaluaciones.map((ev, indice) => (
         <Card key={ev.id} className="border border-[#E3DCCB]">
           <CardHeader className="pb-2 flex flex-row items-start gap-4 space-y-0">
             <div className="w-8 h-8 rounded-lg bg-[#0A5CA0] text-[#F8C766] font-mono font-bold flex items-center justify-center shrink-0">
-              0{index + 1}
+              0{indice + 1}
             </div>
             <div className="flex-1">
               <CardTitle className="font-display font-bold text-sm">
@@ -96,4 +96,3 @@ export function EvaluacionList() {
     </div>
   );
 }
-

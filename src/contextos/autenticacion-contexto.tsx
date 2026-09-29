@@ -3,18 +3,18 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
-interface Usuario {
+export interface Usuario {
   id: number;
   nombre: string;
   correo: string;
   rol: string;
-  becario_id?: number; // Asociado si es becario
+  becario_id?: number;
 }
 
-interface ContextoAutenticacionTipo {
+export interface ContextoAutenticacionTipo {
   usuario: Usuario | null;
   token: string | null;
-  iniciarSesion: (token: string, usuario: Usuario) => void;
+  iniciarSesion: (nuevo_token: string, nuevo_usuario: Usuario) => void;
   cerrarSesion: () => void;
   estaAutenticado: boolean;
 }
@@ -22,37 +22,35 @@ interface ContextoAutenticacionTipo {
 const AutenticacionContexto = createContext<ContextoAutenticacionTipo | undefined>(undefined);
 
 export function ProveedorAutenticacion({ children }: { children: ReactNode }) {
-  const [usuario, setUsuario] = useState<Usuario | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [usuario, set_usuario] = useState<Usuario | null>(null);
+  const [token, set_token] = useState<string | null>(null);
   const enrutador = useRouter();
 
   useEffect(() => {
-    // Restaurar sesión desde localStorage (si existe)
-    const tokenGuardado = localStorage.getItem("bumand_token");
-    const usuarioGuardado = localStorage.getItem("bumand_usuario");
+    const token_guardado = localStorage.getItem("bumand_token");
+    const usuario_guardado = localStorage.getItem("bumand_usuario");
     
-    if (tokenGuardado && usuarioGuardado) {
-      setToken(tokenGuardado);
-      setUsuario(JSON.parse(usuarioGuardado));
+    if (token_guardado && usuario_guardado) {
+      set_token(token_guardado);
+      set_usuario(JSON.parse(usuario_guardado));
     } else {
-      // Si no hay sesión, protegemos la ruta principal
       if (window.location.pathname !== "/inicio-sesion") {
         enrutador.push("/inicio-sesion");
       }
     }
   }, [enrutador]);
 
-  const iniciarSesion = (nuevoToken: string, nuevoUsuario: Usuario) => {
-    setToken(nuevoToken);
-    setUsuario(nuevoUsuario);
-    localStorage.setItem("bumand_token", nuevoToken);
-    localStorage.setItem("bumand_usuario", JSON.stringify(nuevoUsuario));
-    enrutador.push("/"); // Redirigir al panel
+  const iniciarSesion = (nuevo_token: string, nuevo_usuario: Usuario) => {
+    set_token(nuevo_token);
+    set_usuario(nuevo_usuario);
+    localStorage.setItem("bumand_token", nuevo_token);
+    localStorage.setItem("bumand_usuario", JSON.stringify(nuevo_usuario));
+    enrutador.push("/");
   };
 
   const cerrarSesion = () => {
-    setToken(null);
-    setUsuario(null);
+    set_token(null);
+    set_usuario(null);
     localStorage.removeItem("bumand_token");
     localStorage.removeItem("bumand_usuario");
     enrutador.push("/inicio-sesion");
@@ -72,4 +70,3 @@ export function usarAutenticacion() {
   }
   return contexto;
 }
-

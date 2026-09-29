@@ -1,30 +1,30 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { SeleccionadorFechaHora } from "@/components/ui/seleccionador-fecha"
-import { MapPin, CheckCircle2, Clock } from "lucide-react"
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { SeleccionadorFechaHora } from "@/components/ui/seleccionador-fecha";
+import { MapPin, CheckCircle2, Clock } from "lucide-react";
 
 export function RegistroHoras() {
-  const [fecha_entrada, set_fecha_entrada] = useState<Date | undefined>(new Date())
-  const [hora_entrada, set_hora_entrada] = useState<string>("08:00")
+  const [fecha_entrada, set_fecha_entrada] = useState<Date | undefined>(new Date());
+  const [hora_entrada, set_hora_entrada] = useState<string>("08:00");
   
-  const [fecha_salida, set_fecha_salida] = useState<Date | undefined>(new Date())
-  const [hora_salida, set_hora_salida] = useState<string>("17:00")
+  const [fecha_salida, set_fecha_salida] = useState<Date | undefined>(new Date());
+  const [hora_salida, set_hora_salida] = useState<string>("17:00");
 
-  const [cargando, set_cargando] = useState(false)
-  const [registrado, set_registrado] = useState(false)
+  const [cargando, set_cargando] = useState(false);
+  const [registrado, set_registrado] = useState(false);
 
   const manejarRegistro = async () => {
-    set_cargando(true)
+    set_cargando(true);
     // Simular API
     setTimeout(() => {
-      set_cargando(false)
-      set_registrado(true)
-    }, 1500)
-  }
+      set_cargando(false);
+      set_registrado(true);
+    }, 1500);
+  };
 
   if (registrado) {
     return (
@@ -44,7 +44,7 @@ export function RegistroHoras() {
           </Button>
         </div>
       </Card>
-    )
+    );
   }
 
   return (
@@ -95,5 +95,5 @@ export function RegistroHoras() {
         </Button>
       </CardContent>
     </Card>
-  )
+  );
 }

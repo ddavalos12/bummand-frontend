@@ -18,12 +18,14 @@ export function FormularioF03({ becario_id, alEnviarExito }: { becario_id: numbe
   const [comentarios, set_comentarios] = useState("");
   const [cargando, set_cargando] = useState(false);
 
-  const preguntas = [
-    { id: "p1", text: "¿Demuestra puntualidad en sus asignaciones?" },
-    { id: "p2", text: "¿Cumple con responsabilidad las tareas delegadas?" },
-    { id: "p3", text: "¿Mantiene una actitud de servicio y disposición?" },
-    { id: "p4", text: "¿Trabaja en equipo eficazmente?" }
+  const PREGUNTAS = [
+    { id: "p1", texto: "¿Demuestra puntualidad en sus asignaciones?" },
+    { id: "p2", texto: "¿Cumple con responsabilidad las tareas delegadas?" },
+    { id: "p3", texto: "¿Mantiene una actitud de servicio y disposición?" },
+    { id: "p4", texto: "¿Trabaja en equipo eficazmente?" }
   ];
+
+  const OPCIONES = ["Siempre", "Casi Siempre", "A veces", "Nunca"];
 
   const manejarCambioOpcion = (id_pregunta: string, valor: string) => {
     set_respuestas(prev => ({ ...prev, [id_pregunta]: valor }));
@@ -37,12 +39,13 @@ export function FormularioF03({ becario_id, alEnviarExito }: { becario_id: numbe
       const carga_util = {
         becario_id: becario_id,
         tipo: "f-03",
-        semestre: "2026-1", // Esto idealmente viene del contexto global
+        semestre: "2026-1",
         respuestas,
         comentarios,
       };
 
-      const respuesta = await fetch(`http://localhost:3000/evaluaciones`, {
+      const url_base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      const respuesta = await fetch(`${url_base}/evaluaciones`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(carga_util)
@@ -74,16 +77,16 @@ export function FormularioF03({ becario_id, alEnviarExito }: { becario_id: numbe
       <CardContent>
         <form onSubmit={manejarEnvio} className="space-y-6">
           <div className="space-y-6">
-            {preguntas.map((p) => (
+            {PREGUNTAS.map((p) => (
               <div key={p.id} className="space-y-3">
                 <Label className="text-[12.5px] font-semibold text-[#122029]">
-                  {p.text}
+                  {p.texto}
                 </Label>
                 <RadioGroup 
                   onValueChange={(val) => manejarCambioOpcion(p.id, val)}
                   className="flex flex-wrap gap-2"
                 >
-                  {["Siempre", "Casi Siempre", "A veces", "Nunca"].map((opt) => (
+                  {OPCIONES.map((opt) => (
                     <div key={opt}>
                       <RadioGroupItem value={opt} id={`${p.id}-${opt}`} className="peer sr-only" />
                       <Label
@@ -111,7 +114,7 @@ export function FormularioF03({ becario_id, alEnviarExito }: { becario_id: numbe
 
           <Button 
             type="submit" 
-            disabled={cargando || Object.keys(respuestas).length < preguntas.length}
+            disabled={cargando || Object.keys(respuestas).length < PREGUNTAS.length}
             className="w-full h-11 rounded-xl bg-[#17B4C4] hover:bg-[#17B4C4]/90 text-[#063A6B] font-bold"
           >
             {cargando ? "Guardando..." : "Finalizar Evaluación"}
@@ -121,4 +124,3 @@ export function FormularioF03({ becario_id, alEnviarExito }: { becario_id: numbe
     </Card>
   );
 }
-

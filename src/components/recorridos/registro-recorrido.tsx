@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { usarAutenticacion } from "@/context/AutenticacionContexto";
+import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 
 /**
  * @component RegistroRecorrido
@@ -26,7 +26,7 @@ export function RegistroRecorrido() {
 
   const manejarSiguientePaso = () => {
     set_ida_monto(parseFloat(monto));
-    set_origen(destino); // Destino de ida es el origen de vuelta
+    set_origen(destino); // El destino de ida se convierte en origen de vuelta
     set_destino("");
     set_monto("");
     set_paso("vuelta");
@@ -36,7 +36,7 @@ export function RegistroRecorrido() {
     set_cargando(true);
     try {
       const carga_util = {
-        becario_id: usuario?.becario_id || 1, // backend property becario_id must remain camelCase if entity requires it
+        becario_id: usuario?.becario_id || 1,
         ida_monto: ida_monto,
         vuelta_monto: parseFloat(monto || "0"),
         total,
@@ -44,8 +44,15 @@ export function RegistroRecorrido() {
         fecha: new Date().toISOString()
       };
       
-      // Simular POST a /pasajes/recorridos
-      await new Promise(r => setTimeout(r, 800));
+      const url_base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      await fetch(`${url_base}/pasajes/recorridos`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(carga_util)
+      });
       
       alert(`Recorrido completo guardado. Total a devolver: Bs ${devolucion.toFixed(2)}`);
       set_paso("ida");
@@ -63,7 +70,7 @@ export function RegistroRecorrido() {
   return (
     <Card className="border-[#E3DCCB] shadow-sm">
       <CardContent className="pt-6 space-y-4">
-        {/* HEADER SECTION */}
+        {/* ENCABEZADO */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${paso === "ida" ? "bg-[#17B4C4]" : "bg-[#F8C766]"}`} />
@@ -127,7 +134,7 @@ export function RegistroRecorrido() {
           </div>
         </div>
 
-        {/* CÁLCULO DE DEVOLUCIÓN (NUEVO) */}
+        {/* CÁLCULO DE DEVOLUCIÓN */}
         <div className="mt-4 p-4 border border-[#E3DCCB] rounded-xl bg-white space-y-2">
           <div className="flex justify-between text-[13px] text-muted-foreground">
             <span>Monto total del pasaje</span>
@@ -161,4 +168,3 @@ export function RegistroRecorrido() {
     </Card>
   );
 }
-
