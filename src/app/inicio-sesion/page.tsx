@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 
 export default function PaginaInicioSesion() {
@@ -47,6 +48,12 @@ export default function PaginaInicioSesion() {
     }
   };
 
+  const seleccionarUsuarioPrueba = (correo_demo: string, contrasena_demo: string) => {
+    set_correo(correo_demo);
+    set_contrasena(contrasena_demo);
+    set_error_form("");
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md border-[#E3DCCB] shadow-md">
@@ -56,7 +63,7 @@ export default function PaginaInicioSesion() {
           </div>
           <CardTitle className="font-display text-2xl text-[#063A6B]">Bienvenido a BUMAND</CardTitle>
           <CardDescription className="text-muted-foreground">
-            Ingresa tus credenciales para acceder al panel.
+            Ingresa tus credenciales para acceder al sistema institucional.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -72,7 +79,7 @@ export default function PaginaInicioSesion() {
               <Input
                 id="correo"
                 type="email"
-                placeholder="ejemplo@bumand.org"
+                placeholder="ejemplo@bumand.bo"
                 value={correo}
                 onChange={(e) => set_correo(e.target.value)}
                 required
@@ -101,6 +108,56 @@ export default function PaginaInicioSesion() {
               {cargando ? "Verificando..." : "Iniciar Sesión"}
             </Button>
           </form>
+
+          {/* Accesos rápidos con credenciales de prueba predefinidas */}
+          <div className="mt-6 pt-6 border-t border-[#E3DCCB]/60 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-[#5B6D77] uppercase tracking-wider">
+                Cuentas de Prueba Institucionales
+              </span>
+              <Badge variant="outline" className="text-[10px] border-[#17B4C4] text-[#063A6B]">
+                Acceso Rápido
+              </Badge>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-2">
+              <button
+                type="button"
+                onClick={() => seleccionarUsuarioPrueba("admin@wscrt.com", "admin")}
+                className="flex items-center justify-between p-2.5 rounded-lg border border-[#E3DCCB] bg-[#F6F2E9]/40 hover:bg-[#F6F2E9] text-left transition-colors text-xs"
+              >
+                <div>
+                  <p className="font-bold text-[#063A6B]">👑 Administrador General</p>
+                  <p className="text-[#5B6D77] font-mono text-[11px]">admin@wscrt.com / admin</p>
+                </div>
+                <span className="text-[#17B4C4] font-semibold text-[11px]">Cargar →</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => seleccionarUsuarioPrueba("angel.ali@bumand.bo", "Bumand2026!")}
+                className="flex items-center justify-between p-2.5 rounded-lg border border-[#E3DCCB] bg-[#F6F2E9]/40 hover:bg-[#F6F2E9] text-left transition-colors text-xs"
+              >
+                <div>
+                  <p className="font-bold text-[#063A6B]">👔 Supervisor (Angel Ali Paz)</p>
+                  <p className="text-[#5B6D77] font-mono text-[11px]">angel.ali@bumand.bo / Bumand2026!</p>
+                </div>
+                <span className="text-[#17B4C4] font-semibold text-[11px]">Cargar →</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => seleccionarUsuarioPrueba("nilda.churata@bumand.bo", "Bumand2026!")}
+                className="flex items-center justify-between p-2.5 rounded-lg border border-[#E3DCCB] bg-[#F6F2E9]/40 hover:bg-[#F6F2E9] text-left transition-colors text-xs"
+              >
+                <div>
+                  <p className="font-bold text-[#063A6B]">🎓 Becaria (Nilda Churata Paye)</p>
+                  <p className="text-[#5B6D77] font-mono text-[11px]">nilda.churata@bumand.bo / Bumand2026!</p>
+                </div>
+                <span className="text-[#17B4C4] font-semibold text-[11px]">Cargar →</span>
+              </button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
