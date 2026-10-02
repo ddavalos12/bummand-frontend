@@ -30,3 +30,15 @@ next-env.d.ts
 
 # Prototipos Locales
 _prototipos/
+# LaTeX y Auxiliares (Preservar solo PDFs)
+*.tex
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+!*.pdf
