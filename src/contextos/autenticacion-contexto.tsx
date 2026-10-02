@@ -7,13 +7,14 @@ export interface Usuario {
   id: number;
   nombre: string;
   correo: string;
-  rol: string;
-  becario_id?: number;
+  rol: "administrador" | "supervisor" | "becario" | string;
+  becario_id?: number | null;
 }
 
 export interface ContextoAutenticacionTipo {
   usuario: Usuario | null;
   token: string | null;
+  cargando: boolean;
   iniciarSesion: (nuevo_token: string, nuevo_usuario: Usuario) => void;
   cerrarSesion: () => void;
   estaAutenticado: boolean;
@@ -24,19 +25,30 @@ const AutenticacionContexto = createContext<ContextoAutenticacionTipo | undefine
 export function ProveedorAutenticacion({ children }: { children: ReactNode }) {
   const [usuario, set_usuario] = useState<Usuario | null>(null);
   const [token, set_token] = useState<string | null>(null);
+  const [cargando, set_cargando] = useState<boolean>(true);
   const enrutador = useRouter();
 
   useEffect(() => {
-    const token_guardado = localStorage.getItem("bumand_token");
-    const usuario_guardado = localStorage.getItem("bumand_usuario");
-    
-    if (token_guardado && usuario_guardado) {
-      set_token(token_guardado);
-      set_usuario(JSON.parse(usuario_guardado));
-    } else {
-      if (window.location.pathname !== "/inicio-sesion") {
+    try {
+      const token_guardado = localStorage.getItem("bumand_token");
+      const usuario_guardado = localStorage.getItem("bumand_usuario");
+      
+      if (token_guardado && usuario_guardado) {
+        set_token(token_guardado);
+        set_usuario(JSON.parse(usuario_guardado));
+      } else {
+        if (typeof window !== "undefined" && window.location.pathname !== "/inicio-sesion") {
+          enrutador.push("/inicio-sesion");
+        }
+      }
+    } catch {
+      localStorage.removeItem("bumand_token");
+      localStorage.removeItem("bumand_usuario");
+      if (typeof window !== "undefined" && window.location.pathname !== "/inicio-sesion") {
         enrutador.push("/inicio-sesion");
       }
+    } finally {
+      set_cargando(false);
     }
   }, [enrutador]);
 
@@ -57,7 +69,16 @@ export function ProveedorAutenticacion({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AutenticacionContexto.Provider value={{ usuario, token, iniciarSesion, cerrarSesion, estaAutenticado: !!token }}>
+    <AutenticacionContexto.Provider
+      value={{
+        usuario,
+        token,
+        cargando,
+        iniciarSesion,
+        cerrarSesion,
+        estaAutenticado: !!token,
+      }}
+    >
       {children}
     </AutenticacionContexto.Provider>
   );
