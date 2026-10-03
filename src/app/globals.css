@@ -132,3 +132,12 @@
     @apply font-sans;
   }
 }
+
+/* Ocultar badge/indicador flotante de desarrollo de Next.js */
+nextjs-portal,
+[data-nextjs-toast],
+div[data-nextjs-indicator],
+div[data-nextjs-dialog-overlay],
+#nextjs-dev-indicator {
+  display: none !important;
+}

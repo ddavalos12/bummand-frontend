@@ -95,14 +95,20 @@ export function VisorReportesPdf() {
     <div className="space-y-6">
       {/* Botones de Emisión Inmediata de Reportes */}
       <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl">
-        <CardHeader className="pb-3 border-b border-[#E3DCCB]/60">
-          <CardTitle className="text-lg font-bold font-display text-[#063A6B] flex items-center gap-2">
-            <Printer className="w-5 h-5 text-[#17B4C4]" />
-            Generador Oficial de Documentos y Reportes PDF
-          </CardTitle>
-          <CardDescription className="text-xs text-muted-foreground">
-            Emite documentos con formato institucional idéntico a las planillas físicas originales para archivo y auditoría.
-          </CardDescription>
+        <CardHeader className="pb-3 border-b border-[#E3DCCB]/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <CardTitle className="text-lg font-bold font-display text-[#063A6B] flex items-center gap-2">
+              <Printer className="w-5 h-5 text-[#17B4C4]" />
+              Generador Oficial de Documentos y Reportes PDF
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground mt-1">
+              Emite documentos con formato institucional idéntico a las planillas físicas originales para archivo y auditoría.
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <img src="/logos/logo-bumand.svg" alt="BUMAND" className="h-8 w-auto object-contain" />
+            <img src="/logos/logo-diaconia.svg" alt="Diaconía IFD" className="h-5 w-auto object-contain opacity-80" />
+          </div>
         </CardHeader>
         <CardContent className="p-4 space-y-4">
           {mensaje_exito && (

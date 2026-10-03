@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
+import { MenuLateral } from "@/components/navegacion/menu-lateral";
 
 // Módulos integrados por Sprint
 import { PanelAdministrativo } from "@/components/panel-control/panel-administrativo";
@@ -23,19 +24,67 @@ import { FormularioF03 } from "@/components/evaluaciones/formulario-f03";
 import { FirmaDigital } from "@/components/evaluaciones/firma-digital";
 
 import { 
-  Users, 
-  MapPin, 
-  Clock, 
   Bus, 
-  Award, 
   FileText, 
-  Bell, 
-  LayoutDashboard,
-  ShieldCheck,
-  LogOut,
-  UserCheck,
-  GraduationCap
+  ShieldCheck, 
+  Menu, 
+  ChevronRight 
 } from "lucide-react";
+
+function obtenerDetallesSeccion(seccion: string, rol: string) {
+  switch (seccion) {
+    case "administracion":
+      return {
+        titulo: rol === "administrador" ? "Dashboard General Analítico" : "Panel de Supervisión",
+        subtitulo: "Métricas consolidadas de horas de práctica, presupuesto 80% y distribución institucional",
+      };
+    case "resumen":
+      return {
+        titulo: "Mi Panel Operativo",
+        subtitulo: "Seguimiento en tiempo real de horas acreditadas, viáticos liquidados y geocerca activa",
+      };
+    case "becarios":
+      return {
+        titulo: rol === "administrador" ? "Directorio General de Becarios" : "Becarios Asignados a Supervisión",
+        subtitulo: "Expedientes académicos, carreras, asignaciones de sedes y datos institucionales",
+      };
+    case "sedes":
+      return {
+        titulo: rol === "becario" ? "Mi Sede Asignada y Geocerca" : "Catálogo de Sedes y Geocercas Institucionales",
+        subtitulo: "Georreferenciación WGS84, coordenadas GPS y radio geodésico de tolerancia métrica",
+      };
+    case "asistencia":
+      return {
+        titulo: rol === "becario" ? "Marcación de Horas de Práctica" : "Auditoría y Control de Asistencia",
+        subtitulo: "Cálculo geodésico Haversine en tiempo real con validación anti-spoofing",
+      };
+    case "pasajes":
+      return {
+        titulo: rol === "becario" ? "Declaración Mensual de Pasajes (80%)" : "Supervisión y Aprobación de Pasajes",
+        subtitulo: "Tramos de transporte público, verificación GPS y liquidación en centavos enteros",
+      };
+    case "evaluacion_360":
+      return {
+        titulo: "Matriz de Evaluación 360°",
+        subtitulo: "Evaluación integral en los 5 ejes canónicos diaconales y Formulario Pastoral F-03",
+      };
+    case "reportes":
+      return {
+        titulo: "Emisión y Descarga de Reportes PDF Oficiales",
+        subtitulo: "Generación certificada con firmas digitales y constancias de horas institucionales",
+      };
+    case "notificaciones":
+      return {
+        titulo: "Centro Corporativo de Notificaciones",
+        subtitulo: "Historial de alertas reactivas, recordatorios de salida y convalidaciones",
+      };
+    default:
+      return {
+        titulo: "Panel Institucional",
+        subtitulo: "Sistema BUMAND — Fundación Diaconía FRIF-IFD",
+      };
+  }
+}
 
 export default function PaginaInicio() {
   const { usuario, cerrarSesion, cargando, estaAutenticado } = usarAutenticacion();
@@ -48,6 +97,8 @@ export default function PaginaInicio() {
   const [pestaña_activa, set_pestaña_activa] = useState<string>(
     es_becario ? "resumen" : "administracion"
   );
+  const [colapsado, set_colapsado] = useState<boolean>(false);
+  const [menu_movil_abierto, set_menu_movil_abierto] = useState<boolean>(false);
 
   useEffect(() => {
     if (usuario) {
@@ -76,327 +127,233 @@ export default function PaginaInicio() {
     return null;
   }
 
+  const detalles_seccion = obtenerDetallesSeccion(pestaña_activa, rol);
+
   return (
-    <div className="flex flex-col min-h-screen bg-[#F8F9FA] text-[#1E293B] pb-20">
-      {/* Cabecera Principal Institucional BUMAND */}
-      <header className="bg-white border-b border-[#E3DCCB] px-6 py-4 shadow-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#063A6B] flex items-center justify-center text-white font-bold text-lg shadow-sm">
-              <span className="text-[#F8C766] font-display">B</span>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="font-display font-bold text-xl text-[#063A6B]">
-                  BUMAND <span className="text-[#17B4C4] font-normal">| Diaconía FRIF-IFD</span>
-                </h1>
-                <Badge variant="outline" className="border-[#17B4C4] text-[#063A6B] bg-[#17B4C4]/10 text-[10px] font-mono">
-                  Producción Institucional
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Sistema Corporativo de Asistencia Georreferenciada, Pasajes y Evaluación de Desempeño
-              </p>
-            </div>
-          </div>
+    <div className="flex min-h-screen bg-[#F8F9FA] text-[#1E293B]">
+      {/* Menú Lateral Institucional BUMAND */}
+      <MenuLateral
+        pestaña_activa={pestaña_activa}
+        alSeleccionarPestaña={set_pestaña_activa}
+        usuario={usuario}
+        cerrarSesion={cerrarSesion}
+        colapsado={colapsado}
+        alAlternarColapso={() => set_colapsado(!colapsado)}
+        menu_movil_abierto={menu_movil_abierto}
+        alCerrarMenuMovil={() => set_menu_movil_abierto(false)}
+      />
 
-          {/* Información del Usuario Autenticado y Salida Segura */}
-          <div className="flex items-center gap-3.5">
-            <div className="text-right">
-              <div className="flex items-center justify-end gap-1.5">
-                {es_admin && <ShieldCheck className="w-4 h-4 text-[#063A6B]" />}
-                {es_supervisor && <UserCheck className="w-4 h-4 text-[#17B4C4]" />}
-                {es_becario && <GraduationCap className="w-4 h-4 text-emerald-600" />}
-                <p className="text-xs font-bold text-[#063A6B]">
-                  {usuario.nombre}
-                </p>
-              </div>
-              <div className="flex items-center justify-end gap-2 mt-0.5">
-                <span className="text-[11px] text-muted-foreground font-mono">
-                  {usuario.correo}
+      {/* Contenedor Principal Derecho */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Barra Superior con botón para móvil, breadcrumbs y perfil */}
+        <header className="bg-white border-b border-[#E3DCCB] px-4 sm:px-6 py-3.5 shadow-xs sticky top-0 z-20 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Botón hamburguesa para móvil */}
+            <button
+              type="button"
+              onClick={() => set_menu_movil_abierto(true)}
+              className="lg:hidden w-9 h-9 rounded-xl border border-[#E3DCCB] flex items-center justify-center text-[#063A6B] hover:bg-slate-50 transition-colors shrink-0"
+              aria-label="Abrir menú lateral"
+            >
+              <Menu className="w-4 h-4" />
+            </button>
+
+            {/* Logo BUMAND en móvil */}
+            <img
+              src="/logos/logo-bumand-icono.svg"
+              alt="BUMAND"
+              className="lg:hidden w-7 h-7 object-contain shrink-0"
+            />
+
+            {/* Breadcrumb y Título de Sección */}
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-mono">
+                <span className="flex items-center gap-1">
+                  <img src="/logos/logo-diaconia.svg" alt="Diaconía" className="h-3.5 w-auto inline object-contain opacity-80" />
                 </span>
-                {es_admin && (
-                  <Badge className="bg-[#063A6B] text-[#F8C766] border border-[#F8C766]/30 uppercase text-[9px] font-bold px-1.5 py-0">
-                    ADMINISTRADOR
-                  </Badge>
-                )}
-                {es_supervisor && (
-                  <Badge className="bg-[#17B4C4]/15 text-[#063A6B] border border-[#17B4C4] uppercase text-[9px] font-bold px-1.5 py-0">
-                    SUPERVISOR
-                  </Badge>
-                )}
-                {es_becario && (
-                  <Badge className="bg-emerald-50 text-emerald-800 border border-emerald-300 uppercase text-[9px] font-bold px-1.5 py-0">
-                    BECARIO
-                  </Badge>
-                )}
+                <ChevronRight className="w-3 h-3 shrink-0" />
+                <span className="font-semibold text-[#063A6B] truncate">
+                  {detalles_seccion.titulo}
+                </span>
               </div>
+              <h1 className="text-sm sm:text-base font-bold text-[#063A6B] truncate">
+                {detalles_seccion.titulo}
+              </h1>
             </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={cerrarSesion}
-              title="Cerrar sesión corporativa"
-              className="h-9 px-3 border-[#E3DCCB] text-[#E2694B] hover:bg-[#E2694B]/10 hover:text-[#E2694B] font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Cerrar Sesión</span>
-            </Button>
           </div>
+
+          {/* Espacio derecho limpio sin duplicidad de perfil */}
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#063A6B]/5 border border-[#063A6B]/10 text-[11px] font-mono font-medium text-[#063A6B]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>BUMAND · En Línea</span>
+            </span>
+          </div>
+        </header>
+
+        {/* Subencabezado de Contexto */}
+        <div className="bg-white/60 border-b border-[#E3DCCB]/60 px-4 sm:px-6 py-2.5">
+          <p className="text-xs text-muted-foreground">
+            {detalles_seccion.subtitulo}
+          </p>
         </div>
-      </header>
 
-      {/* Contenido Principal con Pestañas de Navegación Condicionadas por Rol */}
-      <main className="flex-1 px-4 sm:px-6 max-w-7xl mx-auto w-full pt-6">
-        <Tabs value={pestaña_activa} onValueChange={set_pestaña_activa} className="w-full">
-          {/* Barra de Pestañas RBAC */}
-          <TabsList className="mb-6 h-auto flex flex-wrap bg-white border border-[#E3DCCB] p-1.5 rounded-2xl gap-1 shadow-sm">
-            {/* Dashboard para Administradores y Supervisores */}
+        {/* Área de Contenido de los Módulos */}
+        <main className="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto pb-16">
+          <Tabs value={pestaña_activa} onValueChange={set_pestaña_activa} className="w-full">
+            {/* SPRINT 6: Panel Administrativo y de Supervisión */}
             {(es_admin || es_supervisor) && (
-              <TabsTrigger
-                value="administracion"
-                className="h-9 px-3.5 rounded-xl text-xs font-bold data-[state=active]:bg-[#063A6B] data-[state=active]:text-white flex items-center gap-1.5 transition-all"
-              >
-                <LayoutDashboard className="w-3.5 h-3.5" />
-                {es_admin ? "Dashboard General" : "Panel Supervisor"}
-              </TabsTrigger>
+              <TabsContent value="administracion" className="space-y-6">
+                <PanelAdministrativo />
+              </TabsContent>
             )}
 
-            {/* Resumen Operativo para Becarios */}
+            {/* SPRINT 1: Resumen y Acciones del Becario */}
             {es_becario && (
-              <TabsTrigger
-                value="resumen"
-                className="h-9 px-3.5 rounded-xl text-xs font-bold data-[state=active]:bg-[#063A6B] data-[state=active]:text-white flex items-center gap-1.5 transition-all"
-              >
-                <Clock className="w-3.5 h-3.5" />
-                Mi Panel
-              </TabsTrigger>
-            )}
+              <TabsContent value="resumen" className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Card className="bg-[#063A6B] text-white border-none rounded-xl shadow-sm">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="font-mono text-[11px] text-[#7FE0E6] uppercase font-normal">
+                        Pasajes Liquidados (Mes Actual)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="font-display text-3xl font-bold text-[#F8C766] mb-1">
+                        Bs 276.00
+                      </div>
+                      <p className="font-mono text-[11px] text-white/70">
+                        Reembolso exacto del 80% (Bs 345.00 total)
+                      </p>
+                    </CardContent>
+                  </Card>
 
-            {/* Becarios: visible para Administradores y Supervisores */}
-            {(es_admin || es_supervisor) && (
-              <TabsTrigger
-                value="becarios"
-                className="h-9 px-3.5 rounded-xl text-xs font-bold data-[state=active]:bg-[#063A6B] data-[state=active]:text-white flex items-center gap-1.5 transition-all"
-              >
-                <Users className="w-3.5 h-3.5" />
-                {es_admin ? "Directorio Becarios" : "Becarios Asignados"}
-              </TabsTrigger>
-            )}
+                  <Card className="bg-white border-[#E3DCCB] rounded-xl shadow-sm">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="font-mono text-[11px] text-muted-foreground uppercase font-bold">
+                        Horas Acreditadas
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-display font-bold text-[#063A6B] mb-1">
+                        64.5 hrs
+                      </div>
+                      <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs font-bold">
+                        Puntualidad: 96%
+                      </Badge>
+                    </CardContent>
+                  </Card>
 
-            {/* Sedes y Geocercas */}
-            <TabsTrigger
-              value="sedes"
-              className="h-9 px-3.5 rounded-xl text-xs font-bold data-[state=active]:bg-[#063A6B] data-[state=active]:text-white flex items-center gap-1.5 transition-all"
-            >
-              <MapPin className="w-3.5 h-3.5" />
-              {es_becario ? "Mi Sede Asignada" : "Sedes y Geocercas"}
-            </TabsTrigger>
-
-            {/* Asistencia y Horas */}
-            <TabsTrigger
-              value="asistencia"
-              className="h-9 px-3.5 rounded-xl text-xs font-bold data-[state=active]:bg-[#063A6B] data-[state=active]:text-white flex items-center gap-1.5 transition-all"
-            >
-              <Clock className="w-3.5 h-3.5" />
-              {es_becario ? "Marcación de Horas" : "Control de Asistencia"}
-            </TabsTrigger>
-
-            {/* Pasajes y Viáticos 80% */}
-            <TabsTrigger
-              value="pasajes"
-              className="h-9 px-3.5 rounded-xl text-xs font-bold data-[state=active]:bg-[#063A6B] data-[state=active]:text-white flex items-center gap-1.5 transition-all"
-            >
-              <Bus className="w-3.5 h-3.5" />
-              {es_becario ? "Mis Pasajes (80%)" : "Aprobación Pasajes"}
-            </TabsTrigger>
-
-            {/* Evaluaciones 360° */}
-            <TabsTrigger
-              value="evaluacion_360"
-              className="h-9 px-3.5 rounded-xl text-xs font-bold data-[state=active]:bg-[#063A6B] data-[state=active]:text-white flex items-center gap-1.5 transition-all"
-            >
-              <Award className="w-3.5 h-3.5" />
-              {es_becario ? "Mis Evaluaciones" : "Evaluación 360°"}
-            </TabsTrigger>
-
-            {/* Reportes PDF: para Admin y Supervisor */}
-            {(es_admin || es_supervisor) && (
-              <TabsTrigger
-                value="reportes"
-                className="h-9 px-3.5 rounded-xl text-xs font-bold data-[state=active]:bg-[#063A6B] data-[state=active]:text-white flex items-center gap-1.5 transition-all"
-              >
-                <FileText className="w-3.5 h-3.5" />
-                Reportes PDF
-              </TabsTrigger>
-            )}
-
-            {/* Notificaciones */}
-            <TabsTrigger
-              value="notificaciones"
-              className="h-9 px-3.5 rounded-xl text-xs font-bold data-[state=active]:bg-[#063A6B] data-[state=active]:text-white flex items-center gap-1.5 transition-all"
-            >
-              <Bell className="w-3.5 h-3.5" />
-              Notificaciones
-            </TabsTrigger>
-          </TabsList>
-
-          {/* SPRINT 6: Panel Administrativo y de Supervisión */}
-          {(es_admin || es_supervisor) && (
-            <TabsContent value="administracion" className="space-y-6">
-              <PanelAdministrativo />
-            </TabsContent>
-          )}
-
-          {/* SPRINT 1: Resumen y Acciones del Becario */}
-          {es_becario && (
-            <TabsContent value="resumen" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="bg-[#063A6B] text-white border-none rounded-xl shadow-sm">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="font-mono text-[11px] text-[#7FE0E6] uppercase font-normal">
-                      Pasajes Liquidados (Mes Actual)
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="font-display text-3xl font-bold text-[#F8C766] mb-1">
-                      Bs 276.00
-                    </div>
-                    <p className="font-mono text-[11px] text-white/70">
-                      Reembolso exacto del 80% (Bs 345.00 total)
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-white border-[#E3DCCB] rounded-xl shadow-sm">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="font-mono text-[11px] text-muted-foreground uppercase font-bold">
-                      Horas Acreditadas
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-display font-bold text-[#063A6B] mb-1">
-                      64.5 hrs
-                    </div>
-                    <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs font-bold">
-                      Puntualidad: 96%
-                    </Badge>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-white border-[#E3DCCB] rounded-xl shadow-sm">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="font-mono text-[11px] text-muted-foreground uppercase font-bold">
-                      Sede Asignada
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="font-bold text-sm text-[#063A6B] mb-1">
-                      Oficina Central - Bloque A
-                    </div>
-                    <p className="text-xs text-muted-foreground">Av. Juan Pablo II #2540, El Alto</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <RadarGeocerca />
-
-                <div className="flex flex-col gap-3 justify-center">
-                  <Card className="border-[#E3DCCB] bg-white rounded-xl p-6 shadow-sm space-y-4">
-                    <h3 className="font-bold text-[#063A6B] text-base">Acciones Operativas</h3>
-                    <div className="space-y-2.5">
-                      <Dialog>
-                        {/* @ts-ignore */}
-                        <DialogTrigger asChild>
-                          <Button className="h-11 w-full bg-[#17B4C4] hover:bg-[#17B4C4]/90 text-[#063A6B] font-bold rounded-xl text-xs justify-center">
-                            <Bus className="w-4 h-4 mr-2" />
-                            Declarar Recorrido (Ida / Vuelta)
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px] p-0 border-none bg-transparent shadow-none">
-                          <RegistroRecorrido />
-                        </DialogContent>
-                      </Dialog>
-
-                      <Dialog>
-                        {/* @ts-ignore */}
-                        <DialogTrigger asChild>
-                          <Button variant="outline" className="h-11 w-full border-[#E3DCCB] text-[#063A6B] font-bold rounded-xl text-xs justify-center hover:bg-slate-50">
-                            <FileText className="w-4 h-4 mr-2 text-amber-600" />
-                            Llenar Formulario Pastoral F-03
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[500px] p-0 border-none bg-transparent shadow-none">
-                          <FormularioF03 becario_id={usuario.becario_id || 1} />
-                        </DialogContent>
-                      </Dialog>
-                    </div>
+                  <Card className="bg-white border-[#E3DCCB] rounded-xl shadow-sm">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="font-mono text-[11px] text-muted-foreground uppercase font-bold">
+                        Sede Asignada
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="font-bold text-sm text-[#063A6B] mb-1">
+                        Oficina Central - Bloque A
+                      </div>
+                      <p className="text-xs text-muted-foreground">Av. Juan Pablo II #2540, El Alto</p>
+                    </CardContent>
                   </Card>
                 </div>
-              </div>
-            </TabsContent>
-          )}
 
-          {/* SPRINT 2: Becarios (Admin y Supervisor) */}
-          {(es_admin || es_supervisor) && (
-            <TabsContent value="becarios" className="space-y-6">
-              <GestionBecarios />
-            </TabsContent>
-          )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <RadarGeocerca />
 
-          {/* SPRINT 2: Sedes y Geocercas */}
-          <TabsContent value="sedes" className="space-y-6">
-            <MapaLugaresPractica />
-          </TabsContent>
+                  <div className="flex flex-col gap-3 justify-center">
+                    <Card className="border-[#E3DCCB] bg-white rounded-xl p-6 shadow-sm space-y-4">
+                      <h3 className="font-bold text-[#063A6B] text-base">Acciones Operativas</h3>
+                      <div className="space-y-2.5">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button className="h-11 w-full bg-[#17B4C4] hover:bg-[#17B4C4]/90 text-[#063A6B] font-bold rounded-xl text-xs justify-center">
+                              <Bus className="w-4 h-4 mr-2" />
+                              Declarar Recorrido (Ida / Vuelta)
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[425px] p-0 border-none bg-transparent shadow-none">
+                            <RegistroRecorrido />
+                          </DialogContent>
+                        </Dialog>
 
-          {/* SPRINT 3: Horas de Práctica */}
-          <TabsContent value="asistencia" className="space-y-6">
-            <div className="max-w-2xl mx-auto">
-              <RegistroHoras />
-            </div>
-          </TabsContent>
-
-          {/* SPRINT 4: Aprobación de Pasajes */}
-          <TabsContent value="pasajes" className="space-y-6">
-            <AprobacionPasajes />
-          </TabsContent>
-
-          {/* SPRINT 5: Evaluación 360° y Validación */}
-          <TabsContent value="evaluacion_360" className="space-y-6">
-            <MatrizEvaluacion360 />
-            {(es_admin || es_supervisor) && (
-              <div className="mt-6 flex justify-end">
-                <Dialog>
-                  {/* @ts-ignore */}
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="h-10 border-[#063A6B] text-[#063A6B] font-bold rounded-xl text-xs hover:bg-[#063A6B]/5">
-                      <ShieldCheck className="w-4 h-4 mr-2" />
-                      Convalidar con Firma Digital Canvas
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[450px] p-0 border-none bg-transparent shadow-none">
-                    <FirmaDigital alFirmar={(_b64) => alert("Firma convalidada correctamente.")} />
-                  </DialogContent>
-                </Dialog>
-              </div>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" className="h-11 w-full border-[#E3DCCB] text-[#063A6B] font-bold rounded-xl text-xs justify-center hover:bg-slate-50">
+                              <FileText className="w-4 h-4 mr-2 text-amber-600" />
+                              Llenar Formulario Pastoral F-03
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[500px] p-0 border-none bg-transparent shadow-none">
+                            <FormularioF03 becario_id={usuario.becario_id || 1} />
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </Card>
+                  </div>
+                </div>
+              </TabsContent>
             )}
-          </TabsContent>
 
-          {/* SPRINT 7: Reportes PDF (Admin y Supervisor) */}
-          {(es_admin || es_supervisor) && (
-            <TabsContent value="reportes" className="space-y-6">
-              <VisorReportesPdf />
+            {/* SPRINT 2: Becarios (Admin y Supervisor) */}
+            {(es_admin || es_supervisor) && (
+              <TabsContent value="becarios" className="space-y-6">
+                <GestionBecarios />
+              </TabsContent>
+            )}
+
+            {/* SPRINT 2: Sedes y Geocercas */}
+            <TabsContent value="sedes" className="space-y-6">
+              <MapaLugaresPractica />
             </TabsContent>
-          )}
 
-          {/* SPRINT 8: Notificaciones */}
-          <TabsContent value="notificaciones" className="space-y-6">
-            <CentroNotificaciones />
-          </TabsContent>
-        </Tabs>
-      </main>
+            {/* SPRINT 3: Horas de Práctica */}
+            <TabsContent value="asistencia" className="space-y-6">
+              <div className="max-w-2xl mx-auto">
+                <RegistroHoras />
+              </div>
+            </TabsContent>
+
+            {/* SPRINT 4: Aprobación de Pasajes */}
+            <TabsContent value="pasajes" className="space-y-6">
+              <AprobacionPasajes />
+            </TabsContent>
+
+            {/* SPRINT 5: Evaluación 360° y Validación */}
+            <TabsContent value="evaluacion_360" className="space-y-6">
+              <MatrizEvaluacion360 />
+              {(es_admin || es_supervisor) && (
+                <div className="mt-6 flex justify-end">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="h-10 border-[#063A6B] text-[#063A6B] font-bold rounded-xl text-xs hover:bg-[#063A6B]/5">
+                        <ShieldCheck className="w-4 h-4 mr-2" />
+                        Convalidar con Firma Digital Canvas
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[450px] p-0 border-none bg-transparent shadow-none">
+                      <FirmaDigital alFirmar={(_b64) => alert("Firma convalidada correctamente.")} />
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* SPRINT 7: Reportes PDF (Admin y Supervisor) */}
+            {(es_admin || es_supervisor) && (
+              <TabsContent value="reportes" className="space-y-6">
+                <VisorReportesPdf />
+              </TabsContent>
+            )}
+
+            {/* SPRINT 8: Notificaciones */}
+            <TabsContent value="notificaciones" className="space-y-6">
+              <CentroNotificaciones />
+            </TabsContent>
+          </Tabs>
+        </main>
+      </div>
     </div>
   );
 }

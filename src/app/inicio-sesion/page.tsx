@@ -24,7 +24,7 @@ export default function PaginaInicioSesion() {
     set_error_form("");
 
     try {
-      const url_base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      const url_base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
       let token_acceso: string | null = null;
       let usuario_autenticado: Usuario | null = null;
 
@@ -130,11 +130,22 @@ export default function PaginaInicioSesion() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F8F9FA] p-4">
       <Card className="w-full max-w-md border-[#E3DCCB] shadow-lg bg-white rounded-2xl">
-        <CardHeader className="text-center space-y-2 pb-6 border-b border-[#E3DCCB]/70">
-          <div className="mx-auto w-12 h-12 bg-[#063A6B] rounded-2xl flex items-center justify-center mb-2 shadow-sm">
-            <span className="text-[#F8C766] font-display font-bold text-2xl">B</span>
+        <CardHeader className="text-center space-y-3 pb-6 border-b border-[#E3DCCB]/70">
+          <div className="flex flex-col items-center justify-center gap-2 mb-1">
+            {/* Logo BUMAND Oficial SVG */}
+            <img
+              src="/logos/logo-bumand.svg"
+              alt="Logo BUMAND Oficial"
+              className="h-16 w-auto object-contain"
+            />
+            {/* Logo Diaconía IFD Oficial SVG */}
+            <img
+              src="/logos/logo-diaconia.svg"
+              alt="Logo Diaconía FRIF-IFD"
+              className="h-7 w-auto object-contain opacity-90"
+            />
           </div>
-          <CardTitle className="font-display text-2xl text-[#063A6B]">Plataforma BUMAND</CardTitle>
+          <CardTitle className="font-display text-xl text-[#063A6B]">Plataforma Institucional</CardTitle>
           <CardDescription className="text-muted-foreground text-xs">
             Ingreso corporativo y control de acceso basado en roles institucionales (RBAC).
           </CardDescription>
