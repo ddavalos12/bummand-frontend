@@ -98,3 +98,24 @@ export function SeleccionadorFechaHora({ fecha, alCambiar, hora, alCambiarHora, 
     </div>
   )
 }
+
+interface TimePickerProps {
+  hora: string | undefined
+  alCambiar: (hora: string) => void
+  etiqueta_placeholder?: string
+}
+
+export function SeleccionadorHora({ hora, alCambiar, etiqueta_placeholder = "Seleccionar hora" }: TimePickerProps) {
+  return (
+    <div className="relative w-full">
+      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#17B4C4]" />
+      <Input 
+        type="time" 
+        value={hora || ""} 
+        onChange={(e) => alCambiar(e.target.value)} 
+        placeholder={etiqueta_placeholder}
+        className="pl-9 h-11 rounded-xl border-[#E3DCCB] focus-visible:ring-[#17B4C4] w-full"
+      />
+    </div>
+  )
+}

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
+import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
 
 /**
  * @component RegistroRecorrido
@@ -14,6 +15,7 @@ import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 export function RegistroRecorrido() {
   const { token, usuario } = usarAutenticacion();
   const [paso, set_paso] = useState<"ida" | "vuelta">("ida");
+  const [fecha, set_fecha] = useState<Date | undefined>(new Date());
   const [origen, set_origen] = useState("");
   const [destino, set_destino] = useState("");
   const [monto, set_monto] = useState("");
@@ -41,7 +43,7 @@ export function RegistroRecorrido() {
         vuelta_monto: parseFloat(monto || "0"),
         total,
         devolucion,
-        fecha: new Date().toISOString()
+        fecha: fecha ? fecha.toISOString() : new Date().toISOString()
       };
       
       const url_base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -56,6 +58,7 @@ export function RegistroRecorrido() {
       
       alert(`Recorrido completo guardado. Total a devolver: Bs ${devolucion.toFixed(2)}`);
       set_paso("ida");
+      set_fecha(new Date());
       set_origen("");
       set_destino("");
       set_monto("");
@@ -86,6 +89,11 @@ export function RegistroRecorrido() {
               ← Volver a Ida
             </button>
           )}
+        </div>
+
+        <div className="mb-4">
+          <p className="font-mono text-[9.5px] font-bold tracking-wider text-[#0A5CA0] mb-2">FECHA DEL RECORRIDO</p>
+          <SeleccionadorFecha fecha={fecha} alCambiar={set_fecha} etiqueta_boton="Seleccionar fecha" />
         </div>
 
         <div className="space-y-3">

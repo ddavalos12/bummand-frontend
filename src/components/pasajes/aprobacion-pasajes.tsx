@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2, XCircle, AlertCircle, Bus, MapPin, Calendar, Clock, DollarSign } from "lucide-react";
 
 interface RecorridoItem {
@@ -301,12 +302,12 @@ export function AprobacionPasajes() {
               <Label className="text-xs font-semibold text-[#122029]">
                 Motivo de la Observación (Obligatorio)
               </Label>
-              <textarea
+              <Textarea
                 rows={3}
                 placeholder="Ej. La tarifa declarada para el tramo 2 excede la tarifa oficial de transporte público..."
                 value={texto_observacion}
                 onChange={(e) => set_texto_observacion(e.target.value)}
-                className="w-full p-2.5 text-xs rounded-lg border border-[#E3DCCB] focus:outline-none focus:ring-2 focus:ring-[#17B4C4]"
+                className="w-full p-2.5 text-xs rounded-lg border-[#E3DCCB] focus-visible:ring-[#17B4C4]"
               />
             </div>
           </div>

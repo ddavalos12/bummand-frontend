@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Slider } from "@/components/ui/slider";
 import { MapPin, Plus, Navigation, ShieldCheck, Crosshair, Check } from "lucide-react";
 
 interface SedePractica {
@@ -317,14 +318,13 @@ export function MapaLugaresPractica() {
             </div>
 
             <div className="flex items-center gap-4">
-              <input
-                type="range"
-                min="20"
-                max="200"
-                step="5"
-                value={radio_editado}
-                onChange={(e) => set_radio_editado(parseInt(e.target.value, 10))}
-                className="flex-1 accent-[#17B4C4] h-2 bg-slate-200 rounded-lg cursor-pointer"
+              <Slider
+                min={20}
+                max={200}
+                step={5}
+                value={[radio_editado]}
+                onValueChange={(val) => set_radio_editado(Array.isArray(val) ? val[0] : (val as unknown as number))}
+                className="flex-1 cursor-pointer"
               />
               <div className="w-24">
                 <Input
