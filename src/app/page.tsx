@@ -8,6 +8,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { MenuLateral } from "@/components/navegacion/menu-lateral";
+import { toast } from "sonner";
 
 // Módulos integrados por Sprint
 import { PanelAdministrativo } from "@/components/panel-control/panel-administrativo";
@@ -22,6 +23,10 @@ import { RadarGeocerca } from "@/components/recorridos/radar-geocerca";
 import { RegistroRecorrido } from "@/components/recorridos/registro-recorrido";
 import { FormularioF03 } from "@/components/evaluaciones/formulario-f03";
 import { FirmaDigital } from "@/components/evaluaciones/firma-digital";
+import { RegistroDevocionales } from "@/components/devocionales/registro-devocionales";
+import { GestionEventos } from "@/components/eventos/gestion-eventos";
+import { BandejaJustificaciones } from "@/components/justificaciones/bandeja-justificaciones";
+import { BarraComandosFlotante, TextoRevelado } from "@/components/animaciones";
 
 import { 
   Bus, 
@@ -63,10 +68,25 @@ function obtenerDetallesSeccion(seccion: string, rol: string) {
         titulo: rol === "becario" ? "Declaración Mensual de Pasajes (80%)" : "Supervisión y Aprobación de Pasajes",
         subtitulo: "Tramos de transporte público, verificación GPS y liquidación en centavos enteros",
       };
+    case "devocionales":
+      return {
+        titulo: rol === "becario" ? "Mis Devocionales y Crecimiento Espiritual" : "Seguimiento y Retroalimentación de Devocionales",
+        subtitulo: "Lecturas bíblicas, reflexiones personales, motivos de oración y acompañamiento pastoral",
+      };
     case "evaluacion_360":
       return {
         titulo: "Matriz de Evaluación 360°",
         subtitulo: "Evaluación integral en los 5 ejes canónicos diaconales y Formulario Pastoral F-03",
+      };
+    case "eventos":
+      return {
+        titulo: rol === "becario" ? "Mis Eventos y Encuentros Convocados" : "Gestión de Eventos y Encuentros Geolocalizados",
+        subtitulo: "Convocatorias institucionales, geocercas temporales WGS84 y actas de asistencia certificadas",
+      };
+    case "justificaciones":
+      return {
+        titulo: rol === "becario" ? "Mis Justificaciones e Incidencias" : "Bandeja de Justificaciones e Incidencias",
+        subtitulo: "Revisión de solicitudes de justificación, auditoría de motivos y dictamen de supervisión",
       };
     case "reportes":
       return {
@@ -176,9 +196,11 @@ export default function PaginaInicio() {
                   {detalles_seccion.titulo}
                 </span>
               </div>
-              <h1 className="text-sm sm:text-base font-bold text-[#063A6B] truncate">
-                {detalles_seccion.titulo}
-              </h1>
+              <TextoRevelado
+                key={detalles_seccion.titulo}
+                texto={detalles_seccion.titulo}
+                className="text-sm sm:text-base font-bold text-[#063A6B] truncate"
+              />
             </div>
           </div>
 
@@ -320,6 +342,11 @@ export default function PaginaInicio() {
               <AprobacionPasajes />
             </TabsContent>
 
+            {/* Módulo de Devocionales y Crecimiento Espiritual */}
+            <TabsContent value="devocionales" className="space-y-6">
+              <RegistroDevocionales />
+            </TabsContent>
+
             {/* SPRINT 5: Evaluación 360° y Validación */}
             <TabsContent value="evaluacion_360" className="space-y-6">
               <MatrizEvaluacion360 />
@@ -333,11 +360,21 @@ export default function PaginaInicio() {
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[450px] p-0 border-none bg-transparent shadow-none">
-                      <FirmaDigital alFirmar={(_b64) => alert("Firma convalidada correctamente.")} />
+                      <FirmaDigital alFirmar={(_b64) => toast.success("Firma digital convalidada correctamente", { description: "La acreditación ha sido registrada en el expediente institucional." })} />
                     </DialogContent>
                   </Dialog>
                 </div>
               )}
+            </TabsContent>
+
+            {/* Módulo de Gestión de Eventos y Encuentros Geolocalizados */}
+            <TabsContent value="eventos" className="space-y-6">
+              <GestionEventos />
+            </TabsContent>
+
+            {/* Módulo de Bandeja de Justificaciones */}
+            <TabsContent value="justificaciones" className="space-y-6">
+              <BandejaJustificaciones />
             </TabsContent>
 
             {/* SPRINT 7: Reportes PDF (Admin y Supervisor) */}
@@ -354,6 +391,13 @@ export default function PaginaInicio() {
           </Tabs>
         </main>
       </div>
+
+      {/* Skipper UI — Barra de Comandos Flotante */}
+      <BarraComandosFlotante
+        seccion_activa={pestaña_activa}
+        alSeleccionarSeccion={set_pestaña_activa}
+        es_becario={es_becario}
+      />
     </div>
   );
 }

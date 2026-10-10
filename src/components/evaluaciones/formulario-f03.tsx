@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 /**
  * @component FormularioF03
@@ -53,11 +54,15 @@ export function FormularioF03({ becario_id, alEnviarExito }: { becario_id: numbe
 
       if (!respuesta.ok) throw new Error("Error enviando evaluación");
       
-      alert("Evaluación F-03 enviada correctamente al sistema BUMAND.");
+      toast.success("Evaluación F-03 enviada con éxito", {
+        description: "La evaluación pastoral ha sido registrada en el sistema BUMAND."
+      });
       if (alEnviarExito) alEnviarExito();
     } catch (error) {
       console.error(error);
-      alert("Hubo un error al enviar. El servidor puede estar apagado.");
+      toast.error("Error al enviar evaluación", {
+        description: "Hubo un error al enviar. El servidor puede estar apagado o fuera de línea."
+      });
     } finally {
       set_cargando(false);
     }

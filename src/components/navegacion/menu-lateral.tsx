@@ -4,6 +4,17 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+import {
   LayoutDashboard,
   Users,
   MapPin,
@@ -20,6 +31,9 @@ import {
   ChevronRight,
   X,
   Sparkles,
+  BookOpen,
+  CalendarDays,
+  ClipboardCheck,
 } from "lucide-react";
 
 interface ElementoNavegacion {
@@ -90,6 +104,13 @@ export function MenuLateral({
           titulo: "Registros Diarios",
           elementos: [
             {
+              id: "eventos",
+              etiqueta: "Eventos Convocados",
+              descripcion: "Encuentros y geocercas",
+              icono: CalendarDays,
+              badge: "En Vivo",
+            },
+            {
               id: "asistencia",
               etiqueta: "Marcación de Horas",
               descripcion: "Entrada y salida GPS",
@@ -101,6 +122,18 @@ export function MenuLateral({
               descripcion: "Tramos urbanos e intermedios",
               icono: Bus,
               badge: "80%",
+            },
+            {
+              id: "justificaciones",
+              etiqueta: "Mis Justificaciones",
+              descripcion: "Incidencias y permisos",
+              icono: ClipboardCheck,
+            },
+            {
+              id: "devocionales",
+              etiqueta: "Mis Devocionales",
+              descripcion: "Lectura bíblica y pastoral",
+              icono: BookOpen,
             },
             {
               id: "evaluacion_360",
@@ -150,6 +183,20 @@ export function MenuLateral({
           titulo: "Seguimiento y Control",
           elementos: [
             {
+              id: "eventos",
+              etiqueta: "Gestión de Eventos",
+              descripcion: "Convocatorias y geocercas WGS84",
+              icono: CalendarDays,
+              badge: "En Vivo",
+            },
+            {
+              id: "justificaciones",
+              etiqueta: "Bandeja Justificaciones",
+              descripcion: "Incidencias, permisos y dictamen",
+              icono: ClipboardCheck,
+              badge: "Pendientes",
+            },
+            {
               id: "asistencia",
               etiqueta: "Control Asistencia",
               descripcion: "Validación geodésica Haversine",
@@ -161,6 +208,12 @@ export function MenuLateral({
               descripcion: "Liquidación exacta en centavos",
               icono: Bus,
               badge: "Reembolso",
+            },
+            {
+              id: "devocionales",
+              etiqueta: "Devocionales y Pastoral",
+              descripcion: "Acompañamiento y retroalimentación",
+              icono: BookOpen,
             },
             {
               id: "evaluacion_360",
@@ -343,18 +396,41 @@ export function MenuLateral({
           </div>
         )}
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={cerrarSesion}
-          title="Cerrar sesión corporativa"
-          className={`w-full border-[#E3DCCB] text-[#E2694B] hover:bg-[#E2694B]/10 hover:text-[#E2694B] font-bold text-xs rounded-xl transition-colors ${
-            colapsado ? "px-0 justify-center h-9" : "justify-center gap-2 h-9"
-          }`}
-        >
-          <LogOut className="w-3.5 h-3.5 shrink-0" />
-          {!colapsado && <span>Cerrar Sesión</span>}
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              title="Cerrar sesión corporativa"
+              className={`w-full border-[#E3DCCB] text-[#E2694B] hover:bg-[#E2694B]/10 hover:text-[#E2694B] font-bold text-xs rounded-xl transition-colors ${
+                colapsado ? "px-0 justify-center h-9" : "justify-center gap-2 h-9"
+              }`}
+            >
+              <LogOut className="w-3.5 h-3.5 shrink-0" />
+              {!colapsado && <span>Cerrar Sesión</span>}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <LogOut className="w-5 h-5 text-[#E2694B]" />
+                ¿Cerrar sesión institucional?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Se finalizará la sesión de <strong>{usuario.nombre}</strong> ({usuario.rol}). Deberá autenticarse nuevamente con sus credenciales de Diaconía para acceder.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Permanecer</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={cerrarSesion}
+                className="bg-[#E2694B] hover:bg-[#E2694B]/90 text-white font-bold"
+              >
+                Cerrar Sesión
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {!colapsado && (
           <div className="flex items-center justify-between px-1.5 pt-0.5 text-[10px] font-mono text-muted-foreground/80">

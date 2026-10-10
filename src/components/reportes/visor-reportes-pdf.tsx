@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileText, Download, Printer, CheckCircle, Clock, ShieldCheck, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 
 interface ReporteItem {
   id: number;
@@ -88,7 +89,9 @@ export function VisorReportesPdf() {
   };
 
   const simularDescarga = (titulo: string) => {
-    alert(`Descargando reporte oficial: ${titulo}.pdf\nConforme a los estándares de Diaconía FRIF-IFD.`);
+    toast.info(`Descargando reporte: ${titulo}.pdf`, {
+      description: "Documento oficial generado conforme a los estándares de Diaconía FRIF-IFD."
+    });
   };
 
   return (

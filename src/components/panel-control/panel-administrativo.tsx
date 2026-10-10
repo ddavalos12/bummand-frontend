@@ -1,6 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
+import {
+  TarjetaSpotlight,
+  BordeLuminoso,
+  ContadorAnimado,
+  ContenedorEscalonado,
+  ElementoEscalonado,
+} from "@/components/animaciones";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -88,114 +96,160 @@ const ACTIVIDADES_RECIENTES = [
 ];
 
 export function PanelAdministrativo() {
+  const { usuario } = usarAutenticacion();
   const [vista_anual, set_vista_anual] = useState(false);
+
+  const es_supervisor = usuario?.rol === "supervisor";
+  const nombre_usuario = usuario?.nombre || "Supervisor";
+
+  // Métricas adaptativas según rol (Admin vs Supervisor)
+  const metricas = es_supervisor
+    ? {
+        becarios_activos: 8,
+        becarios_etiqueta: "Becarios Asignados",
+        horas_acumuladas: "348 h",
+        horas_porcentaje: "+98%",
+        evaluaciones: "3 / 8",
+        presupuesto_80: "Bs 1,840",
+        presupuesto_limite: "Bs 3,200.00 límite de cohorte",
+        alerta_titulo: `Panel de Supervisión Institucional — Cohorte ${nombre_usuario}`,
+        alerta_desc: `Seguimiento de prácticas y devocionales para 8 becarios bajo su tutoría.`,
+      }
+    : {
+        becarios_activos: 23,
+        becarios_etiqueta: "Becarios BUMAND 2026",
+        horas_acumuladas: "1,040 h",
+        horas_porcentaje: "+109%",
+        evaluaciones: "21 / 23",
+        presupuesto_80: "Bs 5,240",
+        presupuesto_limite: "Bs 10,000.00 límite mensual institucional",
+        alerta_titulo: "Periodo de Liquidación Activo — BUMAND Gestión 2026",
+        alerta_desc: "Verificación de geocercas satelitales en 11 agencias Diaconía y liquidación del 80% de pasajes.",
+      };
 
   return (
     <div className="space-y-6">
-      {/* Alerta de Cierre Mensual Normativo */}
+      {/* Alerta Institucional */}
       <Alert className="border-[#17B4C4]/40 bg-[#17B4C4]/5 text-[#063A6B]">
         <CheckCircle2 className="h-4 w-4 text-[#17B4C4]" />
-        <AlertTitle className="font-bold text-sm">Periodo de Liquidación Activo — Septiembre 2026</AlertTitle>
+        <AlertTitle className="font-bold text-sm">{metricas.alerta_titulo}</AlertTitle>
         <AlertDescription className="text-xs text-muted-foreground mt-0.5">
-          El proceso de verificación de geocercas satelitales y cálculo del 80% de pasajes se encuentra operativo.
-          Los supervisores pueden aprobar las planillas mensuales con firma digital.
+          {metricas.alerta_desc}
         </AlertDescription>
       </Alert>
 
-      {/* Tarjetas de Métricas Ejecutivas Superiores */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Tarjetas de Métricas Ejecutivas Superiores con Cult UI, Watermelon UI y Motion Primitives */}
+      <ContenedorEscalonado className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Métrica 1: Becarios */}
-        <Card className="border-[#E3DCCB] shadow-sm relative overflow-hidden bg-white rounded-xl">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-[#F8C766]/20 rounded-bl-full" />
-          <CardContent className="p-5">
-            <div className="flex justify-between items-start">
-              <div className="space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase font-mono">
-                  Becarios Activos
-                </p>
-                <p className="text-3xl font-display font-bold text-[#063A6B]">25</p>
+        <ElementoEscalonado>
+          <TarjetaSpotlight color_luz="rgba(248, 199, 102, 0.22)" className="h-full">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-[#F8C766]/20 rounded-bl-full pointer-events-none" />
+            <CardContent className="p-5">
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase font-mono">
+                    {metricas.becarios_etiqueta}
+                  </p>
+                  <p className="text-3xl font-display font-bold text-[#063A6B]">
+                    <ContadorAnimado valor={metricas.becarios_activos} />
+                  </p>
+                </div>
+                <div className="p-2.5 bg-[#063A6B]/5 rounded-xl">
+                  <Users className="w-5 h-5 text-[#063A6B]" />
+                </div>
               </div>
-              <div className="p-2.5 bg-[#063A6B]/5 rounded-xl">
-                <Users className="w-5 h-5 text-[#063A6B]" />
+              <div className="mt-3 flex items-center text-xs">
+                <TrendingUp className="w-3.5 h-3.5 text-emerald-600 mr-1" />
+                <span className="text-emerald-600 font-bold">100% activos</span>
+                <span className="text-muted-foreground ml-1">en gestión 2026</span>
               </div>
-            </div>
-            <div className="mt-3 flex items-center text-xs">
-              <TrendingUp className="w-3.5 h-3.5 text-emerald-600 mr-1" />
-              <span className="text-emerald-600 font-bold">100% activos</span>
-              <span className="text-muted-foreground ml-1">en gestión 2026</span>
-            </div>
-            <Progress value={100} className="h-1.5 mt-2 bg-slate-100" />
-          </CardContent>
-        </Card>
+              <Progress value={100} className="h-1.5 mt-2 bg-slate-100" />
+            </CardContent>
+          </TarjetaSpotlight>
+        </ElementoEscalonado>
 
         {/* Métrica 2: Horas */}
-        <Card className="border-[#E3DCCB] shadow-sm relative overflow-hidden bg-white rounded-xl">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-[#17B4C4]/20 rounded-bl-full" />
-          <CardContent className="p-5">
-            <div className="flex justify-between items-start">
-              <div className="space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase font-mono">
-                  Horas Acumuladas
-                </p>
-                <p className="text-3xl font-display font-bold text-[#063A6B]">1,040 h</p>
+        <ElementoEscalonado>
+          <TarjetaSpotlight color_luz="rgba(23, 180, 196, 0.22)" className="h-full">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-[#17B4C4]/20 rounded-bl-full pointer-events-none" />
+            <CardContent className="p-5">
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase font-mono">
+                    Horas Acumuladas
+                  </p>
+                  <p className="text-3xl font-display font-bold text-[#063A6B]">
+                    <ContadorAnimado valor={es_supervisor ? 348 : 1040} sufijo=" h" />
+                  </p>
+                </div>
+                <div className="p-2.5 bg-[#17B4C4]/10 rounded-xl">
+                  <Clock className="w-5 h-5 text-[#17B4C4]" />
+                </div>
               </div>
-              <div className="p-2.5 bg-[#17B4C4]/10 rounded-xl">
-                <Clock className="w-5 h-5 text-[#17B4C4]" />
+              <div className="mt-3 flex items-center text-xs">
+                <span className="text-emerald-600 font-bold">{metricas.horas_porcentaje}</span>
+                <span className="text-muted-foreground ml-1">sobre meta planificada</span>
               </div>
-            </div>
-            <div className="mt-3 flex items-center text-xs">
-              <span className="text-emerald-600 font-bold">+109%</span>
-              <span className="text-muted-foreground ml-1">sobre meta planificada</span>
-            </div>
-            <Progress value={92} className="h-1.5 mt-2 bg-slate-100" />
-          </CardContent>
-        </Card>
+              <Progress value={92} className="h-1.5 mt-2 bg-slate-100" />
+            </CardContent>
+          </TarjetaSpotlight>
+        </ElementoEscalonado>
 
         {/* Métrica 3: Evaluaciones */}
-        <Card className="border-[#E3DCCB] shadow-sm relative overflow-hidden bg-white rounded-xl">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-[#E2694B]/20 rounded-bl-full" />
-          <CardContent className="p-5">
-            <div className="flex justify-between items-start">
-              <div className="space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase font-mono">
-                  Evaluaciones 360°
-                </p>
-                <p className="text-3xl font-display font-bold text-[#063A6B]">4 / 5</p>
+        <ElementoEscalonado>
+          <TarjetaSpotlight color_luz="rgba(226, 105, 75, 0.22)" className="h-full">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-[#E2694B]/20 rounded-bl-full pointer-events-none" />
+            <CardContent className="p-5">
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase font-mono">
+                    Evaluaciones 360°
+                  </p>
+                  <p className="text-3xl font-display font-bold text-[#063A6B]">{metricas.evaluaciones}</p>
+                </div>
+                <div className="p-2.5 bg-[#E2694B]/10 rounded-xl">
+                  <FileCheck className="w-5 h-5 text-[#E2694B]" />
+                </div>
               </div>
-              <div className="p-2.5 bg-[#E2694B]/10 rounded-xl">
-                <FileCheck className="w-5 h-5 text-[#E2694B]" />
+              <div className="mt-3 flex items-center text-xs text-amber-700">
+                <AlertCircle className="w-3.5 h-3.5 mr-1" />
+                <span>Vigente al semestre actual</span>
               </div>
-            </div>
-            <div className="mt-3 flex items-center text-xs text-amber-700">
-              <AlertCircle className="w-3.5 h-3.5 mr-1" />
-              <span>Falta Escuela Líderes</span>
-            </div>
-            <Progress value={80} className="h-1.5 mt-2 bg-slate-100" />
-          </CardContent>
-        </Card>
+              <Progress value={85} className="h-1.5 mt-2 bg-slate-100" />
+            </CardContent>
+          </TarjetaSpotlight>
+        </ElementoEscalonado>
 
-        {/* Métrica 4: Presupuesto Viáticos */}
-        <Card className="border-[#E3DCCB] shadow-sm relative overflow-hidden bg-[#063A6B] text-white rounded-xl">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-bl-full" />
-          <CardContent className="p-5">
-            <div className="flex justify-between items-start">
-              <div className="space-y-1">
-                <p className="text-xs font-semibold text-[#7FE0E6] uppercase font-mono">
-                  Presupuesto 80% Pasajes
-                </p>
-                <p className="text-3xl font-display font-bold text-[#F8C766]">Bs 5,240</p>
+        {/* Métrica 4: Presupuesto Viáticos con Borde Luminoso Cult UI */}
+        <ElementoEscalonado>
+          <TarjetaSpotlight
+            color_luz="rgba(255, 255, 255, 0.18)"
+            className="h-full bg-[#063A6B] text-white border-transparent relative overflow-hidden"
+          >
+            <BordeLuminoso color_desde="#F8C766" color_hacia="#17B4C4" duracion={6} />
+            <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-bl-full pointer-events-none" />
+            <CardContent className="p-5">
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold text-[#7FE0E6] uppercase font-mono">
+                    Presupuesto 80% Pasajes
+                  </p>
+                  <p className="text-3xl font-display font-bold text-[#F8C766]">
+                    <ContadorAnimado valor={es_supervisor ? 1840 : 5240} prefijo="Bs " />
+                  </p>
+                </div>
+                <div className="p-2.5 bg-white/10 rounded-xl">
+                  <DollarSign className="w-5 h-5 text-[#F8C766]" />
+                </div>
               </div>
-              <div className="p-2.5 bg-white/10 rounded-xl">
-                <DollarSign className="w-5 h-5 text-[#F8C766]" />
+              <div className="mt-3 flex items-center text-xs text-white/80">
+                <span>{metricas.presupuesto_limite}</span>
               </div>
-            </div>
-            <div className="mt-3 flex items-center text-xs text-white/80">
-              <span>Bs 10,000.00 límite mensual</span>
-            </div>
-            <Progress value={52.4} className="h-1.5 mt-2 bg-white/20" />
-          </CardContent>
-        </Card>
-      </div>
+              <Progress value={52.4} className="h-1.5 mt-2 bg-white/20" />
+            </CardContent>
+          </TarjetaSpotlight>
+        </ElementoEscalonado>
+      </ContenedorEscalonado>
 
       {/* Fila 2: Gráficos Interactivos de Tendencia y Presupuesto */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

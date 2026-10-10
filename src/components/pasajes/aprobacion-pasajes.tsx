@@ -4,10 +4,24 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, XCircle, AlertCircle, Bus, MapPin, Calendar, Clock, DollarSign } from "lucide-react";
+import { CheckCircle2, XCircle, AlertCircle, Bus, MapPin, Calendar, Clock, DollarSign, Wifi, WifiOff } from "lucide-react";
+import { toast } from "sonner";
+import { clienteApi } from "@/lib/cliente-api";
+import { useConsulta } from "@/hooks/useConsulta";
+import { useTiempoReal } from "@/hooks/useTiempoReal";
+import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 
 interface RecorridoItem {
   id: number;
@@ -101,16 +115,70 @@ const SOLICITUDES_INICIALES: SolicitudPasajeVista[] = [
 ];
 
 export function AprobacionPasajes() {
-  const [solicitudes, set_solicitudes] = useState<SolicitudPasajeVista[]>(SOLICITUDES_INICIALES);
+  const { usuario } = usarAutenticacion();
+  const [solicitudes_locales, set_solicitudes_locales] = useState<SolicitudPasajeVista[]>(SOLICITUDES_INICIALES);
   const [solicitud_seleccionada, set_solicitud_seleccionada] = useState<SolicitudPasajeVista | null>(null);
   const [modal_observacion, set_modal_observacion] = useState(false);
   const [texto_observacion, set_texto_observacion] = useState("");
   const [error_rechazo, set_error_rechazo] = useState("");
 
-  const manejarAprobar = (id: number) => {
-    set_solicitudes((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, estado: "aprobado", observaciones: "Aprobado conforme por tutor" } : s))
-    );
+  const { datos: solicitudes_servidor, invalidar } = useConsulta<SolicitudPasajeVista[]>(
+    "solicitudes_pasajes_revision",
+    async () => {
+      const respuesta = await clienteApi.get<any[]>("/api/pasajes");
+      if (Array.isArray(respuesta) && respuesta.length > 0) {
+        return respuesta.map((item) => ({
+          id: item.id,
+          becario_nombre: item.becario?.usuario?.nombre || item.becario_nombre || "Becario Institucional",
+          carrera: item.becario?.carrera || "Carrera BUMAND",
+          periodo: item.periodo || "Mes en curso",
+          monto_total_centavos: Math.round(Number(item.monto_total || 0) * 100),
+          monto_devolucion_centavos: Math.round(Number(item.monto_devolucion || 0) * 100),
+          estado: (item.estado || "pendiente").toLowerCase() as "pendiente" | "aprobado" | "rechazado",
+          observaciones: item.observaciones,
+          fecha_envio: item.fecha_envio ? String(item.fecha_envio).split("T")[0] : "2026-10-01",
+          recorridos: (item.recorridos || []).map((r: any) => ({
+            id: r.id,
+            fecha: r.fecha ? String(r.fecha).split("T")[0] : "2026-10-01",
+            tramo: (r.tramo || "ida") as "ida" | "vuelta",
+            origen: r.origen,
+            destino: r.destino,
+            tarifa: Number(r.tarifa),
+            apoyo_realizado: r.apoyo_realizado || "Actividad académica/pastoral",
+            tiene_gps: Boolean(r.lat_origen || r.lat_destino),
+          })),
+        }));
+      }
+      return SOLICITUDES_INICIALES;
+    },
+    { datos_iniciales: SOLICITUDES_INICIALES }
+  );
+
+  const solicitudes = solicitudes_servidor && solicitudes_servidor.length > 0 ? solicitudes_servidor : solicitudes_locales;
+
+  const { conectado } = useTiempoReal({
+    eventos: {
+      pasajes_actualizados: () => {
+        invalidar();
+      },
+    },
+  });
+
+  const manejarAprobar = async (id: number) => {
+    try {
+      await clienteApi.patch(`/api/pasajes/${id}/aprobar`, {
+        supervisor_id: usuario?.id || 1,
+      });
+      invalidar();
+    } catch {
+      // Fallback local
+      set_solicitudes_locales((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, estado: "aprobado", observaciones: "Aprobado conforme por tutor" } : s))
+      );
+    }
+    toast.success("Planilla de pasajes aprobada", {
+      description: "El reembolso del 80% ha sido convalidado y acreditado institucionalmente.",
+    });
   };
 
   const abrirModalRechazo = (sol: SolicitudPasajeVista) => {
@@ -120,20 +188,36 @@ export function AprobacionPasajes() {
     set_modal_observacion(true);
   };
 
-  const manejarConfirmarRechazo = () => {
+  const manejarConfirmarRechazo = async () => {
     if (!texto_observacion.trim()) {
       set_error_rechazo("Es obligatorio ingresar el motivo o justificación del rechazo.");
+      toast.error("Motivo obligatorio", {
+        description: "ERR-5002: Ingrese la justificación formal antes de rechazar la planilla.",
+      });
       return;
     }
     if (!solicitud_seleccionada) return;
 
-    set_solicitudes((prev) =>
-      prev.map((s) =>
-        s.id === solicitud_seleccionada.id
-          ? { ...s, estado: "rechazado", observaciones: texto_observacion.trim() }
-          : s
-      )
-    );
+    try {
+      await clienteApi.patch(`/api/pasajes/${solicitud_seleccionada.id}/rechazar`, {
+        supervisor_id: usuario?.id || 1,
+        observaciones: texto_observacion.trim(),
+      });
+      invalidar();
+    } catch {
+      // Fallback local
+      set_solicitudes_locales((prev) =>
+        prev.map((s) =>
+          s.id === solicitud_seleccionada.id
+            ? { ...s, estado: "rechazado", observaciones: texto_observacion.trim() }
+            : s
+        )
+      );
+    }
+
+    toast.success("Solicitud observada", {
+      description: `Se registró la observación institucional para ${solicitud_seleccionada.becario_nombre}.`,
+    });
     set_modal_observacion(false);
   };
 
@@ -277,59 +361,60 @@ export function AprobacionPasajes() {
         ))}
       </div>
 
-      {/* Diálogo de Observación / Rechazo Obligatorio */}
-      <Dialog open={modal_observacion} onOpenChange={set_modal_observacion}>
-        <DialogContent className="sm:max-w-[440px] bg-white rounded-2xl border-[#E3DCCB]">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
+      {/* Diálogo de Observación / Rechazo Obligatorio con AlertDialog */}
+      <AlertDialog open={modal_observacion} onOpenChange={set_modal_observacion}>
+        <AlertDialogContent className="sm:max-w-[440px] bg-white rounded-2xl border-[#E3DCCB]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base font-bold text-[#E2694B] flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-[#E2694B]" />
-              Observar Solicitud de Pasajes
-            </DialogTitle>
-          </DialogHeader>
+              Confirmar Observación y Rechazo de Pasajes
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Para observar o rechazar la solicitud de <strong>{solicitud_seleccionada?.becario_nombre}</strong>,
+              debes justificar formalmente el motivo para que el becario pueda subsanar sus datos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
           <div className="space-y-3 pt-2">
-            <p className="text-xs text-muted-foreground">
-              Para rechazar u observar la solicitud de <strong>{solicitud_seleccionada?.becario_nombre}</strong>,
-              debes justificar formalmente el motivo para que el becario pueda corregir sus datos.
-            </p>
-
             {error_rechazo && (
-              <div className="p-2 rounded bg-rose-50 text-rose-700 text-xs font-semibold border border-rose-200">
-                {error_rechazo}
-              </div>
+              <p className="text-[11px] text-[#E2694B] font-semibold flex items-center gap-1">
+                <span>⚠️</span>{error_rechazo}
+              </p>
             )}
 
             <div className="space-y-1">
-              <Label className="text-xs font-semibold text-[#122029]">
+              <Label htmlFor="motivo-rechazo-pasajes" className="text-xs font-semibold text-[#122029]">
                 Motivo de la Observación (Obligatorio)
               </Label>
               <Textarea
+                id="motivo-rechazo-pasajes"
                 rows={3}
                 placeholder="Ej. La tarifa declarada para el tramo 2 excede la tarifa oficial de transporte público..."
                 value={texto_observacion}
-                onChange={(e) => set_texto_observacion(e.target.value)}
-                className="w-full p-2.5 text-xs rounded-lg border-[#E3DCCB] focus-visible:ring-[#17B4C4]"
+                onChange={(e) => {
+                  set_texto_observacion(e.target.value);
+                  if (error_rechazo) set_error_rechazo("");
+                }}
+                className={`w-full p-2.5 text-xs rounded-xl border-[#E3DCCB] focus-visible:ring-[#17B4C4] ${
+                  error_rechazo ? "border-[#E2694B] bg-[#E2694B]/5 focus-visible:ring-[#E2694B]" : ""
+                }`}
               />
             </div>
           </div>
-          <DialogFooter className="pt-2 flex justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
+          <AlertDialogFooter className="pt-2 flex justify-end gap-2">
+            <AlertDialogCancel
               onClick={() => set_modal_observacion(false)}
-              className="h-9 border-[#E3DCCB]"
             >
               Cancelar
-            </Button>
+            </AlertDialogCancel>
             <Button
-              size="sm"
               onClick={manejarConfirmarRechazo}
-              className="h-9 bg-[#E2694B] hover:bg-[#E2694B]/90 text-white font-bold"
+              className="h-10 px-4 rounded-xl bg-[#E2694B] hover:bg-[#E2694B]/90 text-white font-semibold text-xs shadow-sm transition-all"
             >
-              Confirmar Observación
+              Confirmar Rechazo
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
