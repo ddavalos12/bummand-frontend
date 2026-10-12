@@ -377,37 +377,44 @@ Esta utilidad es el pilar sobre el cual se montan todos los componentes del sist
 ### 3.9. `dialog.tsx` (Ventanas Modales y Diálogos de Interrupción)
 
 - **Propósito Funcional y Jerarquía Visual:**
-  Capa modal de máxima elevación (`z-50`) que interrumpe el flujo de trabajo principal para tareas críticas: captura de firmas digitales manuscritas, confirmación de rechazos con justificación o alta de nuevos becarios.
+  Capa modal de máxima elevación (`z-50`) que interrumpe el flujo de trabajo principal para tareas críticas: visualización de actas de asistencia geolocalizadas, captura de firmas digitales manuscritas, confirmación de rechazos con justificación o alta de nuevos becarios.
 - **Anatomía Interna y Dependencias:**
-  Basado en `@base-ui/react/dialog` con icono de cierre `XIcon` de `lucide-react` y botón auxiliar estandarizado.
+  Basado en `@base-ui/react/dialog` con soporte para `showCloseButton` (desactivado por defecto para mantener consistencia con los demás modales institucionales).
   Subcomponentes exportados:
   - `Dialog`: Raíz de control del estado abierto/cerrado.
   - `DialogTrigger`: Disparador accesible.
   - `DialogPortal`: Inyección en el nodo DOM raíz (`document.body`).
   - `DialogOverlay`: Capa de fondo oscuro translúcido con desenfoque de fondo (`backdrop-blur-xs`).
-  - `DialogContent`: Contenedor centrado con animación elástica de escala (`zoom-in-95`).
-  - `DialogHeader`, `DialogFooter`, `DialogTitle`, `DialogDescription`.
+  - `DialogContent`: Contenedor flexible vertical con bordes redondeados y escala elástica (`flex flex-col overflow-hidden rounded-2xl`).
+  - `DialogHeader`: Cabecera fijada en la parte superior (`shrink-0`).
+  - `DialogBody`: Contenedor central desplazable (`flex-1 overflow-y-auto min-h-0`).
+  - `DialogFooter`: Pie fijado en la parte inferior (`shrink-0 mt-auto`).
+  - `DialogTitle`, `DialogDescription`.
   - `DialogClose`: Botón de escape accesible con soporte de atajo `Escape`.
 - **Tipos TypeScript y Props:**
-  Extiende `DialogPrimitive.Popup.Props` agregando la propiedad booleana `showCloseButton`.
+  Extiende `DialogPrimitive.Popup.Props` agregando la propiedad booleana `showCloseButton` (valor por defecto: `false`).
 - **Estados Interactivos:**
   - `data-open`: Animación `animate-in fade-in-0 zoom-in-95 duration-100`.
   - `data-closed`: Animación de salida `animate-out fade-out-0 zoom-out-95`.
   - Bloqueo completo del scroll del documento subyacente y captura de foco (*focus trap*).
-- **Ejemplo de Uso en BUMAND:**
+- **Ejemplo Canónico en BUMAND (Cabecera y Pie Fijados, Sin Botón X):**
   ```tsx
-  import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
+  import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter } from "@/components/ui/dialog";
   import { Button } from "@/components/ui/button";
 
   <Dialog>
     <DialogTrigger render={<Button variant="destructive">Observar Pasajes</Button>} />
-    <DialogContent>
-      <DialogHeader>
+    <DialogContent className="sm:max-w-[550px] max-h-[90vh]">
+      <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB]">
         <DialogTitle>Registro de Observación</DialogTitle>
-        <DialogDescription>Indique el motivo por el cual no se valida la ruta declarada.</DialogDescription>
       </DialogHeader>
-      {/* Formulario de observación */}
-      <DialogFooter showCloseButton>
+      
+      <DialogBody className="p-6 space-y-4">
+        {/* Formulario o información desplazable */}
+      </DialogBody>
+
+      <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90">
+        <Button variant="outline">Cancelar</Button>
         <Button variant="default">Confirmar Observación</Button>
       </DialogFooter>
     </DialogContent>
@@ -865,6 +872,7 @@ Para asegurar que ningún componente constituya código muerto (*dead code*), la
 | `Tabs` | `ui/tabs.tsx` | `app/page.tsx` (navegación por Sprints), `matriz-evaluacion-360.tsx` |
 | `Textarea` | `ui/textarea.tsx` | `aprobacion-pasajes.tsx` (justificación de rechazo), `formulario-f03.tsx` |
 | `Tooltip` | `ui/tooltip.tsx` | `proveedores.tsx` (envoltorio raíz), pines de geocerca y botones compactos. |
+| `FondoOndasLiquidas` | `animaciones/fondo-ondas-liquidas.tsx` | `inicio-sesion/page.tsx` (Simulación líquida WebGL "Manantial Diaconal"). |
 | `cn` / `utils.ts` | `lib/utils.ts` | Utilidad universal de concatenación y resolución condicional en toda la app. |
 
 ---

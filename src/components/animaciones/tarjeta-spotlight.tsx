@@ -1,70 +1,40 @@
 "use client";
 
-import React, { useRef, useState, MouseEvent } from "react";
+import React from "react";
 import { cn } from "@/lib/utils";
 
-interface TarjetaSpotlightProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface TarjetaSpotlightProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
   color_luz?: string;
   radio_luz?: number;
+  clase_contenido?: string;
+  con_halo?: boolean;
 }
 
 /**
- * Cult UI — Tarjeta con Reflector de Cursor (Spotlight Card)
- * Proyecta una fuente de luz radial interactiva que sigue el cursor del mouse,
- * iluminando delicadamente el fondo y los bordes con la paleta de BUMAND.
+ * Tarjeta sobria e institucional sin halos ni destellos distractores.
+ * Por directriz de diseño, los halos de luz están reservados exclusivamente para el menú lateral.
  */
 export function TarjetaSpotlight({
   children,
   className,
-  color_luz = "rgba(23, 180, 196, 0.15)",
-  radio_luz = 280,
+  clase_contenido,
+  color_luz: _color_luz,
+  radio_luz: _radio_luz,
+  con_halo: _con_halo,
   ...props
 }: TarjetaSpotlightProps) {
-  const ref_tarjeta = useRef<HTMLDivElement>(null);
-  const [posicion, set_posicion] = useState<{ x: number; y: number } | null>(null);
-  const [esta_sobre, set_esta_sobre] = useState(false);
-
-  const manejarMovimientoMouse = (evento: MouseEvent<HTMLDivElement>) => {
-    if (!ref_tarjeta.current) return;
-    const rect = ref_tarjeta.current.getBoundingClientRect();
-    set_posicion({
-      x: evento.clientX - rect.left,
-      y: evento.clientY - rect.top,
-    });
-  };
-
-  const manejarEntradaMouse = () => set_esta_sobre(true);
-  const manejarSalidaMouse = () => {
-    set_esta_sobre(false);
-    set_posicion(null);
-  };
-
   return (
     <div
-      ref={ref_tarjeta}
-      onMouseMove={manejarMovimientoMouse}
-      onMouseEnter={manejarEntradaMouse}
-      onMouseLeave={manejarSalidaMouse}
       className={cn(
-        "relative overflow-hidden rounded-xl border border-[#E3DCCB] bg-white transition-shadow duration-300 hover:shadow-md",
+        "relative overflow-hidden rounded-xl border border-[#E3DCCB] bg-white transition-shadow duration-300 hover:shadow-sm [--card-spacing:1.5rem]",
         className
       )}
       {...props}
     >
-      {/* Halo de luz dinámico (Spotlight) */}
-      <div
-        className="pointer-events-none absolute -inset-px transition-opacity duration-300"
-        style={{
-          opacity: esta_sobre && posicion ? 1 : 0,
-          background: posicion
-            ? `radial-gradient(${radio_luz}px circle at ${posicion.x}px ${posicion.y}px, ${color_luz}, transparent 80%)`
-            : "none",
-        }}
-        aria-hidden="true"
-      />
-      <div className="relative z-10">{children}</div>
+      <div className={cn("relative z-10 h-full w-full", clase_contenido)}>{children}</div>
     </div>
   );
 }
+

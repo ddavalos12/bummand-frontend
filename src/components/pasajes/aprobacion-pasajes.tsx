@@ -14,14 +14,18 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, XCircle, AlertCircle, Bus, MapPin, Calendar, Clock, DollarSign, Wifi, WifiOff } from "lucide-react";
+import { CheckCircle2, XCircle, AlertCircle, Bus, MapPin, Calendar, Clock, DollarSign, Wifi, WifiOff, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
 import { useConsulta } from "@/hooks/useConsulta";
 import { useTiempoReal } from "@/hooks/useTiempoReal";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
+import { BotonConEstado, TarjetaSpotlight } from "@/components/animaciones";
+import { RegistroRecorrido } from "./registro-recorrido";
+import { GestionTarifas } from "./gestion-tarifas";
 
 interface RecorridoItem {
   id: number;
@@ -221,22 +225,95 @@ export function AprobacionPasajes() {
     set_modal_observacion(false);
   };
 
+  const es_becario = usuario?.rol === "becario";
+  const [subpestana, set_subpestana] = useState<"planillas" | "tarifario">("planillas");
+
   return (
     <div className="space-y-6">
-      {/* Alerta de Regla Institucional: Día 24 */}
-      <div className="p-4 bg-[#063A6B]/5 rounded-xl border border-[#17B4C4]/30 flex items-start gap-3">
-        <AlertCircle className="w-5 h-5 text-[#17B4C4] shrink-0 mt-0.5" />
-        <div className="text-xs text-[#1E293B] space-y-1">
-          <p className="font-bold text-[#063A6B]">
-            Regla de Liquidación: Devolución del 80% de Viáticos y Pasajes
-          </p>
-          <p className="text-muted-foreground leading-relaxed">
-            Conforme al reglamento institucional, los becarios declaran sus recorridos y el sistema calcula
-            el 80% en centavos enteros exactos para evitar redondeos erróneos. El envío formal de la solicitud
-            se habilita únicamente a partir del <strong className="text-[#063A6B]">día 24 de cada mes</strong>.
+      {/* Cabecera adaptativa según el Rol */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E3DCCB] shadow-sm">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Bus className="w-5 h-5 text-[#063A6B]" />
+            <h2 className="text-xl font-bold text-[#063A6B]">
+              {es_becario
+                ? "Mis Declaraciones de Pasajes (80%)"
+                : subpestana === "tarifario"
+                ? "Tarifario Oficial y Vigencia Temporal"
+                : "Supervisión y Aprobación de Pasajes"}
+            </h2>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {es_becario
+              ? "Historial de tramos de transporte público y cálculo exacto del 80% de reembolso institucional."
+              : subpestana === "tarifario"
+              ? "Gestión centralizada de precios oficiales por medio de transporte con ventanas de vigencia y retroactividad."
+              : "Liquidación y auditoría de viáticos declarados por los becarios asignados."}
           </p>
         </div>
+
+        <div className="flex items-center gap-2">
+          {!es_becario && (
+            <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+              <button
+                type="button"
+                onClick={() => set_subpestana("planillas")}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                  subpestana === "planillas"
+                    ? "bg-[#063A6B] text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                Planillas de Becarios
+              </button>
+              <button
+                type="button"
+                onClick={() => set_subpestana("tarifario")}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                  subpestana === "tarifario"
+                    ? "bg-[#063A6B] text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                Tarifario y Vigencias
+              </button>
+            </div>
+          )}
+
+          {es_becario && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs h-10 gap-2 shadow-sm">
+                  <Plus className="w-4 h-4 text-[#F8C766]" />
+                  Declarar Nuevo Recorrido
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[450px] p-0 border-none bg-transparent shadow-none">
+                <RegistroRecorrido />
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
       </div>
+
+      {!es_becario && subpestana === "tarifario" ? (
+        <GestionTarifas />
+      ) : (
+        <>
+          {/* Alerta de Regla Institucional: Día 24 */}
+          <div className="p-4 bg-[#063A6B]/5 rounded-xl border border-[#17B4C4]/30 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-[#17B4C4] shrink-0 mt-0.5" />
+            <div className="text-xs text-[#1E293B] space-y-1">
+              <p className="font-bold text-[#063A6B]">
+                Regla de Liquidación: Devolución del 80% de Viáticos y Pasajes
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                Conforme al reglamento institucional, los becarios declaran sus recorridos y el sistema calcula
+                el 80% en centavos enteros exactos para evitar redondeos erróneos. El envío formal de la solicitud
+                se habilita únicamente a partir del <strong className="text-[#063A6B]">día 24 de cada mes</strong>.
+              </p>
+            </div>
+          </div>
 
       <div className="grid grid-cols-1 gap-6">
         {solicitudes.map((sol) => (
@@ -274,25 +351,35 @@ export function AprobacionPasajes() {
                   </div>
 
                   {sol.estado === "pendiente" ? (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => manejarAprobar(sol.id)}
-                        className="h-9 px-3 bg-[#17B4C4] hover:bg-[#17B4C4]/90 text-[#063A6B] font-bold rounded-lg text-xs flex items-center gap-1.5"
-                      >
-                        <CheckCircle2 className="w-4 h-4" />
-                        Aprobar
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => abrirModalRechazo(sol)}
-                        className="h-9 px-3 border-[#E2694B]/40 text-[#E2694B] hover:bg-[#E2694B]/10 font-bold rounded-lg text-xs flex items-center gap-1.5"
-                      >
-                        <XCircle className="w-4 h-4" />
-                        Observar
-                      </Button>
-                    </div>
+                    es_becario ? (
+                      <Badge className="bg-amber-100 text-amber-800 border border-amber-300 font-bold px-3 py-1 text-xs">
+                        <Clock className="w-3.5 h-3.5 mr-1" />
+                        PENDIENTE DE REVISIÓN
+                      </Badge>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <BotonConEstado
+                          variante="secundario"
+                          tamaño="sm"
+                          alHacerClic={() => manejarAprobar(sol.id)}
+                          texto_reposo="Aprobar"
+                          texto_cargando="Aprobando..."
+                          texto_exito="Aprobado"
+                          icono_reposo={CheckCircle2}
+                          disparar_confeti_al_exito={true}
+                          className="h-9 px-3 text-xs font-bold"
+                        />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => abrirModalRechazo(sol)}
+                          className="h-9 px-3 border-[#E2694B]/40 text-[#E2694B] hover:bg-[#E2694B]/10 font-bold rounded-lg text-xs flex items-center gap-1.5"
+                        >
+                          <XCircle className="w-4 h-4" />
+                          Observar
+                        </Button>
+                      </div>
+                    )
                   ) : sol.estado === "aprobado" ? (
                     <Badge className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-3 py-1 text-xs">
                       <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
@@ -415,6 +502,8 @@ export function AprobacionPasajes() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+        </>
+      )}
     </div>
   );
 }

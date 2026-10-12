@@ -36,6 +36,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogBody,
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
@@ -48,6 +49,13 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { EstadoVacio } from "@/components/ui/estado-vacio";
 import { toast } from "sonner";
 import {
@@ -170,6 +178,45 @@ export function BandejaJustificaciones() {
   const [observacion_rechazo, set_observacion_rechazo] = useState<string>("");
   const [justificacion_detalle, set_justificacion_detalle] = useState<JustificacionIncidencia | null>(null);
   const [mensaje_alerta, set_mensaje_alerta] = useState<string | null>(null);
+
+  const es_becario = usuario?.rol === "becario";
+  const [modal_crear_abierto, set_modal_crear_abierto] = useState(false);
+  const [nuevo_tipo, set_nuevo_tipo] = useState<JustificacionIncidencia["tipo_incidencia"]>("asistencia_practicas");
+  const [nueva_fecha, set_nueva_fecha] = useState(new Date().toISOString().split("T")[0]);
+  const [nuevo_motivo, set_nuevo_motivo] = useState("");
+  const [nueva_descripcion, set_nueva_descripcion] = useState("");
+  const [nuevo_adjunto, set_nuevo_adjunto] = useState("");
+
+  const manejarCrearJustificacion = () => {
+    if (!nuevo_motivo.trim() || !nueva_descripcion.trim()) {
+      toast.error("Campos requeridos", {
+        description: "Debe ingresar el motivo y descripción de la incidencia.",
+      });
+      return;
+    }
+    const nueva: JustificacionIncidencia = {
+      id: Date.now(),
+      becario_id: usuario?.becario_id || usuario?.id || 101,
+      becario_nombre: usuario?.nombre || "Becario Institucional",
+      carrera: "Carrera Institucional",
+      sede_nombre: "Sede Asignada",
+      tipo_incidencia: nuevo_tipo,
+      fecha_incidencia: nueva_fecha,
+      motivo: nuevo_motivo.trim(),
+      descripcion: nueva_descripcion.trim(),
+      documento_adjunto: nuevo_adjunto.trim() || undefined,
+      estado: "pendiente",
+      created_at: new Date().toISOString().replace("T", " ").substring(0, 16),
+    };
+    set_justificaciones_locales([nueva, ...justificaciones_locales]);
+    set_modal_crear_abierto(false);
+    set_nuevo_motivo("");
+    set_nueva_descripcion("");
+    set_nuevo_adjunto("");
+    toast.success("Justificación enviada", {
+      description: "Tu solicitud ha sido radicada y enviada a la bandeja de supervisión.",
+    });
+  };
 
   const { datos: justificaciones_servidor, invalidar } = useConsulta<JustificacionIncidencia[]>(
     "justificaciones_todas",
@@ -327,6 +374,33 @@ export function BandejaJustificaciones() {
           <span>{mensaje_alerta}</span>
         </div>
       )}
+
+      {/* Cabecera adaptativa según el Rol */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E3DCCB] shadow-sm">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <ClipboardCheck className="w-5 h-5 text-[#063A6B]" />
+            <h2 className="text-xl font-bold text-[#063A6B]">
+              {es_becario ? "Mis Justificaciones e Incidencias" : "Bandeja de Justificaciones e Incidencias"}
+            </h2>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {es_becario
+              ? "Envío y seguimiento de justificaciones por inasistencias o tardanzas con documentación probatoria."
+              : "Revisión de solicitudes de justificación, auditoría de motivos y dictamen oficial de supervisión."}
+          </p>
+        </div>
+
+        {es_becario && (
+          <Button
+            onClick={() => set_modal_crear_abierto(true)}
+            className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs h-10 gap-2 shadow-sm"
+          >
+            <Sparkles className="w-4 h-4 text-[#F8C766]" />
+            Nueva Justificación
+          </Button>
+        )}
+      </div>
 
       {/* Tarjetas Resumen de Métricas con Watermelon UI */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -512,7 +586,7 @@ export function BandejaJustificaciones() {
                           Detalles
                         </Button>
 
-                        {es_pendiente && (
+                        {es_pendiente && !es_becario && (
                           <>
                             {/* Aprobación rápida */}
                             <Button
@@ -539,6 +613,11 @@ export function BandejaJustificaciones() {
                             </Button>
                           </>
                         )}
+                        {es_pendiente && es_becario && (
+                          <Badge variant="outline" className="text-amber-700 border-amber-300 bg-amber-50 text-[10px] font-medium">
+                            En revisión por tutor
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -557,7 +636,7 @@ export function BandejaJustificaciones() {
             if (!abierto) set_justificacion_rechazo(null);
           }}
         >
-          <AlertDialogContent className="sm:max-w-[500px] p-6 bg-white border-[#E3DCCB] rounded-2xl">
+          <AlertDialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto p-6 bg-white border-[#E3DCCB] rounded-2xl">
             <AlertDialogHeader className="pb-3 border-b border-[#E3DCCB]">
               <AlertDialogTitle className="text-base font-bold text-rose-700 flex items-center gap-2">
                 <ShieldAlert className="w-5 h-5 text-rose-600" />
@@ -618,15 +697,18 @@ export function BandejaJustificaciones() {
             if (!abierto) set_justificacion_detalle(null);
           }}
         >
-          <DialogContent className="sm:max-w-[550px] p-6 bg-white border-[#E3DCCB] rounded-2xl">
-            <DialogHeader className="pb-3 border-b border-[#E3DCCB]">
+          <DialogContent
+            showCloseButton={false}
+            className="sm:max-w-[550px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E3DCCB] rounded-2xl shadow-2xl"
+          >
+            <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
               <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
                 <FileText className="w-5 h-5 text-[#17B4C4]" />
                 Detalle del Expediente de Justificación
               </DialogTitle>
             </DialogHeader>
 
-            <div className="space-y-4 py-3 text-xs">
+            <DialogBody className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0 text-xs">
               <div className="grid grid-cols-2 gap-3 bg-[#F8F9FA] p-3 rounded-xl border border-[#E3DCCB]">
                 <div>
                   <span className="text-muted-foreground block text-[11px]">Becario:</span>
@@ -682,13 +764,13 @@ export function BandejaJustificaciones() {
                   </Button>
                 </div>
               )}
-            </div>
+            </DialogBody>
 
-            <DialogFooter className="pt-3 border-t border-[#E3DCCB]">
+            <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end">
               <Button
                 variant="outline"
                 onClick={() => set_justificacion_detalle(null)}
-                className="rounded-xl border-[#E3DCCB] text-xs h-9"
+                className="rounded-xl border-[#E3DCCB] text-xs h-9 hover:bg-slate-100"
               >
                 Cerrar
               </Button>
@@ -696,6 +778,98 @@ export function BandejaJustificaciones() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Modal para Crear Nueva Justificación por Becario */}
+      <Dialog open={modal_crear_abierto} onOpenChange={set_modal_crear_abierto}>
+        <DialogContent
+          showCloseButton={false}
+          className="max-w-md max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E3DCCB] rounded-2xl shadow-2xl"
+        >
+          <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
+            <DialogTitle className="flex items-center gap-2 text-[#063A6B] text-base">
+              <ClipboardCheck className="w-5 h-5 text-[#17B4C4]" />
+              Nueva Solicitud de Justificación
+            </DialogTitle>
+          </DialogHeader>
+
+          <DialogBody className="p-6 space-y-3.5 overflow-y-auto flex-1 min-h-0 text-xs">
+            <div>
+              <Label className="text-xs font-semibold text-gray-700">Tipo de Incidencia</Label>
+              <Select
+                value={nuevo_tipo}
+                onValueChange={(val: any) => {
+                  if (val) set_nuevo_tipo(val);
+                }}
+              >
+                <SelectTrigger className="w-full mt-1 text-xs h-9 px-3 rounded-xl border border-[#E3DCCB] bg-white text-[#063A6B] font-medium">
+                  <SelectValue placeholder="Seleccionar tipo de incidencia" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-[#E3DCCB] z-[100]">
+                  <SelectItem value="asistencia_practicas">Prácticas Preprofesionales</SelectItem>
+                  <SelectItem value="asistencia_evento">Evento Geolocalizado Convocado</SelectItem>
+                  <SelectItem value="escuela_lideres">Escuela de Líderes</SelectItem>
+                  <SelectItem value="otro">Otra Actividad Formativa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs font-semibold text-gray-700">Fecha de Incidencia</Label>
+              <Input
+                type="date"
+                value={nueva_fecha}
+                onChange={(e) => set_nueva_fecha(e.target.value)}
+                className="mt-1 text-xs rounded-xl"
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold text-gray-700">Motivo Resumido</Label>
+              <Input
+                placeholder="Ej. Cita médica en seguro social, Examen parcial..."
+                value={nuevo_motivo}
+                onChange={(e) => set_nuevo_motivo(e.target.value)}
+                className="mt-1 text-xs rounded-xl"
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold text-gray-700">Descripción Detallada</Label>
+              <Textarea
+                placeholder="Explica las circunstancias de la inasistencia o retraso..."
+                rows={3}
+                value={nueva_descripcion}
+                onChange={(e) => set_nueva_descripcion(e.target.value)}
+                className="mt-1 text-xs rounded-xl"
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold text-gray-700">Documento de Respaldo (Opcional)</Label>
+              <Input
+                placeholder="Ej. Certificado_Medico.pdf, Boleta_Examen.pdf"
+                value={nuevo_adjunto}
+                onChange={(e) => set_nuevo_adjunto(e.target.value)}
+                className="mt-1 text-xs rounded-xl"
+              />
+            </div>
+          </DialogBody>
+
+          <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => set_modal_crear_abierto(false)}
+              className="rounded-xl"
+            >
+              Cancelar
+            </Button>
+            <Button
+              size="sm"
+              onClick={manejarCrearJustificacion}
+              className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white rounded-xl font-bold"
+            >
+              Radicar Justificación
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

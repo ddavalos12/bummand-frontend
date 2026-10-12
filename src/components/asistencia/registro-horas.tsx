@@ -11,6 +11,7 @@ import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { useTiempoReal } from "@/hooks/useTiempoReal";
 import { useFormularioValidado } from "@/hooks/useFormularioValidado";
 import { toast } from "sonner";
+import { BotonConEstado, TarjetaSpotlight, InsigniaPulsoVivo } from "@/components/animaciones";
 
 export function RegistroHoras() {
   const { usuario } = usarAutenticacion();
@@ -234,13 +235,16 @@ export function RegistroHoras() {
           </div>
         </div>
 
-        <Button
-          onClick={manejarRegistro}
-          disabled={cargando}
-          className="w-full h-12 rounded-xl font-bold bg-[#063A6B] hover:bg-[#063A6B]/90 text-white text-md"
-        >
-          {cargando ? "Procesando en servidor..." : "Registrar Asistencia"}
-        </Button>
+        <BotonConEstado
+          alHacerClic={manejarRegistro}
+          texto_reposo="Registrar Asistencia"
+          texto_cargando="Procesando en servidor..."
+          texto_exito="¡Asistencia Acreditada!"
+          variante="primario"
+          tamaño="lg"
+          disparar_confeti_al_exito={true}
+          className="w-full h-12 text-sm font-bold"
+        />
       </CardContent>
     </Card>
   );

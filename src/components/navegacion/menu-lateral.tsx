@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -34,6 +34,7 @@ import {
   BookOpen,
   CalendarDays,
   ClipboardCheck,
+  Utensils,
 } from "lucide-react";
 
 interface ElementoNavegacion {
@@ -80,6 +81,18 @@ export function MenuLateral({
   const es_supervisor = rol === "supervisor";
   const es_becario = rol === "becario";
 
+  // Cierre automático con tecla Escape si está descolapsado o abierto en móvil
+  useEffect(() => {
+    function manejarTecla(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        if (!colapsado) alAlternarColapso();
+        if (menu_movil_abierto) alCerrarMenuMovil();
+      }
+    }
+    window.addEventListener("keydown", manejarTecla);
+    return () => window.removeEventListener("keydown", manejarTecla);
+  }, [colapsado, menu_movil_abierto, alAlternarColapso, alCerrarMenuMovil]);
+
   // Grupos de navegación diferenciados según el rol institucional (RBAC)
   const grupos: GrupoNavegacion[] = es_becario
     ? [
@@ -112,8 +125,8 @@ export function MenuLateral({
             },
             {
               id: "asistencia",
-              etiqueta: "Marcación de Horas",
-              descripcion: "Entrada y salida GPS",
+              etiqueta: "Mis Horas y Asistencia",
+              descripcion: "Historial y cómputo de horas",
               icono: Clock,
             },
             {
@@ -140,17 +153,6 @@ export function MenuLateral({
               etiqueta: "Mis Evaluaciones",
               descripcion: "5 módulos semestrales",
               icono: Award,
-            },
-          ],
-        },
-        {
-          titulo: "Comunicación",
-          elementos: [
-            {
-              id: "notificaciones",
-              etiqueta: "Notificaciones",
-              descripcion: "Alertas y avisos push",
-              icono: Bell,
             },
           ],
         },
@@ -221,10 +223,17 @@ export function MenuLateral({
               descripcion: "Mentor, F-03 y firma digital",
               icono: Award,
             },
+            {
+              id: "refrigerios",
+              etiqueta: "Refrigerios Institucionales",
+              descripcion: "Raciones y reposición",
+              icono: Utensils,
+              badge: "Diaconía",
+            },
           ],
         },
         {
-          titulo: "Informes y Avisos",
+          titulo: "Informes y Documentos",
           elementos: [
             {
               id: "reportes",
@@ -232,56 +241,67 @@ export function MenuLateral({
               descripcion: "Constancias e informes oficiales",
               icono: FileText,
             },
-            {
-              id: "notificaciones",
-              etiqueta: "Notificaciones",
-              descripcion: "Bandeja corporativa de alertas",
-              icono: Bell,
-            },
           ],
         },
       ];
 
   const contenido_menu = (
-    <div className="flex flex-col h-full bg-white border-r border-[#E3DCCB] select-none">
+    <div className="flex flex-col h-full bg-white/80 backdrop-blur-xl border-r border-[#E3DCCB]/70 select-none">
       {/* 1. Encabezado del Menú con Marca BUMAND */}
-      <div className="h-16 px-4 flex items-center justify-between border-b border-[#E3DCCB]/80 bg-white">
-        <div className="flex items-center gap-3 overflow-hidden">
-          {colapsado ? (
-            <img
-              src="/logos/logo-bumand-icono.svg"
-              alt="BUMAND"
-              className="w-8 h-8 object-contain shrink-0"
-            />
-          ) : (
-            <div className="flex items-center gap-2.5">
+      <div className={`h-16 flex items-center border-b border-[#E3DCCB]/60 bg-transparent ${colapsado ? "justify-center px-2" : "justify-between px-4"}`}>
+        {colapsado ? (
+          <div className="w-full flex items-center justify-center">
+            <button
+              type="button"
+              onClick={alAlternarColapso}
+              className="p-1 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer group flex items-center justify-center"
+              title="Expandir menú lateral"
+            >
               <img
-                src="/logos/logo-bumand.svg"
+                src="/logos/logo-bumand-icono.svg"
                 alt="BUMAND"
-                className="h-9 w-auto object-contain shrink-0"
+                className="w-8 h-8 object-contain shrink-0 group-hover:scale-105 transition-transform"
               />
-              <img
-                src="/logos/logo-diaconia.svg"
-                alt="Diaconía IFD"
-                className="h-5 w-auto object-contain opacity-80 shrink-0"
-              />
-            </div>
-          )}
-        </div>
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <img
+              src="/logos/logo-bumand.svg"
+              alt="BUMAND"
+              className="h-9 w-auto object-contain shrink-0"
+            />
+            <img
+              src="/logos/logo-diaconia.svg"
+              alt="Diaconía IFD"
+              className="h-5 w-auto object-contain opacity-80 shrink-0"
+            />
+          </div>
+        )}
 
-        {/* Botón de colapso en escritorio */}
-        <button
-          onClick={alAlternarColapso}
-          className="hidden lg:flex w-7 h-7 rounded-lg border border-[#E3DCCB] items-center justify-center text-[#5B6D77] hover:text-[#063A6B] hover:bg-[#F0F4F8] transition-colors"
-          title={colapsado ? "Expandir menú lateral" : "Colapsar menú lateral"}
-          type="button"
-        >
-          {colapsado ? (
-            <ChevronRight className="w-3.5 h-3.5" />
-          ) : (
+        {/* Botón de colapso en escritorio cuando está expandido */}
+        {!colapsado && (
+          <button
+            onClick={alAlternarColapso}
+            className="hidden lg:flex w-7 h-7 rounded-lg border border-[#E3DCCB] items-center justify-center text-[#5B6D77] hover:text-[#063A6B] hover:bg-[#F0F4F8] transition-colors"
+            title="Colapsar menú lateral"
+            type="button"
+          >
             <ChevronLeft className="w-3.5 h-3.5" />
-          )}
-        </button>
+          </button>
+        )}
+
+        {/* Botón flotante circular en el borde cuando está colapsado (evita colisiones al 100%) */}
+        {colapsado && (
+          <button
+            onClick={alAlternarColapso}
+            className="hidden lg:flex absolute -right-3 top-5 w-6 h-6 rounded-full bg-white border border-[#E3DCCB] shadow-md items-center justify-center text-[#063A6B] hover:bg-slate-50 hover:scale-110 transition-all z-50 cursor-pointer"
+            title="Expandir menú lateral"
+            type="button"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        )}
 
         {/* Botón de cierre en móvil */}
         <button
@@ -294,7 +314,7 @@ export function MenuLateral({
       </div>
 
       {/* 2. Lista de Grupos y Enlaces */}
-      <div className="flex-1 overflow-y-auto px-2 py-3 space-y-4">
+      <div className="flex-1 overflow-y-auto px-2 py-3 space-y-4 relative z-10">
         {grupos.map((grupo, indice_grupo) => (
           <div key={indice_grupo} className="space-y-1">
             {!colapsado && (
@@ -314,6 +334,9 @@ export function MenuLateral({
                     onClick={() => {
                       alSeleccionarPestaña(elem.id);
                       alCerrarMenuMovil();
+                      if (!colapsado) {
+                        alAlternarColapso();
+                      }
                     }}
                     title={colapsado ? elem.etiqueta : undefined}
                     className={`group relative w-full flex items-center gap-2.5 rounded-xl transition-all duration-150 ${
@@ -362,7 +385,7 @@ export function MenuLateral({
       </div>
 
       {/* 3. Pie del Menú Lateral (Perfil, Cerrar Sesión y Estado) */}
-      <div className="p-2.5 border-t border-[#E3DCCB]/80 bg-[#FAFAFA] space-y-2">
+      <div className="p-2.5 border-t border-[#E3DCCB]/80 bg-white/50 backdrop-blur-xs space-y-2 relative z-10">
         {/* Tarjeta del Usuario Activo */}
         {colapsado ? (
           <div className="flex flex-col items-center py-1">
@@ -447,14 +470,28 @@ export function MenuLateral({
 
   return (
     <>
-      {/* Menú Lateral Fijo para Escritorio (lg+) */}
-      <aside
-        className={`hidden lg:flex flex-col shrink-0 sticky top-0 h-screen transition-all duration-200 z-30 ${
-          colapsado ? "w-[72px]" : "w-64"
-        }`}
-      >
-        {contenido_menu}
-      </aside>
+      {/* Contenedor Base Fijo para Escritorio (lg+): siempre reserva exactamente 72px para no alterar el layout */}
+      <div className="hidden lg:block relative shrink-0 w-[72px] h-screen select-none">
+        {/* Oscurecimiento ligero en la parte trasera cuando está descolapsado */}
+        {!colapsado && (
+          <div
+            className="fixed inset-0 bg-slate-900/25 backdrop-blur-[1px] z-40 transition-opacity animate-in fade-in duration-200"
+            onClick={alAlternarColapso}
+            aria-label="Cerrar menú lateral expandido"
+          />
+        )}
+
+        {/* Menú Lateral que se expande por encima sin desplazar el layout */}
+        <aside
+          className={`fixed top-0 left-0 h-screen transition-all duration-300 ease-in-out z-50 bg-transparent ${
+            colapsado
+              ? "w-[72px] border-r border-[#E3DCCB]/70"
+              : "w-64 shadow-2xl shadow-slate-950/25 border-r border-[#E3DCCB]/70"
+          }`}
+        >
+          {contenido_menu}
+        </aside>
+      </div>
 
       {/* Menú Desplegable Tipo Drawer para Móvil y Tablet */}
       {menu_movil_abierto && (

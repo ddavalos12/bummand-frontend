@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,14 +12,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogBody,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { BookOpen, Church, Heart, Plus, MessageSquare, Calendar, User, Sparkles } from "lucide-react";
+import { BookOpen, Church, Heart, Plus, MessageSquare, Calendar, User, Sparkles, Search } from "lucide-react";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { RafagaCelebracion, BotonJuicy, TarjetaSpotlight } from "@/components/animaciones";
 import { useFormularioValidado } from "@/hooks/useFormularioValidado";
 import { EstadoVacio } from "@/components/ui/estado-vacio";
 import { toast } from "sonner";
+import { VersiculoBiblicoWeb } from "./modal-versiculo-diario";
 
 export interface DevocionalItem {
   id: number;
@@ -86,6 +88,50 @@ export function RegistroDevocionales() {
   const [devocional_seleccionado, set_devocional_seleccionado] = useState<DevocionalItem | null>(null);
   const [comentario_pastoral_texto, set_comentario_pastoral_texto] = useState("");
   const [mostrar_celebracion, set_mostrar_celebracion] = useState(false);
+  const [versiculo_diario, set_versiculo_diario] = useState<VersiculoBiblicoWeb | null>(null);
+
+  useEffect(() => {
+    const cargarVersiculoDiario = async () => {
+      try {
+        const url_base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+        const respuesta = await fetch(`${url_base}/biblia/versiculo-diario`);
+        if (respuesta.ok) {
+          const datos = await respuesta.json();
+          if (datos && datos.cita) {
+            set_versiculo_diario(datos);
+          }
+        }
+      } catch (_) {
+        set_versiculo_diario({
+          cita: "Filipenses 4:13",
+          libro: "Filipenses",
+          capitulo: 4,
+          versiculo: 13,
+          texto: "Todo lo puedo en Cristo que me fortalece.",
+          version: "Reina-Valera 1960 (RVR60)",
+          tema: "Fortaleza y Servicio",
+          reflexion_diaconal:
+            "En cada labor y apoyo formativo dentro de Diaconía, Cristo es quien renueva nuestras capacidades para servir con excelencia.",
+        });
+      }
+    };
+    cargarVersiculoDiario();
+  }, []);
+
+  const aplicarVersiculoAlFormulario = (v?: VersiculoBiblicoWeb) => {
+    const datos_v = v || versiculo_diario;
+    if (!datos_v) return;
+    formulario.cambiarValor("cita_biblica", datos_v.cita);
+    formulario.cambiarValor("titulo", datos_v.tema || "Reflexión del Día");
+    formulario.cambiarValor(
+      "reflexion",
+      `«${datos_v.texto}» (${datos_v.version})\n\nReflexión personal: `
+    );
+    set_dialogo_abierto(true);
+    toast.info("Versículo diario cargado", {
+      description: `Se completó la cita ${datos_v.cita} para tu reflexión.`,
+    });
+  };
 
   // Formulario nuevo devocional con validación institucional
   const formulario = useFormularioValidado(
@@ -190,14 +236,31 @@ export function RegistroDevocionales() {
                 Nuevo Devocional
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
+            <DialogContent
+              showCloseButton={false}
+              className="max-w-lg max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl border-[#E3DCCB] bg-white shadow-2xl"
+            >
+              <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
                 <DialogTitle className="flex items-center gap-2 text-[#0A5CA0]">
                   <BookOpen className="w-5 h-5" />
                   Registrar Devocional Personal
                 </DialogTitle>
               </DialogHeader>
-              <div className="space-y-3 py-2">
+
+              <DialogBody className="p-6 space-y-3 overflow-y-auto flex-1 min-h-0">
+                {versiculo_diario && (
+                  <button
+                    type="button"
+                    onClick={() => aplicarVersiculoAlFormulario()}
+                    className="w-full text-left text-xs bg-[#17B4C4]/10 hover:bg-[#17B4C4]/15 border border-[#17B4C4]/20 rounded-xl p-2.5 flex items-center justify-between text-[#0E7A85] transition-colors"
+                  >
+                    <span className="font-semibold flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-[#17B4C4]" />
+                      Cargar versículo de hoy ({versiculo_diario.cita})
+                    </span>
+                    <span className="text-[11px] font-bold text-[#17B4C4]">Auto-llenar</span>
+                  </button>
+                )}
                 <div>
                   <label className="text-xs font-semibold text-gray-700">Fecha</label>
                   <Input
@@ -255,12 +318,13 @@ export function RegistroDevocionales() {
                   />
                   {formulario.renderizarMensajeError("oracion_peticion")}
                 </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => set_dialogo_abierto(false)}>
+              </DialogBody>
+
+              <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
+                <Button variant="outline" onClick={() => set_dialogo_abierto(false)} className="rounded-xl">
                   Cancelar
                 </Button>
-                <Button onClick={manejarCrearDevocional} className="bg-[#0A5CA0] text-white">
+                <Button onClick={manejarCrearDevocional} className="bg-[#0A5CA0] text-white rounded-xl shadow-sm">
                   Guardar Devocional
                 </Button>
               </DialogFooter>
@@ -269,13 +333,49 @@ export function RegistroDevocionales() {
         </div>
       </div>
 
+      {/* Banner Inspiracional de Versículo Diario (Reina-Valera 1960) */}
+      {versiculo_diario && (
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#063A6B] via-[#0A5CA0] to-[#17B4C4] p-5 text-white shadow-md">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-2 max-w-2xl">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[11px] font-semibold">
+                  <Sparkles className="w-3 h-3 text-[#F8C766]" />
+                  Versículo del Día · {versiculo_diario.version}
+                </span>
+                <span className="text-xs text-white/80 font-medium">
+                  {versiculo_diario.tema}
+                </span>
+              </div>
+              <div>
+                <p className="text-sm md:text-base font-serif italic text-white/95 leading-relaxed font-medium">
+                  «{versiculo_diario.texto}»
+                </p>
+                <p className="text-xs font-bold text-[#F8C766] mt-1">
+                  — {versiculo_diario.cita}
+                </p>
+              </div>
+            </div>
+
+            <Button
+              onClick={() => aplicarVersiculoAlFormulario()}
+              className="bg-[#F8C766] hover:bg-[#F8C766]/90 text-[#063A6B] font-bold text-xs h-9 rounded-xl shadow shrink-0 gap-1.5"
+            >
+              <BookOpen className="w-4 h-4" />
+              Usar para mi Devocional
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Buscador */}
-      <div className="flex items-center gap-3">
+      <div className="relative">
+        <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
         <Input
           placeholder="Buscar por cita bíblica, tema, becario o reflexión..."
           value={filtro_texto}
           onChange={(e) => set_filtro_texto(e.target.value)}
-          className="bg-white border-[#E3DCCB] text-xs h-10 rounded-xl"
+          className="bg-white border-[#E3DCCB] text-xs h-10 rounded-xl pl-10 pr-4"
         />
       </div>
 
@@ -298,24 +398,24 @@ export function RegistroDevocionales() {
           }}
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {devocionales_filtrados.map((item) => (
           <TarjetaSpotlight
             key={item.id}
             color_luz="rgba(23, 180, 196, 0.15)"
-            className="border-[#E3DCCB] shadow-sm hover:shadow-md transition-shadow"
+            className="border-[#E3DCCB] shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-full"
           >
-            <CardHeader className="pb-2">
+            <CardHeader className="p-5 pb-3">
               <div className="flex items-center justify-between gap-2">
-                <Badge className="bg-[#0A5CA0]/10 text-[#0A5CA0] border-[#0A5CA0]/20 font-bold text-[11px]">
+                <Badge className="bg-[#0A5CA0]/10 text-[#0A5CA0] border-[#0A5CA0]/20 font-bold text-[11px] px-2.5 py-0.5">
                   {item.cita_biblica}
                 </Badge>
-                <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <Calendar className="w-3 h-3" />
+                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <Calendar className="w-3.5 h-3.5" />
                   <span>{item.fecha}</span>
                 </div>
               </div>
-              <CardTitle className="text-sm font-bold text-[#122029] mt-2 line-clamp-1">
+              <CardTitle className="text-sm font-bold text-[#122029] mt-2.5 line-clamp-1">
                 {item.titulo}
               </CardTitle>
               <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
@@ -323,29 +423,34 @@ export function RegistroDevocionales() {
                 <span>{item.nombre_becario}</span>
               </div>
             </CardHeader>
-            <CardContent className="space-y-3 text-xs text-gray-700">
-              <p className="line-clamp-4 italic text-gray-600 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
-                "{item.reflexion}"
-              </p>
+            <CardContent className="p-5 pt-0 pb-5 space-y-3.5 text-xs text-gray-700 flex-1 flex flex-col justify-between">
+              <div className="space-y-3">
+                <p className="line-clamp-4 italic text-gray-600 bg-gray-50/80 p-3 rounded-xl border border-gray-100 leading-relaxed">
+                  "{item.reflexion}"
+                </p>
 
-              <div className="flex items-start gap-1.5 text-xs text-[#E2694B]">
-                <Heart className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                <span className="line-clamp-2">
-                  <strong>Oración:</strong> {item.oracion_peticion}
-                </span>
+                <div className="flex items-start gap-1.5 text-xs text-[#E2694B] px-0.5">
+                  <Heart className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                  <span className="line-clamp-2">
+                    <strong>Oración:</strong> {item.oracion_peticion}
+                  </span>
+                </div>
               </div>
 
               {item.comentario_pastoral ? (
-                <div className="bg-[#F0FDF4] p-2.5 rounded-lg border border-[#86EFAC] text-xs">
-                  <div className="flex items-center gap-1 text-[#15803D] font-bold text-[10.5px] mb-1">
-                    <Church className="w-3 h-3" />
+                <div className="bg-[#F0FDF4] p-3 rounded-xl border border-[#86EFAC] text-xs mt-2">
+                  <div className="flex items-center gap-1.5 text-[#15803D] font-bold text-[11px] mb-1">
+                    <Church className="w-3.5 h-3.5" />
                     <span>Retroalimentación Pastoral:</span>
                   </div>
-                  <p className="text-[#166534]">{item.comentario_pastoral}</p>
+                  <p className="text-[#166534] leading-relaxed">{item.comentario_pastoral}</p>
                 </div>
               ) : (
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-[11px] text-amber-600 font-medium">Pendiente de revisión pastoral</span>
+                <div className="bg-amber-50/60 p-2.5 rounded-xl border border-amber-200/70 text-xs flex items-center justify-between gap-2 mt-2">
+                  <div className="flex items-center gap-1.5 text-amber-700 font-medium text-[11px]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    <span>Pendiente de revisión pastoral</span>
+                  </div>
                   {es_supervisor_o_admin && (
                     <Button
                       variant="outline"
@@ -355,7 +460,7 @@ export function RegistroDevocionales() {
                         set_comentario_pastoral_texto("");
                         set_dialogo_pastoral_abierto(true);
                       }}
-                      className="text-[10px] h-7 text-[#0A5CA0] border-[#0A5CA0]/30 hover:bg-[#0A5CA0]/10"
+                      className="text-[10px] h-6 px-2 text-[#0A5CA0] border-[#0A5CA0]/30 hover:bg-[#0A5CA0]/10 rounded-md font-semibold"
                     >
                       <MessageSquare className="w-3 h-3 mr-1" />
                       Retroalimentar
@@ -371,14 +476,18 @@ export function RegistroDevocionales() {
 
       {/* Modal de retroalimentación pastoral */}
       <Dialog open={dialogo_pastoral_abierto} onOpenChange={set_dialogo_pastoral_abierto}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
+        <DialogContent
+          showCloseButton={false}
+          className="max-w-md max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl border-[#E3DCCB] bg-white shadow-2xl"
+        >
+          <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
             <DialogTitle className="flex items-center gap-2 text-[#0A5CA0]">
               <Church className="w-5 h-5" />
               Retroalimentación Pastoral
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-3 py-2 text-xs">
+
+          <DialogBody className="p-6 space-y-3 overflow-y-auto flex-1 min-h-0 text-xs">
             <p className="text-gray-600">
               Devocional de <strong>{devocional_seleccionado?.nombre_becario}</strong>:
             </p>
@@ -395,12 +504,13 @@ export function RegistroDevocionales() {
                 className="mt-1 text-xs"
               />
             </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => set_dialogo_pastoral_abierto(false)}>
+          </DialogBody>
+
+          <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
+            <Button variant="outline" onClick={() => set_dialogo_pastoral_abierto(false)} className="rounded-xl">
               Cancelar
             </Button>
-            <Button onClick={manejarGuardarRetroalimentacion} className="bg-[#0A5CA0] text-white">
+            <Button onClick={manejarGuardarRetroalimentacion} className="bg-[#0A5CA0] text-white rounded-xl shadow-sm">
               Guardar Observación
             </Button>
           </DialogFooter>

@@ -30,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="es"
       className={`${FUENTE_BRICOLAGE.variable} ${FUENTE_INTER.variable} ${FUENTE_PLEX_MONO.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans bg-background">
+      <body className="min-h-full flex flex-col font-sans bg-transparent">
         <Proveedores>
           {children}
         </Proveedores>

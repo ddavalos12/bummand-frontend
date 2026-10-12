@@ -15,7 +15,8 @@ export interface PropiedadesContadorRodilloAnimado {
 
 /**
  * Watermelon UI — Contador de Dígitos en Cascada / Rodillo Animado (Number Ticker)
- * Proyecta una animación continua de números ascendentes para KPIs, puntualidad y asistentes.
+ * Proyecta una animación ágil y amortiguada de números ascendentes para KPIs, puntualidad y finanzas.
+ * Formatea decimales limpios con punto institucional y asegura el valor exacto final.
  */
 export const ContadorRodilloAnimado: React.FC<PropiedadesContadorRodilloAnimado> = ({
   valor,
@@ -29,9 +30,16 @@ export const ContadorRodilloAnimado: React.FC<PropiedadesContadorRodilloAnimado>
   const esta_en_vista = useInView(referencia_elemento, { once: true, margin: "0px" });
   const valor_movimiento = useMotionValue(0);
   const resorte_valor = useSpring(valor_movimiento, {
-    damping: 30,
-    stiffness: 100,
+    damping: 24,
+    stiffness: 200,
   });
+
+  const formatearNumero = (num: number) => {
+    return Intl.NumberFormat("en-US", {
+      minimumFractionDigits: decimales,
+      maximumFractionDigits: decimales,
+    }).format(num);
+  };
 
   useEffect(() => {
     if (!esta_en_vista) return;
@@ -40,22 +48,29 @@ export const ContadorRodilloAnimado: React.FC<PropiedadesContadorRodilloAnimado>
       valor_movimiento.set(valor);
     }, retraso_segundos * 1000);
 
-    return () => clearTimeout(temporizador);
+    // Salvaguarda: fijar el valor exacto tras completar la animación
+    const temporizador_exacto = setTimeout(() => {
+      if (referencia_elemento.current) {
+        referencia_elemento.current.textContent = `${prefijo}${formatearNumero(valor)}${sufijo}`;
+      }
+    }, (retraso_segundos + 0.8) * 1000);
+
+    return () => {
+      clearTimeout(temporizador);
+      clearTimeout(temporizador_exacto);
+    };
   }, [esta_en_vista, valor, retraso_segundos, valor_movimiento]);
 
   useEffect(() => {
     const cancelar_suscripcion = resorte_valor.on("change", (_ultimo_valor: number) => {
       if (referencia_elemento.current) {
-        const formateado = Intl.NumberFormat("es-BO", {
-          minimumFractionDigits: decimales,
-          maximumFractionDigits: decimales,
-        }).format(_ultimo_valor);
-        referencia_elemento.current.textContent = `${prefijo}${formateado}${sufijo}`;
+        const valor_renderizado = Math.abs(_ultimo_valor - valor) < 0.05 ? valor : _ultimo_valor;
+        referencia_elemento.current.textContent = `${prefijo}${formatearNumero(valor_renderizado)}${sufijo}`;
       }
     });
 
     return () => cancelar_suscripcion();
-  }, [resorte_valor, decimales, prefijo, sufijo]);
+  }, [resorte_valor, decimales, prefijo, sufijo, valor]);
 
   return (
     <span
@@ -65,7 +80,7 @@ export const ContadorRodilloAnimado: React.FC<PropiedadesContadorRodilloAnimado>
         clase_personalizada
       )}
     >
-      {prefijo}0{sufijo}
+      {prefijo}{formatearNumero(valor)}{sufijo}
     </span>
   );
 };

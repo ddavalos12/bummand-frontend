@@ -88,8 +88,8 @@ export function FirmaDigital({ alFirmar }: { alFirmar: (firma_base64: string) =>
   };
 
   return (
-    <Card className="border-[#E3DCCB] shadow-sm w-full max-w-md mx-auto">
-      <CardHeader className="pb-4 border-b border-[#E3DCCB]">
+    <Card className="border-[#E3DCCB] shadow-sm w-full max-w-md mx-auto max-h-[90vh] flex flex-col overflow-hidden bg-white rounded-2xl">
+      <CardHeader className="pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
         <CardTitle className="font-display text-[#063A6B] text-lg">
           Firma Electrónica
         </CardTitle>
@@ -97,7 +97,7 @@ export function FirmaDigital({ alFirmar }: { alFirmar: (firma_base64: string) =>
           Firme dentro del recuadro para validar el documento.
         </CardDescription>
       </CardHeader>
-      <CardContent className="pt-6 space-y-4">
+      <CardContent className="p-6 pt-5 space-y-4 overflow-y-auto flex-1">
         <div className="border-2 border-dashed border-[#C9E5E4] rounded-xl bg-[#F6F2E9] overflow-hidden flex justify-center items-center touch-none">
           <canvas
             ref={lienzo_ref}

@@ -163,9 +163,13 @@ export function RegistroRecorrido() {
     () => clienteApi.get("/api/pasajes/paradas")
   );
 
+  const fecha_consulta_str = formulario.valores.fecha instanceof Date
+    ? formulario.valores.fecha.toISOString().split("T")[0]
+    : new Date().toISOString().split("T")[0];
+
   const { datos: tarifas_servidor } = useConsulta<Array<{ id: number; costo_bs: number; medio_transporte: string }>>(
-    "tarifas_oficiales",
-    () => clienteApi.get("/api/pasajes/tarifas")
+    `tarifas_oficiales_${fecha_consulta_str}`,
+    () => clienteApi.get(`/api/pasajes/tarifas?fecha=${fecha_consulta_str}`)
   );
 
   const { conectado } = useTiempoReal({
@@ -288,10 +292,10 @@ export function RegistroRecorrido() {
   };
 
   return (
-    <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-2xl overflow-hidden">
-      <CardContent className="pt-6 space-y-4">
+    <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <CardContent className="p-6 pt-5 space-y-4 overflow-y-auto flex-1">
         {/* Encabezado con Indicador de Paso (Ida / Vuelta) */}
-        <div className="flex items-center justify-between pb-2 border-b border-[#E3DCCB]/60">
+        <div className="flex items-center justify-between pb-3 border-b border-[#E3DCCB]/60 sticky top-0 bg-white z-10">
           <div className="flex items-center gap-2">
             <div className={`w-2.5 h-2.5 rounded-full ${paso === "ida" ? "bg-[#17B4C4]" : "bg-[#F8C766]"}`} />
             <span className="font-mono text-xs font-bold tracking-wider text-[#063A6B]">

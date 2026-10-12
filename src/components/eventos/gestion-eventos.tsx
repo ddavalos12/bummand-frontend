@@ -20,6 +20,10 @@ import {
   Check,
   Building2,
   Compass,
+  ExternalLink,
+  Coins,
+  Map,
+  ListChecks,
 } from "lucide-react";
 import {
   Dialog,
@@ -27,6 +31,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogBody,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { EstadoVacio } from "@/components/ui/estado-vacio";
@@ -34,6 +39,7 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -46,7 +52,6 @@ import { Button } from "@/components/ui/button";
 import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
 import {
   TarjetaSpotlight,
-  BordeLuminoso,
   BotonJuicy,
   ContadorRodilloAnimado,
   PestanasAnimadas,
@@ -63,6 +68,8 @@ export interface AsistenciaBecarioEvento {
   dentro_de_radio: boolean;
   estado: "presente" | "retraso" | "ausente" | "justificado";
   observaciones?: string;
+  monto_multa_bs?: number;
+  confirmado_presencial?: boolean;
 }
 
 export interface EventoGeolocalizado {
@@ -109,6 +116,8 @@ const EVENTOS_INICIALES: EventoGeolocalizado[] = [
         dentro_de_radio: true,
         estado: "presente",
         observaciones: "Ingreso puntual verificado en geocerca central.",
+        monto_multa_bs: 0,
+        confirmado_presencial: true,
       },
       {
         id: 2,
@@ -120,6 +129,8 @@ const EVENTOS_INICIALES: EventoGeolocalizado[] = [
         dentro_de_radio: true,
         estado: "presente",
         observaciones: "Ubicación GPS confirmada a 25m del epicentro.",
+        monto_multa_bs: 0,
+        confirmado_presencial: true,
       },
       {
         id: 3,
@@ -131,6 +142,8 @@ const EVENTOS_INICIALES: EventoGeolocalizado[] = [
         dentro_de_radio: true,
         estado: "retraso",
         observaciones: "Retraso de 12 minutos por congestión en autopista La Paz-El Alto.",
+        monto_multa_bs: 10,
+        confirmado_presencial: true,
       },
       {
         id: 4,
@@ -499,8 +512,11 @@ export function GestionEventos() {
             </div>
           </DialogTrigger>
 
-          <DialogContent className="sm:max-w-[620px] max-h-[90vh] overflow-y-auto p-6 bg-white border-[#E3DCCB] rounded-2xl">
-            <DialogHeader className="pb-3 border-b border-[#E3DCCB]">
+          <DialogContent
+            showCloseButton={false}
+            className="sm:max-w-[620px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E3DCCB] rounded-2xl shadow-2xl"
+          >
+            <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
               <DialogTitle className="text-lg font-bold text-[#063A6B] flex items-center gap-2">
                 <Compass className="w-5 h-5 text-[#17B4C4]" />
                 Convocatoria de Nuevo Evento Geolocalizado
@@ -510,169 +526,171 @@ export function GestionEventos() {
               </p>
             </DialogHeader>
 
-            <form onSubmit={manejarCrearEvento} className="space-y-4 pt-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="titulo" className="text-xs font-semibold text-[#063A6B]">
-                  Título del Evento *
-                </Label>
-                <Input
-                  id="titulo"
-                  required
-                  placeholder="Ej: Jornada Anual de Voluntariado y Acción Social"
-                  value={nuevo_titulo}
-                  onChange={(e) => set_nuevo_titulo(e.target.value)}
-                  className="h-10 text-xs border-[#E3DCCB] rounded-xl focus-visible:ring-[#17B4C4]"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="descripcion" className="text-xs font-semibold text-[#063A6B]">
-                  Descripción y Objetivos
-                </Label>
-                <Textarea
-                  id="descripcion"
-                  placeholder="Detalla las actividades formativas, requerimientos y propósito de la convocatoria..."
-                  value={nueva_descripcion}
-                  onChange={(e) => set_nueva_descripcion(e.target.value)}
-                  className="text-xs border-[#E3DCCB] rounded-xl focus-visible:ring-[#17B4C4] min-h-[70px]"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <form onSubmit={manejarCrearEvento} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <DialogBody className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-[#063A6B]">Tipo de Evento</Label>
-                  <Select
-                    value={nuevo_tipo}
-                    onValueChange={(val: any) => {
-                      if (val) set_nuevo_tipo(val);
-                    }}
-                  >
-                    <SelectTrigger className="w-full h-10 text-xs border-[#E3DCCB] rounded-xl bg-white">
-                      <SelectValue placeholder="Seleccionar tipo" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-[#E3DCCB]">
-                      <SelectItem value="escuela_lideres_especial">Escuela de Líderes Especial</SelectItem>
-                      <SelectItem value="taller">Taller de Formación</SelectItem>
-                      <SelectItem value="servicio_diaconal">Servicio Diaconal</SelectItem>
-                      <SelectItem value="retiro">Retiro Espiritual</SelectItem>
-                      <SelectItem value="reunion">Reunión Ordinaria</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-[#063A6B]">Fecha del Evento</Label>
-                  <SeleccionadorFecha
-                    fecha={nueva_fecha}
-                    alCambiar={set_nueva_fecha}
-                    etiqueta_boton="Seleccionar fecha del evento"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-[#063A6B]">Hora de Inicio</Label>
-                  <Input
-                    type="time"
-                    value={nueva_hora_inicio}
-                    onChange={(e) => set_nueva_hora_inicio(e.target.value)}
-                    className="h-10 text-xs border-[#E3DCCB] rounded-xl"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-[#063A6B]">Hora de Conclusión</Label>
-                  <Input
-                    type="time"
-                    value={nueva_hora_fin}
-                    onChange={(e) => set_nueva_hora_fin(e.target.value)}
-                    className="h-10 text-xs border-[#E3DCCB] rounded-xl"
-                  />
-                </div>
-              </div>
-
-              {/* Parámetros de Geolocalización y Geocerca */}
-              <div className="p-3.5 bg-[#F8F9FA] border border-[#E3DCCB] rounded-xl space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#063A6B] flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-[#17B4C4]" />
-                    Parámetros de Geocerca (La Paz - El Alto)
-                  </span>
-                  <span className="text-[10px] text-muted-foreground font-mono">WGS84 EPSG:4326</span>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] text-muted-foreground font-medium">
-                    Atajo a recintos institucionales frecuentes:
+                  <Label htmlFor="titulo" className="text-xs font-semibold text-[#063A6B]">
+                    Título del Evento *
                   </Label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {PREDETERMINADOS_GPS.map((p, idx) => (
-                      <button
-                        key={p.etiqueta}
-                        type="button"
-                        onClick={() => aplicarPredeterminadoGps(idx)}
-                        className="text-[10.5px] px-2.5 py-1 rounded-lg border border-[#E3DCCB] bg-white hover:border-[#17B4C4] hover:text-[#063A6B] transition-colors"
-                      >
-                        {p.etiqueta.split("(")[0]}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 pt-1">
-                  <div>
-                    <Label className="text-[11px] text-muted-foreground">Latitud</Label>
-                    <Input
-                      value={nueva_latitud}
-                      onChange={(e) => set_nueva_latitud(e.target.value)}
-                      placeholder="-16.500054"
-                      className="h-9 text-xs border-[#E3DCCB] font-mono"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-[11px] text-muted-foreground">Longitud</Label>
-                    <Input
-                      value={nueva_longitud}
-                      onChange={(e) => set_nueva_longitud(e.target.value)}
-                      placeholder="-68.173455"
-                      className="h-9 text-xs border-[#E3DCCB] font-mono"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-[11px] text-muted-foreground">Radio (Metros)</Label>
-                    <Input
-                      type="number"
-                      value={nuevo_radio}
-                      onChange={(e) => set_nuevo_radio(e.target.value)}
-                      placeholder="100"
-                      className="h-9 text-xs border-[#E3DCCB] font-mono"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-[11px] text-muted-foreground">Dirección y Referencia Urbana</Label>
                   <Input
-                    value={nueva_referencia}
-                    onChange={(e) => set_nueva_referencia(e.target.value)}
-                    placeholder="Ej: Av. Juan Pablo II #2540, a pasos de la UPEA"
-                    className="h-9 text-xs border-[#E3DCCB]"
+                    id="titulo"
+                    required
+                    placeholder="Ej: Jornada Anual de Voluntariado y Acción Social"
+                    value={nuevo_titulo}
+                    onChange={(e) => set_nuevo_titulo(e.target.value)}
+                    className="h-10 text-xs border-[#E3DCCB] rounded-xl focus-visible:ring-[#17B4C4]"
                   />
                 </div>
-              </div>
 
-              <DialogFooter className="pt-3 border-t border-[#E3DCCB] gap-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="descripcion" className="text-xs font-semibold text-[#063A6B]">
+                    Descripción y Objetivos
+                  </Label>
+                  <Textarea
+                    id="descripcion"
+                    placeholder="Detalla las actividades formativas, requerimientos y propósito de la convocatoria..."
+                    value={nueva_descripcion}
+                    onChange={(e) => set_nueva_descripcion(e.target.value)}
+                    className="text-xs border-[#E3DCCB] rounded-xl focus-visible:ring-[#17B4C4] min-h-[70px]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-[#063A6B]">Tipo de Evento</Label>
+                    <Select
+                      value={nuevo_tipo}
+                      onValueChange={(val: any) => {
+                        if (val) set_nuevo_tipo(val);
+                      }}
+                    >
+                      <SelectTrigger className="w-full h-10 text-xs border-[#E3DCCB] rounded-xl bg-white">
+                        <SelectValue placeholder="Seleccionar tipo" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-[#E3DCCB]">
+                        <SelectItem value="escuela_lideres_especial">Escuela de Líderes Especial</SelectItem>
+                        <SelectItem value="taller">Taller de Formación</SelectItem>
+                        <SelectItem value="servicio_diaconal">Servicio Diaconal</SelectItem>
+                        <SelectItem value="retiro">Retiro Espiritual</SelectItem>
+                        <SelectItem value="reunion">Reunión Ordinaria</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-[#063A6B]">Fecha del Evento</Label>
+                    <SeleccionadorFecha
+                      fecha={nueva_fecha}
+                      alCambiar={set_nueva_fecha}
+                      etiqueta_boton="Seleccionar fecha del evento"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-[#063A6B]">Hora de Inicio</Label>
+                    <Input
+                      type="time"
+                      value={nueva_hora_inicio}
+                      onChange={(e) => set_nueva_hora_inicio(e.target.value)}
+                      className="h-10 text-xs border-[#E3DCCB] rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-[#063A6B]">Hora de Conclusión</Label>
+                    <Input
+                      type="time"
+                      value={nueva_hora_fin}
+                      onChange={(e) => set_nueva_hora_fin(e.target.value)}
+                      className="h-10 text-xs border-[#E3DCCB] rounded-xl"
+                    />
+                  </div>
+                </div>
+
+                {/* Parámetros de Geolocalización y Geocerca */}
+                <div className="p-3.5 bg-[#F8F9FA] border border-[#E3DCCB] rounded-xl space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#063A6B] flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-[#17B4C4]" />
+                      Parámetros de Geocerca (La Paz - El Alto)
+                    </span>
+                    <span className="text-[10px] text-muted-foreground font-mono">WGS84 EPSG:4326</span>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] text-muted-foreground font-medium">
+                      Atajo a recintos institucionales frecuentes:
+                    </Label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {PREDETERMINADOS_GPS.map((p, idx) => (
+                        <button
+                          key={p.etiqueta}
+                          type="button"
+                          onClick={() => aplicarPredeterminadoGps(idx)}
+                          className="text-[10.5px] px-2.5 py-1 rounded-lg border border-[#E3DCCB] bg-white hover:border-[#17B4C4] hover:text-[#063A6B] transition-colors"
+                        >
+                          {p.etiqueta.split("(")[0]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 pt-1">
+                    <div>
+                      <Label className="text-[11px] text-muted-foreground">Latitud</Label>
+                      <Input
+                        value={nueva_latitud}
+                        onChange={(e) => set_nueva_latitud(e.target.value)}
+                        placeholder="-16.500054"
+                        className="h-9 text-xs border-[#E3DCCB] font-mono"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-[11px] text-muted-foreground">Longitud</Label>
+                      <Input
+                        value={nueva_longitud}
+                        onChange={(e) => set_nueva_longitud(e.target.value)}
+                        placeholder="-68.173455"
+                        className="h-9 text-xs border-[#E3DCCB] font-mono"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-[11px] text-muted-foreground">Radio (Metros)</Label>
+                      <Input
+                        type="number"
+                        value={nuevo_radio}
+                        onChange={(e) => set_nuevo_radio(e.target.value)}
+                        placeholder="100"
+                        className="h-9 text-xs border-[#E3DCCB] font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">Dirección y Referencia Urbana</Label>
+                    <Input
+                      value={nueva_referencia}
+                      onChange={(e) => set_nueva_referencia(e.target.value)}
+                      placeholder="Ej: Av. Juan Pablo II #2540, a pasos de la UPEA"
+                      className="h-9 text-xs border-[#E3DCCB]"
+                    />
+                  </div>
+                </div>
+              </DialogBody>
+
+              <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => set_dialogo_nuevo_abierto(false)}
-                  className="rounded-xl border-[#E3DCCB] text-xs h-10"
+                  className="rounded-xl border-[#E3DCCB] text-xs h-10 hover:bg-slate-100"
                 >
                   Cancelar
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-[#063A6B] hover:bg-[#084885] text-white rounded-xl text-xs h-10 px-5 font-semibold"
+                  className="bg-[#063A6B] hover:bg-[#084885] text-white rounded-xl text-xs h-10 px-5 font-semibold shadow-sm"
                 >
                   Publicar y Convocar Evento
                 </Button>
@@ -704,22 +722,11 @@ export function GestionEventos() {
           return (
             <TarjetaSpotlight
               key={ev.id}
-              color_luz={es_evento_activo_dia ? "rgba(23, 180, 196, 0.25)" : "rgba(6, 58, 107, 0.12)"}
               className={`p-5 flex flex-col justify-between transition-all duration-300 ${
                 es_evento_activo_dia ? "ring-2 ring-[#17B4C4]/50 shadow-lg" : ""
               }`}
             >
-              {/* Cult UI: Borde Luminoso en el evento activo del día */}
-              {es_evento_activo_dia && (
-                <BordeLuminoso
-                  tamaño={140}
-                  duracion={6}
-                  color_desde="#17B4C4"
-                  color_hacia="#F8C766"
-                />
-              )}
-
-              <div className="space-y-3.5">
+              <div className="space-y-4">
                 {/* Cabecera de Estado y Tipo */}
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[11px] font-mono uppercase px-2.5 py-1 rounded-md bg-[#063A6B]/5 text-[#063A6B] font-semibold border border-[#063A6B]/10">
@@ -819,9 +826,12 @@ export function GestionEventos() {
             if (!abierto) set_evento_seleccionado_acta(null);
           }}
         >
-          <DialogContent className="sm:max-w-[780px] max-h-[90vh] overflow-y-auto p-6 bg-white border-[#E3DCCB] rounded-2xl">
-            <DialogHeader className="pb-3 border-b border-[#E3DCCB]">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <DialogContent
+            showCloseButton={false}
+            className="sm:max-w-[780px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E3DCCB] rounded-2xl shadow-2xl"
+          >
+            <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
                     <ShieldCheck className="w-5 h-5 text-emerald-600" />
@@ -836,7 +846,7 @@ export function GestionEventos() {
                     onClick={() => manejarDescargarActaPdf(evento_seleccionado_acta)}
                     disabled={descargando_pdf}
                     size="sm"
-                    className="h-8 rounded-xl bg-[#063A6B] hover:bg-[#084885] text-white text-xs gap-1.5 font-medium"
+                    className="h-8 rounded-xl bg-[#063A6B] hover:bg-[#084885] text-white text-xs gap-1.5 font-medium shadow-sm"
                   >
                     <Download className="w-3.5 h-3.5 text-[#F8C766]" />
                     <span>{descargando_pdf ? "Generando PDF..." : "Descargar Acta PDF (Puppeteer)"}</span>
@@ -845,131 +855,192 @@ export function GestionEventos() {
               </div>
             </DialogHeader>
 
-            {/* Cuadro de Métricas con Watermelon UI ContadorRodilloAnimado */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-3">
-              <div className="p-3 rounded-xl bg-[#F8F9FA] border border-[#E3DCCB] text-center">
-                <span className="text-[11px] text-muted-foreground uppercase font-mono block">Convocados</span>
-                <span className="text-2xl font-bold text-[#063A6B]">
-                  {evento_seleccionado_acta.total_convocados}
-                </span>
-              </div>
-              <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200 text-center">
-                <span className="text-[11px] text-emerald-700 uppercase font-mono block">Total Asistentes</span>
-                <span className="text-2xl font-bold text-emerald-700">
-                  <ContadorRodilloAnimado
-                    valor={
-                      evento_seleccionado_acta.asistencias.filter(
-                        (a) => a.estado === "presente" || a.estado === "retraso"
-                      ).length
-                    }
-                  />
-                </span>
-              </div>
-              <div className="p-3 rounded-xl bg-[#E3F9FA] border border-[#17B4C4]/30 text-center">
-                <span className="text-[11px] text-[#0A5CA0] uppercase font-mono block">Puntualidad</span>
-                <span className="text-2xl font-bold text-[#0A5CA0]">
-                  <ContadorRodilloAnimado
-                    valor={
-                      evento_seleccionado_acta.asistencias.length > 0
-                        ? Math.round(
-                            (evento_seleccionado_acta.asistencias.filter((a) => a.estado === "presente").length /
-                              evento_seleccionado_acta.asistencias.length) *
-                              100
-                          )
-                        : 0
-                    }
-                    sufijo="%"
-                  />
-                </span>
-              </div>
-              <div className="p-3 rounded-xl bg-amber-50/60 border border-amber-200 text-center">
-                <span className="text-[11px] text-amber-700 uppercase font-mono block">Retraso / Permiso</span>
-                <span className="text-2xl font-bold text-amber-700">
-                  <ContadorRodilloAnimado
-                    valor={
-                      evento_seleccionado_acta.asistencias.filter(
-                        (a) => a.estado === "retraso" || a.estado === "justificado"
-                      ).length
-                    }
-                  />
-                </span>
-              </div>
-            </div>
-
-            {/* Lista y Tabla de Becarios Convocados */}
-            <div className="border border-[#E3DCCB] rounded-xl overflow-hidden">
-              <div className="bg-[#F8F9FA] px-4 py-2.5 border-b border-[#E3DCCB] flex items-center justify-between text-xs font-semibold text-[#063A6B]">
-                <span>Nómina de Becarios y Registro Geodésico</span>
-                <span className="font-mono text-[11px] text-muted-foreground">
-                  Radio de Geocerca: {evento_seleccionado_acta.radio_tolerancia_m}m
-                </span>
-              </div>
-
-              {evento_seleccionado_acta.asistencias.length === 0 ? (
-                <div className="p-8 text-center text-xs text-muted-foreground">
-                  <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                  No existen marcaciones registradas aún para este evento programado.
+            <DialogBody className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
+              {/* Cuadro de Métricas con Watermelon UI ContadorRodilloAnimado */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3 rounded-xl bg-[#F8F9FA] border border-[#E3DCCB] text-center">
+                  <span className="text-[11px] text-muted-foreground uppercase font-mono block">Convocados</span>
+                  <span className="text-2xl font-bold text-[#063A6B]">
+                    {evento_seleccionado_acta.total_convocados}
+                  </span>
                 </div>
-              ) : (
-                <div className="divide-y divide-[#E3DCCB]/60 max-h-[360px] overflow-y-auto">
-                  {evento_seleccionado_acta.asistencias.map((asist) => {
-                    const badge_estado =
-                      asist.estado === "presente" ? (
-                        <Badge className="bg-emerald-50 text-emerald-700 border-emerald-300 text-[10px]">
-                          <Check className="w-3 h-3 mr-1" /> Presente
-                        </Badge>
-                      ) : asist.estado === "retraso" ? (
-                        <Badge className="bg-amber-50 text-amber-700 border-amber-300 text-[10px]">
-                          <Clock className="w-3 h-3 mr-1" /> Retraso
-                        </Badge>
-                      ) : asist.estado === "justificado" ? (
-                        <Badge className="bg-blue-50 text-blue-700 border-blue-300 text-[10px]">
-                          <FileText className="w-3 h-3 mr-1" /> Justificado
-                        </Badge>
-                      ) : (
-                        <Badge className="bg-rose-50 text-rose-700 border-rose-300 text-[10px]">
-                          <XCircle className="w-3 h-3 mr-1" /> Ausente
-                        </Badge>
+                <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200 text-center">
+                  <span className="text-[11px] text-emerald-700 uppercase font-mono block">Total Asistentes</span>
+                  <span className="text-2xl font-bold text-emerald-700">
+                    <ContadorRodilloAnimado
+                      valor={
+                        evento_seleccionado_acta.asistencias.filter(
+                          (a) => a.estado === "presente" || a.estado === "retraso"
+                        ).length
+                      }
+                    />
+                  </span>
+                </div>
+                <div className="p-3 rounded-xl bg-[#E3F9FA] border border-[#17B4C4]/30 text-center">
+                  <span className="text-[11px] text-[#0A5CA0] uppercase font-mono block">Puntualidad</span>
+                  <span className="text-2xl font-bold text-[#0A5CA0]">
+                    <ContadorRodilloAnimado
+                      valor={
+                        evento_seleccionado_acta.asistencias.length > 0
+                          ? Math.round(
+                              (evento_seleccionado_acta.asistencias.filter((a) => a.estado === "presente").length /
+                                evento_seleccionado_acta.asistencias.length) *
+                                100
+                            )
+                          : 0
+                      }
+                      sufijo="%"
+                    />
+                  </span>
+                </div>
+                <div className="p-3 rounded-xl bg-amber-50/60 border border-amber-200 text-center">
+                  <span className="text-[11px] text-amber-700 uppercase font-mono block">Retraso / Permiso</span>
+                  <span className="text-2xl font-bold text-amber-700">
+                    <ContadorRodilloAnimado
+                      valor={
+                        evento_seleccionado_acta.asistencias.filter(
+                          (a) => a.estado === "retraso" || a.estado === "justificado"
+                        ).length
+                      }
+                    />
+                  </span>
+                </div>
+              </div>
+
+              {/* Visor con Google Maps Embebido y Geocerca del Evento */}
+              <div className="p-3.5 bg-slate-50 border border-[#E3DCCB] rounded-xl space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-[#063A6B] flex items-center gap-1.5">
+                    <Map className="w-4 h-4 text-[#17B4C4]" />
+                    Ubicación y Geocerca Satelital del Evento (WGS84)
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      window.open(
+                        `https://www.google.com/maps?q=${evento_seleccionado_acta.latitud},${evento_seleccionado_acta.longitud}`,
+                        "_blank"
                       );
+                    }}
+                    className="h-7 px-2.5 text-[11px] border-[#17B4C4] text-[#063A6B] rounded-lg flex items-center gap-1"
+                  >
+                    <ExternalLink className="w-3 h-3 text-[#17B4C4]" />
+                    Abrir en Google Maps
+                  </Button>
+                </div>
 
-                    return (
-                      <div
-                        key={asist.id}
-                        className="p-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 hover:bg-slate-50/80 transition-colors"
-                      >
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-xs text-[#063A6B]">{asist.nombre}</span>
-                            <span className="text-[11px] text-muted-foreground font-mono">({asist.carrera})</span>
+                <div className="relative w-full h-44 bg-slate-200 rounded-xl overflow-hidden border border-[#E3DCCB]">
+                  <iframe
+                    title="Mapa Google Maps Evento"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    src={`https://maps.google.com/maps?q=${evento_seleccionado_acta.latitud},${evento_seleccionado_acta.longitud}&z=16&output=embed`}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[11px] font-mono text-muted-foreground pt-1">
+                  <span>Ref: {evento_seleccionado_acta.direccion_referencia}</span>
+                  <span className="text-[#063A6B] font-bold">Radio: {evento_seleccionado_acta.radio_tolerancia_m} m</span>
+                </div>
+              </div>
+
+              {/* Lista y Tabla de Becarios Convocados */}
+              <div className="border border-[#E3DCCB] rounded-xl overflow-hidden bg-white">
+                <div className="bg-[#F8F9FA] px-4 py-2.5 border-b border-[#E3DCCB] flex items-center justify-between text-xs font-semibold text-[#063A6B]">
+                  <span>Nómina de Becarios y Llamada de Lista en Vivo</span>
+                  <span className="font-mono text-[11px] text-muted-foreground">
+                    Confirmación presencial con switches
+                  </span>
+                </div>
+
+                {evento_seleccionado_acta.asistencias.length === 0 ? (
+                  <div className="p-8 text-center text-xs text-muted-foreground">
+                    <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    No existen marcaciones registradas aún para este evento programado.
+                  </div>
+                ) : (
+                  <div className="divide-y divide-[#E3DCCB]/60">
+                    {evento_seleccionado_acta.asistencias.map((asist) => {
+                      const badge_estado =
+                        asist.estado === "presente" ? (
+                          <Badge className="bg-emerald-50 text-emerald-700 border-emerald-300 text-[10px]">
+                            <Check className="w-3 h-3 mr-1" /> Presente
+                          </Badge>
+                        ) : asist.estado === "retraso" ? (
+                          <Badge className="bg-amber-50 text-amber-700 border-amber-300 text-[10px]">
+                            <Clock className="w-3 h-3 mr-1" /> Retraso
+                          </Badge>
+                        ) : asist.estado === "justificado" ? (
+                          <Badge className="bg-blue-50 text-blue-700 border-blue-300 text-[10px]">
+                            <FileText className="w-3 h-3 mr-1" /> Justificado
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-rose-50 text-rose-700 border-rose-300 text-[10px]">
+                            <XCircle className="w-3 h-3 mr-1" /> Ausente
+                          </Badge>
+                        );
+
+                      return (
+                        <div
+                          key={asist.id}
+                          className="p-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 hover:bg-slate-50/80 transition-colors"
+                        >
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-xs text-[#063A6B]">{asist.nombre}</span>
+                              <span className="text-[11px] text-muted-foreground font-mono">({asist.carrera})</span>
+                            </div>
+                            {asist.observaciones && (
+                              <p className="text-[11px] text-slate-500 mt-0.5">{asist.observaciones}</p>
+                            )}
+                            {asist.monto_multa_bs && asist.monto_multa_bs > 0 ? (
+                              <p className="text-[11px] text-rose-700 font-mono font-bold flex items-center gap-1 mt-0.5">
+                                <Coins className="w-3 h-3" />
+                                Multa institucional por retraso: Bs {asist.monto_multa_bs.toFixed(2)}
+                              </p>
+                            ) : null}
                           </div>
-                          {asist.observaciones && (
-                            <p className="text-[11px] text-slate-500 mt-0.5">{asist.observaciones}</p>
-                          )}
-                        </div>
 
-                        <div className="flex items-center gap-4 shrink-0">
-                          <div className="text-right font-mono text-xs">
-                            <div className="font-semibold text-slate-700">{asist.hora_marcacion}</div>
-                            <div className="text-[10.5px] text-muted-foreground flex items-center justify-end gap-1">
-                              <Navigation className="w-2.5 h-2.5 text-[#17B4C4]" />
-                              <span>{asist.distancia_m > 0 ? `${asist.distancia_m} m` : "Sin señal"}</span>
+                          <div className="flex items-center gap-4 shrink-0">
+                            <div className="text-right font-mono text-xs">
+                              <div className="font-semibold text-slate-700">{asist.hora_marcacion}</div>
+                              <div className="text-[10.5px] text-muted-foreground flex items-center justify-end gap-1">
+                                <Navigation className="w-2.5 h-2.5 text-[#17B4C4]" />
+                                <span>{asist.distancia_m > 0 ? `${asist.distancia_m} m` : "Sin señal"}</span>
+                              </div>
+                            </div>
+
+                            <div className="w-24 text-right">{badge_estado}</div>
+
+                            {/* Switch de Confirmación Presencial en Vivo */}
+                            <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+                              <span className="text-[10px] text-muted-foreground font-medium hidden sm:inline">
+                                {asist.confirmado_presencial ? "Confirmado" : "Pendiente"}
+                              </span>
+                              <Switch
+                                checked={asist.confirmado_presencial ?? false}
+                                onCheckedChange={(val) => {
+                                  asist.confirmado_presencial = val;
+                                  toast.success(`Asistencia presencial de ${asist.nombre} actualizada.`);
+                                }}
+                              />
                             </div>
                           </div>
-
-                          <div className="w-24 text-right">{badge_estado}</div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </DialogBody>
 
-            <DialogFooter className="pt-3 border-t border-[#E3DCCB]">
+            <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end">
               <Button
                 variant="outline"
                 onClick={() => set_evento_seleccionado_acta(null)}
-                className="rounded-xl border-[#E3DCCB] text-xs h-9"
+                className="rounded-xl border-[#E3DCCB] text-xs h-9 hover:bg-slate-100"
               >
                 Cerrar Acta
               </Button>
