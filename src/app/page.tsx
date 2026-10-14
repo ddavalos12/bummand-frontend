@@ -409,12 +409,7 @@ export default function PaginaInicio() {
               {es_becario ? (
                 <PasajesVista />
               ) : (
-                <div className="space-y-8">
-                  <PasajesVista />
-                  <div className="pt-6 border-t border-[#E3DCCB]">
-                    <AprobacionPasajes />
-                  </div>
-                </div>
+                <AprobacionPasajes />
               )}
             </TabsContent>
 
