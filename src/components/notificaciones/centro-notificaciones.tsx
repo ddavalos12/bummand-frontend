@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Bell, Check, Clock, AlertTriangle, FileCheck, Send, CheckCheck } from "lucide-react";
+import { Bell, Check, Clock, AlertTriangle, FileCheck, Send, CheckCheck, Calendar } from "lucide-react";
 import {
   BotonConEstado,
   ContadorRodilloAnimado,
@@ -13,11 +13,15 @@ import {
 
 interface NotificacionVista {
   id: number;
-  tipo: "asistencia" | "pasajes" | "evaluacion" | "general";
+  tipo: "asistencia" | "pasajes" | "evaluacion" | "evento" | "general";
   titulo: string;
   mensaje: string;
   tiempo: string;
   leido: boolean;
+}
+
+interface PropiedadesCentroNotificaciones {
+  alNavegarASeccion?: (seccion: string) => void;
 }
 
 const NOTIFICACIONES_INICIALES: NotificacionVista[] = [
@@ -55,7 +59,9 @@ const NOTIFICACIONES_INICIALES: NotificacionVista[] = [
   },
 ];
 
-export function CentroNotificaciones() {
+export function CentroNotificaciones({
+  alNavegarASeccion,
+}: PropiedadesCentroNotificaciones = {}) {
   const [notificaciones, set_notificaciones] = useState<NotificacionVista[]>(NOTIFICACIONES_INICIALES);
 
   const no_leidas = notificaciones.filter((n) => !n.leido).length;
@@ -69,6 +75,28 @@ export function CentroNotificaciones() {
   const manejarMarcarTodoLeido = async () => {
     await new Promise((resolver) => setTimeout(resolver, 650));
     set_notificaciones((prev) => prev.map((n) => ({ ...n, leido: true })));
+  };
+
+  const manejarClicTarjeta = (n: NotificacionVista) => {
+    marcarComoLeida(n.id);
+    if (!alNavegarASeccion) return;
+    switch (n.tipo) {
+      case "asistencia":
+        alNavegarASeccion("asistencia");
+        break;
+      case "pasajes":
+        alNavegarASeccion("pasajes");
+        break;
+      case "evaluacion":
+        alNavegarASeccion("evaluacion_360");
+        break;
+      case "evento":
+        alNavegarASeccion("eventos");
+        break;
+      case "general":
+        alNavegarASeccion("resumen");
+        break;
+    }
   };
 
   return (
@@ -133,7 +161,8 @@ export function CentroNotificaciones() {
               >
                 <TarjetaSpotlight
                   color_luz={n.leido ? "rgba(23, 180, 196, 0.08)" : "rgba(23, 180, 196, 0.22)"}
-                  className={`p-4 rounded-xl border transition-all flex items-start justify-between gap-3 ${
+                  onClick={() => manejarClicTarjeta(n)}
+                  className={`p-4 rounded-xl border transition-all flex items-start justify-between gap-3 cursor-pointer group hover:border-[#17B4C4] ${
                     n.leido
                       ? "bg-slate-50/40 border-[#E3DCCB]/40 opacity-75"
                       : "bg-white border-[#17B4C4]/50 shadow-xs"
@@ -148,6 +177,8 @@ export function CentroNotificaciones() {
                           ? "bg-amber-50 text-amber-600"
                           : n.tipo === "evaluacion"
                           ? "bg-emerald-50 text-emerald-600"
+                          : n.tipo === "evento"
+                          ? "bg-cyan-50 text-[#17B4C4]"
                           : "bg-slate-100 text-slate-600"
                       }`}
                     >
@@ -157,6 +188,8 @@ export function CentroNotificaciones() {
                         <AlertTriangle className="w-4 h-4" />
                       ) : n.tipo === "evaluacion" ? (
                         <FileCheck className="w-4 h-4" />
+                      ) : n.tipo === "evento" ? (
+                        <Calendar className="w-4 h-4" />
                       ) : (
                         <Send className="w-4 h-4" />
                       )}
@@ -164,7 +197,9 @@ export function CentroNotificaciones() {
 
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <h4 className="text-sm font-bold text-[#063A6B]">{n.titulo}</h4>
+                        <h4 className="text-sm font-bold text-[#063A6B] group-hover:text-[#17B4C4] transition-colors">
+                          {n.titulo}
+                        </h4>
                         {!n.leido && (
                           <span className="w-2 h-2 rounded-full bg-[#17B4C4] animate-pulse" />
                         )}
@@ -181,7 +216,10 @@ export function CentroNotificaciones() {
                       type="button"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.92 }}
-                      onClick={() => marcarComoLeida(n.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        marcarComoLeida(n.id);
+                      }}
                       className="h-8 px-3 text-xs font-semibold text-[#063A6B] hover:bg-[#17B4C4]/15 rounded-xl border border-[#17B4C4]/30 shrink-0 flex items-center gap-1 transition-colors"
                     >
                       <Check className="w-3.5 h-3.5 text-[#17B4C4]" />

@@ -122,7 +122,7 @@ const REGISTROS_AUDITORIA_INICIALES: RegistroAuditoriaAsistencia[] = [
     lng_ingreso: -68.1502,
     es_viernes: true,
     minutos_retraso: 45,
-    monto_multa_bs: 15,
+    monto_multa_bs: 0,
     confirmacion_presencial: true,
   },
   {
@@ -187,7 +187,28 @@ const REGISTROS_AUDITORIA_INICIALES: RegistroAuditoriaAsistencia[] = [
     lng_ingreso: -68.169,
     es_viernes: true,
     minutos_retraso: 35,
-    monto_multa_bs: 10,
+    monto_multa_bs: 0,
+    confirmacion_presencial: true,
+  },
+  {
+    id: 6,
+    becario_id: 106,
+    becario_nombre: "Jhoselin Pamela Mamani Choque",
+    carrera: "Medicina",
+    sede_nombre: "Escuela de Líderes (Auditorio Central)",
+    fecha: "2026-10-09",
+    hora_ingreso: "14:50",
+    hora_salida: "17:30",
+    horas_trabajadas: 2.67,
+    distancia_ingreso_m: 18,
+    dentro_de_radio: true,
+    dentro_de_horario: false,
+    estado: "tardanza",
+    lat_ingreso: -16.5020,
+    lng_ingreso: -68.1510,
+    es_viernes: true,
+    minutos_retraso: 20,
+    monto_multa_bs: 200,
     confirmacion_presencial: true,
   },
 ];
@@ -663,12 +684,12 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                         )}
                       </div>
 
-                      {/* Visualización Transparente de Multas en Viernes */}
+                      {/* Visualización Transparente de Multas de Escuela de Líderes */}
                       {item.monto_multa_bs && item.monto_multa_bs > 0 ? (
                         <div className="flex items-center justify-end">
                           <Badge variant="outline" className="bg-rose-50 border-rose-300 text-rose-700 text-[10px] font-mono font-bold gap-1">
                             <Coins className="w-3 h-3 text-rose-600" />
-                            Multa Viernes: Bs {item.monto_multa_bs.toFixed(2)} ({item.minutos_retraso}m)
+                            Multa Escuela de Líderes: Bs {item.monto_multa_bs.toFixed(2)} ({item.minutos_retraso}m)
                           </Badge>
                         </div>
                       ) : null}
@@ -806,7 +827,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   {registro_detalle.monto_multa_bs && registro_detalle.monto_multa_bs > 0 ? (
                     <Badge variant="outline" className="bg-rose-50 border-rose-300 text-rose-700 font-bold text-xs gap-1">
                       <Coins className="w-3.5 h-3.5 text-rose-600" />
-                      Multa: Bs {registro_detalle.monto_multa_bs.toFixed(2)}
+                      Multa Escuela de Líderes: Bs {registro_detalle.monto_multa_bs.toFixed(2)}
                     </Badge>
                   ) : null}
                 </div>
@@ -886,9 +907,13 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   Distancia registrada: <strong>{registro_detalle.distancia_ingreso_m} metros</strong>.
                   Tolerancia máxima permitida: 120 metros.
                 </p>
-                {registro_detalle.minutos_retraso && registro_detalle.minutos_retraso > 0 ? (
+                {registro_detalle.monto_multa_bs && registro_detalle.monto_multa_bs > 0 ? (
                   <p className="text-[11px] text-rose-700 font-medium pt-1 border-t border-[#17B4C4]/20">
-                    ⚠ Retraso detectado en viernes: {registro_detalle.minutos_retraso} minutos. Multa reglamentaria BUMAND aplicada: <strong>Bs {registro_detalle.monto_multa_bs?.toFixed(2)}</strong>.
+                    ⚠ Retraso detectado en Escuela de Líderes: {registro_detalle.minutos_retraso} minutos. Multa reglamentaria BUMAND aplicada: <strong>Bs {registro_detalle.monto_multa_bs?.toFixed(2)}</strong>.
+                  </p>
+                ) : registro_detalle.minutos_retraso && registro_detalle.minutos_retraso > 0 ? (
+                  <p className="text-[11px] text-amber-700 font-medium pt-1 border-t border-[#17B4C4]/20">
+                    ℹ Retraso registrado: {registro_detalle.minutos_retraso} minutos. Las prácticas formativas no contemplan sanciones económicas.
                   </p>
                 ) : null}
               </div>

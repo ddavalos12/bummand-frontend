@@ -118,7 +118,7 @@ export function MenuLateral({
           elementos: [
             {
               id: "eventos",
-              etiqueta: "Eventos Convocados",
+              etiqueta: "Acciones de Servicio",
               descripcion: "Encuentros y geocercas",
               icono: CalendarDays,
               badge: "En Vivo",
@@ -186,7 +186,7 @@ export function MenuLateral({
           elementos: [
             {
               id: "eventos",
-              etiqueta: "Gestión de Eventos",
+              etiqueta: "Acciones de Servicio",
               descripcion: "Convocatorias y geocercas WGS84",
               icono: CalendarDays,
               badge: "En Vivo",
@@ -200,7 +200,7 @@ export function MenuLateral({
             },
             {
               id: "asistencia",
-              etiqueta: "Control Asistencia",
+              etiqueta: "Control de Asistencia",
               descripcion: "Validación geodésica Haversine",
               icono: Clock,
             },

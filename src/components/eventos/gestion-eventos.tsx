@@ -358,98 +358,246 @@ export function GestionEventos() {
   const manejarDescargarActaPdf = async (_evento: EventoGeolocalizado) => {
     set_descargando_pdf(true);
     try {
-      // Simulación de generación y render Puppeteer headless institucional
-      await new Promise((resolver) => setTimeout(resolver, 1400));
+      await new Promise((resolver) => setTimeout(resolver, 400));
 
-      const contenido_html = `
-        <!DOCTYPE html>
-        <html lang="es">
-        <head>
-          <meta charset="UTF-8">
-          <title>Acta Oficial de Asistencia - ${_evento.titulo}</title>
-          <style>
-            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 30px; color: #063A6B; }
-            .header { border-bottom: 2px solid #063A6B; padding-bottom: 12px; margin-bottom: 20px; }
-            .titulo { font-size: 20px; font-weight: bold; color: #063A6B; }
-            .subtitulo { font-size: 13px; color: #5B6D77; margin-top: 4px; }
-            .resumen { display: flex; gap: 20px; margin: 15px 0; background: #F8F9FA; padding: 12px; border-radius: 8px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
-            th { background: #063A6B; color: white; padding: 8px; text-align: left; }
-            td { border-bottom: 1px solid #E3DCCB; padding: 8px; }
-            .badge-presente { color: #10B981; font-weight: bold; }
-            .badge-retraso { color: #F59E0B; font-weight: bold; }
-            .badge-ausente { color: #EF4444; font-weight: bold; }
-            .badge-justificado { color: #3B82F6; font-weight: bold; }
-            .firma { margin-top: 50px; text-align: right; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <div class="titulo">ACTA OFICIAL DE ASISTENCIA GEOLOCALIZADA</div>
-            <div class="subtitulo">Fundación Diaconía FRIF-IFD · Programa BUMAND</div>
-          </div>
-          <p><strong>Evento:</strong> ${_evento.titulo}</p>
-          <p><strong>Fecha y Horario:</strong> ${_evento.fecha} (${_evento.hora_inicio} - ${_evento.hora_fin})</p>
-          <p><strong>Recinto / Referencia:</strong> ${_evento.direccion_referencia}</p>
-          <p><strong>Epicentro WGS84:</strong> ${_evento.latitud}, ${_evento.longitud} (Radio: ${_evento.radio_tolerancia_m} m)</p>
-          
-          <div class="resumen">
-            <div><strong>Convocados:</strong> ${_evento.total_convocados}</div>
-            <div><strong>Asistentes:</strong> ${_evento.asistencias.filter((a) => a.estado === "presente" || a.estado === "retraso").length}</div>
-            <div><strong>Puntualidad:</strong> ${Math.round((_evento.asistencias.filter((a) => a.estado === "presente").length / Math.max(_evento.asistencias.length, 1)) * 100)}%</div>
-          </div>
+      const contenido_html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acta Oficial de Asistencia - ${_evento.titulo}</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 15mm 20mm 15mm 20mm;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #1E293B;
+      background: #FFFFFF;
+      margin: 0;
+      padding: 24px;
+      line-height: 1.4;
+      font-size: 12px;
+    }
+    .header {
+      border-bottom: 2.5px solid #063A6B;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .titulo {
+      font-size: 18px;
+      font-weight: 800;
+      color: #063A6B;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0;
+    }
+    .subtitulo {
+      font-size: 11px;
+      color: #5B6D77;
+      margin-top: 4px;
+      font-weight: 600;
+    }
+    .folio {
+      font-family: monospace;
+      font-size: 11px;
+      color: #063A6B;
+      background: #F0F4F8;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid #CBD5E1;
+      text-align: right;
+    }
+    .datos-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+      margin-bottom: 14px;
+      font-size: 11.5px;
+      background: #F8F9FA;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid #E3DCCB;
+    }
+    .datos-grid p { margin: 2px 0; }
+    .datos-grid strong { color: #063A6B; }
+    .resumen {
+      display: flex;
+      gap: 16px;
+      margin: 14px 0;
+      background: #F0F9FA;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border-left: 4px solid #17B4C4;
+    }
+    .resumen div { flex: 1; }
+    .resumen strong { color: #063A6B; display: block; font-size: 10px; text-transform: uppercase; }
+    .resumen span { font-size: 16px; font-weight: bold; color: #063A6B; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      font-size: 11px;
+    }
+    th {
+      background: #063A6B;
+      color: #FFFFFF;
+      padding: 7px 8px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    td {
+      border-bottom: 1px solid #E2E8F0;
+      padding: 7px 8px;
+    }
+    tr:nth-child(even) td { background-color: #F8FAFC; }
+    .badge-presente { color: #059669; font-weight: 700; }
+    .badge-retraso { color: #D97706; font-weight: 700; }
+    .badge-ausente { color: #DC2626; font-weight: 700; }
+    .badge-justificado { color: #2563EB; font-weight: 700; }
+    .firmas {
+      margin-top: 48px;
+      display: flex;
+      justify-content: space-between;
+      page-break-inside: avoid;
+    }
+    .firma {
+      width: 42%;
+      text-align: center;
+      font-size: 11px;
+    }
+    .linea-firma {
+      border-top: 1px solid #063A6B;
+      margin-bottom: 6px;
+    }
+    .pie-pagina {
+      margin-top: 28px;
+      padding-top: 8px;
+      border-top: 1px solid #CBD5E1;
+      font-size: 9px;
+      color: #64748B;
+      display: flex;
+      justify-content: space-between;
+    }
+    @media print {
+      body { padding: 0; }
+      .no-imprimir { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1 class="titulo">Acta Oficial de Asistencia Geolocalizada</h1>
+      <div class="subtitulo">Fundación Diaconía FRIF-IFD · Programa Institucional BUMAND</div>
+    </div>
+    <div class="folio">
+      <strong>Folio Acta:</strong> ACT-${_evento.id}<br/>
+      <strong>Emisión:</strong> ${new Date().toLocaleDateString("es-BO")}
+    </div>
+  </div>
 
-          <table>
-            <thead>
-              <tr>
-                <th>N°</th>
-                <th>Becario</th>
-                <th>Carrera</th>
-                <th>Hora Marcación</th>
-                <th>Distancia</th>
-                <th>Estado</th>
-                <th>Observación</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${_evento.asistencias
-                .map(
-                  (a, i) => `
-                <tr>
-                  <td>${i + 1}</td>
-                  <td><strong>${a.nombre}</strong></td>
-                  <td>${a.carrera}</td>
-                  <td>${a.hora_marcacion}</td>
-                  <td>${a.distancia_m > 0 ? `${a.distancia_m} m` : "--"}</td>
-                  <td class="badge-${a.estado}">${a.estado.toUpperCase()}</td>
-                  <td>${a.observaciones || "-"}</td>
-                </tr>
-              `
-                )
-                .join("")}
-            </tbody>
-          </table>
+  <div class="datos-grid">
+    <p><strong>Evento Convocado:</strong> ${_evento.titulo}</p>
+    <p><strong>Fecha y Horario:</strong> ${_evento.fecha} (${_evento.hora_inicio} - ${_evento.hora_fin})</p>
+    <p><strong>Recinto / Referencia:</strong> ${_evento.direccion_referencia}</p>
+    <p><strong>Epicentro WGS84:</strong> ${_evento.latitud}, ${_evento.longitud} (Radio: ${_evento.radio_tolerancia_m} m)</p>
+  </div>
 
-          <div class="firma">
-            <p>___________________________________<br/>
-            <strong>Supervisión Diaconal FRIF-IFD</strong><br/>
-            Firma y Sello de Convalidador</p>
-          </div>
-        </body>
-        </html>
-      `;
+  <div class="resumen">
+    <div>
+      <strong>Total Convocados</strong>
+      <span>${_evento.total_convocados} becarios</span>
+    </div>
+    <div>
+      <strong>Asistentes Efectivos</strong>
+      <span>${_evento.asistencias.filter((a) => a.estado === "presente" || a.estado === "retraso").length}</span>
+    </div>
+    <div>
+      <strong>Índice Puntualidad</strong>
+      <span>${Math.round((_evento.asistencias.filter((a) => a.estado === "presente").length / Math.max(_evento.asistencias.length, 1)) * 100)}%</span>
+    </div>
+  </div>
 
-      const blob = new Blob([contenido_html], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      const enlace = document.createElement("a");
-      enlace.href = url;
-      enlace.download = `Acta_Asistencia_Evento_${_evento.id}.html`;
-      document.body.appendChild(enlace);
-      enlace.click();
-      document.body.removeChild(enlace);
-      URL.revokeObjectURL(url);
-      toast.success("Acta emitida correctamente", {
-        description: `Se ha descargado el acta oficial de asistencia para el evento ${_evento.id}.`,
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 30px;">N°</th>
+        <th>Becario</th>
+        <th>Carrera Universitaria</th>
+        <th>Hora Marcación</th>
+        <th>Distancia GPS</th>
+        <th>Estado</th>
+        <th>Observaciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${_evento.asistencias
+        .map(
+          (a, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td><strong>${a.nombre}</strong></td>
+          <td>${a.carrera}</td>
+          <td>${a.hora_marcacion}</td>
+          <td>${a.distancia_m > 0 ? `${a.distancia_m} m` : "--"}</td>
+          <td class="badge-${a.estado}">${a.estado.toUpperCase()}</td>
+          <td>${a.observaciones || "-"}</td>
+        </tr>
+      `
+        )
+        .join("")}
+    </tbody>
+  </table>
+
+  <div class="firmas">
+    <div class="firma">
+      <div class="linea-firma"></div>
+      <strong>Supervisión Diaconal FRIF-IFD</strong><br/>
+      Firma y Sello de Convalidación
+    </div>
+    <div class="firma">
+      <div class="linea-firma"></div>
+      <strong>Coordinación Nacional BUMAND</strong><br/>
+      Control de Asistencia y Acreditación
+    </div>
+  </div>
+
+  <div class="pie-pagina">
+    <span>Documento oficial con validez institucional · BUMAND FRIF-IFD</span>
+    <span>Página 1 de 1 · Generado electrónicamente</span>
+  </div>
+</body>
+</html>`;
+
+      const ventana = window.open("", "_blank");
+      if (!ventana) {
+        toast.error("Ventana emergente bloqueada", {
+          description: "Por favor permite las ventanas emergentes para abrir el documento de impresión.",
+        });
+        return;
+      }
+      ventana.document.write(contenido_html);
+      ventana.document.close();
+      ventana.focus();
+      setTimeout(() => {
+        ventana.print();
+      }, 300);
+
+      toast.success("Documento preparado para impresión / PDF", {
+        description: `Se abrió la vista de impresión oficial para el evento ${_evento.titulo}.`,
       });
     } catch (_error) {
       toast.error("Error al emitir el acta PDF", {
@@ -818,7 +966,7 @@ export function GestionEventos() {
       </div>
       )}
 
-      {/* Diálogo de "Acta de Asistencia" con Watermelon UI y Puppeteer */}
+      {/* Diálogo de "Acta de Asistencia" Oficial */}
       {evento_seleccionado_acta && (
         <Dialog
           open={!!evento_seleccionado_acta}
@@ -849,7 +997,7 @@ export function GestionEventos() {
                     className="h-8 rounded-xl bg-[#063A6B] hover:bg-[#084885] text-white text-xs gap-1.5 font-medium shadow-sm"
                   >
                     <Download className="w-3.5 h-3.5 text-[#F8C766]" />
-                    <span>{descargando_pdf ? "Generando PDF..." : "Descargar Acta PDF (Puppeteer)"}</span>
+                    <span>{descargando_pdf ? "Generando PDF..." : "Descargar Acta PDF"}</span>
                   </Button>
                 </div>
               </div>

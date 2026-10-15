@@ -49,12 +49,12 @@ export default function PaginaInicioSesion() {
 
       if (!usuario_autenticado) {
         const cuentas_semilla: Record<string, { pass: string; user: Usuario }> = {
-          "admin@wscrt.com": {
-            pass: "admin",
+          "daniel234.davalos@gmail.com": {
+            pass: "Bumand2026!",
             user: {
               id: 1,
-              nombre: "Administrador General",
-              correo: "admin@wscrt.com",
+              nombre: "Daniel Davalos Quiñonez",
+              correo: "daniel234.davalos@gmail.com",
               rol: "administrador",
             },
           },

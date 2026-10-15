@@ -70,7 +70,7 @@ function obtenerDetallesSeccion(seccion: string, rol: string) {
       };
     case "asistencia":
       return {
-        titulo: rol === "becario" ? "Marcación de Horas de Práctica" : "Auditoría y Control de Asistencia",
+        titulo: rol === "becario" ? "Marcación de Horas de Práctica" : "Control de Asistencia",
       };
     case "pasajes":
       return {
@@ -86,7 +86,8 @@ function obtenerDetallesSeccion(seccion: string, rol: string) {
       };
     case "eventos":
       return {
-        titulo: rol === "becario" ? "Mis Eventos y Encuentros Convocados" : "Gestión de Eventos y Encuentros",
+        titulo: "Acciones de Servicio",
+        subtitulo: "Convocatorias a actividades de servicio comunitario, voluntariado y registro de participación",
       };
     case "justificaciones":
       return {
@@ -256,6 +257,7 @@ export default function PaginaInicio() {
               {/* Campana accesible universalmente con Globo de Notificaciones (Mini Diálogo) */}
               <GloboNotificaciones
                 alAbrirHistorialCompleto={() => set_pestaña_activa("notificaciones")}
+                alNavegarASeccion={(sec) => set_pestaña_activa(sec)}
               />
             </div>
           </div>
@@ -460,7 +462,7 @@ export default function PaginaInicio() {
 
             {/* SPRINT 8: Notificaciones */}
             <TabsContent value="notificaciones" className="space-y-6">
-              <CentroNotificaciones />
+              <CentroNotificaciones alNavegarASeccion={(sec) => set_pestaña_activa(sec)} />
             </TabsContent>
 
             {/* Módulo de Refrigerios Institucionales */}

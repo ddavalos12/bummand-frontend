@@ -73,6 +73,7 @@ const NOTIFICACIONES_BASE: NotificacionItem[] = [
 
 interface PropiedadesGloboNotificaciones {
   alAbrirHistorialCompleto?: () => void;
+  alNavegarASeccion?: (seccion: string) => void;
   className?: string;
 }
 
@@ -84,6 +85,7 @@ interface PropiedadesGloboNotificaciones {
  */
 export function GloboNotificaciones({
   alAbrirHistorialCompleto,
+  alNavegarASeccion,
   className,
 }: PropiedadesGloboNotificaciones) {
   const [abierto, set_abierto] = useState<boolean>(false);
@@ -120,6 +122,29 @@ export function GloboNotificaciones({
     // Simular latencia de red sutil para apreciar el botón con estado
     await new Promise((resolver) => setTimeout(resolver, 600));
     set_notificaciones((prev) => prev.map((n) => ({ ...n, leido: true })));
+  };
+
+  const manejarClicNotificacion = (item: NotificacionItem) => {
+    marcarComoLeida(item.id);
+    set_abierto(false);
+    if (!alNavegarASeccion) return;
+    switch (item.tipo) {
+      case "asistencia":
+        alNavegarASeccion("asistencia");
+        break;
+      case "pasajes":
+        alNavegarASeccion("pasajes");
+        break;
+      case "evaluacion":
+        alNavegarASeccion("evaluacion_360");
+        break;
+      case "evento":
+        alNavegarASeccion("eventos");
+        break;
+      case "general":
+        alNavegarASeccion("resumen");
+        break;
+    }
   };
 
   const lista_filtrada =
@@ -278,7 +303,7 @@ export function GloboNotificaciones({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.15 }}
-                    onClick={() => marcarComoLeida(item.id)}
+                    onClick={() => manejarClicNotificacion(item)}
                     className={cn(
                       "p-2.5 rounded-xl cursor-pointer transition-all flex items-start gap-2.5 group pt-2",
                       item.leido

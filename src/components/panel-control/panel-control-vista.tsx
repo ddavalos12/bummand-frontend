@@ -69,6 +69,7 @@ export interface BecarioRetraso {
   hora_real: string;
   minutos_retraso: number;
   sede: string;
+  tipo_asistencia: "Prácticas" | "Escuela de Líderes" | "Acciones de Servicio";
 }
 
 export interface RegistroAsistenciaSemanal {
@@ -130,6 +131,7 @@ export const BECARIOS_RETRASO: BecarioRetraso[] = [
     hora_real: "08:24",
     minutos_retraso: 24,
     sede: "Oficina Central Bloque A",
+    tipo_asistencia: "Prácticas",
   },
   {
     id: 2,
@@ -141,6 +143,7 @@ export const BECARIOS_RETRASO: BecarioRetraso[] = [
     hora_real: "09:20",
     minutos_retraso: 50,
     sede: "Agencia Villa Adela",
+    tipo_asistencia: "Escuela de Líderes",
   },
   {
     id: 3,
@@ -152,6 +155,7 @@ export const BECARIOS_RETRASO: BecarioRetraso[] = [
     hora_real: "14:35",
     minutos_retraso: 35,
     sede: "Sucursal Juan Pablo II",
+    tipo_asistencia: "Prácticas",
   },
   {
     id: 4,
@@ -163,6 +167,7 @@ export const BECARIOS_RETRASO: BecarioRetraso[] = [
     hora_real: "13:18",
     minutos_retraso: 18,
     sede: "Oficina Central Bloque A",
+    tipo_asistencia: "Escuela de Líderes",
   },
   {
     id: 5,
@@ -174,6 +179,7 @@ export const BECARIOS_RETRASO: BecarioRetraso[] = [
     hora_real: "08:42",
     minutos_retraso: 27,
     sede: "Agencia Ceja El Alto",
+    tipo_asistencia: "Acciones de Servicio",
   },
 ];
 
@@ -659,7 +665,7 @@ export function PanelControlVista() {
                 </div>
                 <h4 className="text-lg font-display font-bold text-white flex items-center gap-2">
                   <Coins className="w-5 h-5 text-[#F8C766]" />
-                  Multas Institucionales Recaudadas (Retrasos en Viernes y Prácticas)
+                  Multas Institucionales Recaudadas (Escuela de Líderes)
                 </h4>
                 <p className="text-xs text-white/75 max-w-2xl leading-relaxed">
                   Recaudación acumulada por infracciones reglamentarias y retrasos no justificados en el período seleccionado.
@@ -736,9 +742,23 @@ export function PanelControlVista() {
                   </Avatar>
                   <div className="flex-1 min-w-0 space-y-1">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-bold text-[#063A6B] truncate">
-                        {becario.nombre}
-                      </p>
+                      <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                        <p className="text-xs font-bold text-[#063A6B] truncate">
+                          {becario.nombre}
+                        </p>
+                        <Badge
+                          variant="outline"
+                          className={
+                            becario.tipo_asistencia === "Prácticas"
+                              ? "bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-semibold shrink-0"
+                              : becario.tipo_asistencia === "Escuela de Líderes"
+                              ? "bg-purple-50 text-purple-700 border-purple-200 text-[10px] font-semibold shrink-0"
+                              : "bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-semibold shrink-0"
+                          }
+                        >
+                          {becario.tipo_asistencia}
+                        </Badge>
+                      </div>
                       <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-[10px] font-mono font-bold shrink-0">
                         +{becario.minutos_retraso} min
                       </Badge>
