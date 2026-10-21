@@ -333,41 +333,6 @@ export function RegistroDevocionales() {
         </div>
       </div>
 
-      {/* Banner Inspiracional de Versículo Diario (Reina-Valera 1960) */}
-      {versiculo_diario && (
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#063A6B] via-[#0A5CA0] to-[#17B4C4] p-5 text-white shadow-md">
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="space-y-2 max-w-2xl">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[11px] font-semibold">
-                  <Sparkles className="w-3 h-3 text-[#F8C766]" />
-                  Versículo del Día · {versiculo_diario.version}
-                </span>
-                <span className="text-xs text-white/80 font-medium">
-                  {versiculo_diario.tema}
-                </span>
-              </div>
-              <div>
-                <p className="text-sm md:text-base font-serif italic text-white/95 leading-relaxed font-medium">
-                  «{versiculo_diario.texto}»
-                </p>
-                <p className="text-xs font-bold text-[#F8C766] mt-1">
-                  — {versiculo_diario.cita}
-                </p>
-              </div>
-            </div>
-
-            <Button
-              onClick={() => aplicarVersiculoAlFormulario()}
-              className="bg-[#F8C766] hover:bg-[#F8C766]/90 text-[#063A6B] font-bold text-xs h-9 rounded-xl shadow shrink-0 gap-1.5"
-            >
-              <BookOpen className="w-4 h-4" />
-              Usar para mi Devocional
-            </Button>
-          </div>
-        </div>
-      )}
-
       {/* Buscador */}
       <div className="relative">
         <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />

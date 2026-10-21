@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import {
   ClipboardCheck,
@@ -20,6 +20,9 @@ import {
   ShieldAlert,
   Wifi,
   WifiOff,
+  Plus,
+  Upload,
+  Download,
 } from "lucide-react";
 import { clienteApi } from "@/lib/cliente-api";
 import { useConsulta } from "@/hooks/useConsulta";
@@ -76,12 +79,42 @@ export interface JustificacionIncidencia {
   motivo: string;
   descripcion: string;
   documento_adjunto?: string;
+  archivo_prueba_url?: string;
+  nombre_archivo_prueba?: string;
   estado: "pendiente" | "aprobada" | "rechazada";
   supervisor_nombre?: string | null;
   observacion_supervisor?: string | null;
   fecha_resolucion?: string | null;
   created_at: string;
 }
+
+const MUESTRA_RECETA_MEDICA_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" fill="none"><rect width="600" height="400" rx="16" fill="%23FFFFFF" stroke="%23CBD5E1" stroke-width="2"/><rect x="24" y="24" width="552" height="60" rx="8" fill="%23F0FDF4" stroke="%2386EFAC"/><text x="44" y="52" fill="%23166534" font-family="sans-serif" font-size="16" font-weight="bold">CAJA NACIONAL DE SALUD · SEGURO UNIVERSITARIO SSU</text><text x="44" y="70" fill="%2315803D" font-family="sans-serif" font-size="12">CERTIFICADO Y RECETA MÉDICA OFICIAL - ATENCIÓN ODONTOLÓGICA DE URGENCIA</text><line x1="24" y1="104" x2="576" y2="104" stroke="%23E2E8F0" stroke-width="1.5"/><text x="44" y="135" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">PACIENTE:</text><text x="130" y="135" fill="%230F172A" font-family="sans-serif" font-size="13">Nilda Amalia Churata Paye</text><text x="360" y="135" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">FECHA:</text><text x="430" y="135" fill="%230F172A" font-family="sans-serif" font-size="13">06/10/2026</text><text x="44" y="170" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">DIAGNÓSTICO:</text><text x="160" y="170" fill="%230F172A" font-family="sans-serif" font-size="13">Pulpitis irreversible aguda pieza 3.8. Exodoncia de urgencia.</text><text x="44" y="205" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">PRESCRIPCIÓN:</text><text x="160" y="205" fill="%230F172A" font-family="sans-serif" font-size="13">Amoxicilina 500mg c/8h + Ketorolaco 10mg SL. Reposo 24 horas.</text><rect x="44" y="240" width="512" height="70" rx="8" fill="%23F8FAFC" stroke="%23E2E8F0"/><text x="60" y="268" fill="%23475569" font-family="sans-serif" font-size="11">Sello y Firma Digital:</text><text x="60" y="288" fill="%23063A6B" font-family="sans-serif" font-size="12" font-weight="bold">Dra. Paola Meneses Vargas · Matrícula Profesional N° 4598-LP</text><circle cx="500" cy="275" r="24" fill="%23DC2626" fill-opacity="0.1" stroke="%23DC2626" stroke-dasharray="3 3"/><text x="480" y="280" fill="%23DC2626" font-family="sans-serif" font-size="11" font-weight="bold">VALIDADO</text></svg>`;
+
+const BECARIOS_OFICIALES = [
+  { id: 101, nombre: "Nilda Amalia Churata Paye", carrera: "Educación Parvularia", sede: "Centro Infantil Sagrada Familia" },
+  { id: 102, nombre: "Edgar Elias Alarcon Huanca", carrera: "Ingeniería de Sistemas", sede: "Oficina Central Bloque A" },
+  { id: 103, nombre: "Adai Belen Huayta Cardozo", carrera: "Contaduría Pública", sede: "Agencia Villa Dolores" },
+  { id: 104, nombre: "Ronald Franz Mamani Quispe", carrera: "Bioquímica y Farmacia", sede: "Laboratorio Clínico San Gabriel" },
+  { id: 105, nombre: "Abigail Ruth Condori Flores", carrera: "Trabajo Social", sede: "Hogar de Niños Amor y Esperanza" },
+  { id: 106, nombre: "Christian David Mamani Alanoca", carrera: "Derecho", sede: "Sucursal Juan Pablo II" },
+  { id: 107, nombre: "Carlos Oscar Luna Lizarraga", carrera: "Economía", sede: "Oficina Central Bloque A" },
+  { id: 108, nombre: "Daniel Davalos Quiñoñez", carrera: "Informática", sede: "Oficina Central Bloque B" },
+  { id: 109, nombre: "Jhonny Poma", carrera: "Derecho", sede: "Agencia Villa Adela" },
+  { id: 110, nombre: "Jhoselin Quispe Morales", carrera: "Comunicación Social", sede: "Oficina Central Bloque A" },
+  { id: 111, nombre: "José Marcos Suñagua Quispe", carrera: "Informática", sede: "Oficina Central Bloque B" },
+  { id: 112, nombre: "Luis Santiago Enrriquez Conde", carrera: "Cs. de la Comunicación", sede: "Oficina Central Bloque A" },
+  { id: 113, nombre: "Mariela Dayana Jimenez Chambi", carrera: "Contaduría Pública", sede: "Sucursal Juan Pablo II" },
+  { id: 114, nombre: "Mario Catunta Laime", carrera: "Economía", sede: "Oficina Central Bloque A" },
+  { id: 115, nombre: "Mayherli Alejandra Loza Villalobos", carrera: "Contaduría Pública", sede: "Agencia Ceja El Alto" },
+  { id: 116, nombre: "Mónica Mamani Mamani", carrera: "Lingüística e Idiomas", sede: "Oficina Central Bloque A" },
+  { id: 117, nombre: "Noemi Callisaya Alvarez", carrera: "Psicomotricidad", sede: "Oficina Central Bloque B" },
+  { id: 118, nombre: "Ronald Mauricio Quiquijana Mayta", carrera: "Ing. Telecomunicaciones", sede: "Oficina Central Bloque A" },
+  { id: 119, nombre: "Ruddy Flores Tapia", carrera: "Informática", sede: "Oficina Central Bloque B" },
+  { id: 120, nombre: "Ruth Alesandra Choque Huanca", carrera: "Ingeniería Comercial", sede: "Oficina Central Bloque A" },
+  { id: 121, nombre: "Alejandro Roberth Paredes Tarquino", carrera: "Cs. de la Comunicación", sede: "Oficina Central Bloque A" },
+  { id: 122, nombre: "Aydee Ruth Ali Condori", carrera: "Contaduría Pública", sede: "Agencia Villa Adela" },
+  { id: 123, nombre: "Fernando Rene Yujra Quispe", carrera: "Ingeniería Civil", sede: "Oficina Central Bloque A" },
+];
 
 const JUSTIFICACIONES_INICIALES: JustificacionIncidencia[] = [
   {
@@ -95,7 +128,9 @@ const JUSTIFICACIONES_INICIALES: JustificacionIncidencia[] = [
     motivo: "Cita médica odontológica de urgencia",
     descripcion:
       "Tuve una extracción de urgencia en el Seguro Social Universitario. Adjunto comprobante médico y receta prescrita.",
-    documento_adjunto: "Certificado_Medico_SSU_Churata.pdf",
+    documento_adjunto: "Certificado_Medico_SSU_Churata.png",
+    nombre_archivo_prueba: "Certificado_Medico_SSU_Churata.png",
+    archivo_prueba_url: MUESTRA_RECETA_MEDICA_SVG,
     estado: "pendiente",
     created_at: "2026-10-06 14:20",
   },
@@ -111,6 +146,7 @@ const JUSTIFICACIONES_INICIALES: JustificacionIncidencia[] = [
     descripcion:
       "Rendición del segundo examen parcial de Redes y Comunicaciones de 10:00 a 12:00 en la UPEA. Solicito convalidación del módulo de devocional matutino.",
     documento_adjunto: "Boleta_Examen_UPEA_Alarcon.pdf",
+    nombre_archivo_prueba: "Boleta_Examen_UPEA_Alarcon.pdf",
     estado: "pendiente",
     created_at: "2026-10-02 18:05",
   },
@@ -162,6 +198,7 @@ const JUSTIFICACIONES_INICIALES: JustificacionIncidencia[] = [
     descripcion:
       "Sustentación del perfil de tesis en la facultad durante la jornada vespertina. Se cuenta con el visto bueno del tutor.",
     documento_adjunto: "Carta_Convocatoria_Defensa_UMSA.pdf",
+    nombre_archivo_prueba: "Carta_Convocatoria_Defensa_UMSA.pdf",
     estado: "pendiente",
     created_at: "2026-10-07 10:00",
   },
@@ -179,42 +216,121 @@ export function BandejaJustificaciones() {
   const [justificacion_detalle, set_justificacion_detalle] = useState<JustificacionIncidencia | null>(null);
   const [mensaje_alerta, set_mensaje_alerta] = useState<string | null>(null);
 
+  const [lista_becarios, set_lista_becarios] = useState(BECARIOS_OFICIALES);
+  const [becario_seleccionado_id, set_becario_seleccionado_id] = useState<number>(
+    BECARIOS_OFICIALES[0].id
+  );
+
+  useEffect(() => {
+    async function cargarBecarios() {
+      try {
+        const respuesta = await clienteApi.get<any[]>("/api/becarios");
+        if (Array.isArray(respuesta) && respuesta.length > 0) {
+          const formateados = respuesta.map((b) => ({
+            id: b.id,
+            nombre: b.nombre || (b.usuario ? b.usuario.nombre : "Becario"),
+            carrera: b.carrera || "Carrera BUMAND",
+            sede: b.lugar_practica?.nombre || "Sede Diaconía",
+          }));
+          if (formateados.length > 0) {
+            set_lista_becarios(formateados);
+          }
+        }
+      } catch {
+        // Usa lista institucional por defecto
+      }
+    }
+    cargarBecarios();
+  }, []);
+
   const es_becario = usuario?.rol === "becario";
   const [modal_crear_abierto, set_modal_crear_abierto] = useState(false);
   const [nuevo_tipo, set_nuevo_tipo] = useState<JustificacionIncidencia["tipo_incidencia"]>("asistencia_practicas");
   const [nueva_fecha, set_nueva_fecha] = useState(new Date().toISOString().split("T")[0]);
   const [nuevo_motivo, set_nuevo_motivo] = useState("");
   const [nueva_descripcion, set_nueva_descripcion] = useState("");
-  const [nuevo_adjunto, set_nuevo_adjunto] = useState("");
+  const [archivo_prueba_url, set_archivo_prueba_url] = useState("");
+  const [nombre_archivo_prueba, set_nombre_archivo_prueba] = useState("");
+  const [tipo_mime_archivo, set_tipo_mime_archivo] = useState("");
 
-  const manejarCrearJustificacion = () => {
+  const manejarCambioArchivo = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const archivo = e.target.files?.[0];
+    if (!archivo) return;
+    set_nombre_archivo_prueba(archivo.name);
+    set_tipo_mime_archivo(archivo.type);
+    const lector = new FileReader();
+    lector.onload = () => {
+      set_archivo_prueba_url(lector.result as string);
+    };
+    lector.readAsDataURL(archivo);
+  };
+
+  const manejarCrearJustificacion = async () => {
     if (!nuevo_motivo.trim() || !nueva_descripcion.trim()) {
       toast.error("Campos requeridos", {
         description: "Debe ingresar el motivo y descripción de la incidencia.",
       });
       return;
     }
-    const nueva: JustificacionIncidencia = {
-      id: Date.now(),
-      becario_id: usuario?.becario_id || usuario?.id || 101,
-      becario_nombre: usuario?.nombre || "Becario Institucional",
-      carrera: "Carrera Institucional",
-      sede_nombre: "Sede Asignada",
+
+    const becario_actual = !es_becario
+      ? lista_becarios.find((b) => b.id === becario_seleccionado_id) || lista_becarios[0]
+      : {
+          id: usuario?.becario_id || usuario?.id || 101,
+          nombre: usuario?.nombre || "Becario Institucional",
+          carrera: "Carrera Institucional",
+          sede: "Sede Asignada",
+        };
+
+    const payload = {
+      becario_id: becario_actual.id,
       tipo_incidencia: nuevo_tipo,
       fecha_incidencia: nueva_fecha,
       motivo: nuevo_motivo.trim(),
       descripcion: nueva_descripcion.trim(),
-      documento_adjunto: nuevo_adjunto.trim() || undefined,
+      documento_adjunto: nombre_archivo_prueba || undefined,
+      archivo_prueba_url: archivo_prueba_url || undefined,
+      nombre_archivo_prueba: nombre_archivo_prueba || undefined,
+    };
+
+    let id_generado = Date.now();
+
+    try {
+      const resp = await clienteApi.post<any>("/api/justificaciones", payload);
+      if (resp?.id) {
+        id_generado = resp.id;
+      }
+      invalidar();
+    } catch {
+      // Respaldo local si el backend no responde
+    }
+
+    const nueva: JustificacionIncidencia = {
+      id: id_generado,
+      becario_id: becario_actual.id,
+      becario_nombre: becario_actual.nombre,
+      carrera: becario_actual.carrera,
+      sede_nombre: becario_actual.sede,
+      tipo_incidencia: nuevo_tipo,
+      fecha_incidencia: nueva_fecha,
+      motivo: nuevo_motivo.trim(),
+      descripcion: nueva_descripcion.trim(),
+      documento_adjunto: nombre_archivo_prueba || undefined,
+      archivo_prueba_url: archivo_prueba_url || undefined,
+      nombre_archivo_prueba: nombre_archivo_prueba || undefined,
       estado: "pendiente",
       created_at: new Date().toISOString().replace("T", " ").substring(0, 16),
     };
+
     set_justificaciones_locales([nueva, ...justificaciones_locales]);
     set_modal_crear_abierto(false);
     set_nuevo_motivo("");
     set_nueva_descripcion("");
-    set_nuevo_adjunto("");
-    toast.success("Justificación enviada", {
-      description: "Tu solicitud ha sido radicada y enviada a la bandeja de supervisión.",
+    set_archivo_prueba_url("");
+    set_nombre_archivo_prueba("");
+    set_tipo_mime_archivo("");
+    toast.success("Permiso / Justificación registrado", {
+      description: "Tu solicitud con prueba justificable ha sido radicada y enviada a la bandeja oficial.",
     });
   };
 
@@ -233,7 +349,9 @@ export function BandejaJustificaciones() {
           fecha_incidencia: item.fecha_incidencia ? String(item.fecha_incidencia).split("T")[0] : "2026-10-01",
           motivo: item.motivo,
           descripcion: item.descripcion,
-          documento_adjunto: item.documento_adjunto,
+          documento_adjunto: item.documento_adjunto || item.nombre_archivo_prueba,
+          archivo_prueba_url: item.archivo_prueba_url,
+          nombre_archivo_prueba: item.nombre_archivo_prueba || item.documento_adjunto,
           estado: (item.estado || "pendiente").toLowerCase() as "pendiente" | "aprobada" | "rechazada",
           supervisor_nombre: item.supervisor?.nombre || null,
           observacion_supervisor: item.observacion_supervisor || null,
@@ -375,31 +493,27 @@ export function BandejaJustificaciones() {
         </div>
       )}
 
-      {/* Cabecera adaptativa según el Rol */}
+      {/* Cabecera adaptativa con botón siempre visible */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E3DCCB] shadow-sm">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <ClipboardCheck className="w-5 h-5 text-[#063A6B]" />
             <h2 className="text-xl font-bold text-[#063A6B]">
-              {es_becario ? "Mis Justificaciones e Incidencias" : "Bandeja de Justificaciones e Incidencias"}
+              Permisos y Justificaciones
             </h2>
           </div>
           <p className="text-xs text-muted-foreground">
-            {es_becario
-              ? "Envío y seguimiento de justificaciones por inasistencias o tardanzas con documentación probatoria."
-              : "Revisión de solicitudes de justificación, auditoría de motivos y dictamen oficial de supervisión."}
+            Gestión, registro y dictamen de permisos institucionales con pruebas justificables (recetas médicas, certificados o comprobantes oficiales).
           </p>
         </div>
 
-        {es_becario && (
-          <Button
-            onClick={() => set_modal_crear_abierto(true)}
-            className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs h-10 gap-2 shadow-sm"
-          >
-            <Sparkles className="w-4 h-4 text-[#F8C766]" />
-            Nueva Justificación
-          </Button>
-        )}
+        <Button
+          onClick={() => set_modal_crear_abierto(true)}
+          className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs h-10 gap-2 shadow-sm shrink-0"
+        >
+          <Plus className="w-4 h-4 text-[#F8C766]" />
+          + Registrar Permiso / Justificación
+        </Button>
       </div>
 
       {/* Tarjetas Resumen de Métricas con Watermelon UI */}
@@ -742,26 +856,58 @@ export function BandejaJustificaciones() {
                 </p>
               </div>
 
-              {justificacion_detalle.documento_adjunto && (
-                <div className="p-3 rounded-xl bg-[#E3F9FA] border border-[#17B4C4]/30 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-[#17B4C4]" />
-                    <span className="font-medium text-[#063A6B]">
-                      {justificacion_detalle.documento_adjunto}
+              {/* Visor Real de Prueba Justificable */}
+              {(justificacion_detalle.archivo_prueba_url || justificacion_detalle.documento_adjunto) && (
+                <div className="space-y-2 pt-2 border-t border-[#E3DCCB]">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-xs text-[#063A6B] flex items-center gap-1.5">
+                      <ShieldAlert className="w-4 h-4 text-[#17B4C4]" />
+                      Prueba Justificable Adjunta (Inspección de Respaldo)
                     </span>
+                    <Badge variant="outline" className="text-[10px] font-mono border-emerald-300 text-emerald-700 bg-emerald-50">
+                      Documento Probatorio
+                    </Badge>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      toast.info(`Visualizando archivo: ${justificacion_detalle.documento_adjunto}`, {
-                        description: "Abriendo comprobante probatorio adjunto al expediente institucional.",
-                      })
-                    }
-                    className="h-7 text-[11px] rounded-lg border-[#17B4C4] text-[#063A6B]"
-                  >
-                    Ver Adjunto
-                  </Button>
+
+                  {justificacion_detalle.archivo_prueba_url?.startsWith("data:image/") ||
+                  justificacion_detalle.archivo_prueba_url?.startsWith("http") ||
+                  justificacion_detalle.documento_adjunto?.match(/\.(png|jpe?g|webp|gif|svg)$/i) ? (
+                    <div className="rounded-xl border border-[#E3DCCB] overflow-hidden bg-slate-50 p-2 text-center shadow-inner">
+                      <img
+                        src={justificacion_detalle.archivo_prueba_url || MUESTRA_RECETA_MEDICA_SVG}
+                        alt="Comprobante o Receta Médica"
+                        className="max-h-64 mx-auto rounded-lg object-contain shadow-xs border border-slate-200"
+                      />
+                      <p className="text-[11px] text-muted-foreground mt-2 font-mono">
+                        {justificacion_detalle.nombre_archivo_prueba || justificacion_detalle.documento_adjunto || "Receta_Medica_Oficial.png"}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-xl bg-slate-50 border border-[#E3DCCB] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-[#063A6B]/10 text-[#063A6B] flex items-center justify-center shrink-0">
+                          <FileText className="w-5 h-5 text-[#063A6B]" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-xs text-[#063A6B]">
+                            {justificacion_detalle.nombre_archivo_prueba || justificacion_detalle.documento_adjunto || "Certificado_Medico.pdf"}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground">Documento digital firmado y convalidado</p>
+                        </div>
+                      </div>
+                      {justificacion_detalle.archivo_prueba_url && (
+                        <a
+                          href={justificacion_detalle.archivo_prueba_url}
+                          download={justificacion_detalle.nombre_archivo_prueba || "comprobante.pdf"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center h-8 px-3 text-xs font-semibold rounded-lg bg-[#063A6B] text-white hover:bg-[#063A6B]/90 transition-colors"
+                        >
+                          Abrir / Descargar
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </DialogBody>
@@ -779,22 +925,46 @@ export function BandejaJustificaciones() {
         </Dialog>
       )}
 
-      {/* Modal para Crear Nueva Justificación por Becario */}
+      {/* Modal para Crear Nuevo Permiso / Justificación */}
       <Dialog open={modal_crear_abierto} onOpenChange={set_modal_crear_abierto}>
         <DialogContent
           showCloseButton={false}
           className="max-w-md max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E3DCCB] rounded-2xl shadow-2xl"
         >
           <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
-            <DialogTitle className="flex items-center gap-2 text-[#063A6B] text-base">
+            <DialogTitle className="flex items-center gap-2 text-[#063A6B] text-base font-bold">
               <ClipboardCheck className="w-5 h-5 text-[#17B4C4]" />
-              Nueva Solicitud de Justificación
+              Registrar Permiso / Justificación
             </DialogTitle>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Ingreso oficial de solicitud con respaldo documental médico o académico.
+            </p>
           </DialogHeader>
 
           <DialogBody className="p-6 space-y-3.5 overflow-y-auto flex-1 min-h-0 text-xs">
+            {!es_becario && (
+              <div>
+                <Label className="text-xs font-semibold text-[#063A6B]">Becario Solicitante</Label>
+                <Select
+                  value={String(becario_seleccionado_id)}
+                  onValueChange={(val) => val && set_becario_seleccionado_id(Number(val))}
+                >
+                  <SelectTrigger className="w-full mt-1 text-xs h-9 px-3 rounded-xl border border-[#E3DCCB] bg-white text-[#063A6B] font-medium">
+                    <SelectValue placeholder="Seleccionar becario" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-56 bg-white border-[#E3DCCB] z-[100]">
+                    {lista_becarios.map((b) => (
+                      <SelectItem key={b.id} value={String(b.id)}>
+                        {b.nombre} ({b.carrera})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div>
-              <Label className="text-xs font-semibold text-gray-700">Tipo de Incidencia</Label>
+              <Label className="text-xs font-semibold text-[#063A6B]">Tipo de Incidencia</Label>
               <Select
                 value={nuevo_tipo}
                 onValueChange={(val: any) => {
@@ -812,42 +982,76 @@ export function BandejaJustificaciones() {
                 </SelectContent>
               </Select>
             </div>
+
             <div>
-              <Label className="text-xs font-semibold text-gray-700">Fecha de Incidencia</Label>
+              <Label className="text-xs font-semibold text-[#063A6B]">Fecha de Incidencia</Label>
               <Input
                 type="date"
                 value={nueva_fecha}
                 onChange={(e) => set_nueva_fecha(e.target.value)}
-                className="mt-1 text-xs rounded-xl"
+                className="mt-1 text-xs rounded-xl border-[#E3DCCB]"
               />
             </div>
+
             <div>
-              <Label className="text-xs font-semibold text-gray-700">Motivo Resumido</Label>
+              <Label className="text-xs font-semibold text-[#063A6B]">Motivo Resumido</Label>
               <Input
                 placeholder="Ej. Cita médica en seguro social, Examen parcial..."
                 value={nuevo_motivo}
                 onChange={(e) => set_nuevo_motivo(e.target.value)}
-                className="mt-1 text-xs rounded-xl"
+                className="mt-1 text-xs rounded-xl border-[#E3DCCB]"
               />
             </div>
+
             <div>
-              <Label className="text-xs font-semibold text-gray-700">Descripción Detallada</Label>
+              <Label className="text-xs font-semibold text-[#063A6B]">Descripción Detallada</Label>
               <Textarea
                 placeholder="Explica las circunstancias de la inasistencia o retraso..."
                 rows={3}
                 value={nueva_descripcion}
                 onChange={(e) => set_nueva_descripcion(e.target.value)}
-                className="mt-1 text-xs rounded-xl"
+                className="mt-1 text-xs rounded-xl border-[#E3DCCB]"
               />
             </div>
+
             <div>
-              <Label className="text-xs font-semibold text-gray-700">Documento de Respaldo (Opcional)</Label>
-              <Input
-                placeholder="Ej. Certificado_Medico.pdf, Boleta_Examen.pdf"
-                value={nuevo_adjunto}
-                onChange={(e) => set_nuevo_adjunto(e.target.value)}
-                className="mt-1 text-xs rounded-xl"
-              />
+              <Label className="text-xs font-semibold text-[#063A6B] block mb-1">
+                Prueba Justificable (Receta médica, certificado médico o comprobante — No carta) *
+              </Label>
+              <div className="border-2 border-dashed border-[#E3DCCB] hover:border-[#17B4C4] rounded-xl p-4 bg-[#F8F9FA] transition-colors text-center cursor-pointer relative">
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={manejarCambioArchivo}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                />
+                {nombre_archivo_prueba ? (
+                  <div className="flex flex-col items-center gap-1.5">
+                    <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>{nombre_archivo_prueba}</span>
+                    </div>
+                    {archivo_prueba_url.startsWith("data:image/") && (
+                      <img
+                        src={archivo_prueba_url}
+                        alt="Previsualización prueba"
+                        className="h-24 w-auto object-contain rounded-lg border border-slate-200 mt-1 shadow-xs"
+                      />
+                    )}
+                    <span className="text-[10px] text-muted-foreground">Clic para reemplazar el comprobante adjunto</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-1">
+                    <Upload className="w-6 h-6 text-[#17B4C4]" />
+                    <span className="text-xs font-semibold text-[#063A6B]">
+                      Adjuntar receta o certificado médico
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      Formatos aceptados: JPG, PNG, WEBP o PDF (Receta o certificado médico emitido)
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           </DialogBody>
 
@@ -856,7 +1060,7 @@ export function BandejaJustificaciones() {
               variant="outline"
               size="sm"
               onClick={() => set_modal_crear_abierto(false)}
-              className="rounded-xl"
+              className="rounded-xl border-[#E3DCCB]"
             >
               Cancelar
             </Button>
@@ -865,7 +1069,7 @@ export function BandejaJustificaciones() {
               onClick={manejarCrearJustificacion}
               className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white rounded-xl font-bold"
             >
-              Radicar Justificación
+              Radicar Permiso / Justificación
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -26,8 +26,15 @@ import {
   Lock,
   Layers,
   Info,
+  Trash2,
+  KeyRound,
+  Sparkles,
 } from "lucide-react";
+import { VisorGoogleMapsGeocerca } from "./visor-google-maps-geocerca";
+import { SelectorUbicacionGoogleMaps } from "./selector-ubicacion-google-maps";
+import { useGoogleMaps } from "@/hooks/use-google-maps";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
+import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
 import { toast } from "sonner";
 
 export interface BloqueSede {
@@ -141,6 +148,11 @@ export function MapaLugaresPractica() {
   const [radio_editado, set_radio_editado] = useState(SEDES_INICIALES[0].radio_tolerancia_m);
   const [modal_abierto, set_modal_abierto] = useState(false);
 
+  // Integración de Google Maps API (SDK y clave)
+  const { clave_api, guardarClaveApi } = useGoogleMaps();
+  const [modal_clave_abierto, set_modal_clave_abierto] = useState(false);
+  const [clave_input, set_clave_input] = useState(clave_api);
+
   // Formulario nueva sede
   const [nombre_sede, set_nombre_sede] = useState("");
   const [dir_sede, set_dir_sede] = useState("");
@@ -148,6 +160,28 @@ export function MapaLugaresPractica() {
   const [lng_nueva, set_lng_nueva] = useState("-68.170000");
   const [radio_nuevo, set_radio_nuevo] = useState("80");
   const [incluir_bloque_b, set_incluir_bloque_b] = useState(true);
+
+  const {
+    confirmarCierreSinCompletar,
+    confirmarEliminacionRegistro,
+    DialogoConfirmacionInstitucional,
+  } = useConfirmacionDialogo();
+
+  const tiene_cambios_sede =
+    nombre_sede.trim() !== "" ||
+    dir_sede.trim() !== "";
+
+  const intentarCerrarModalSede = () => {
+    confirmarCierreSinCompletar(
+      tiene_cambios_sede,
+      () => {
+        set_modal_abierto(false);
+        set_nombre_sede("");
+        set_dir_sede("");
+      },
+      "Registro de Sede y Geocerca"
+    );
+  };
 
   const manejarSeleccionarSede = (sede: SedePractica) => {
     set_sede_seleccionada(sede);
@@ -239,7 +273,13 @@ export function MapaLugaresPractica() {
             </div>
 
             {es_admin ? (
-              <Dialog open={modal_abierto} onOpenChange={set_modal_abierto}>
+              <Dialog
+                open={modal_abierto}
+                onOpenChange={(ab) => {
+                  if (!ab) intentarCerrarModalSede();
+                  else set_modal_abierto(true);
+                }}
+              >
                 {/* @ts-ignore */}
                 <DialogTrigger asChild>
                   <Button
@@ -252,7 +292,7 @@ export function MapaLugaresPractica() {
                 </DialogTrigger>
                 <DialogContent
                   showCloseButton={false}
-                  className="sm:max-w-[460px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white rounded-2xl border-[#E3DCCB] shadow-2xl"
+                  className="sm:max-w-[560px] max-h-[92vh] flex flex-col p-0 overflow-hidden bg-white rounded-2xl border-[#E3DCCB] shadow-2xl"
                 >
                   <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
                     <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
@@ -283,6 +323,18 @@ export function MapaLugaresPractica() {
                           className="h-9 border-[#E3DCCB]"
                         />
                       </div>
+
+                      {/* Selector interactivo con Google Maps API dentro del Dialog */}
+                      <SelectorUbicacionGoogleMaps
+                        latitud={parseFloat(lat_nueva) || -16.500053}
+                        longitud={parseFloat(lng_nueva) || -68.173455}
+                        radio_tolerancia_m={parseInt(radio_nuevo, 10) || 80}
+                        alCambiarUbicacion={(lat, lng) => {
+                          set_lat_nueva(lat.toFixed(6));
+                          set_lng_nueva(lng.toFixed(6));
+                        }}
+                      />
+
                       <div className="grid grid-cols-2 gap-2">
                         <div className="space-y-1">
                           <Label className="text-xs font-semibold">Latitud WGS84</Label>
@@ -335,7 +387,7 @@ export function MapaLugaresPractica() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => set_modal_abierto(false)}
+                        onClick={intentarCerrarModalSede}
                         className="h-9 border-[#E3DCCB] rounded-xl hover:bg-slate-100"
                       >
                         Cancelar
@@ -374,9 +426,37 @@ export function MapaLugaresPractica() {
                   <h4 className="text-sm font-bold text-[#063A6B]">{s.nombre}</h4>
                   <p className="text-xs text-muted-foreground mt-0.5">{s.direccion}</p>
                 </div>
-                <Badge variant="outline" className="font-mono text-[10px] border-[#E3DCCB] text-[#063A6B]">
-                  {s.radio_tolerancia_m} m
-                </Badge>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Badge variant="outline" className="font-mono text-[10px] border-[#E3DCCB] text-[#063A6B]">
+                    {s.radio_tolerancia_m} m
+                  </Badge>
+                  {es_admin && sedes.length > 1 && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        confirmarEliminacionRegistro({
+                          titulo: "¿Eliminar sede institucional?",
+                          descripcion: `¿Está seguro de eliminar la sede "${s.nombre}" (${s.direccion}) y sus geocercas asociadas?`,
+                          nombre_item: s.nombre,
+                          onConfirmar: () => {
+                            const nuevas = sedes.filter((item) => item.id !== s.id);
+                            set_sedes(nuevas);
+                            if (sede_seleccionada.id === s.id && nuevas.length > 0) {
+                              manejarSeleccionarSede(nuevas[0]);
+                            }
+                          },
+                          mensaje_exito: `Sede "${s.nombre}" eliminada exitosamente`,
+                        });
+                      }}
+                      className="h-6 w-6 p-0 text-[#E2694B] hover:text-[#c9573b] hover:bg-rose-50 rounded-lg text-xs"
+                      title="Eliminar sede"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
+                </div>
               </div>
 
               {/* Lista compacta de bloques de la sede */}
@@ -450,47 +530,14 @@ export function MapaLugaresPractica() {
         </CardHeader>
 
         <CardContent className="p-6 flex-1 flex flex-col gap-6">
-          {/* Visualizador de Radar / Geocerca */}
-          <div className="relative w-full h-64 bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center border border-[#E3DCCB]">
-            {/* Grilla de radar */}
-            <div className="absolute inset-0 bg-[radial-gradient(#17B4C4_1px,transparent_1px)] [background-size:24px_24px] opacity-20" />
-
-            {/* Círculo concéntrico exterior (Radio) */}
-            <div
-              className="absolute rounded-full border-2 border-[#17B4C4] bg-[#17B4C4]/15 transition-all duration-300 animate-pulse"
-              style={{
-                width: `${Math.min(radio_editado * 2.2, 230)}px`,
-                height: `${Math.min(radio_editado * 2.2, 230)}px`,
-              }}
-            />
-
-            {/* Círculo medio */}
-            <div
-              className="absolute rounded-full border border-dashed border-[#F8C766]/60"
-              style={{
-                width: `${Math.min(radio_editado * 1.4, 150)}px`,
-                height: `${Math.min(radio_editado * 1.4, 150)}px`,
-              }}
-            />
-
-            {/* Marcador central del Bloque activo */}
-            <div className="relative z-10 flex flex-col items-center">
-              <div className="w-10 h-10 rounded-full bg-[#063A6B] border-2 border-white shadow-lg flex items-center justify-center text-white">
-                <MapPin className="w-5 h-5 text-[#F8C766]" />
-              </div>
-              <span className="mt-1 px-2 py-0.5 bg-black/75 text-white text-[10px] font-mono rounded backdrop-blur-sm">
-                {bloque_activo.nombre}: {bloque_activo.latitud.toFixed(6)}, {bloque_activo.longitud.toFixed(6)}
-              </span>
-            </div>
-
-            {/* Simulación de punto de becario */}
-            <div className="absolute top-12 right-20 flex items-center gap-1 z-10">
-              <div className="w-3 h-3 rounded-full bg-emerald-400 ring-4 ring-emerald-400/30" />
-              <span className="text-[10px] font-mono text-emerald-300 bg-black/60 px-1.5 py-0.5 rounded">
-                GPS Becario (En rango de Bloque)
-              </span>
-            </div>
-          </div>
+          {/* Visor interactivo oficial de Google Maps API con Geocerca satelital */}
+          <VisorGoogleMapsGeocerca
+            sede={sede_seleccionada}
+            bloque_activo={bloque_activo}
+            radio_tolerancia_m={radio_editado}
+            alSeleccionarBloque={(blq) => set_bloque_activo(blq)}
+            alAbrirAjusteClave={() => set_modal_clave_abierto(true)}
+          />
 
           {/* Controles de Ajuste de Geocerca (Solo editable por Administrador) */}
           <div className="p-4 bg-muted/30 rounded-xl border border-[#E3DCCB]/60 space-y-4">
@@ -556,6 +603,77 @@ export function MapaLugaresPractica() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modal de Configuración de Clave API de Google Maps */}
+      <Dialog open={modal_clave_abierto} onOpenChange={set_modal_clave_abierto}>
+        <DialogContent className="sm:max-w-[460px] p-0 overflow-hidden bg-white rounded-2xl border-[#E3DCCB] shadow-2xl">
+          <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] bg-slate-50">
+            <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
+              <KeyRound className="w-5 h-5 text-[#17B4C4]" />
+              Configuración de Google Maps API Key
+            </DialogTitle>
+            <CardDescription className="text-xs text-muted-foreground">
+              Integración geodésica satelital para validación biométrica de sedes y bloques.
+            </CardDescription>
+          </DialogHeader>
+
+          <DialogBody className="p-6 space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-[#122029]">
+                Google Maps API Key (JavaScript API)
+              </Label>
+              <Input
+                placeholder="AIzaSy..."
+                value={clave_input}
+                onChange={(e) => set_clave_input(e.target.value)}
+                className="h-10 font-mono text-xs border-[#E3DCCB]"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Puede configurarse de forma permanente en la variable de entorno{" "}
+                <code className="text-[#063A6B] font-bold">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code>{" "}
+                de su archivo <code>.env.local</code>.
+              </p>
+            </div>
+
+            <div className="p-3 bg-blue-50/60 border border-blue-200 rounded-xl text-xs text-blue-900 space-y-1">
+              <p className="font-semibold flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#17B4C4]" />
+                Modo de Desarrollo y Evaluación
+              </p>
+              <p className="text-[11px] text-blue-800">
+                Si deja este campo vacío, Google Maps funcionará en modo de evaluación/desarrollo local. Para producción institucional, asigne su clave con los servicios <em>Maps JavaScript API</em> y <em>Places API</em> habilitados en Google Cloud Console.
+              </p>
+            </div>
+          </DialogBody>
+
+          <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-slate-50 flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => set_modal_clave_abierto(false)}
+              className="h-9 border-[#E3DCCB] rounded-xl text-xs"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => {
+                guardarClaveApi(clave_input);
+                set_modal_clave_abierto(false);
+                toast.success("Clave de Google Maps actualizada.");
+              }}
+              className="h-9 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs shadow-sm"
+            >
+              Guardar Clave
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de Confirmación Institucional */}
+      {DialogoConfirmacionInstitucional}
     </div>
   );
 }

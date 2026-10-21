@@ -13,11 +13,19 @@ import {
   AlertCircle,
   FileCheck,
   Plus,
+  Coins,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   TarjetaSpotlight,
   ContadorRodilloAnimado,
@@ -31,7 +39,7 @@ interface RegistroJornadaBecario {
   id: number;
   fecha: string;
   dia_semana: string;
-  tipo: "practicas" | "escuela_lideres" | "evento";
+  tipo: "practicas" | "escuela_lideres" | "acciones_servicio" | "evento";
   hora_ingreso: string;
   hora_salida: string | null;
   horas_computadas: number;
@@ -124,8 +132,17 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
   const [dialogo_marcacion_abierto, set_dialogo_marcacion_abierto] = useState(false);
   const [jornadas] = useState<RegistroJornadaBecario[]>(JORNADAS_INICIALES);
 
-  const horas_acumuladas = 64.5;
-  const horas_meta = 80.0;
+  const [mes_seleccionado, set_mes_seleccionado] = useState<string>("2026-10");
+
+  const horas_por_mes = [
+    { mes: "Octubre 2026", clave: "2026-10", horas: 38.5, meta: 40.0, dias: 10, estado: "en_progreso" },
+    { mes: "Septiembre 2026", clave: "2026-09", horas: 42.0, meta: 40.0, dias: 11, estado: "cumplido" },
+    { mes: "Agosto 2026", clave: "2026-08", horas: 40.0, meta: 40.0, dias: 10, estado: "cumplido" },
+  ];
+
+  const mes_actual_datos = horas_por_mes.find((m) => m.clave === mes_seleccionado) || horas_por_mes[0];
+  const horas_acumuladas = mes_actual_datos.horas;
+  const horas_meta = mes_actual_datos.meta;
   const porcentaje_meta = Math.min(100, Math.round((horas_acumuladas / horas_meta) * 100));
 
   const abrirDialogo = () => {
@@ -146,18 +163,82 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
             <h2 className="text-xl font-bold text-[#063A6B]">Mis Horas de Práctica y Asistencia</h2>
           </div>
           <p className="text-xs text-muted-foreground">
-            Control de jornada diaria con geocercas satelitales WGS84 y acreditación diaconal.
+            Control de jornada diaria con geocercas satelitales WGS84 y registro mensual de horas.
           </p>
         </div>
 
-        <BotonJuicy
-          onClick={abrirDialogo}
-          variante="primario"
-          className="h-10 text-xs font-bold px-4 gap-2 shadow-sm rounded-xl shrink-0"
-        >
-          <Clock className="w-4 h-4" />
-          <span>Marcar Entrada / Salida GPS</span>
-        </BotonJuicy>
+        <div className="flex items-center gap-3">
+          <Select value={mes_seleccionado} onValueChange={(val) => val && set_mes_seleccionado(val)}>
+            <SelectTrigger className="text-xs h-10 px-3 rounded-xl border-[#E3DCCB] bg-slate-50 font-bold min-w-[170px]">
+              <SelectValue placeholder="Seleccionar mes" />
+            </SelectTrigger>
+            <SelectContent className="bg-white border-[#E3DCCB]">
+              <SelectItem value="2026-10">Octubre 2026 (Actual)</SelectItem>
+              <SelectItem value="2026-09">Septiembre 2026</SelectItem>
+              <SelectItem value="2026-08">Agosto 2026</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <BotonJuicy
+            onClick={abrirDialogo}
+            variante="primario"
+            className="h-10 text-xs font-bold px-4 gap-2 shadow-sm rounded-xl shrink-0"
+          >
+            <Clock className="w-4 h-4" />
+            <span>Marcar Entrada / Salida GPS</span>
+          </BotonJuicy>
+        </div>
+      </div>
+
+      {/* Banner Informativo Escala Oficial de Multas de Escuela de Líderes */}
+      <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+        <div className="flex items-center gap-2">
+          <Coins className="w-4 h-4 text-amber-600 shrink-0" />
+          <span className="text-amber-900 font-medium">
+            <strong>Escala de Multas de los Viernes (Escuela de Líderes):</strong> 1-10 min = 10 Bs · 11-30 min = 20 Bs · 31-60 min = 30 Bs · &gt;60 min = 50 Bs.
+          </span>
+        </div>
+        <Badge variant="outline" className="bg-white border-amber-300 text-amber-800 text-[10px] font-mono self-start sm:self-center shrink-0">
+          Vigente 2026
+        </Badge>
+      </div>
+
+      {/* Historial Comparativo de Horas Realizadas por Mes */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {horas_por_mes.map((h) => {
+          const es_seleccionado = h.clave === mes_seleccionado;
+          const avance = Math.min(100, Math.round((h.horas / h.meta) * 100));
+          return (
+            <div
+              key={h.clave}
+              onClick={() => set_mes_seleccionado(h.clave)}
+              className={`p-4 rounded-xl border transition-all cursor-pointer ${
+                es_seleccionado
+                  ? "bg-[#063A6B]/5 border-[#063A6B] ring-1 ring-[#063A6B]/20"
+                  : "bg-white border-[#E3DCCB] hover:border-slate-300"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="font-bold text-xs text-[#063A6B]">{h.mes}</span>
+                <Badge
+                  variant="outline"
+                  className={`text-[10px] font-mono font-bold ${
+                    h.estado === "cumplido"
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                      : "bg-amber-50 text-amber-700 border-amber-300"
+                  }`}
+                >
+                  {h.estado === "cumplido" ? "100% CUMPLIDO" : `${avance}% AVANCE`}
+                </Badge>
+              </div>
+              <div className="flex items-baseline justify-between text-xs font-mono">
+                <span className="font-bold text-sm text-[#063A6B]">{h.horas.toFixed(1)} hrs</span>
+                <span className="text-muted-foreground text-[11px]">Meta: {h.meta.toFixed(1)} hrs</span>
+              </div>
+              <Progress value={avance} className="h-1.5 mt-2 bg-slate-100" />
+            </div>
+          );
+        })}
       </div>
 
       {/* Tarjetas KPI de Progreso */}
@@ -281,7 +362,11 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
                         variant="outline"
                         className="text-[10px] uppercase font-mono px-1.5 py-0 border-[#E3DCCB]"
                       >
-                        {j.tipo === "escuela_lideres" ? "Escuela Líderes" : "Prácticas"}
+                        {j.tipo === "acciones_servicio"
+                          ? "Acciones Servicio"
+                          : j.tipo === "escuela_lideres"
+                          ? "Escuela Líderes"
+                          : "Prácticas"}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">

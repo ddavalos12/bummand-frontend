@@ -35,7 +35,7 @@ const COMANDOS_ADMIN: ComandoAccion[] = [
   { id: "asistencia", etiqueta: "Asistencia", icono: Clock },
   { id: "pasajes", etiqueta: "Pasajes", icono: Bus },
   { id: "devocionales", etiqueta: "Devocionales", icono: BookOpen },
-  { id: "evaluacion_360", etiqueta: "Evaluación 360°", icono: Award },
+  { id: "evaluaciones", etiqueta: "Matriz de Evaluación", icono: Award },
 ];
 
 interface BarraComandosFlotanteProps {

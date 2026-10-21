@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,16 @@ import {
   PenTool,
   RotateCcw,
   Sparkles,
+  Eye,
+  MapPin,
+  Route,
+  Navigation,
+  ArrowRight,
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Columns,
+  FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
@@ -55,6 +65,10 @@ export interface RecorridoItem {
   tarifa: number;
   apoyo_realizado: string;
   tiene_gps?: boolean;
+  calles_declaradas?: string;
+  medio_transporte?: string;
+  tipo_actividad?: string;
+  detalle_tramos_json?: string;
 }
 
 export interface SolicitudPasajeVista {
@@ -68,6 +82,7 @@ export interface SolicitudPasajeVista {
   responsable_mentor: string;
   apoyo_resumen: string;
   periodo: string;
+  tipo_actividad?: "Prácticas" | "Escuela de Líderes" | "Acciones de Servicio";
   monto_total_centavos: number;
   monto_devolucion_centavos: number;
   estado: "pendiente" | "aprobado" | "rechazado";
@@ -88,6 +103,7 @@ const SOLICITUDES_INICIALES: SolicitudPasajeVista[] = [
     responsable_mentor: "Carlos Alanoca",
     apoyo_resumen: "Envío de reportes de cartera y conciliación de extractos bancarios",
     periodo: "Marzo 2026",
+    tipo_actividad: "Prácticas",
     monto_total_centavos: 3500, // Bs 35.00
     monto_devolucion_centavos: 2800, // 80% = Bs 28.00
     estado: "pendiente",
@@ -97,81 +113,105 @@ const SOLICITUDES_INICIALES: SolicitudPasajeVista[] = [
         id: 1,
         fecha: "27-02",
         tramo: "ida",
-        origen: "Av. Buenos Aires",
-        destino: "Of. Central",
-        tarifa: 2.5,
-        apoyo_realizado: "Revisión de carpetas crediticias",
+        origen: "Ceja El Alto",
+        destino: "Oficina Central Diaconía",
+        tarifa: 3.5,
+        apoyo_realizado: "Revisión de carpetas crediticias e informes de mora",
         tiene_gps: true,
+        medio_transporte: "Minibús + Mi Teleférico Línea Roja",
+        tipo_actividad: "Prácticas",
+        calles_declaradas: "Ceja El Alto (Calle 1) → Av. Naciones Unidas → Mi Teleférico Línea Roja → Estación Central → Av. Mariscal Santa Cruz",
       },
       {
         id: 2,
-        fecha: "02-03",
-        tramo: "ida",
-        origen: "Av. Buenos Aires",
-        destino: "Of. Central - Av. Buenos Aires",
-        tarifa: 5.0,
-        apoyo_realizado: "Conciliación de saldos y caja",
+        fecha: "27-02",
+        tramo: "vuelta",
+        origen: "Oficina Central Diaconía",
+        destino: "Ceja El Alto",
+        tarifa: 3.5,
+        apoyo_realizado: "Retorno a domicilio tras cierre de jornada de prácticas",
         tiene_gps: true,
+        medio_transporte: "Mi Teleférico Línea Roja + Minibús",
+        tipo_actividad: "Prácticas",
+        calles_declaradas: "Av. Mariscal Santa Cruz → Estación Central → Mi Teleférico Línea Roja → Av. Naciones Unidas → Ceja El Alto",
       },
       {
         id: 3,
         fecha: "04-03",
         tramo: "ida",
         origen: "Av. Buenos Aires",
-        destino: "Of. Central - Av. Buenos Aires",
-        tarifa: 5.0,
-        apoyo_realizado: "Verificación de comprobantes",
+        destino: "Oficina Central Diaconía",
+        tarifa: 2.5,
+        apoyo_realizado: "Conciliación de saldos diarios y arqueo de caja",
         tiene_gps: true,
+        medio_transporte: "Minibús Urbano",
+        tipo_actividad: "Prácticas",
+        calles_declaradas: "Av. Buenos Aires (Plaza Garita de Lima) → Calle Max Paredes → Av. Tumusla → Plaza San Francisco → Of. Central",
       },
       {
         id: 4,
-        fecha: "06-03",
-        tramo: "ida",
-        origen: "Av. Buenos Aires",
-        destino: "Of. Central",
+        fecha: "04-03",
+        tramo: "vuelta",
+        origen: "Oficina Central Diaconía",
+        destino: "Av. Buenos Aires",
         tarifa: 2.5,
-        apoyo_realizado: "Apoyo en ventanilla de cobranzas",
+        apoyo_realizado: "Retorno institucional",
         tiene_gps: true,
+        medio_transporte: "Minibús Urbano",
+        tipo_actividad: "Prácticas",
+        calles_declaradas: "Of. Central → Plaza San Francisco → Av. Manco Kapac → Av. Buenos Aires",
       },
       {
         id: 5,
         fecha: "09-03",
         tramo: "ida",
-        origen: "Av. Buenos Aires",
-        destino: "Of. Central - Av. Buenos Aires",
-        tarifa: 5.0,
-        apoyo_realizado: "Digitalización de expedientes",
+        origen: "Ceja El Alto",
+        destino: "Oficina Central Diaconía",
+        tarifa: 3.5,
+        apoyo_realizado: "Digitalización de expedientes de créditos desembolsados",
         tiene_gps: true,
+        medio_transporte: "Mi Teleférico Línea Morada",
+        tipo_actividad: "Prácticas",
+        calles_declaradas: "Estación 6 de Marzo (Ceja) → Estación Faro Murillo → Mi Teleférico Línea Morada → Estación Obelisco → Calle Ayacucho",
       },
       {
         id: 6,
         fecha: "11-03",
         tramo: "ida",
         origen: "Av. Buenos Aires",
-        destino: "Of. Central - Av. Buenos Aires",
-        tarifa: 5.0,
-        apoyo_realizado: "Auditoría de cartera en mora",
+        destino: "Oficina Central Diaconía",
+        tarifa: 2.5,
+        apoyo_realizado: "Auditoría preliminar de cartera en mora y garantías",
         tiene_gps: true,
+        medio_transporte: "Minibús Urbano",
+        tipo_actividad: "Prácticas",
+        calles_declaradas: "Av. Buenos Aires (Cruce Landaeta) → Plaza Sucre (San Pedro) → Calle Colombia → Av. Camacho",
       },
       {
         id: 7,
         fecha: "16-03",
         tramo: "ida",
-        origen: "Av. Buenos Aires",
-        destino: "Of. Central - Av. Buenos Aires",
-        tarifa: 5.0,
-        apoyo_realizado: "Liquidación semanal de agencias",
+        origen: "Ceja El Alto",
+        destino: "Oficina Central Diaconía",
+        tarifa: 3.5,
+        apoyo_realizado: "Liquidación semanal y emisión de extractos de agencias",
         tiene_gps: true,
+        medio_transporte: "Minibús Interciudad",
+        tipo_actividad: "Prácticas",
+        calles_declaradas: "Ceja El Alto → Autopista La Paz-El Alto → Pérez Velasco → Mercado Lanza → Of. Central Bloque A",
       },
       {
         id: 8,
         fecha: "18-03",
         tramo: "ida",
         origen: "Av. Buenos Aires",
-        destino: "Of. Central - Av. Buenos Aires",
-        tarifa: 5.0,
-        apoyo_realizado: "Cierre de expedientes mensuales",
+        destino: "Oficina Central Diaconía",
+        tarifa: 2.5,
+        apoyo_realizado: "Cierre de expedientes mensuales y verificación contable",
         tiene_gps: true,
+        medio_transporte: "Minibús Urbano",
+        tipo_actividad: "Prácticas",
+        calles_declaradas: "Av. Buenos Aires → Calle Vicente Ochoa → Av. Illampu → Av. Montes → Edificio Central",
       },
     ],
   },
@@ -185,20 +225,51 @@ const SOLICITUDES_INICIALES: SolicitudPasajeVista[] = [
     responsable_mentor: "Lic. Edgar Nilda",
     apoyo_resumen: "Análisis de riesgo crediticio y evaluación de garantías",
     periodo: "Marzo 2026",
+    tipo_actividad: "Prácticas",
     monto_total_centavos: 7350, // Bs 73.50
     monto_devolucion_centavos: 5880, // 80% = Bs 58.80
     estado: "pendiente",
     fecha_envio: "2026-03-24",
     recorridos: [
-      { id: 11, fecha: "01-03", tramo: "ida", origen: "Villa Adela", destino: "Of. Central", tarifa: 3.5, apoyo_realizado: "Evaluación de mora", tiene_gps: true },
-      { id: 12, fecha: "03-03", tramo: "ida", origen: "Villa Adela", destino: "Of. Central - Villa Adela", tarifa: 7.0, apoyo_realizado: "Análisis de ratios", tiene_gps: true },
-      { id: 13, fecha: "05-03", tramo: "ida", origen: "Villa Adela", destino: "Of. Central - Villa Adela", tarifa: 7.0, apoyo_realizado: "Control de liquidez", tiene_gps: true },
-      { id: 14, fecha: "08-03", tramo: "ida", origen: "Villa Adela", destino: "Of. Central - Villa Adela", tarifa: 7.0, apoyo_realizado: "Matriz de contingencia", tiene_gps: true },
-      { id: 15, fecha: "10-03", tramo: "ida", origen: "Villa Adela", destino: "Of. Central - Villa Adela", tarifa: 7.0, apoyo_realizado: "Revisión ASFI", tiene_gps: true },
-      { id: 16, fecha: "12-03", tramo: "ida", origen: "Villa Adela", destino: "Of. Central - Villa Adela", tarifa: 7.0, apoyo_realizado: "Inspección de créditos", tiene_gps: true },
-      { id: 17, fecha: "15-03", tramo: "ida", origen: "Villa Adela", destino: "Of. Central - Villa Adela", tarifa: 7.0, apoyo_realizado: "Informes trimestrales", tiene_gps: true },
-      { id: 18, fecha: "17-03", tramo: "ida", origen: "Villa Adela", destino: "Of. Central - Villa Adela", tarifa: 7.0, apoyo_realizado: "Análisis de cartera pasiva", tiene_gps: true },
-      { id: 19, fecha: "19-03", tramo: "ida", origen: "Villa Adela", destino: "Of. Central", tarifa: 3.5, apoyo_realizado: "Cierre contable", tiene_gps: true },
+      {
+        id: 11,
+        fecha: "01-03",
+        tramo: "ida",
+        origen: "Villa Adela",
+        destino: "Oficina Central Diaconía",
+        tarifa: 3.5,
+        apoyo_realizado: "Evaluación de mora de cartera institucional",
+        tiene_gps: true,
+        medio_transporte: "Minibús Interciudad",
+        tipo_actividad: "Prácticas",
+        calles_declaradas: "Villa Adela (Plaza Principal) → Av. Bolivia → Cruce Viacha → Ceja El Alto → Autopista → Pérez Velasco",
+      },
+      {
+        id: 12,
+        fecha: "03-03",
+        tramo: "ida",
+        origen: "Villa Adela",
+        destino: "Oficina Central Diaconía",
+        tarifa: 3.5,
+        apoyo_realizado: "Análisis de ratios y suficiencia patrimonial",
+        tiene_gps: true,
+        medio_transporte: "Mi Teleférico Línea Morada + Minibús",
+        tipo_actividad: "Prácticas",
+        calles_declaradas: "Villa Adela → Cruce Viacha → Estación Faro Murillo (Teleférico Morado) → Estación Obelisco",
+      },
+      {
+        id: 13,
+        fecha: "05-03",
+        tramo: "vuelta",
+        origen: "Oficina Central Diaconía",
+        destino: "Villa Adela",
+        tarifa: 3.5,
+        apoyo_realizado: "Control de liquidez y retorno a base",
+        tiene_gps: true,
+        medio_transporte: "Mi Teleférico Línea Morada + Minibús",
+        tipo_actividad: "Prácticas",
+        calles_declaradas: "Estación Obelisco → Mi Teleférico Línea Morada → Faro Murillo → Cruce Viacha → Villa Adela",
+      },
     ],
   },
   {
@@ -211,20 +282,52 @@ const SOLICITUDES_INICIALES: SolicitudPasajeVista[] = [
     responsable_mentor: "Lic. Roberto Quispe",
     apoyo_resumen: "Consolidación de matrices presupuestarias y partidas operativas",
     periodo: "Marzo 2026",
+    tipo_actividad: "Escuela de Líderes",
     monto_total_centavos: 4350, // Bs 43.50
     monto_devolucion_centavos: 3480, // 80% = Bs 34.80
     estado: "aprobado",
     fecha_envio: "2026-03-24",
     firma_supervisor: "HASH_VERIFICADO_ROBERTO_QUISPE_20260324",
     recorridos: [
-      { id: 21, fecha: "02-03", tramo: "ida", origen: "Ciudad Satélite", destino: "Of. Central", tarifa: 3.0, apoyo_realizado: "Presupuesto anual", tiene_gps: true },
-      { id: 22, fecha: "04-03", tramo: "ida", origen: "Ciudad Satélite", destino: "Of. Central - Satélite", tarifa: 6.0, apoyo_realizado: "Control de gastos", tiene_gps: true },
-      { id: 23, fecha: "06-03", tramo: "ida", origen: "Ciudad Satélite", destino: "Of. Central - Satélite", tarifa: 6.0, apoyo_realizado: "Balance de partidas", tiene_gps: true },
-      { id: 24, fecha: "09-03", tramo: "ida", origen: "Ciudad Satélite", destino: "Of. Central - Satélite", tarifa: 6.0, apoyo_realizado: "Auditoría de compras", tiene_gps: true },
-      { id: 25, fecha: "11-03", tramo: "ida", origen: "Ciudad Satélite", destino: "Of. Central - Satélite", tarifa: 6.0, apoyo_realizado: "Plan de inversión social", tiene_gps: true },
-      { id: 26, fecha: "13-03", tramo: "ida", origen: "Ciudad Satélite", destino: "Of. Central - Satélite", tarifa: 6.0, apoyo_realizado: "Tabulación presupuestaria", tiene_gps: true },
-      { id: 27, fecha: "16-03", tramo: "ida", origen: "Ciudad Satélite", destino: "Of. Central - Satélite", tarifa: 6.0, apoyo_realizado: "Cierre de periodo", tiene_gps: true },
-      { id: 28, fecha: "18-03", tramo: "ida", origen: "Ciudad Satélite", destino: "Of. Central", tarifa: 4.5, apoyo_realizado: "Reportes gerenciales", tiene_gps: true },
+      {
+        id: 21,
+        fecha: "02-03",
+        tramo: "ida",
+        origen: "Ciudad Satélite",
+        destino: "Sede Central (Auditorio Diaconía)",
+        tarifa: 3.0,
+        apoyo_realizado: "Asistencia a módulo presencial de Formación de Líderes CETI",
+        tiene_gps: true,
+        medio_transporte: "Mi Teleférico Línea Amarilla",
+        tipo_actividad: "Escuela de Líderes",
+        calles_declaradas: "Ciudad Satélite (Plaza Bolivia) → Estación Mirador → Mi Teleférico Línea Amarilla → Estación Sopocachi → Plaza Abaroa",
+      },
+      {
+        id: 22,
+        fecha: "02-03",
+        tramo: "vuelta",
+        origen: "Sede Central (Auditorio Diaconía)",
+        destino: "Ciudad Satélite",
+        tarifa: 3.0,
+        apoyo_realizado: "Retorno de Escuela de Líderes a Satélite",
+        tiene_gps: true,
+        medio_transporte: "Mi Teleférico Línea Amarilla",
+        tipo_actividad: "Escuela de Líderes",
+        calles_declaradas: "Plaza Abaroa → Estación Sopocachi → Mi Teleférico Línea Amarilla → Estación Mirador → Ciudad Satélite",
+      },
+      {
+        id: 23,
+        fecha: "06-03",
+        tramo: "ida",
+        origen: "Ciudad Satélite",
+        destino: "Oficina Central Diaconía",
+        tarifa: 3.0,
+        apoyo_realizado: "Balance de partidas y tabulación presupuestaria",
+        tiene_gps: true,
+        medio_transporte: "Mi Teleférico Línea Plateada + Roja",
+        tipo_actividad: "Prácticas",
+        calles_declaradas: "Ciudad Satélite → Estación Mirador (Plateada) → Estación 16 de Julio → Mi Teleférico Línea Roja → Estación Central",
+      },
     ],
   },
   {
@@ -237,22 +340,39 @@ const SOLICITUDES_INICIALES: SolicitudPasajeVista[] = [
     responsable_mentor: "Lic. Mariana Zeballos",
     apoyo_resumen: "Diseño de campañas institucionales BUMAND y atención al cliente",
     periodo: "Marzo 2026",
+    tipo_actividad: "Acciones de Servicio",
     monto_total_centavos: 9500, // Bs 95.00
     monto_devolucion_centavos: 7600, // 80% = Bs 76.00
     estado: "aprobado",
     fecha_envio: "2026-03-24",
     firma_supervisor: "HASH_VERIFICADO_MARIANA_ZEBALLOS_20260324",
     recorridos: [
-      { id: 31, fecha: "01-03", tramo: "ida", origen: "Pérez Velasco", destino: "Sucursal Juan Pablo II", tarifa: 4.75, apoyo_realizado: "Lanzamiento campaña", tiene_gps: true },
-      { id: 32, fecha: "03-03", tramo: "ida", origen: "Pérez Velasco", destino: "Sucursal Juan Pablo II - Pérez", tarifa: 9.5, apoyo_realizado: "Revisión de stands", tiene_gps: true },
-      { id: 33, fecha: "05-03", tramo: "ida", origen: "Pérez Velasco", destino: "Sucursal Juan Pablo II - Pérez", tarifa: 9.5, apoyo_realizado: "Encuestas de servicio", tiene_gps: true },
-      { id: 34, fecha: "08-03", tramo: "ida", origen: "Pérez Velasco", destino: "Sucursal Juan Pablo II - Pérez", tarifa: 9.5, apoyo_realizado: "Feria de inclusión", tiene_gps: true },
-      { id: 35, fecha: "10-03", tramo: "ida", origen: "Pérez Velasco", destino: "Sucursal Juan Pablo II - Pérez", tarifa: 9.5, apoyo_realizado: "Cobertura fotográfica", tiene_gps: true },
-      { id: 36, fecha: "12-03", tramo: "ida", origen: "Pérez Velasco", destino: "Sucursal Juan Pablo II - Pérez", tarifa: 9.5, apoyo_realizado: "Gestión de redes", tiene_gps: true },
-      { id: 37, fecha: "15-03", tramo: "ida", origen: "Pérez Velasco", destino: "Sucursal Juan Pablo II - Pérez", tarifa: 9.5, apoyo_realizado: "Diseño de dípticos", tiene_gps: true },
-      { id: 38, fecha: "17-03", tramo: "ida", origen: "Pérez Velasco", destino: "Sucursal Juan Pablo II - Pérez", tarifa: 9.5, apoyo_realizado: "Promoción de créditos", tiene_gps: true },
-      { id: 39, fecha: "19-03", tramo: "ida", origen: "Pérez Velasco", destino: "Sucursal Juan Pablo II - Pérez", tarifa: 9.5, apoyo_realizado: "Atención a beneficiarios", tiene_gps: true },
-      { id: 40, fecha: "22-03", tramo: "ida", origen: "Pérez Velasco", destino: "Sucursal Juan Pablo II", tarifa: 4.75, apoyo_realizado: "Memoria mensual", tiene_gps: true },
+      {
+        id: 31,
+        fecha: "01-03",
+        tramo: "ida",
+        origen: "Pérez Velasco",
+        destino: "Centró Evangelistico Caluyo",
+        tarifa: 3.5,
+        apoyo_realizado: "Campaña de servicio comunitario diaconal y apoyo pastoral",
+        tiene_gps: true,
+        medio_transporte: "Mi Teleférico Línea Morada + Minibús",
+        tipo_actividad: "Acciones de Servicio",
+        calles_declaradas: "Pérez Velasco → Estación Obelisco → Mi Teleférico Línea Morada → Estación Faro Murillo → Av. Civica Caluyo",
+      },
+      {
+        id: 32,
+        fecha: "01-03",
+        tramo: "vuelta",
+        origen: "Centró Evangelistico Caluyo",
+        destino: "Pérez Velasco",
+        tarifa: 3.5,
+        apoyo_realizado: "Retorno tras culminación de taller con niños y jóvenes",
+        tiene_gps: true,
+        medio_transporte: "Minibús + Mi Teleférico Línea Morada",
+        tipo_actividad: "Acciones de Servicio",
+        calles_declaradas: "Av. Civica Caluyo → Faro Murillo → Mi Teleférico Línea Morada → Estación Obelisco → Pérez Velasco",
+      },
     ],
   },
   {
@@ -265,33 +385,165 @@ const SOLICITUDES_INICIALES: SolicitudPasajeVista[] = [
     responsable_mentor: "Carlos Alanoca",
     apoyo_resumen: "Mantenimiento de controles de acceso biométrico, CCTV y auditoría técnica",
     periodo: "Marzo 2026",
+    tipo_actividad: "Prácticas",
     monto_total_centavos: 6600, // Bs 66.00
     monto_devolucion_centavos: 5280, // 80% = Bs 52.80
     estado: "pendiente",
     fecha_envio: "2026-03-24",
     recorridos: [
-      { id: 41, fecha: "01-03", tramo: "ida", origen: "Río Seco", destino: "Of. Central", tarifa: 4.0, apoyo_realizado: "Inspección de cámaras", tiene_gps: true },
-      { id: 42, fecha: "03-03", tramo: "ida", origen: "Río Seco", destino: "Of. Central - Río Seco", tarifa: 8.0, apoyo_realizado: "Respaldo de NVR", tiene_gps: true },
-      { id: 43, fecha: "05-03", tramo: "ida", origen: "Río Seco", destino: "Of. Central - Río Seco", tarifa: 8.0, apoyo_realizado: "Mantenimiento de torniquetes", tiene_gps: true },
-      { id: 44, fecha: "08-03", tramo: "ida", origen: "Río Seco", destino: "Of. Central - Río Seco", tarifa: 8.0, apoyo_realizado: "Monitoreo perimetral", tiene_gps: true },
-      { id: 45, fecha: "10-03", tramo: "ida", origen: "Río Seco", destino: "Of. Central - Río Seco", tarifa: 8.0, apoyo_realizado: "Control de gafetes", tiene_gps: true },
-      { id: 46, fecha: "12-03", tramo: "ida", origen: "Río Seco", destino: "Of. Central - Río Seco", tarifa: 8.0, apoyo_realizado: "Auditoría de alarmas", tiene_gps: true },
-      { id: 47, fecha: "15-03", tramo: "ida", origen: "Río Seco", destino: "Of. Central", tarifa: 4.0, apoyo_realizado: "Protocolo de emergencias", tiene_gps: true },
+      {
+        id: 41,
+        fecha: "01-03",
+        tramo: "ida",
+        origen: "Río Seco",
+        destino: "Oficina Central Diaconía",
+        tarifa: 3.5,
+        apoyo_realizado: "Inspección de cámaras y control de acceso biométrico",
+        tiene_gps: true,
+        medio_transporte: "Mi Teleférico Línea Azul + Roja",
+        tipo_actividad: "Prácticas",
+        calles_declaradas: "Extranca Río Seco → Mi Teleférico Línea Azul → Estación 16 de Julio → Mi Teleférico Línea Roja → Estación Central",
+      },
+      {
+        id: 42,
+        fecha: "01-03",
+        tramo: "vuelta",
+        origen: "Oficina Central Diaconía",
+        destino: "Río Seco",
+        tarifa: 3.5,
+        apoyo_realizado: "Retorno a Río Seco tras jornada técnica",
+        tiene_gps: true,
+        medio_transporte: "Mi Teleférico Línea Roja + Azul",
+        tipo_actividad: "Prácticas",
+        calles_declaradas: "Estación Central → Mi Teleférico Línea Roja → Estación 16 de Julio → Mi Teleférico Línea Azul → Extranca Río Seco",
+      },
     ],
   },
 ];
+
+export function RecorridoEnriquecidoCard({ recorrido }: { recorrido: RecorridoItem }) {
+  const calles = (recorrido.calles_declaradas || `${recorrido.origen} → ${recorrido.destino}`)
+    .split(/→|->/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const medio = recorrido.medio_transporte || "Minibús Urbano";
+  const medio_lower = medio.toLowerCase();
+  const es_teleferico = medio_lower.includes("teleférico") || medio_lower.includes("teleferico");
+  const es_roja = medio_lower.includes("roja");
+  const es_morada = medio_lower.includes("morada");
+  const es_amarilla = medio_lower.includes("amarilla");
+  const es_plateada = medio_lower.includes("plateada");
+  const es_azul = medio_lower.includes("azul");
+
+  return (
+    <div className="p-3.5 rounded-xl border border-slate-200/90 bg-white hover:border-[#17B4C4]/50 hover:shadow-xs transition-all space-y-2.5">
+      {/* Fila 1: Badges de Tramo, Tipo de Actividad, Fecha y Tarifa */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
+          {/* Badge Tramo */}
+          <Badge
+            variant="outline"
+            className={`font-mono text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 ${
+              recorrido.tramo === "ida"
+                ? "bg-sky-50 text-sky-800 border-sky-300"
+                : "bg-amber-50 text-amber-800 border-amber-300"
+            }`}
+          >
+            {recorrido.tramo === "ida" ? "→ Tramo IDA" : "← Tramo VUELTA"}
+          </Badge>
+
+          {/* Badge Tipo de Actividad */}
+          <Badge
+            variant="outline"
+            className="text-[10px] font-semibold border-slate-200 text-slate-700 bg-slate-50"
+          >
+            {recorrido.tipo_actividad || "Prácticas"}
+          </Badge>
+
+          {/* Badge Medio de Transporte / Teleférico */}
+          <Badge
+            variant="outline"
+            className={`text-[10px] font-medium flex items-center gap-1 ${
+              es_roja
+                ? "bg-rose-50 text-rose-700 border-rose-300 font-bold"
+                : es_morada
+                ? "bg-purple-50 text-purple-700 border-purple-300 font-bold"
+                : es_amarilla
+                ? "bg-amber-50 text-amber-800 border-amber-300 font-bold"
+                : es_plateada
+                ? "bg-slate-100 text-slate-700 border-slate-400 font-bold"
+                : es_azul
+                ? "bg-sky-50 text-sky-700 border-sky-300 font-bold"
+                : es_teleferico
+                ? "bg-teal-50 text-teal-800 border-teal-300 font-bold"
+                : "bg-emerald-50 text-emerald-800 border-emerald-200"
+            }`}
+          >
+            <Bus className="w-3 h-3" />
+            {medio}
+          </Badge>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-xs text-muted-foreground flex items-center gap-1">
+            <Calendar className="w-3 h-3" />
+            {recorrido.fecha}
+          </span>
+          <span className="font-mono font-bold text-xs text-[#063A6B] bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200">
+            Bs {recorrido.tarifa.toFixed(2)}
+          </span>
+        </div>
+      </div>
+
+      {/* Fila 2: Secuencia visual de calles y paradas declaradas */}
+      <div className="p-2.5 rounded-lg bg-slate-50/80 border border-slate-200/70 space-y-1.5">
+        <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
+          <Route className="w-3 h-3 text-[#17B4C4]" />
+          Recorrido de Calles y Paradas Declaradas en la App:
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {calles.map((calle, idx) => (
+            <React.Fragment key={idx}>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white text-slate-800 text-[11px] font-medium border border-slate-200 shadow-2xs">
+                <MapPin className="w-2.5 h-2.5 text-[#063A6B] shrink-0" />
+                {calle}
+              </span>
+              {idx < calles.length - 1 && (
+                <ArrowRight className="w-3 h-3 text-slate-400 shrink-0" />
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+
+      {/* Fila 3: Apoyo realizado */}
+      {recorrido.apoyo_realizado && (
+        <div className="text-[11px] text-slate-600 flex items-start gap-1.5 pl-1">
+          <span className="font-bold text-slate-700 shrink-0">Apoyo realizado:</span>
+          <span className="italic">{recorrido.apoyo_realizado}</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function AprobacionPasajes() {
   const { usuario } = usarAutenticacion();
   const [solicitudes_locales, set_solicitudes_locales] = useState<SolicitudPasajeVista[]>(SOLICITUDES_INICIALES);
   const [id_seleccionado, set_id_seleccionado] = useState<number>(101);
+  const [solicitud_seleccionada, set_solicitud_seleccionada] = useState<SolicitudPasajeVista | null>(null);
   const [modal_observacion, set_modal_observacion] = useState(false);
+  const [modal_declarar_abierto, set_modal_declarar_abierto] = useState(false);
   const [texto_observacion, set_texto_observacion] = useState("");
   const [error_rechazo, set_error_rechazo] = useState("");
   const [dialogo_firma_abierto, set_dialogo_firma_abierto] = useState(false);
   const [dibujando, set_dibujando] = useState(false);
   const [celebrando, set_celebrando] = useState(false);
-  const [subpestana, set_subpestana] = useState<"planillas" | "tarifario">("planillas");
+  const [subpestana, set_subpestana] = useState<"planillas" | "detalle" | "tarifario">("planillas");
+  const [filtro_estado, set_filtro_estado] = useState<"todos" | "pendientes" | "aprobados">("todos");
+  const [subpestaña_detalle, set_subpestaña_detalle] = useState<"recorridos" | "firma">("recorridos");
+  const [vista_dividida, set_vista_dividida] = useState<boolean>(false);
 
   const canvas_ref = useRef<HTMLCanvasElement | null>(null);
 
@@ -316,6 +568,7 @@ export function AprobacionPasajes() {
             responsable_mentor: item.becario?.supervisor?.usuario?.nombre || "Supervisor Diaconía",
             apoyo_resumen: item.apoyo_realizado || "Actividades de apoyo institucional preprofesional",
             periodo: item.periodo || "Marzo 2026",
+            tipo_actividad: item.tipo_actividad || "Prácticas",
             monto_total_centavos: Math.round(Number(item.monto_total || 0) * 100) || 3500,
             monto_devolucion_centavos: Math.round(Number(item.monto_devolucion || 0) * 100) || 2800,
             estado: (item.estado || "pendiente").toLowerCase() as "pendiente" | "aprobado" | "rechazado",
@@ -330,6 +583,12 @@ export function AprobacionPasajes() {
               tarifa: Number(r.tarifa || 2.5),
               apoyo_realizado: r.apoyo_realizado || "Apoyo institucional",
               tiene_gps: Boolean(r.lat_origen || r.lat_destino),
+              calles_declaradas:
+                r.calles_declaradas ||
+                `${r.origen || "Origen"} → Av. Troncal → Parada Central → ${r.destino || "Destino"}`,
+              medio_transporte: r.medio_transporte || "Minibús Urbano",
+              tipo_actividad: r.tipo_actividad || item.tipo_actividad || "Prácticas",
+              detalle_tramos_json: r.detalle_tramos_json,
             })),
           }));
         }
@@ -349,7 +608,26 @@ export function AprobacionPasajes() {
     SOLICITUDES_INICIALES[0];
 
   const total_pendientes = solicitudes.filter((s) => s.estado === "pendiente").length;
+  const total_aprobados = solicitudes.filter((s) => s.estado === "aprobado").length;
   const total_formularios = 16; // Conforme a la nómina institucional de Marzo 2026
+
+  const solicitudes_filtradas = solicitudes.filter((s) => {
+    if (filtro_estado === "pendientes") return s.estado === "pendiente";
+    if (filtro_estado === "aprobados") return s.estado === "aprobado";
+    return true;
+  });
+
+  const indice_actual = solicitudes.findIndex((s) => s.id === solicitud_activa.id);
+  const irAnteriorBecario = () => {
+    if (indice_actual > 0) {
+      set_id_seleccionado(solicitudes[indice_actual - 1].id);
+    }
+  };
+  const irSiguienteBecario = () => {
+    if (indice_actual < solicitudes.length - 1) {
+      set_id_seleccionado(solicitudes[indice_actual + 1].id);
+    }
+  };
 
   const { conectado } = useTiempoReal({
     eventos: {
@@ -508,6 +786,267 @@ export function AprobacionPasajes() {
     });
   };
 
+  const renderizarDetalleCard = (con_boton_volver = true) => (
+    <Card className="border-[#E3DCCB] shadow-xs bg-white rounded-2xl overflow-hidden">
+      <CardHeader className="pb-4 pt-5 px-6 border-b border-slate-100 bg-[#FBFBFA]/80">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {con_boton_volver && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => set_subpestana("planillas")}
+                className="h-8 px-2.5 text-xs font-bold border-[#E3DCCB] text-[#063A6B] hover:bg-slate-100 rounded-xl gap-1 shrink-0"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Volver</span>
+              </Button>
+            )}
+
+            <div className="w-9 h-9 rounded-full bg-[#0369A1] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+              {solicitud_activa.iniciales}
+            </div>
+
+            <div>
+              <CardTitle className="text-base font-bold text-[#0F172A] leading-tight">
+                Detalle · {solicitud_activa.becario_nombre}
+              </CardTitle>
+              <p className="text-[11px] text-slate-500">
+                {solicitud_activa.carrera} · {solicitud_activa.unidad}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            {/* Navegador secuencial de becarios */}
+            <div className="flex items-center gap-1 bg-slate-100/90 px-1.5 py-1 rounded-xl border border-slate-200">
+              <Button
+                size="icon"
+                variant="ghost"
+                disabled={indice_actual <= 0}
+                onClick={irAnteriorBecario}
+                className="h-6 w-6 rounded-lg text-slate-600 hover:bg-white"
+                title="Becario anterior"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </Button>
+              <span className="text-[11px] font-mono font-semibold text-slate-600 px-1 select-none">
+                {indice_actual + 1} de {solicitudes.length}
+              </span>
+              <Button
+                size="icon"
+                variant="ghost"
+                disabled={indice_actual >= solicitudes.length - 1}
+                onClick={irSiguienteBecario}
+                className="h-6 w-6 rounded-lg text-slate-600 hover:bg-white"
+                title="Siguiente becario"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+
+            <Badge variant="outline" className="border-[#E3DCCB] text-[#063A6B] text-[11px] font-mono">
+              {solicitud_activa.periodo}
+            </Badge>
+
+            {solicitud_activa.estado === "pendiente" ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#FBF4E4] text-[#92400E] border border-[#FDE68A]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
+                Pendiente
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A]" />
+                Aprobado
+              </span>
+            )}
+
+            {solicitud_activa.estado === "pendiente" && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => abrirModalRechazo(solicitud_activa)}
+                className="h-8 px-3 border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-semibold rounded-xl"
+              >
+                Observar
+              </Button>
+            )}
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-6 space-y-6">
+        {/* Tira compacta de métricas y datos clave */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 text-xs">
+          <div>
+            <span className="text-[10px] font-mono uppercase font-bold text-slate-400 block">Tipo Actividad</span>
+            <span className="font-semibold text-slate-800 mt-0.5 inline-block">
+              {solicitud_activa.tipo_actividad || "Prácticas"}
+            </span>
+          </div>
+          <div>
+            <span className="text-[10px] font-mono uppercase font-bold text-slate-400 block">Sede Asignada</span>
+            <span className="font-semibold text-slate-800 mt-0.5 inline-block truncate max-w-full" title={solicitud_activa.lugar_practicas}>
+              {solicitud_activa.lugar_practicas}
+            </span>
+          </div>
+          <div>
+            <span className="text-[10px] font-mono uppercase font-bold text-slate-400 block">Mentor / Tutor</span>
+            <span className="font-semibold text-slate-800 mt-0.5 inline-block truncate max-w-full" title={solicitud_activa.responsable_mentor}>
+              {solicitud_activa.responsable_mentor}
+            </span>
+          </div>
+          <div>
+            <span className="text-[10px] font-mono uppercase font-bold text-[#D97706] block">Devolución 80%</span>
+            <span className="font-mono font-bold text-sm text-[#D97706] mt-0.5 inline-block">
+              Bs {(solicitud_activa.monto_devolucion_centavos / 100).toFixed(2)}
+            </span>
+          </div>
+        </div>
+
+        {/* Pestañas internas del Detalle */}
+        <div className="flex border-b border-slate-200 gap-3">
+          <button
+            type="button"
+            onClick={() => set_subpestaña_detalle("recorridos")}
+            className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition-all flex items-center gap-2 ${
+              subpestaña_detalle === "recorridos"
+                ? "border-[#063A6B] text-[#063A6B]"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            <Route className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <span>Recorridos Declarados</span>
+            <Badge variant="outline" className="font-mono text-[10px] ml-1 bg-slate-50">
+              {solicitud_activa.recorridos.length}
+            </Badge>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => set_subpestaña_detalle("firma")}
+            className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition-all flex items-center gap-2 ${
+              subpestaña_detalle === "firma"
+                ? "border-[#063A6B] text-[#063A6B]"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            <PenTool className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <span>Ficha y Firma Digital</span>
+            {solicitud_activa.firma_supervisor ? (
+              <Badge className="bg-emerald-100 text-emerald-800 font-mono text-[10px] ml-1">
+                Convalidado
+              </Badge>
+            ) : (
+              <Badge className="bg-amber-100 text-amber-800 font-mono text-[10px] ml-1">
+                Pendiente
+              </Badge>
+            )}
+          </button>
+        </div>
+
+        {subpestaña_detalle === "recorridos" ? (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500">
+                Trazabilidad GPS y Paradas ({solicitud_activa.recorridos.length} tramos)
+              </Label>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => set_solicitud_seleccionada(solicitud_activa)}
+                className="h-7 px-2.5 text-[11px] font-bold border-[#17B4C4]/60 text-[#063A6B] rounded-lg gap-1 hover:bg-[#17B4C4]/10"
+              >
+                <Eye className="w-3.5 h-3.5 text-[#17B4C4]" />
+                Ver en Modal de Auditoría
+              </Button>
+            </div>
+
+            <div className="space-y-2.5">
+              {solicitud_activa.recorridos.map((r) => (
+                <RecorridoEnriquecidoCard key={r.id} recorrido={r} />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-5">
+            {/* Información y Apoyo */}
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3 text-xs">
+              <div>
+                <span className="font-bold text-slate-700 block mb-1">Resumen del Apoyo Realizado:</span>
+                <p className="text-slate-600 leading-relaxed italic bg-white p-3 rounded-lg border border-slate-200/80">
+                  &ldquo;{solicitud_activa.apoyo_resumen}&rdquo;
+                </p>
+              </div>
+
+              <div className="pt-2 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <span className="text-slate-500 font-medium">Monto total liquidado (100%): </span>
+                  <span className="font-mono font-bold text-slate-800">
+                    Bs {(solicitud_activa.monto_total_centavos / 100).toFixed(2)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-500 font-medium">Reembolso institucional oficial (80%): </span>
+                  <span className="font-mono font-bold text-base text-[#D97706]">
+                    Bs {(solicitud_activa.monto_devolucion_centavos / 100).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Sección de Firma Digital */}
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold text-slate-600">
+                Firma digital del supervisor / tutor
+              </Label>
+
+              {solicitud_activa.firma_supervisor ? (
+                <div className="w-full p-4 rounded-xl border border-emerald-300 bg-emerald-50/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2 text-emerald-800">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                    <div>
+                      <p className="font-bold">Firma convalidada digitalmente</p>
+                      <p className="text-[10px] text-emerald-600 font-mono">
+                        Hash institucional: {solicitud_activa.firma_supervisor.slice(0, 24)}...
+                      </p>
+                    </div>
+                  </div>
+
+                  <Badge className="bg-emerald-600 text-white font-mono text-[10px]">
+                    Acreditado 80%
+                  </Badge>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => set_dialogo_firma_abierto(true)}
+                    className="w-full h-24 rounded-xl border-2 border-dashed border-slate-300 hover:border-[#17B4C4] bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col items-center justify-center gap-1.5 text-slate-400 hover:text-[#063A6B] cursor-pointer group"
+                  >
+                    <PenTool className="w-4 h-4 text-slate-400 group-hover:text-[#17B4C4] transition-colors" />
+                    <span className="text-xs font-mono font-medium">Toca para asentar rúbrica digital</span>
+                  </button>
+
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => manejarAprobar(solicitud_activa.id)}
+                      className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold py-2 px-4 rounded-xl shadow-xs"
+                    >
+                      <Check className="w-3.5 h-3.5 mr-1.5" />
+                      Aprobar Planilla Directamente
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   const es_becario = usuario?.rol === "becario";
 
   return (
@@ -536,35 +1075,8 @@ export function AprobacionPasajes() {
             {total_formularios} formularios · {total_pendientes} pendientes
           </div>
 
-          {!es_becario && (
-            <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
-              <button
-                type="button"
-                onClick={() => set_subpestana("planillas")}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                  subpestana === "planillas"
-                    ? "bg-[#063A6B] text-white shadow-xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Planillas
-              </button>
-              <button
-                type="button"
-                onClick={() => set_subpestana("tarifario")}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                  subpestana === "tarifario"
-                    ? "bg-[#063A6B] text-white shadow-xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Tarifario
-              </button>
-            </div>
-          )}
-
           {es_becario && (
-            <Dialog>
+            <Dialog open={modal_declarar_abierto} onOpenChange={set_modal_declarar_abierto}>
               <DialogTrigger asChild>
                 <Button className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs h-9 gap-1.5 shadow-sm">
                   <Plus className="w-4 h-4 text-[#F8C766]" />
@@ -572,15 +1084,95 @@ export function AprobacionPasajes() {
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[450px] p-0 border-none bg-transparent shadow-none">
-                <RegistroRecorrido />
+                <RegistroRecorrido onCerrar={() => set_modal_declarar_abierto(false)} />
               </DialogContent>
             </Dialog>
           )}
         </div>
       </div>
 
+      {/* ============================================================== */}
+      {/* PESTAÑAS PRINCIPALES DEL MÓDULO DE PASAJES                      */}
+      {/* ============================================================== */}
+      {!es_becario && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E3DCCB] pb-3">
+          <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
+            <button
+              type="button"
+              onClick={() => set_subpestana("planillas")}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
+                subpestana === "planillas"
+                  ? "bg-[#063A6B] text-white shadow-xs"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Formularios del Mes</span>
+              <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+                subpestana === "planillas" ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
+              }`}>
+                {total_formularios}
+              </span>
+              {total_pendientes > 0 && (
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" title={`${total_pendientes} pendientes`} />
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => set_subpestana("detalle")}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
+                subpestana === "detalle"
+                  ? "bg-[#063A6B] text-white shadow-xs"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+              }`}
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>Detalle · {solicitud_activa.becario_nombre}</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${
+                solicitud_activa.estado === "pendiente"
+                  ? (subpestana === "detalle" ? "bg-amber-400/30 text-amber-100" : "bg-amber-100 text-amber-800")
+                  : (subpestana === "detalle" ? "bg-emerald-400/30 text-emerald-100" : "bg-emerald-100 text-emerald-800")
+              }`}>
+                {solicitud_activa.estado === "pendiente" ? "Pendiente" : "Aprobado"}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => set_subpestana("tarifario")}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
+                subpestana === "tarifario"
+                  ? "bg-[#063A6B] text-white shadow-xs"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+              }`}
+            >
+              <Route className="w-3.5 h-3.5" />
+              <span>Tarifario Regulado</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            {subpestana === "planillas" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => set_vista_dividida(!vista_dividida)}
+                className="h-8 text-xs text-slate-600 hover:text-[#063A6B] border border-slate-200 bg-white shadow-2xs rounded-lg"
+                title="Alternar vista combinada de tabla y detalle al pie"
+              >
+                <Columns className="w-3.5 h-3.5 mr-1.5 text-[#17B4C4]" />
+                {vista_dividida ? "Ocultar Detalle al Pie" : "Ver Detalle al Pie"}
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
       {subpestana === "tarifario" ? (
         <GestionTarifas />
+      ) : subpestana === "detalle" ? (
+        renderizarDetalleCard(true)
       ) : (
         <div className="space-y-6">
           {/* ============================================================== */}
@@ -588,9 +1180,55 @@ export function AprobacionPasajes() {
           {/* ============================================================== */}
           <Card className="border-[#E3DCCB] shadow-xs bg-white rounded-2xl overflow-hidden">
             <CardHeader className="pb-3 pt-5 px-6">
-              <CardTitle className="text-base font-bold text-[#0F172A]">
-                Formularios del mes
-              </CardTitle>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <CardTitle className="text-base font-bold text-[#0F172A] flex items-center gap-2">
+                    Formularios del mes
+                    <Badge variant="outline" className="text-xs font-mono border-slate-200 text-slate-500">
+                      {solicitudes_filtradas.length} de {solicitudes.length}
+                    </Badge>
+                  </CardTitle>
+                </div>
+
+                {/* Pestañas de Filtrado por Estado */}
+                <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => set_filtro_estado("todos")}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                      filtro_estado === "todos"
+                        ? "bg-white text-[#063A6B] shadow-2xs font-bold"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    Todos ({solicitudes.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => set_filtro_estado("pendientes")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                      filtro_estado === "pendientes"
+                        ? "bg-amber-50 text-amber-900 border border-amber-200 shadow-2xs font-bold"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                    Pendientes ({total_pendientes})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => set_filtro_estado("aprobados")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                      filtro_estado === "aprobados"
+                        ? "bg-emerald-50 text-emerald-900 border border-emerald-200 shadow-2xs font-bold"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    Aprobados ({total_aprobados})
+                  </button>
+                </div>
+              </div>
             </CardHeader>
 
             <CardContent className="p-0">
@@ -600,244 +1238,151 @@ export function AprobacionPasajes() {
                     <tr className="border-b border-slate-100 text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
                       <th className="py-3 px-6">BECARIO</th>
                       <th className="py-3 px-4">UNIDAD</th>
+                      <th className="py-3 px-4">ACTIVIDAD</th>
                       <th className="py-3 px-4 text-center">RECORRIDOS</th>
                       <th className="py-3 px-4">TOTAL</th>
                       <th className="py-3 px-4 text-[#D97706]">80%</th>
                       <th className="py-3 px-4">ESTADO</th>
-                      <th className="py-3 px-6 text-right"></th>
+                      <th className="py-3 px-6 text-right">ACCIONES</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {solicitudes.map((item) => {
-                      const es_seleccionado = item.id === solicitud_activa.id;
-                      const es_pendiente = item.estado === "pendiente";
+                    {solicitudes_filtradas.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="py-8 text-center text-xs text-slate-500">
+                          No se encontraron formularios con el estado seleccionado ({filtro_estado}).
+                        </td>
+                      </tr>
+                    ) : (
+                      solicitudes_filtradas.map((item) => {
+                        const es_seleccionado = item.id === solicitud_activa.id;
+                        const es_pendiente = item.estado === "pendiente";
 
-                      return (
-                        <tr
-                          key={item.id}
-                          onClick={() => set_id_seleccionado(item.id)}
-                          className={`cursor-pointer transition-colors ${
-                            es_seleccionado
-                              ? "bg-slate-50/90 font-medium"
-                              : "hover:bg-slate-50/50"
-                          }`}
-                        >
-                          {/* BECARIO CON AVATAR */}
-                          <td className="py-3.5 px-6">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-[#0369A1] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
-                                {item.iniciales}
+                        return (
+                          <tr
+                            key={item.id}
+                            onClick={() => {
+                              set_id_seleccionado(item.id);
+                              if (!vista_dividida) {
+                                set_subpestana("detalle");
+                              }
+                            }}
+                            className={`cursor-pointer transition-colors ${
+                              es_seleccionado
+                                ? "bg-slate-50/90 font-medium"
+                                : "hover:bg-slate-50/50"
+                            }`}
+                          >
+                            {/* BECARIO CON AVATAR */}
+                            <td className="py-3.5 px-6">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-[#0369A1] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                                  {item.iniciales}
+                                </div>
+                                <span className="font-semibold text-xs text-[#0F172A] leading-tight">
+                                  {item.becario_nombre}
+                                </span>
                               </div>
-                              <span className="font-semibold text-xs text-[#0F172A] leading-tight">
-                                {item.becario_nombre}
-                              </span>
-                            </div>
-                          </td>
+                            </td>
 
-                          {/* UNIDAD */}
-                          <td className="py-3.5 px-4 text-xs text-slate-600">
-                            {item.unidad}
-                          </td>
+                            {/* UNIDAD */}
+                            <td className="py-3.5 px-4 text-xs text-slate-600">
+                              {item.unidad}
+                            </td>
 
-                          {/* RECORRIDOS */}
-                          <td className="py-3.5 px-4 text-xs font-mono text-slate-600 text-center">
-                            {item.recorridos.length}
-                          </td>
-
-                          {/* TOTAL */}
-                          <td className="py-3.5 px-4 text-xs font-mono text-slate-700 whitespace-nowrap">
-                            Bs {(item.monto_total_centavos / 100).toFixed(2)}
-                          </td>
-
-                          {/* 80% (DESTACADO EN DORADO/ÁMBAR) */}
-                          <td className="py-3.5 px-4 text-xs font-mono font-bold text-[#D97706] whitespace-nowrap">
-                            Bs {(item.monto_devolucion_centavos / 100).toFixed(2)}
-                          </td>
-
-                          {/* ESTADO CON PUNTO */}
-                          <td className="py-3.5 px-4">
-                            {es_pendiente ? (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#FBF4E4] text-[#92400E] border border-[#FDE68A]">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
-                                Pendiente
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A]" />
-                                Aprobado
-                              </span>
-                            )}
-                          </td>
-
-                          {/* ACCIÓN: BOTÓN APROBAR O GUION */}
-                          <td className="py-3.5 px-6 text-right whitespace-nowrap">
-                            {es_pendiente ? (
-                              <Button
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  manejarAprobar(item.id);
-                                }}
-                                className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold py-1.5 px-4 rounded-lg transition-all shadow-xs h-8"
+                            {/* ACTIVIDAD */}
+                            <td className="py-3.5 px-4">
+                              <span
+                                className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold border ${
+                                  item.tipo_actividad === "Escuela de Líderes"
+                                    ? "bg-amber-50 text-amber-800 border-amber-200"
+                                    : item.tipo_actividad === "Acciones de Servicio"
+                                    ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                                    : "bg-sky-50 text-sky-800 border-sky-200"
+                                }`}
                               >
-                                Aprobar
-                              </Button>
-                            ) : (
-                              <span className="text-slate-400 font-mono text-sm px-4 select-none">
-                                —
+                                {item.tipo_actividad || "Prácticas"}
                               </span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
+                            </td>
+
+                            {/* RECORRIDOS */}
+                            <td className="py-3.5 px-4 text-xs font-mono text-slate-600 text-center">
+                              {item.recorridos.length}
+                            </td>
+
+                            {/* TOTAL */}
+                            <td className="py-3.5 px-4 text-xs font-mono text-slate-700 whitespace-nowrap">
+                              Bs {(item.monto_total_centavos / 100).toFixed(2)}
+                            </td>
+
+                            {/* 80% (DESTACADO EN DORADO/ÁMBAR) */}
+                            <td className="py-3.5 px-4 text-xs font-mono font-bold text-[#D97706] whitespace-nowrap">
+                              Bs {(item.monto_devolucion_centavos / 100).toFixed(2)}
+                            </td>
+
+                            {/* ESTADO CON PUNTO */}
+                            <td className="py-3.5 px-4">
+                              {es_pendiente ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#FBF4E4] text-[#92400E] border border-[#FDE68A]">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
+                                  Pendiente
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A]" />
+                                  Aprobado
+                                </span>
+                              )}
+                            </td>
+
+                            {/* ACCIÓN: BOTÓN VER DETALLE + APROBAR */}
+                            <td className="py-3.5 px-6 text-right whitespace-nowrap">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    set_id_seleccionado(item.id);
+                                    set_solicitud_seleccionada(item);
+                                    set_subpestana("detalle");
+                                  }}
+                                  className="h-8 px-2.5 text-xs font-bold border-[#17B4C4]/60 text-[#063A6B] hover:bg-[#17B4C4]/10 rounded-lg flex items-center gap-1.5 shadow-2xs"
+                                  title="Ver detalles y trazabilidad de calles declaradas"
+                                >
+                                  <Eye className="h-4 w-4 text-[#063A6B]" />
+                                  <span className="hidden sm:inline">Ver</span>
+                                </Button>
+                                {es_pendiente ? (
+                                  <Button
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      manejarAprobar(item.id);
+                                    }}
+                                    className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold py-1.5 px-3 rounded-lg transition-all shadow-xs h-8"
+                                  >
+                                    Aprobar
+                                  </Button>
+                                ) : (
+                                  <span className="text-slate-400 font-mono text-xs px-2 select-none">
+                                    ✓
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </tbody>
                 </table>
               </div>
             </CardContent>
           </Card>
 
-          {/* ============================================================== */}
-          {/* TARJETA 2: DETALLE DEL BECARIO SELECCIONADO (MASTER-DETAIL)   */}
-          {/* ============================================================== */}
-          <Card className="border-[#E3DCCB] shadow-xs bg-white rounded-2xl overflow-hidden">
-            <CardHeader className="pb-3 pt-5 px-6 border-b border-slate-100 bg-[#FBFBFA]/60">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-bold text-[#0F172A]">
-                  Detalle · {solicitud_activa.becario_nombre}
-                </CardTitle>
-
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="border-[#E3DCCB] text-[#063A6B] text-[11px] font-mono">
-                    {solicitud_activa.carrera}
-                  </Badge>
-                  {solicitud_activa.estado === "pendiente" ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => abrirModalRechazo(solicitud_activa)}
-                      className="h-8 px-3 border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-semibold rounded-lg"
-                    >
-                      Observar
-                    </Button>
-                  ) : null}
-                </div>
-              </div>
-            </CardHeader>
-
-            <CardContent className="p-6 space-y-6">
-              {/* FILAS DE INFORMACIÓN GENERAL */}
-              <div className="divide-y divide-slate-100 text-xs">
-                <div className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                  <span className="text-slate-500 font-medium">Lugar de prácticas</span>
-                  <span className="font-semibold text-slate-800 sm:text-right">
-                    {solicitud_activa.lugar_practicas}
-                  </span>
-                </div>
-
-                <div className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                  <span className="text-slate-500 font-medium">Unidad</span>
-                  <span className="font-semibold text-slate-800 sm:text-right">
-                    {solicitud_activa.unidad}
-                  </span>
-                </div>
-
-                <div className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                  <span className="text-slate-500 font-medium">Responsable / Mentor</span>
-                  <span className="font-semibold text-slate-800 sm:text-right">
-                    {solicitud_activa.responsable_mentor}
-                  </span>
-                </div>
-
-                <div className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                  <span className="text-slate-500 font-medium">Apoyo realizado</span>
-                  <span className="font-semibold text-slate-800 sm:text-right max-w-xl">
-                    {solicitud_activa.apoyo_resumen}
-                  </span>
-                </div>
-              </div>
-
-              {/* LISTA DE RECORRIDOS DECLARADOS */}
-              <div className="space-y-3">
-                <Label className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500">
-                  Recorridos declarados ({solicitud_activa.recorridos.length})
-                </Label>
-
-                <div className="space-y-2">
-                  {solicitud_activa.recorridos.map((r) => (
-                    <div
-                      key={r.id}
-                      className="p-3 rounded-xl border border-slate-200/80 bg-white hover:border-[#17B4C4]/50 transition-colors flex items-center justify-between text-xs shadow-2xs gap-3"
-                    >
-                      <div className="flex items-center gap-3 truncate">
-                        <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 font-mono font-bold text-[11px] shrink-0 border border-slate-200">
-                          {r.fecha}
-                        </span>
-                        <span className="font-medium text-slate-800 truncate">
-                          {r.origen} – {r.destino}
-                        </span>
-                      </div>
-
-                      <span className="font-mono font-bold text-slate-700 shrink-0">
-                        Bs {r.tarifa.toFixed(2)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* RESUMEN DE TOTALES */}
-              <div className="pt-2 border-t border-slate-100 space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500 font-medium">Monto total del pasaje</span>
-                  <span className="font-mono font-bold text-slate-800 text-sm">
-                    Bs {(solicitud_activa.monto_total_centavos / 100).toFixed(2)}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500 font-medium">Devolución del 80%</span>
-                  <span className="font-mono font-bold text-base text-[#D97706]">
-                    Bs {(solicitud_activa.monto_devolucion_centavos / 100).toFixed(2)}
-                  </span>
-                </div>
-              </div>
-
-              {/* SECCIÓN DE FIRMA DIGITAL DEL SUPERVISOR */}
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold text-slate-600">
-                  Firma digital del supervisor
-                </Label>
-
-                {solicitud_activa.firma_supervisor ? (
-                  <div className="w-full p-4 rounded-xl border border-emerald-300 bg-emerald-50/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-                    <div className="flex items-center gap-2 text-emerald-800">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                      <div>
-                        <p className="font-bold">Firma convalidada digitalmente</p>
-                        <p className="text-[10px] text-emerald-600 font-mono">
-                          Hash institucional: {solicitud_activa.firma_supervisor.slice(0, 24)}...
-                        </p>
-                      </div>
-                    </div>
-
-                    <Badge className="bg-emerald-600 text-white font-mono text-[10px]">
-                      Acreditado 80%
-                    </Badge>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => set_dialogo_firma_abierto(true)}
-                    className="w-full h-24 rounded-xl border-2 border-dashed border-slate-300 hover:border-[#17B4C4] bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col items-center justify-center gap-1.5 text-slate-400 hover:text-[#063A6B] cursor-pointer group"
-                  >
-                    <PenTool className="w-4 h-4 text-slate-400 group-hover:text-[#17B4C4] transition-colors" />
-                    <span className="text-xs font-mono font-medium">Toca para firmar</span>
-                  </button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          {/* VISTA DIVIDIDA OPCIONAL AL PIE */}
+          {vista_dividida && renderizarDetalleCard(false)}
         </div>
       )}
 
@@ -963,6 +1508,99 @@ export function AprobacionPasajes() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* ============================================================== */}
+      {/* DIÁLOGO MODAL: EXPEDIENTE DETALLADO DE RECORRIDOS (OJITO)      */}
+      {/* ============================================================== */}
+      <Dialog
+        open={!!solicitud_seleccionada}
+        onOpenChange={(abierto) => !abierto && set_solicitud_seleccionada(null)}
+      >
+        <DialogContent className="max-w-3xl rounded-2xl p-0 overflow-hidden bg-white border border-[#E3DCCB] shadow-2xl">
+          <DialogHeader className="p-5 pb-3 border-b border-[#E3DCCB] bg-[#F8F9FA]">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#063A6B]/10 text-[#063A6B] flex items-center justify-center font-bold text-sm shrink-0">
+                  <Bus className="w-5 h-5 text-[#063A6B]" />
+                </div>
+                <div>
+                  <DialogTitle className="text-base font-bold text-[#063A6B]">
+                    Expediente de Recorridos Declarados · {solicitud_seleccionada?.becario_nombre}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-muted-foreground">
+                    {solicitud_seleccionada?.carrera} · {solicitud_seleccionada?.unidad} · Periodo: {solicitud_seleccionada?.periodo}
+                  </DialogDescription>
+                </div>
+              </div>
+
+              <Badge variant="outline" className="border-[#E3DCCB] text-[#063A6B] font-mono text-xs">
+                {solicitud_seleccionada?.recorridos.length} Recorridos Declarados
+              </Badge>
+            </div>
+          </DialogHeader>
+
+          <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto text-xs">
+            {/* Resumen General de la Solicitud */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <div>
+                <span className="text-[10px] uppercase font-mono text-muted-foreground block">Mentor Asignado</span>
+                <span className="font-bold text-slate-800 text-xs">{solicitud_seleccionada?.responsable_mentor}</span>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-mono text-muted-foreground block">Sede de Prácticas</span>
+                <span className="font-bold text-slate-800 text-xs">{solicitud_seleccionada?.lugar_practicas}</span>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-mono text-muted-foreground block">Actividad Declarada</span>
+                <span className="font-bold text-[#063A6B] text-xs">{solicitud_seleccionada?.tipo_actividad || "Prácticas"}</span>
+              </div>
+            </div>
+
+            {/* Lista enriquecida con calles declaradas y teleférico paso a paso */}
+            <div className="space-y-3">
+              <Label className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500 block">
+                Trazabilidad de Calles, Paradas y Medios de Transporte
+              </Label>
+
+              <div className="space-y-2.5">
+                {solicitud_seleccionada?.recorridos.map((r) => (
+                  <RecorridoEnriquecidoCard key={r.id} recorrido={r} />
+                ))}
+              </div>
+            </div>
+
+            {/* Liquidación institucional del 80% */}
+            <div className="p-4 rounded-xl bg-gradient-to-br from-[#063A6B] to-[#04284d] text-white flex items-center justify-between">
+              <div>
+                <span className="text-[11px] font-mono text-white/80 block">Monto total de pasajes declarados:</span>
+                <span className="text-lg font-mono font-bold text-white">
+                  Bs {((solicitud_seleccionada?.monto_total_centavos || 0) / 100).toFixed(2)}
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-[11px] font-mono text-[#7FE0E6] font-bold uppercase block">
+                  Reembolso Institucional del 80%:
+                </span>
+                <span className="text-2xl font-display font-bold text-[#F8C766]">
+                  Bs {((solicitud_seleccionada?.monto_devolucion_centavos || 0) / 100).toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-[#F8F9FA] flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => set_solicitud_seleccionada(null)}
+              className="rounded-xl text-xs font-bold"
+            >
+              Cerrar Expediente
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

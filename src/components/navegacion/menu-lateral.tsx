@@ -35,6 +35,7 @@ import {
   CalendarDays,
   ClipboardCheck,
   Utensils,
+  HeartHandshake,
 } from "lucide-react";
 
 interface ElementoNavegacion {
@@ -149,9 +150,9 @@ export function MenuLateral({
               icono: BookOpen,
             },
             {
-              id: "evaluacion_360",
+              id: "evaluaciones",
               etiqueta: "Mis Evaluaciones",
-              descripcion: "5 módulos semestrales",
+              descripcion: "Matriz y Socioeconómica",
               icono: Award,
             },
           ],
@@ -218,9 +219,9 @@ export function MenuLateral({
               icono: BookOpen,
             },
             {
-              id: "evaluacion_360",
-              etiqueta: "Evaluación 360°",
-              descripcion: "Mentor, F-03 y firma digital",
+              id: "evaluaciones",
+              etiqueta: "Matriz de Evaluación",
+              descripcion: "Matriz integral y Socioeconómica",
               icono: Award,
             },
             {
@@ -325,7 +326,7 @@ export function MenuLateral({
             <div className="space-y-0.5">
               {grupo.elementos.map((elem) => {
                 const Icono = elem.icono;
-                const esta_activo = pestaña_activa === elem.id;
+                const esta_activo = pestaña_activa === elem.id || (elem.id === "evaluaciones" && (pestaña_activa === "evaluaciones" || pestaña_activa === "evaluacion_360" || pestaña_activa === "evaluacion_socioeconomica"));
 
                 return (
                   <button

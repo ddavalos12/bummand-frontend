@@ -19,6 +19,9 @@ import {
   Check,
   Navigation,
   Info,
+  Eye,
+  Route,
+  ArrowRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -44,6 +47,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
+import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
 import { toast } from "sonner";
 
 // --- DEFINICIONES DE TIPOS ---
@@ -68,6 +72,14 @@ export interface RecorridoMensual {
   fecha: string;
   descripcion: string;
   monto: number;
+  tramo?: "ida" | "vuelta";
+  origen?: string;
+  destino?: string;
+  calles_declaradas?: string;
+  medio_transporte?: string;
+  apoyo_realizado?: string;
+  tipo_actividad?: string;
+  detalle_tramos_json?: string;
 }
 
 // --- TARIFAS OFICIALES LA PAZ / EL ALTO ---
@@ -83,15 +95,136 @@ export const OPCIONES_TARIFAS_LOCALES = [
 ];
 
 export const RECORRIDOS_INICIALES: RecorridoMensual[] = [
-  { id: 1, fecha: "23-02", descripcion: "Av. Buenos Aires – Of. Central – Av. Buenos Aires", monto: 5.0 },
-  { id: 2, fecha: "25-02", descripcion: "Av. Buenos Aires – Of. Central – Av. Buenos Aires", monto: 5.0 },
-  { id: 3, fecha: "27-02", descripcion: "Av. Buenos Aires – Of. Central", monto: 2.5 },
-  { id: 4, fecha: "02-03", descripcion: "Av. Buenos Aires – Of. Central – Av. Buenos Aires", monto: 5.0 },
-  { id: 5, fecha: "04-03", descripcion: "Av. Buenos Aires – Of. Central – Av. Buenos Aires", monto: 5.0 },
-  { id: 6, fecha: "06-03", descripcion: "Av. Buenos Aires – Of. Central", monto: 2.5 },
-  { id: 7, fecha: "09-03", descripcion: "Av. Buenos Aires – Of. Central – Av. Buenos Aires", monto: 5.0 },
-  { id: 8, fecha: "11-03", descripcion: "Av. Buenos Aires – Of. Central – Av. Buenos Aires", monto: 5.0 },
+  {
+    id: 1,
+    fecha: "23-02",
+    descripcion: "Ceja El Alto – Mi Teleférico Roja – Of. Central Diaconía",
+    monto: 3.5,
+    tramo: "ida",
+    origen: "Ceja El Alto",
+    destino: "Of. Central Diaconía",
+    medio_transporte: "Minibús + Mi Teleférico Línea Roja",
+    tipo_actividad: "Prácticas",
+    calles_declaradas: "Ceja El Alto (Calle 1) → Av. Naciones Unidas → Mi Teleférico Línea Roja → Estación Central → Av. Mariscal Santa Cruz",
+    apoyo_realizado: "Revisión de carpetas crediticias y conciliación de extractos bancarios",
+  },
+  {
+    id: 2,
+    fecha: "23-02",
+    descripcion: "Of. Central Diaconía – Mi Teleférico Roja – Ceja El Alto",
+    monto: 3.5,
+    tramo: "vuelta",
+    origen: "Of. Central Diaconía",
+    destino: "Ceja El Alto",
+    medio_transporte: "Mi Teleférico Línea Roja + Minibús",
+    tipo_actividad: "Prácticas",
+    calles_declaradas: "Av. Mariscal Santa Cruz → Estación Central → Mi Teleférico Línea Roja → Av. Naciones Unidas → Ceja El Alto",
+    apoyo_realizado: "Retorno a domicilio tras culminación de horas de práctica",
+  },
+  {
+    id: 3,
+    fecha: "27-02",
+    descripcion: "Av. Buenos Aires – Plaza San Francisco – Of. Central",
+    monto: 2.5,
+    tramo: "ida",
+    origen: "Av. Buenos Aires",
+    destino: "Of. Central Diaconía",
+    medio_transporte: "Minibús Urbano",
+    tipo_actividad: "Prácticas",
+    calles_declaradas: "Av. Buenos Aires (Garita de Lima) → Calle Max Paredes → Av. Tumusla → Plaza San Francisco → Of. Central",
+    apoyo_realizado: "Conciliación de saldos diarios y arqueo de caja",
+  },
+  {
+    id: 4,
+    fecha: "02-03",
+    descripcion: "Ciudad Satélite – Mi Teleférico Amarilla – Sede Central",
+    monto: 3.0,
+    tramo: "ida",
+    origen: "Ciudad Satélite",
+    destino: "Sede Central (Auditorio Diaconía)",
+    medio_transporte: "Mi Teleférico Línea Amarilla",
+    tipo_actividad: "Escuela de Líderes",
+    calles_declaradas: "Ciudad Satélite (Plaza Bolivia) → Estación Mirador → Mi Teleférico Línea Amarilla → Estación Sopocachi → Plaza Abaroa",
+    apoyo_realizado: "Asistencia a módulo presencial de Formación de Líderes CETI",
+  },
+  {
+    id: 5,
+    fecha: "04-03",
+    descripcion: "Pérez Velasco – Mi Teleférico Morada – Centró Evangelistico Caluyo",
+    monto: 3.5,
+    tramo: "ida",
+    origen: "Pérez Velasco",
+    destino: "Centró Evangelistico Caluyo",
+    medio_transporte: "Mi Teleférico Línea Morada + Minibús",
+    tipo_actividad: "Acciones de Servicio",
+    calles_declaradas: "Pérez Velasco → Estación Obelisco → Mi Teleférico Línea Morada → Estación Faro Murillo → Av. Civica Caluyo",
+    apoyo_realizado: "Campaña de servicio comunitario diaconal y apoyo pastoral",
+  },
+  {
+    id: 6,
+    fecha: "06-03",
+    descripcion: "Villa Adela – Cruce Viacha – Of. Central Bloque B",
+    monto: 3.5,
+    tramo: "ida",
+    origen: "Villa Adela",
+    destino: "Of. Central Bloque B",
+    medio_transporte: "Minibús Interciudad",
+    tipo_actividad: "Prácticas",
+    calles_declaradas: "Villa Adela (Plaza Principal) → Av. Bolivia → Cruce Viacha → Ceja El Alto → Autopista → Pérez Velasco",
+    apoyo_realizado: "Análisis de ratios y evaluación de garantías prendarias",
+  },
+  {
+    id: 7,
+    fecha: "09-03",
+    descripcion: "Extranca Río Seco – Mi Teleférico Azul – Estación Central",
+    monto: 3.5,
+    tramo: "ida",
+    origen: "Río Seco",
+    destino: "Oficina Central Diaconía",
+    medio_transporte: "Mi Teleférico Línea Azul + Roja",
+    tipo_actividad: "Prácticas",
+    calles_declaradas: "Extranca Río Seco → Mi Teleférico Línea Azul → Estación 16 de Julio → Mi Teleférico Línea Roja → Estación Central",
+    apoyo_realizado: "Mantenimiento preventivo de torniquetes biométricos",
+  },
+  {
+    id: 8,
+    fecha: "11-03",
+    descripcion: "Av. Buenos Aires – San Pedro – Of. Central Bloque A",
+    monto: 2.5,
+    tramo: "ida",
+    origen: "Av. Buenos Aires",
+    destino: "Of. Central Bloque A",
+    medio_transporte: "Minibús Urbano",
+    tipo_actividad: "Prácticas",
+    calles_declaradas: "Av. Buenos Aires (Cruce Landaeta) → Plaza Sucre (San Pedro) → Calle Colombia → Av. Camacho",
+    apoyo_realizado: "Auditoría de compras y cotejo presupuestario",
+  },
 ];
+
+export const obtenerEstiloTransporte = (medio?: string) => {
+  if (!medio) return "bg-slate-100 text-slate-800 border-slate-300";
+  const m = medio.toLowerCase();
+  if (m.includes("roja")) return "bg-rose-50 text-rose-700 border-rose-300 font-semibold";
+  if (m.includes("amarilla")) return "bg-amber-50 text-amber-800 border-amber-300 font-semibold";
+  if (m.includes("morada")) return "bg-purple-50 text-purple-700 border-purple-300 font-semibold";
+  if (m.includes("azul")) return "bg-blue-50 text-blue-700 border-blue-300 font-semibold";
+  if (m.includes("plateada")) return "bg-zinc-100 text-zinc-800 border-zinc-400 font-semibold";
+  if (m.includes("teleférico") || m.includes("teleferico")) return "bg-teal-50 text-teal-800 border-teal-300 font-semibold";
+  if (m.includes("minibús") || m.includes("minibus")) return "bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold";
+  if (m.includes("micro")) return "bg-orange-50 text-orange-800 border-orange-300 font-semibold";
+  return "bg-sky-50 text-sky-800 border-sky-300 font-semibold";
+};
+
+export const obtenerPasosCalles = (texto_calles?: string): string[] => {
+  if (!texto_calles) return [];
+  if (texto_calles.includes("→")) {
+    return texto_calles.split("→").map((c) => c.trim()).filter(Boolean);
+  }
+  if (texto_calles.includes("–")) {
+    return texto_calles.split("–").map((c) => c.trim()).filter(Boolean);
+  }
+  return [texto_calles];
+};
 
 /**
  * @component PasajesVista
@@ -129,6 +262,12 @@ export function PasajesVista() {
   // Recorridos mensuales declarados
   const [recorridos, set_recorridos] = useState<RecorridoMensual[]>(RECORRIDOS_INICIALES);
   const [fecha_recorrido, set_fecha_recorrido] = useState<string>("2026-03-12");
+  const [recorrido_seleccionado, set_recorrido_seleccionado] = useState<RecorridoMensual | null>(null);
+
+  const {
+    confirmarEliminacionRegistro,
+    DialogoConfirmacionInstitucional,
+  } = useConfirmacionDialogo();
 
   // Firma digital del supervisor
   const [dialogo_firma_abierto, set_dialogo_firma_abierto] = useState<boolean>(false);
@@ -318,12 +457,44 @@ export function PasajesVista() {
       descripcion += ` – ${nombres_ida[0]}`;
     }
 
+    const obtenerNombresTarifas = (tramos: TramoTarifa[]) =>
+      tramos
+        .map((t) => {
+          const opc = OPCIONES_TARIFAS_LOCALES.find((o) => o.codigo === t.codigo_tarifa);
+          if (t.codigo_tarifa === "custom") return t.nombre_transporte_personalizado || "Transporte Alternativo";
+          if (!opc) return "Transporte Urbano";
+          if (opc.codigo.includes("teleferico")) return "Mi Teleférico";
+          if (opc.codigo.includes("minibus") || opc.codigo.includes("ceja") || opc.codigo.includes("umsa"))
+            return "Minibús Interciudad";
+          if (opc.codigo.includes("micro")) return "Micro / Colectivo";
+          return opc.label;
+        })
+        .join(" + ");
+
+    const medio_transporte_combinado = [obtenerNombresTarifas(tramos_ida), obtenerNombresTarifas(tramos_vuelta)]
+      .filter(Boolean)
+      .join(" / Retorno: ");
+
+    const calles_concatenadas = [
+      nombres_ida.join(" → "),
+      nombres_vuelta.length > 0 ? `Retorno: ${nombres_vuelta.join(" → ")}` : "",
+    ]
+      .filter(Boolean)
+      .join(" | ");
+
     const dia_formato = fecha_recorrido.split("-").slice(1).reverse().join("-");
     const nuevo_recorrido: RecorridoMensual = {
       id: Date.now(),
       fecha: dia_formato,
       descripcion,
       monto: monto_del_dia,
+      tramo: "ida",
+      origen: nombres_ida[0] || "Origen",
+      destino: nombres_ida[nombres_ida.length - 1] || "Destino",
+      calles_declaradas: calles_concatenadas,
+      medio_transporte: medio_transporte_combinado || "Minibús / Teleférico La Paz – El Alto",
+      apoyo_realizado: "Desplazamiento a sede asignada para cumplimiento de prácticas y actividades institucionales",
+      tipo_actividad: "Prácticas",
     };
 
     set_recorridos((prev) => [nuevo_recorrido, ...prev]);
@@ -982,23 +1153,88 @@ export function PasajesVista() {
                 <Label className="text-xs font-mono uppercase font-bold text-muted-foreground block mb-2">
                   Recorridos Declarados en el Mes
                 </Label>
-                <div className="overflow-y-auto max-h-[220px] space-y-1.5 border border-[#E3DCCB]/80 rounded-xl p-2 bg-white">
+                <div className="overflow-y-auto max-h-[250px] space-y-2 border border-[#E3DCCB]/80 rounded-xl p-2 bg-white">
                   {recorridos.map((rec) => (
                     <div
                       key={rec.id}
-                      className="p-2 rounded-lg bg-slate-50 flex items-center justify-between text-xs hover:bg-slate-100/70 transition-colors"
+                      className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 hover:bg-slate-100/80 transition-all flex items-center justify-between gap-2.5 text-xs"
                     >
-                      <div className="min-w-0 pr-2">
-                        <span className="font-mono text-[10px] text-muted-foreground block">
-                          {rec.fecha}
-                        </span>
-                        <span className="text-[11px] font-medium text-[#1E293B] truncate block">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                          <span className="font-mono text-[10px] font-bold text-[#0A5CA0] bg-sky-100/80 px-1.5 py-0.5 rounded">
+                            {rec.fecha}
+                          </span>
+                          {rec.tramo && (
+                            <Badge
+                              variant="outline"
+                              className={`text-[9.5px] px-1.5 py-0 h-4 font-mono font-bold uppercase ${
+                                rec.tramo === "ida"
+                                  ? "border-sky-300 bg-sky-50 text-sky-800"
+                                  : "border-amber-300 bg-amber-50 text-amber-800"
+                              }`}
+                            >
+                              {rec.tramo === "ida" ? "Ida" : "Vuelta"}
+                            </Badge>
+                          )}
+                          {rec.medio_transporte && (
+                            <Badge
+                              variant="outline"
+                              className={`text-[9.5px] px-1.5 py-0 h-4 font-mono truncate max-w-[130px] ${obtenerEstiloTransporte(
+                                rec.medio_transporte
+                              )}`}
+                            >
+                              {rec.medio_transporte}
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="text-[11px] font-medium text-[#1E293B] truncate block" title={rec.descripcion}>
                           {rec.descripcion}
                         </span>
+                        {rec.calles_declaradas && (
+                          <span
+                            className="text-[10px] text-muted-foreground truncate block font-mono mt-0.5"
+                            title={rec.calles_declaradas}
+                          >
+                            🛣️ {rec.calles_declaradas}
+                          </span>
+                        )}
                       </div>
-                      <span className="font-mono font-bold text-[#063A6B] shrink-0">
-                        Bs {rec.monto.toFixed(2)}
-                      </span>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="font-mono font-bold text-[#063A6B]">
+                          Bs {rec.monto.toFixed(2)}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => set_recorrido_seleccionado(rec)}
+                          className="h-7 w-7 p-0 text-[#063A6B] hover:text-[#17B4C4] hover:bg-white rounded-lg border border-transparent hover:border-[#E3DCCB] transition-colors"
+                          title="Ver detalle del recorrido, paradas y calles declaradas"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            confirmarEliminacionRegistro({
+                              titulo: "¿Eliminar recorrido declarado?",
+                              descripcion: `¿Está seguro de eliminar el recorrido "${rec.descripcion}" por Bs ${rec.monto.toFixed(2)}? Esta acción recalculará el monto total del mes.`,
+                              nombre_item: rec.descripcion,
+                              onConfirmar: () => {
+                                set_recorridos((prev) => prev.filter((r) => r.id !== rec.id));
+                              },
+                              mensaje_exito: "Recorrido declarado eliminado exitosamente",
+                            });
+                          }}
+                          className="h-7 w-7 p-0 text-[#E2694B] hover:text-[#c9573b] hover:bg-rose-50 rounded-lg border border-transparent hover:border-rose-200 transition-colors"
+                          title="Eliminar recorrido declarado"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1155,6 +1391,215 @@ export function PasajesVista() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ============================================================== */}
+      {/* DIÁLOGO MODAL: DETALLE CONECTADO DE CALLES Y TELEFÉRICO        */}
+      {/* ============================================================== */}
+      <Dialog
+        open={!!recorrido_seleccionado}
+        onOpenChange={(abierto) => {
+          if (!abierto) set_recorrido_seleccionado(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-xl p-0 overflow-hidden rounded-2xl bg-white border border-[#E3DCCB] shadow-2xl">
+          <DialogHeader className="p-5 pb-3 border-b border-[#E3DCCB] bg-[#F8F9FA]">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-[#17B4C4]/15 text-[#0E7A85] flex items-center justify-center">
+                <Route className="w-4 h-4" />
+              </div>
+              <div>
+                <DialogTitle className="font-display text-base text-[#063A6B]">
+                  Auditoría de Recorrido — Calles y Transporte Multimodal
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Detalle paso a paso del trayecto convalidado en la conurbación La Paz – El Alto.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          {recorrido_seleccionado && (
+            <DialogBody className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+              {/* CABECERA CON BADGES DE TRAMO, ACTIVIDAD Y TRANSPORTE */}
+              <div className="p-3.5 rounded-xl border border-[#E3DCCB] bg-slate-50/70 space-y-2.5">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <Badge className="bg-[#063A6B] text-white text-[10.5px] font-mono">
+                      {recorrido_seleccionado.fecha}
+                    </Badge>
+                    <Badge
+                      variant="outline"
+                      className={`text-[10.5px] uppercase font-bold font-mono ${
+                        recorrido_seleccionado.tramo === "vuelta"
+                          ? "border-amber-300 bg-amber-50 text-amber-800"
+                          : "border-sky-300 bg-sky-50 text-sky-800"
+                      }`}
+                    >
+                      {recorrido_seleccionado.tramo === "vuelta" ? "Retorno / Vuelta" : "Ida"}
+                    </Badge>
+                    <Badge variant="outline" className="text-[10.5px] border-emerald-300 bg-emerald-50 text-emerald-800 font-medium">
+                      {recorrido_seleccionado.tipo_actividad || "Prácticas"}
+                    </Badge>
+                  </div>
+
+                  <span className="text-xs font-mono font-bold text-[#063A6B]">
+                    Tarifa: Bs {recorrido_seleccionado.monto.toFixed(2)}
+                  </span>
+                </div>
+
+                {/* MEDIO DE TRANSPORTE DESTACADO */}
+                <div className="flex items-center gap-2 pt-0.5">
+                  <span className="text-[11px] font-mono uppercase text-muted-foreground font-bold shrink-0">
+                    Transporte:
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className={`text-xs px-2.5 py-0.5 font-medium ${obtenerEstiloTransporte(
+                      recorrido_seleccionado.medio_transporte
+                    )}`}
+                  >
+                    <Bus className="w-3 h-3 mr-1.5 inline" />
+                    {recorrido_seleccionado.medio_transporte || "Transporte Público Regulado"}
+                  </Badge>
+                </div>
+
+                <div className="text-xs text-[#1E293B] font-medium pt-0.5">
+                  <span className="text-muted-foreground">Itinerario: </span>
+                  {recorrido_seleccionado.descripcion}
+                </div>
+              </div>
+
+              {/* TRAZADO DE CALLES DECLARADAS PASO A PASO */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-mono uppercase font-bold text-[#063A6B] flex items-center gap-1.5">
+                    <Navigation className="w-3.5 h-3.5 text-[#17B4C4]" />
+                    Trazado de Calles y Paradas Declaradas
+                  </Label>
+                  <span className="text-[10px] text-muted-foreground font-mono">
+                    Secuencia conectada
+                  </span>
+                </div>
+
+                {recorrido_seleccionado.calles_declaradas ? (
+                  <div className="space-y-2 border border-[#E3DCCB]/80 rounded-xl p-3 bg-white">
+                    {recorrido_seleccionado.calles_declaradas.split("|").map((sub_tramo, idx_sub) => {
+                      const pasos = obtenerPasosCalles(sub_tramo);
+                      return (
+                        <div key={idx_sub} className="space-y-2">
+                          {recorrido_seleccionado.calles_declaradas!.includes("|") && (
+                            <div className="text-[10.5px] font-mono font-bold uppercase text-[#0A5CA0] pb-1 border-b border-slate-100">
+                              {idx_sub === 0 ? "Tramo Inicial (Ida)" : "Tramo Conexo / Retorno"}
+                            </div>
+                          )}
+
+                          <div className="flex flex-col gap-1.5">
+                            {pasos.map((paso, paso_idx) => {
+                              const es_inicio = paso_idx === 0;
+                              const es_fin = paso_idx === pasos.length - 1;
+                              return (
+                                <div key={paso_idx} className="flex items-start gap-2.5">
+                                  <div className="flex flex-col items-center shrink-0 mt-0.5">
+                                    <div
+                                      className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                                        es_inicio
+                                          ? "bg-rose-500 text-white"
+                                          : es_fin
+                                          ? "bg-emerald-600 text-white"
+                                          : "bg-sky-100 text-sky-800 border border-sky-300"
+                                      }`}
+                                    >
+                                      {paso_idx + 1}
+                                    </div>
+                                    {!es_fin && <div className="w-0.5 h-4 bg-slate-200 mt-0.5" />}
+                                  </div>
+                                  <div className="flex-1 pb-1">
+                                    <span
+                                      className={`text-xs ${
+                                        es_inicio || es_fin
+                                          ? "font-bold text-[#063A6B]"
+                                          : "text-[#334155] font-medium"
+                                      }`}
+                                    >
+                                      {paso}
+                                    </span>
+                                    {es_inicio && (
+                                      <span className="ml-2 text-[10px] text-rose-600 font-mono font-semibold">
+                                        (Punto de Salida)
+                                      </span>
+                                    )}
+                                    {es_fin && (
+                                      <span className="ml-2 text-[10px] text-emerald-600 font-mono font-semibold">
+                                        (Punto de Llegada)
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground italic p-3 border border-dashed rounded-xl">
+                    No se especificaron calles intermedias en el registro de este recorrido.
+                  </p>
+                )}
+              </div>
+
+              {/* DETALLE DE ACTIVIDAD / APOYO REALIZADO */}
+              {recorrido_seleccionado.apoyo_realizado && (
+                <div className="p-3 rounded-xl border border-sky-100 bg-sky-50/50 space-y-1">
+                  <span className="text-[10px] font-mono uppercase font-bold text-sky-800 block">
+                    Apoyo y Justificación Institucional
+                  </span>
+                  <p className="text-xs text-sky-950 font-medium">
+                    {recorrido_seleccionado.apoyo_realizado}
+                  </p>
+                </div>
+              )}
+
+              {/* CONVALIDACIÓN DE REEMBOLSO DEL 80% */}
+              <div className="p-3.5 rounded-xl border border-[#E3DCCB] bg-gradient-to-br from-[#063A6B] to-[#04284d] text-white">
+                <div className="flex items-center justify-between pb-2 border-b border-white/15">
+                  <span className="text-xs font-mono text-white/80">Tarifa Declarada (100%):</span>
+                  <span className="text-xs font-mono font-bold text-white">
+                    Bs {recorrido_seleccionado.monto.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-2">
+                  <div>
+                    <span className="text-xs font-mono text-[#7FE0E6] font-bold block uppercase">
+                      Subsidio Institucional Diaconía (80%):
+                    </span>
+                    <span className="text-[10px] text-white/70 font-mono">
+                      Contraparte del becario (20%): Bs {(recorrido_seleccionado.monto * 0.2).toFixed(2)}
+                    </span>
+                  </div>
+                  <span className="text-xl font-display font-bold text-[#F8C766]">
+                    Bs {(recorrido_seleccionado.monto * 0.8).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </DialogBody>
+          )}
+
+          <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-slate-50 flex sm:justify-end">
+            <Button
+              type="button"
+              onClick={() => set_recorrido_seleccionado(null)}
+              className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold text-xs rounded-xl px-5"
+            >
+              Cerrar Detalle
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de Confirmación Institucional */}
+      {DialogoConfirmacionInstitucional}
     </div>
   );
 }

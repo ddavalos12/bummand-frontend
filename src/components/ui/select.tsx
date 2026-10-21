@@ -17,13 +17,97 @@ function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   )
 }
 
-function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
+const DICCIONARIO_ETIQUETAS: Record<string, string> = {
+  // Refrigerios
+  refrigerio_tarde: "Refrigerio de Tarde",
+  desayuno: "Desayuno Nutritivo",
+  almuerzo_taller: "Almuerzo de Taller",
+  especial_diaconal: "Especial Diaconal",
+  refrigerio_normal: "Refrigerio Normal",
+  // Eventos / Actividades
+  escuela_lideres_especial: "Escuela de Líderes Especial",
+  escuela_lideres: "Escuela de Líderes",
+  asistencia_practicas: "Prácticas Preprofesionales",
+  asistencia_evento: "Evento Geolocalizado Convocado",
+  servicio_diaconal: "Servicio Diaconal",
+  retiro: "Retiro Espiritual",
+  reunion: "Reunión Ordinaria",
+  taller: "Taller de Formación",
+  // Justificaciones / Incidencias
+  fuera_geocerca: "Fuera de Geocerca",
+  salud_enfermedad: "Salud / Enfermedad",
+  emergencia_familiar: "Emergencia Familiar",
+  academico_examen: "Académico / Examen",
+  fuerza_mayor: "Fuerza Mayor",
+  otro_motivo: "Otro Motivo",
+  otro: "Otra Actividad Formativa",
+  pendiente_aprobacion: "Pendiente de Aprobación",
+  aprobado_supervisor: "Aprobado por Supervisor",
+  rechazado_supervisor: "Rechazado",
+  justificacion_general: "Justificación General",
+  permiso_previo: "Permiso Previo",
+  falta_injustificada: "Falta Injustificada",
+  // Pasajes y Tarifas
+  urbano: "Urbano",
+  interciudad: "Interciudad",
+}
+
+function limpiarTextoSnakeCase(texto: string): string {
+  if (DICCIONARIO_ETIQUETAS[texto]) {
+    return DICCIONARIO_ETIQUETAS[texto]
+  }
+  if (texto.includes("_")) {
+    return texto
+      .split("_")
+      .filter(Boolean)
+      .map((palabra) => palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase())
+      .join(" ")
+  }
+  return texto
+}
+
+function formatearValorSelect(valor: unknown): React.ReactNode {
+  if (valor === null || valor === undefined || valor === "") {
+    return null
+  }
+  if (Array.isArray(valor)) {
+    return valor.map((item) => formatearValorSelect(item)).join(", ")
+  }
+  if (typeof valor === "string") {
+    return limpiarTextoSnakeCase(valor)
+  }
+  return valor as React.ReactNode
+}
+
+function SelectValue({
+  className,
+  children,
+  placeholder,
+  ...props
+}: SelectPrimitive.Value.Props) {
+  const formatearSalida = (valor: any) => {
+    if (typeof children === "function") {
+      const resultado = children(valor)
+      return typeof resultado === "string" ? limpiarTextoSnakeCase(resultado) : resultado
+    }
+    if (children != null) {
+      return children
+    }
+    if (valor === null || valor === undefined || valor === "") {
+      return placeholder ?? null
+    }
+    return formatearValorSelect(valor)
+  }
+
   return (
     <SelectPrimitive.Value
       data-slot="select-value"
       className={cn("flex flex-1 text-left", className)}
+      placeholder={placeholder}
       {...props}
-    />
+    >
+      {formatearSalida}
+    </SelectPrimitive.Value>
   )
 }
 
@@ -40,7 +124,7 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "flex w-fit items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent py-2 pr-2 pl-2.5 text-sm whitespace-nowrap transition-colors outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground data-[size=default]:h-8 data-[size=sm]:h-7 data-[size=sm]:rounded-[min(var(--radius-md),10px)] *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "flex w-full items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent py-2 pr-2 pl-2.5 text-sm whitespace-nowrap transition-colors outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground data-[size=default]:h-8 data-[size=sm]:h-7 data-[size=sm]:rounded-[min(var(--radius-md),10px)] *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}

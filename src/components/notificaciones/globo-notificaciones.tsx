@@ -17,6 +17,9 @@ import {
 } from "lucide-react";
 import { InsigniaPulsoVivo } from "@/components/animaciones/insignia-pulso-vivo";
 import { BotonConEstado } from "@/components/animaciones/boton-con-estado";
+import { useTiempoReal } from "@/hooks/useTiempoReal";
+import { peticionApi } from "@/lib/cliente-api";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export interface NotificacionItem {
@@ -77,12 +80,6 @@ interface PropiedadesGloboNotificaciones {
   className?: string;
 }
 
-/**
- * Componente Globo de Notificaciones (Mini Diálogo / Idea Bubble)
- * Botón de campana interactivo accesible universalmente desde la cabecera.
- * Abre un mini diálogo flotante estilo globo de pensamiento con física de resorte,
- * botón con estado reactivo para marcar todo leído y filtros instantáneos.
- */
 export function GloboNotificaciones({
   alAbrirHistorialCompleto,
   alNavegarASeccion,
@@ -93,6 +90,78 @@ export function GloboNotificaciones({
   const [filtro, set_filtro] = useState<"todas" | "pendientes">("todas");
 
   const ref_contenedor = useRef<HTMLDivElement>(null);
+
+  useTiempoReal({
+    eventos: {
+      codigo_verificacion_tutor: (datos: unknown) => {
+        const carga = (datos || {}) as {
+          codigo?: string;
+          becario_nombre?: string;
+          supervisor_nombre?: string;
+          mensaje?: string;
+        };
+        const codigo_str = carga.codigo || "000000";
+        const becario_str = carga.becario_nombre || "Becario";
+        const nueva: NotificacionItem = {
+          id: Date.now(),
+          tipo: "evaluacion",
+          titulo: `🔐 Código de Supervisor: ${codigo_str}`,
+          mensaje:
+            carga.mensaje ||
+            `Código de 6 dígitos para evaluar a ${becario_str}: ${codigo_str} (válido por 10 min).`,
+          tiempo: "Ahora mismo",
+          leido: false,
+        };
+        set_notificaciones((prev) => [nueva, ...prev]);
+        set_abierto(true);
+        toast.info(`Código de Verificación de Tutor: ${codigo_str}`, {
+          description: `Ingresa el código ${codigo_str} para autorizar la evaluación de ${becario_str}.`,
+          duration: 15000,
+        });
+      },
+    },
+  });
+
+  useEffect(() => {
+    let cancelado = false;
+    async function cargarNotificacionesRemotas() {
+      try {
+        const remotas = await peticionApi<
+          Array<{ id: number; tipo: string; mensaje: string; fecha_envio: string; leido: boolean }>
+        >("/notificaciones");
+        if (cancelado || !Array.isArray(remotas) || remotas.length === 0) return;
+        const mapeadas: NotificacionItem[] = remotas.slice(0, 15).map((r) => {
+          const es_codigo = r.tipo.includes("codigo_tutor");
+          const tipo_item: NotificacionItem["tipo"] =
+            r.tipo.includes("evaluacion") || es_codigo
+              ? "evaluacion"
+              : r.tipo.includes("pasaje")
+                ? "pasajes"
+                : r.tipo.includes("asistencia") || r.tipo.includes("multa")
+                  ? "asistencia"
+                  : "general";
+          return {
+            id: r.id + 10000,
+            tipo: tipo_item,
+            titulo: es_codigo ? "🔐 Código de Autorización de Tutor" : "Notificación Institucional",
+            mensaje: r.mensaje,
+            tiempo: "Reciente",
+            leido: Boolean(r.leido),
+          };
+        });
+        set_notificaciones((prev) => {
+          const ids = new Set(mapeadas.map((m) => m.id));
+          return [...mapeadas, ...prev.filter((p) => !ids.has(p.id))];
+        });
+      } catch {
+        // Conservar notificaciones locales en caso de desconexión
+      }
+    }
+    cargarNotificacionesRemotas();
+    return () => {
+      cancelado = true;
+    };
+  }, [abierto]);
 
   const conteo_no_leidas = notificaciones.filter((n) => !n.leido).length;
 

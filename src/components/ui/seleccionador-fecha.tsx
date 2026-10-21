@@ -19,9 +19,17 @@ interface DatePickerProps {
   fecha: Date | undefined
   alCambiar: (fecha: Date | undefined) => void
   etiqueta_boton?: string
+  className?: string
+  formato?: string
 }
 
-export function SeleccionadorFecha({ fecha, alCambiar, etiqueta_boton = "Seleccionar fecha" }: DatePickerProps) {
+export function SeleccionadorFecha({
+  fecha,
+  alCambiar,
+  etiqueta_boton = "Seleccionar fecha",
+  className,
+  formato = "PPP",
+}: DatePickerProps) {
   return (
     <Popover>
       {/* @ts-ignore */}
@@ -30,11 +38,12 @@ export function SeleccionadorFecha({ fecha, alCambiar, etiqueta_boton = "Selecci
           variant={"outline"}
           className={cn(
             "w-full justify-start text-left font-normal border-[#E3DCCB] h-11 rounded-xl",
-            !fecha && "text-muted-foreground"
+            !fecha && "text-muted-foreground",
+            className
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4 text-[#17B4C4]" />
-          {fecha ? format(fecha, "PPP", { locale: es }) : <span>{etiqueta_boton}</span>}
+          {fecha ? format(fecha, formato, { locale: es }) : <span>{etiqueta_boton}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
@@ -42,7 +51,6 @@ export function SeleccionadorFecha({ fecha, alCambiar, etiqueta_boton = "Selecci
           mode="single"
           selected={fecha}
           onSelect={alCambiar}
-          
           locale={es}
         />
       </PopoverContent>

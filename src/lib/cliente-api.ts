@@ -235,6 +235,14 @@ export class ClienteApi {
     });
   }
 
+  public put<T>(ruta: string, cuerpo?: unknown, opciones?: OpcionesPeticion): Promise<T> {
+    return this.realizarPeticion<T>(ruta, {
+      ...opciones,
+      method: "PUT",
+      body: cuerpo !== undefined ? (cuerpo instanceof FormData ? cuerpo : JSON.stringify(cuerpo)) : undefined,
+    });
+  }
+
   public patch<T>(ruta: string, cuerpo?: unknown, opciones?: OpcionesPeticion): Promise<T> {
     return this.realizarPeticion<T>(ruta, {
       ...opciones,
@@ -246,6 +254,29 @@ export class ClienteApi {
   public delete<T>(ruta: string, opciones?: OpcionesPeticion): Promise<T> {
     return this.realizarPeticion<T>(ruta, { ...opciones, method: "DELETE" });
   }
+
+  public async descargarBlob(ruta: string, opciones?: OpcionesPeticion): Promise<Blob> {
+    const ruta_limpia = this.normalizarRuta(ruta);
+    const token = typeof window !== "undefined" ? localStorage.getItem("bumand_token") : null;
+    const encabezados = new Headers(opciones?.headers);
+    if (token && !encabezados.has("Authorization")) {
+      encabezados.set("Authorization", `Bearer ${token}`);
+    }
+    const respuesta = await fetch(`${this.url_base}${ruta_limpia}`, {
+      ...opciones,
+      method: opciones?.method || "GET",
+      headers: encabezados,
+    });
+    if (!respuesta.ok) {
+      const errDetalles = await this.extraerDetallesError(respuesta);
+      throw new ErrorApi(errDetalles.mensaje, respuesta.status, errDetalles.datos, errDetalles.codigo_error);
+    }
+    return respuesta.blob();
+  }
 }
 
 export const clienteApi = new ClienteApi();
+
+export function peticionApi<T>(ruta: string, opciones?: OpcionesPeticion): Promise<T> {
+  return clienteApi.realizarPeticion<T>(ruta, opciones);
+}

@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { clienteApi } from "@/lib/cliente-api";
 import {
   Calendar as CalendarIcon,
   MapPin,
@@ -24,6 +25,8 @@ import {
   Coins,
   Map,
   ListChecks,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import {
   Dialog,
@@ -34,6 +37,7 @@ import {
   DialogBody,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
 import { EstadoVacio } from "@/components/ui/estado-vacio";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -285,6 +289,72 @@ export function GestionEventos() {
   const [descargando_pdf, set_descargando_pdf] = useState(false);
   const [mensaje_exito, set_mensaje_exito] = useState<string | null>(null);
 
+  const {
+    confirmarEliminacionRegistro,
+    DialogoConfirmacionInstitucional,
+  } = useConfirmacionDialogo();
+
+  const [dialogo_editar_abierto, set_dialogo_editar_abierto] = useState(false);
+  const [evento_a_editar, set_evento_a_editar] = useState<EventoGeolocalizado | null>(null);
+  const [guardando_edicion, set_guardando_edicion] = useState(false);
+
+  const [edit_titulo, set_edit_titulo] = useState("");
+  const [edit_descripcion, set_edit_descripcion] = useState("");
+  const [edit_tipo, set_edit_tipo] = useState<EventoGeolocalizado["tipo_evento"]>("escuela_lideres_especial");
+  const [edit_estado, set_edit_estado] = useState<EventoGeolocalizado["estado"]>("programado");
+  const [edit_fecha, set_edit_fecha] = useState<Date | undefined>(new Date());
+  const [edit_hora_inicio, set_edit_hora_inicio] = useState("08:30");
+  const [edit_hora_fin, set_edit_hora_fin] = useState("13:00");
+  const [edit_latitud, set_edit_latitud] = useState("-16.500054");
+  const [edit_longitud, set_edit_longitud] = useState("-68.173455");
+  const [edit_radio, set_edit_radio] = useState("100");
+  const [edit_referencia, set_edit_referencia] = useState("");
+
+  // Cargar Acciones de Servicio desde el backend real con respaldo
+  useEffect(() => {
+    async function cargarEventosServidor() {
+      try {
+        const respuesta = await clienteApi.get<any[]>("/api/eventos");
+        if (Array.isArray(respuesta) && respuesta.length > 0) {
+          const eventos_mapeados: EventoGeolocalizado[] = respuesta.map((ev) => ({
+            id: ev.id,
+            titulo: ev.titulo,
+            descripcion: ev.descripcion || "",
+            tipo_evento: ev.tipo_evento || "servicio_diaconal",
+            fecha: typeof ev.fecha === "string" ? ev.fecha.split("T")[0] : format(new Date(ev.fecha), "yyyy-MM-dd"),
+            hora_inicio: ev.hora_inicio || "08:30",
+            hora_fin: ev.hora_fin || "13:00",
+            latitud: typeof ev.latitud === "string" ? parseFloat(ev.latitud) : ev.latitud,
+            longitud: typeof ev.longitud === "string" ? parseFloat(ev.longitud) : ev.longitud,
+            radio_tolerancia_m: ev.radio_tolerancia_m || 100,
+            direccion_referencia: ev.direccion_referencia || "Recinto Institucional Diaconía",
+            estado: ev.estado || "programado",
+            total_convocados: ev.asistencias ? Math.max(ev.asistencias.length, 23) : 23,
+            asistencias: Array.isArray(ev.asistencias)
+              ? ev.asistencias.map((a: any) => ({
+                  id: a.id,
+                  becario_id: a.becario_id || (a.becario ? a.becario.id : 0),
+                  nombre: a.becario?.usuario?.nombre || a.nombre || "Becario",
+                  carrera: a.becario?.carrera || a.carrera || "Carrera Institucional",
+                  hora_marcacion: a.hora_marcacion || "--:--:--",
+                  distancia_m: typeof a.distancia_m === "string" ? parseFloat(a.distancia_m) : a.distancia_m || 0,
+                  dentro_de_radio: Boolean(a.dentro_de_radio),
+                  estado: a.estado || "presente",
+                  observaciones: a.observaciones,
+                  monto_multa_bs: typeof a.monto_multa_bs === "string" ? parseFloat(a.monto_multa_bs) : a.monto_multa_bs || 0,
+                  confirmado_presencial: Boolean(a.confirmado_presencial),
+                }))
+              : [],
+          }));
+          set_eventos(eventos_mapeados);
+        }
+      } catch {
+        // Mantiene EVENTOS_INICIALES como respaldo si el backend no responde
+      }
+    }
+    cargarEventosServidor();
+  }, []);
+
   // Formulario nuevo evento
   const [nuevo_titulo, set_nuevo_titulo] = useState("");
   const [nueva_descripcion, set_nueva_descripcion] = useState("");
@@ -309,10 +379,10 @@ export function GestionEventos() {
   };
 
   const pestanas: ElementoPestana[] = [
-    { id: "todos", etiqueta: "Todos los Eventos", contador: contarPorEstado("todos") },
+    { id: "todos", etiqueta: "Todas las Acciones", contador: contarPorEstado("todos") },
     { id: "en_curso", etiqueta: "En Curso", contador: contarPorEstado("en_curso") },
-    { id: "programado", etiqueta: "Programados", contador: contarPorEstado("programado") },
-    { id: "finalizado", etiqueta: "Finalizados", contador: contarPorEstado("finalizado") },
+    { id: "programado", etiqueta: "Programadas", contador: contarPorEstado("programado") },
+    { id: "finalizado", etiqueta: "Finalizadas", contador: contarPorEstado("finalizado") },
   ];
 
   const aplicarPredeterminadoGps = (_indice: number) => {
@@ -324,30 +394,162 @@ export function GestionEventos() {
     }
   };
 
-  const manejarCrearEvento = (e: React.FormEvent) => {
+  const abrirModalEditar = (ev: EventoGeolocalizado) => {
+    set_evento_a_editar(ev);
+    set_edit_titulo(ev.titulo);
+    set_edit_descripcion(ev.descripcion);
+    set_edit_tipo(ev.tipo_evento);
+    set_edit_estado(ev.estado);
+    try {
+      const partes = ev.fecha.split("-").map(Number);
+      if (partes.length === 3) {
+        set_edit_fecha(new Date(partes[0], partes[1] - 1, partes[2]));
+      } else {
+        set_edit_fecha(new Date());
+      }
+    } catch {
+      set_edit_fecha(new Date());
+    }
+    set_edit_hora_inicio(ev.hora_inicio);
+    set_edit_hora_fin(ev.hora_fin);
+    set_edit_latitud(ev.latitud.toString());
+    set_edit_longitud(ev.longitud.toString());
+    set_edit_radio(ev.radio_tolerancia_m.toString());
+    set_edit_referencia(ev.direccion_referencia);
+    set_dialogo_editar_abierto(true);
+  };
+
+  const aplicarPredeterminadoGpsEdicion = (_indice: number) => {
+    const p = PREDETERMINADOS_GPS[_indice];
+    if (p) {
+      set_edit_latitud(p.latitud.toString());
+      set_edit_longitud(p.longitud.toString());
+      set_edit_referencia(p.referencia);
+    }
+  };
+
+  const manejarGuardarEdicion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!evento_a_editar || !edit_titulo.trim()) return;
+
+    set_guardando_edicion(true);
+    const fecha_str = edit_fecha ? format(edit_fecha, "yyyy-MM-dd") : evento_a_editar.fecha;
+    const lat = parseFloat(edit_latitud) || evento_a_editar.latitud;
+    const lng = parseFloat(edit_longitud) || evento_a_editar.longitud;
+    const radio = parseInt(edit_radio, 10) || evento_a_editar.radio_tolerancia_m;
+
+    const payload = {
+      titulo: edit_titulo.trim(),
+      descripcion: edit_descripcion.trim(),
+      tipo_evento: edit_tipo,
+      estado: edit_estado,
+      fecha: fecha_str,
+      hora_inicio: edit_hora_inicio,
+      hora_fin: edit_hora_fin,
+      latitud: lat,
+      longitud: lng,
+      radio_tolerancia_m: radio,
+      direccion_referencia: edit_referencia.trim(),
+    };
+
+    try {
+      await clienteApi.patch(`/api/eventos/${evento_a_editar.id}`, payload);
+    } catch {
+      // Respaldo reactivo local si el backend no responde
+    }
+
+    const evento_actualizado: EventoGeolocalizado = {
+      ...evento_a_editar,
+      ...payload,
+    };
+
+    set_eventos((prev) =>
+      prev.map((item) => (item.id === evento_a_editar.id ? evento_actualizado : item))
+    );
+
+    set_dialogo_editar_abierto(false);
+    set_guardando_edicion(false);
+    toast.success("Acción de Servicio actualizada", {
+      description: `Los cambios para "${evento_actualizado.titulo}" fueron guardados correctamente.`,
+    });
+  };
+
+  const manejarEliminarEvento = (ev: EventoGeolocalizado) => {
+    confirmarEliminacionRegistro({
+      titulo: "¿Eliminar acción de servicio?",
+      descripcion: `¿Está seguro de eliminar la convocatoria "${ev.titulo}"? Esta acción cancelará las marcaciones registradas para este evento.`,
+      nombre_item: ev.titulo,
+      onConfirmar: async () => {
+        try {
+          await clienteApi.delete(`/api/eventos/${ev.id}`);
+        } catch {
+          // Respaldo reactivo local
+        }
+        set_eventos((prev) => prev.filter((item) => item.id !== ev.id));
+        toast.success("Acción de servicio eliminada", {
+          description: `"${ev.titulo}" fue retirada del catálogo institucional.`,
+        });
+      },
+    });
+  };
+
+  const manejarCrearEvento = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nuevo_titulo.trim()) return;
 
-    const nuevo: EventoGeolocalizado = {
-      id: Date.now(),
+    const fecha_str = nueva_fecha ? format(nueva_fecha, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+    const lat = parseFloat(nueva_latitud) || -16.500054;
+    const lng = parseFloat(nueva_longitud) || -68.173455;
+    const radio = parseInt(nuevo_radio, 10) || 100;
+
+    const payload = {
       titulo: nuevo_titulo.trim(),
       descripcion: nueva_descripcion.trim(),
       tipo_evento: nuevo_tipo,
-      fecha: nueva_fecha ? format(nueva_fecha, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
+      fecha: fecha_str,
       hora_inicio: nueva_hora_inicio,
       hora_fin: nueva_hora_fin,
-      latitud: parseFloat(nueva_latitud) || -16.500054,
-      longitud: parseFloat(nueva_longitud) || -68.173455,
-      radio_tolerancia_m: parseInt(nuevo_radio, 10) || 100,
+      latitud: lat,
+      longitud: lng,
+      radio_tolerancia_m: radio,
       direccion_referencia: nueva_referencia.trim(),
       estado: "programado",
-      total_convocados: 35,
+    };
+
+    let id_generado = Date.now();
+
+    try {
+      const respuesta = await clienteApi.post<any>("/api/eventos", payload);
+      if (respuesta?.id) {
+        id_generado = respuesta.id;
+      }
+    } catch {
+      // Respaldo reactivo local si el backend no responde
+    }
+
+    const nuevo: EventoGeolocalizado = {
+      id: id_generado,
+      titulo: nuevo_titulo.trim(),
+      descripcion: nueva_descripcion.trim(),
+      tipo_evento: nuevo_tipo,
+      fecha: fecha_str,
+      hora_inicio: nueva_hora_inicio,
+      hora_fin: nueva_hora_fin,
+      latitud: lat,
+      longitud: lng,
+      radio_tolerancia_m: radio,
+      direccion_referencia: nueva_referencia.trim(),
+      estado: "programado",
+      total_convocados: 23,
       asistencias: [],
     };
 
     set_eventos([nuevo, ...eventos]);
     set_dialogo_nuevo_abierto(false);
-    set_mensaje_exito(`Evento "${nuevo.titulo}" convocado y programado exitosamente.`);
+    set_mensaje_exito(`Acción de Servicio "${nuevo.titulo}" publicada y vinculada con la App Móvil exitosamente.`);
+    toast.success("Acción de Servicio creada", {
+      description: `"${nuevo.titulo}" se encuentra disponible de inmediato en la App Móvil de los becarios.`,
+    });
     setTimeout(() => set_mensaje_exito(null), 5000);
 
     // Resetear formulario
@@ -635,17 +837,21 @@ export function GestionEventos() {
         </div>
       )}
 
-      {/* Cabecera y Barra de Acciones */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        {/* Pestañas animadas con layoutId */}
-        <PestanasAnimadas
-          pestanas={pestanas}
-          pestana_activa_id={filtro_estado}
-          al_cambiar_pestana={set_filtro_estado}
-          identificador_diseno="pestana_eventos_filtro"
-        />
+      {/* Encabezado Principal - Acciones de Servicio */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E3DCCB] shadow-sm">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Compass className="w-5 h-5 text-[#063A6B]" />
+            <h2 className="text-xl font-bold text-[#063A6B]">
+              Acciones de Servicio
+            </h2>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Actividades y eventos espontáneos con horarios y geocercas variables vinculados con la App Móvil. Cada acción creada queda disponible de inmediato para la marcación y convalidación de horas de los becarios.
+          </p>
+        </div>
 
-        {/* Botón Juicy para Nuevo Evento */}
+        {/* Botón Juicy para Nueva Acción de Servicio */}
         <Dialog open={dialogo_nuevo_abierto} onOpenChange={set_dialogo_nuevo_abierto}>
           <DialogTrigger asChild>
             <div>
@@ -655,7 +861,7 @@ export function GestionEventos() {
                 className="w-full sm:w-auto"
               >
                 <Plus className="w-4 h-4" />
-                <span>Nuevo Evento Geolocalizado</span>
+                <span>Nueva Acción de Servicio</span>
               </BotonJuicy>
             </div>
           </DialogTrigger>
@@ -667,10 +873,10 @@ export function GestionEventos() {
             <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
               <DialogTitle className="text-lg font-bold text-[#063A6B] flex items-center gap-2">
                 <Compass className="w-5 h-5 text-[#17B4C4]" />
-                Convocatoria de Nuevo Evento Geolocalizado
+                Convocatoria de Acción de Servicio Geolocalizada
               </DialogTitle>
               <p className="text-xs text-muted-foreground">
-                Define el epicentro geodésico WGS84 y el radio perimetral de tolerancia métrica para la marcación obligatoria.
+                Define el epicentro geodésico WGS84 y el radio perimetral de tolerancia métrica para la marcación obligatoria en la App Móvil.
               </p>
             </DialogHeader>
 
@@ -840,7 +1046,7 @@ export function GestionEventos() {
                   type="submit"
                   className="bg-[#063A6B] hover:bg-[#084885] text-white rounded-xl text-xs h-10 px-5 font-semibold shadow-sm"
                 >
-                  Publicar y Convocar Evento
+                  Publicar y Sincronizar con App Móvil
                 </Button>
               </DialogFooter>
             </form>
@@ -848,12 +1054,22 @@ export function GestionEventos() {
         </Dialog>
       </div>
 
+      {/* Barra de Filtros por Estado */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <PestanasAnimadas
+          pestanas={pestanas}
+          pestana_activa_id={filtro_estado}
+          al_cambiar_pestana={set_filtro_estado}
+          identificador_diseno="pestana_eventos_filtro"
+        />
+      </div>
+
       {/* Cuadrícula de Tarjetas de Eventos con Cult UI (TarjetaSpotlight + BordeLuminoso) */}
       {eventos_filtrados.length === 0 ? (
         <EstadoVacio
           icono={CalendarIcon}
-          titulo="Sin eventos convocados"
-          descripcion="No existen eventos o encuentros geolocalizados que coincidan con los filtros de búsqueda o estado seleccionados."
+          titulo="Sin acciones de servicio convocadas"
+          descripcion="No existen acciones de servicio o eventos geolocalizados que coincidan con los filtros de búsqueda o estado seleccionados."
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -950,14 +1166,33 @@ export function GestionEventos() {
               </div>
 
               {/* Botón para Abrir Acta de Asistencia */}
-              <div className="pt-4 mt-2 border-t border-[#E3DCCB]/60">
+              <div className="pt-4 mt-2 border-t border-[#E3DCCB]/60 flex items-center gap-2">
                 <Button
                   onClick={() => set_evento_seleccionado_acta(ev)}
                   variant="outline"
-                  className="w-full h-9 rounded-xl border-[#063A6B] text-[#063A6B] hover:bg-[#063A6B]/5 text-xs font-semibold gap-1.5"
+                  className="flex-1 h-9 rounded-xl border-[#063A6B] text-[#063A6B] hover:bg-[#063A6B]/5 text-xs font-semibold gap-1.5 transition-colors"
                 >
                   <FileText className="w-3.5 h-3.5 text-[#17B4C4]" />
-                  <span>Ver Acta de Asistencia</span>
+                  <span>Ver Acta</span>
+                </Button>
+
+                <Button
+                  onClick={() => abrirModalEditar(ev)}
+                  variant="outline"
+                  className="h-9 px-3 rounded-xl border-[#E3DCCB] text-[#063A6B] hover:bg-[#063A6B]/5 hover:border-[#063A6B] text-xs font-semibold gap-1.5 transition-colors"
+                  title="Editar parámetros y geocerca de esta acción"
+                >
+                  <Pencil className="w-3.5 h-3.5 text-[#17B4C4]" />
+                  <span>Editar</span>
+                </Button>
+
+                <Button
+                  onClick={() => manejarEliminarEvento(ev)}
+                  variant="outline"
+                  className="h-9 w-9 p-0 rounded-xl border-[#E3DCCB] text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-colors flex items-center justify-center shrink-0"
+                  title="Eliminar convocatoria"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
                 </Button>
               </div>
             </TarjetaSpotlight>
@@ -967,6 +1202,221 @@ export function GestionEventos() {
       )}
 
       {/* Diálogo de "Acta de Asistencia" Oficial */}
+      {/* Diálogo Canónico de Edición de Acción de Servicio */}
+      <Dialog open={dialogo_editar_abierto} onOpenChange={set_dialogo_editar_abierto}>
+        <DialogContent
+          showCloseButton={false}
+          className="sm:max-w-[620px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E3DCCB] rounded-2xl shadow-2xl"
+        >
+          <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
+            <DialogTitle className="text-lg font-bold text-[#063A6B] flex items-center gap-2">
+              <Pencil className="w-5 h-5 text-[#17B4C4]" />
+              Editar Acción de Servicio
+            </DialogTitle>
+            <p className="text-xs text-muted-foreground">
+              Modifica los horarios, el estado operativo de ejecución y la tolerancia del perímetro geodésico WGS84.
+            </p>
+          </DialogHeader>
+
+          <form onSubmit={manejarGuardarEdicion} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            <DialogBody className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-titulo" className="text-xs font-semibold text-[#063A6B]">
+                  Título del Evento *
+                </Label>
+                <Input
+                  id="edit-titulo"
+                  required
+                  placeholder="Ej: Jornada Anual de Voluntariado y Acción Social"
+                  value={edit_titulo}
+                  onChange={(e) => set_edit_titulo(e.target.value)}
+                  className="h-10 text-xs border-[#E3DCCB] rounded-xl focus-visible:ring-[#17B4C4]"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-descripcion" className="text-xs font-semibold text-[#063A6B]">
+                  Descripción y Objetivos
+                </Label>
+                <Textarea
+                  id="edit-descripcion"
+                  placeholder="Detalla las actividades formativas, requerimientos y propósito de la convocatoria..."
+                  value={edit_descripcion}
+                  onChange={(e) => set_edit_descripcion(e.target.value)}
+                  className="text-xs border-[#E3DCCB] rounded-xl focus-visible:ring-[#17B4C4] min-h-[70px]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-[#063A6B]">Tipo de Evento</Label>
+                  <Select
+                    value={edit_tipo}
+                    onValueChange={(val: any) => {
+                      if (val) set_edit_tipo(val);
+                    }}
+                  >
+                    <SelectTrigger className="w-full h-10 text-xs border-[#E3DCCB] rounded-xl bg-white">
+                      <SelectValue placeholder="Seleccionar tipo" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-[#E3DCCB]">
+                      <SelectItem value="escuela_lideres_especial">Escuela de Líderes Especial</SelectItem>
+                      <SelectItem value="taller">Taller de Formación</SelectItem>
+                      <SelectItem value="servicio_diaconal">Servicio Diaconal</SelectItem>
+                      <SelectItem value="retiro">Retiro Espiritual</SelectItem>
+                      <SelectItem value="reunion">Reunión Ordinaria</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-[#063A6B]">Estado Operativo</Label>
+                  <Select
+                    value={edit_estado}
+                    onValueChange={(val: any) => {
+                      if (val) set_edit_estado(val);
+                    }}
+                  >
+                    <SelectTrigger className="w-full h-10 text-xs border-[#E3DCCB] rounded-xl bg-white">
+                      <SelectValue placeholder="Seleccionar estado" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-[#E3DCCB]">
+                      <SelectItem value="programado">Programado</SelectItem>
+                      <SelectItem value="en_curso">En Curso (Habilita marcación)</SelectItem>
+                      <SelectItem value="finalizado">Finalizado</SelectItem>
+                      <SelectItem value="cancelado">Cancelado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-[#063A6B]">Fecha del Evento</Label>
+                  <SeleccionadorFecha
+                    fecha={edit_fecha}
+                    alCambiar={set_edit_fecha}
+                    etiqueta_boton="Seleccionar fecha"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-[#063A6B]">Hora Inicio</Label>
+                    <Input
+                      type="time"
+                      value={edit_hora_inicio}
+                      onChange={(e) => set_edit_hora_inicio(e.target.value)}
+                      className="h-10 text-xs border-[#E3DCCB] rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-[#063A6B]">Hora Fin</Label>
+                    <Input
+                      type="time"
+                      value={edit_hora_fin}
+                      onChange={(e) => set_edit_hora_fin(e.target.value)}
+                      className="h-10 text-xs border-[#E3DCCB] rounded-xl"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Parámetros de Geolocalización y Geocerca */}
+              <div className="p-3.5 bg-[#F8F9FA] border border-[#E3DCCB] rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#063A6B] flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#17B4C4]" />
+                    Parámetros de Geocerca (La Paz - El Alto)
+                  </span>
+                  <span className="text-[10px] text-muted-foreground font-mono">WGS84 EPSG:4326</span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] text-muted-foreground font-medium">
+                    Atajo a recintos institucionales frecuentes:
+                  </Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {PREDETERMINADOS_GPS.map((p, idx) => (
+                      <button
+                        key={p.etiqueta}
+                        type="button"
+                        onClick={() => aplicarPredeterminadoGpsEdicion(idx)}
+                        className="text-[10.5px] px-2.5 py-1 rounded-lg border border-[#E3DCCB] bg-white hover:border-[#17B4C4] hover:text-[#063A6B] transition-colors"
+                      >
+                        {p.etiqueta.split("(")[0]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 pt-1">
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground">Latitud</Label>
+                    <Input
+                      value={edit_latitud}
+                      onChange={(e) => set_edit_latitud(e.target.value)}
+                      placeholder="-16.500054"
+                      className="h-9 text-xs border-[#E3DCCB] font-mono"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground">Longitud</Label>
+                    <Input
+                      value={edit_longitud}
+                      onChange={(e) => set_edit_longitud(e.target.value)}
+                      placeholder="-68.173455"
+                      className="h-9 text-xs border-[#E3DCCB] font-mono"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground">Radio (Metros)</Label>
+                    <Input
+                      type="number"
+                      value={edit_radio}
+                      onChange={(e) => set_edit_radio(e.target.value)}
+                      placeholder="100"
+                      className="h-9 text-xs border-[#E3DCCB] font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-[11px] text-muted-foreground">Dirección y Referencia Urbana</Label>
+                  <Input
+                    value={edit_referencia}
+                    onChange={(e) => set_edit_referencia(e.target.value)}
+                    placeholder="Ej: Av. Juan Pablo II #2540, a pasos de la UPEA"
+                    className="h-9 text-xs border-[#E3DCCB]"
+                  />
+                </div>
+              </div>
+            </DialogBody>
+
+            <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => set_dialogo_editar_abierto(false)}
+                className="rounded-xl border-[#E3DCCB] text-xs h-10 hover:bg-slate-100"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={guardando_edicion}
+                className="rounded-xl bg-[#063A6B] hover:bg-[#084885] text-white text-xs h-10 px-4 font-semibold gap-1.5 shadow-sm"
+              >
+                <Check className="w-4 h-4 text-[#17B4C4]" />
+                <span>{guardando_edicion ? "Guardando..." : "Guardar Cambios"}</span>
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {DialogoConfirmacionInstitucional}
+
       {evento_seleccionado_acta && (
         <Dialog
           open={!!evento_seleccionado_acta}

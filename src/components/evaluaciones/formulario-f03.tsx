@@ -7,8 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Printer, UserCheck, FileText, ShieldCheck, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Printer, UserCheck, FileText, ShieldCheck, AlertCircle, CheckCircle2, Building2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { CATALOGO_IGLESIAS_INSTITUCIONALES } from "./evaluaciones-datos-semestre";
 import { toast } from "sonner";
+import { clienteApi } from "@/lib/cliente-api";
 
 /**
  * @component FormularioF03
@@ -28,7 +31,27 @@ export function FormularioF03({
   const [cargando, set_cargando] = useState(false);
   const [error_formulario, set_error_formulario] = useState<string | null>(null);
 
-  // Sección I: Datos Pastor e Iglesia
+  // Sección I: Datos Pastor e Iglesia con soporte de Catálogo Institucional
+  const [origen_datos_iglesia, set_origen_datos_iglesia] = useState<"catalogo" | "manual">("catalogo");
+  const [iglesia_seleccionada_id, set_iglesia_seleccionada_id] = useState<string>("iglesia_bautista_el_alto");
+
+  const manejarSeleccionIglesia = (id: string) => {
+    set_iglesia_seleccionada_id(id);
+    if (id === "manual") {
+      set_origen_datos_iglesia("manual");
+      return;
+    }
+    const encontrada = CATALOGO_IGLESIAS_INSTITUCIONALES.find((i) => i.id === id);
+    if (encontrada) {
+      set_iglesia_nombre(encontrada.nombre);
+      set_pastor_nombre(encontrada.pastor_nombre);
+      set_pastor_correo(encontrada.pastor_email);
+      set_pastor_celular(encontrada.pastor_celular);
+      set_iglesia_direccion(encontrada.direccion);
+      toast.info(`Datos cargados desde catálogo institucional: ${encontrada.nombre}`);
+    }
+  };
+
   const [pastor_nombre, set_pastor_nombre] = useState("Pastor Juan Ramos Mamani");
   const [pastor_correo, set_pastor_correo] = useState("pastor.ramos@iglesiabautista.bo");
   const [pastor_celular, set_pastor_celular] = useState("71249823");
@@ -78,7 +101,7 @@ export function FormularioF03({
   const [declara_ci, set_declara_ci] = useState("3498214 LP");
   const [declara_aceptada, set_declara_aceptada] = useState(true);
 
-  const exportarPdfF03 = () => {
+  const exportarPdfF03 = async () => {
     if (!pastor_nombre.trim() || !pastor_correo.trim()) {
       set_error_formulario("Debe completar el nombre y correo del pastor.");
       return;
@@ -89,90 +112,28 @@ export function FormularioF03({
     }
 
     set_error_formulario(null);
-    const fecha_actual = new Date().toLocaleDateString("es-BO", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+    set_cargando(true);
+    toast.info("Generando formulario F-03 en PDF oficial con Puppeteer...", {
+      description: "Compilando rúbrica ministerial y firma de conformidad.",
     });
 
-    const html_pdf = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>F-03 · ${becario_nombre}</title>
-        <style>
-          body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; max-width: 780px; margin: 30px auto; padding: 0 20px; line-height: 1.5; font-size: 12px; }
-          .hdr { display: flex; justify-content: space-between; border-bottom: 2px solid #063A6B; padding-bottom: 6px; margin-bottom: 12px; }
-          .hdr b { font-size: 20px; color: #063A6B; }
-          .hdr small { display: block; font-size: 9px; color: #17B4C4; font-weight: bold; }
-          h1 { font-size: 16px; text-align: center; margin: 4px 0 2px; color: #063A6B; }
-          h2 { font-size: 12px; text-align: center; margin: 0 0 8px; color: #5B6D77; font-weight: normal; }
-          p.lead { font-size: 11px; background: #F8F9FA; padding: 8px 12px; border-left: 3px solid #17B4C4; margin: 10px 0; }
-          h3 { font-size: 12.5px; margin: 16px 0 6px; color: #063A6B; border-bottom: 1px solid #E3DCCB; padding-bottom: 2px; }
-          .row { margin: 6px 0; display: flex; }
-          .row b { min-width: 230px; color: #1E293B; }
-          .q { margin: 10px 0 2px; font-weight: bold; color: #063A6B; }
-          .a { border-bottom: 1px dotted #888; padding-bottom: 2px; margin-bottom: 4px; color: #333; }
-          .foot { margin-top: 30px; border-top: 1px solid #ccc; padding-top: 15px; }
-          @media print { .noprint { display: none; } }
-        </style>
-      </head>
-      <body>
-        <div class="hdr">
-          <div><b>Diaconía FRIF-IFD</b><small>PROGRAMA DE BECAS UNIVERSITARIAS BUMAND</small></div>
-          <div style="text-align:right; font-family:monospace; font-size:11px;">Código: F-03<br>Fecha: ${fecha_actual}</div>
-        </div>
-        <h1>F-03 · FORMULARIO DE EVALUACIÓN DEL BECARIO</h1>
-        <h2>Programa de Becas · Escuela de Líderes BUMAN-D — a llenar por el Pastor</h2>
-        <p class="lead">Se sugiere al Pastor y Líderes principales evaluar el aporte a su Iglesia del Programa BUMAN-D a través del líder que es parte del programa. Las respuestas comprometen el testimonio e integridad de toda la iglesia.</p>
+    try {
+      const blob = await clienteApi.descargarBlob(`/pdf/evaluacion/${becario_id || 1}`);
+      const url = window.URL.createObjectURL(blob);
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      enlace.download = `Formulario_F03_${becario_nombre.replace(/\s+/g, "_")}.pdf`;
+      document.body.appendChild(enlace);
+      enlace.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(enlace);
 
-        <h3>I. Datos del pastor y de la iglesia local</h3>
-        <div class="row"><b>Nombre del pastor:</b> <span>${pastor_nombre}</span></div>
-        <div class="row"><b>Correo electrónico:</b> <span>${pastor_correo}</span></div>
-        <div class="row"><b>N.º celular:</b> <span>${pastor_celular}</span></div>
-        <div class="row"><b>Nombre de la iglesia:</b> <span>${iglesia_nombre}</span></div>
-        <div class="row"><b>Dirección de la iglesia:</b> <span>${iglesia_direccion}</span></div>
-        <div class="row"><b>Líder de la congregación:</b> <span>${lider_nombre} (${lider_cargo})</span></div>
-
-        <h3>II. Referencias acerca del becario universitario</h3>
-        <div class="row"><b>1. Nombre del becario:</b> <span>${becario_nombre}</span></div>
-        <div class="row"><b>2. Frecuencia de asistencia:</b> <span>${frecuencia_asistencia}</span></div>
-        <div class="row"><b>3. Compromiso con el Señor y la Iglesia:</b> <span>${demuestra_compromiso}</span></div>
-        <div class="row"><b>4. Cargo actual:</b> <span>${ocupa_cargo} — ${cargo_actual}</span></div>
-        <div class="row"><b>5. Cumplimiento con sus cargos:</b> <span>${cumplimiento_cargos}</span></div>
-
-        <div class="q">6. ¿Demuestra convicción al llamado de Dios?</div><div class="a">${pregunta_conviccion}</div>
-        <div class="q">7. ¿En qué áreas demuestra ejemplo en la congregación?</div><div class="a">${pregunta_ejemplo}</div>
-        <div class="q">8. ¿Demuestra compromiso con las capacitaciones?</div><div class="a">${pregunta_capacitaciones}</div>
-        <div class="q">9. ¿Cómo es su testimonio como cristiano?</div><div class="a">${pregunta_testimonio}</div>
-        <div class="q">10. ¿Cómo se relaciona con los demás miembros?</div><div class="a">${pregunta_relacion}</div>
-        <div class="q">11. ¿Se encuentra desarrollando a nuevos líderes?</div><div class="a">${pregunta_nuevos_lideres}</div>
-        <div class="q">12. Fortalezas y Debilidades:</div><div class="a">Fortalezas: ${pregunta_fortalezas} | Debilidades: ${pregunta_debilidades}</div>
-        <div class="q">13. Opinión general:</div><div class="a">${pregunta_opinion}</div>
-
-        <h3>III. Declaración</h3>
-        <p>Como pastor de la congregación del/la becario, declaro que todos los datos proporcionados son verídicos.</p>
-        <div class="foot">
-          <div class="row"><b>Pastor declarante:</b> <span>${declara_nombre}</span></div>
-          <div class="row"><b>C.I.:</b> <span>${declara_ci}</span></div>
-          <div class="row"><b>Verificación digital:</b> <span>${pastor_correo}</span></div>
-          <div class="row" style="margin-top:15px;"><b>El Alto / La Paz, ${fecha_actual}</b></div>
-        </div>
-        <script>window.onload = function() { window.print(); };</script>
-      </body>
-      </html>
-    `;
-
-    const ventana = window.open("", "_blank");
-    if (ventana) {
-      ventana.document.open();
-      ventana.document.write(html_pdf);
-      ventana.document.close();
-      toast.success("Documento F-03 generado para exportación a PDF");
+      toast.success("Formulario F-03 descargado en PDF oficial.");
       if (alEnviarExito) alEnviarExito();
-    } else {
-      toast.warning("Habilite las ventanas emergentes para descargar el PDF.");
+    } catch (_e) {
+      toast.error("Error al descargar el PDF generado por Puppeteer desde el servidor.");
+    } finally {
+      set_cargando(false);
     }
   };
 
@@ -195,14 +156,68 @@ export function FormularioF03({
       </CardHeader>
 
       <CardContent className="overflow-y-auto p-5 flex-1 space-y-6">
-        {/* SECCIÓN I */}
+        {/* SECCIÓN I: Datos Pastor e Iglesia con Combobox Institucional */}
         <div className="space-y-3">
-          <div className="flex items-center gap-2 pb-1 border-b border-[#E3DCCB]">
-            <UserCheck className="w-4 h-4 text-[#063A6B]" />
-            <h4 className="font-display text-xs font-bold text-[#063A6B] uppercase">
-              I. Datos del pastor y de la iglesia local
-            </h4>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1 border-b border-[#E3DCCB]">
+            <div className="flex items-center gap-2">
+              <UserCheck className="w-4 h-4 text-[#063A6B]" />
+              <h4 className="font-display text-xs font-bold text-[#063A6B] uppercase">
+                I. Datos del pastor y de la iglesia local
+              </h4>
+            </div>
+
+            <div className="flex items-center gap-1.5 p-0.5 bg-slate-100 rounded-lg border border-slate-200">
+              <button
+                type="button"
+                onClick={() => set_origen_datos_iglesia("catalogo")}
+                className={`px-2 py-0.5 text-[11px] font-bold rounded-md transition-all ${
+                  origen_datos_iglesia === "catalogo"
+                    ? "bg-[#063A6B] text-white shadow-2xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                Catálogo Institucional
+              </button>
+              <button
+                type="button"
+                onClick={() => set_origen_datos_iglesia("manual")}
+                className={`px-2 py-0.5 text-[11px] font-bold rounded-md transition-all ${
+                  origen_datos_iglesia === "manual"
+                    ? "bg-[#063A6B] text-white shadow-2xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                Texto Libre (Manual)
+              </button>
+            </div>
           </div>
+
+          {origen_datos_iglesia === "catalogo" && (
+            <div className="p-3 bg-[#063A6B]/5 border border-[#17B4C4]/30 rounded-xl space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold text-[#063A6B] flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-[#17B4C4]" />
+                  Seleccionar Congregación / Sede del Catálogo BUMAND:
+                </Label>
+                <Badge variant="outline" className="text-[10px] bg-white border-[#17B4C4] text-[#063A6B]">
+                  Autocompletado Activo
+                </Badge>
+              </div>
+              <select
+                value={iglesia_seleccionada_id}
+                onChange={(e) => manejarSeleccionIglesia(e.target.value)}
+                className="w-full h-8 text-xs font-medium rounded-lg border border-[#E3DCCB] bg-white px-2.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#17B4C4]"
+              >
+                {CATALOGO_IGLESIAS_INSTITUCIONALES.map((ig) => (
+                  <option key={ig.id} value={ig.id}>
+                    {ig.nombre} · {ig.pastor_nombre} ({ig.ciudad})
+                  </option>
+                ))}
+                <option value="manual">+ Otra congregación no listada (Ingreso manual)</option>
+              </select>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
               <Label className="text-xs">Nombre del pastor *</Label>

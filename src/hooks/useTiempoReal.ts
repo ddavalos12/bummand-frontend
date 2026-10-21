@@ -9,6 +9,7 @@ export type EventoTiempoReal =
   | "justificacion_actualizada"
   | "devocional_actualizado"
   | "evento_actualizado"
+  | "codigo_verificacion_tutor"
   | string;
 
 export type ManejadorEvento<T = unknown> = (datos: T) => void;
@@ -68,6 +69,7 @@ export function useTiempoReal(opciones: OpcionesTiempoReal = {}) {
       "justificacion_actualizada",
       "devocional_actualizado",
       "evento_actualizado",
+      "codigo_verificacion_tutor",
     ];
 
     const escuchadores_registrados: Array<{ evento: string; fn: (datos: unknown) => void }> = [];

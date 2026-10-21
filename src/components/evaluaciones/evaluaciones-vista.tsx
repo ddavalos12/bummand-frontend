@@ -1,38 +1,43 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Award,
   CheckCircle,
   FileText,
-  Lock,
-  Unlock,
   Upload,
-  Trash2,
   Printer,
-  FileCheck,
   ShieldCheck,
   AlertCircle,
   UserCheck,
   Calendar,
   Sparkles,
-  ExternalLink,
   CheckCircle2,
-  X,
-  File,
-  Eye,
   BookOpen,
   HeartHandshake,
   CalendarPlus,
+  QrCode,
+  GraduationCap,
+  Users,
+  Settings,
+  AlertTriangle,
+  PenTool,
+  RotateCcw,
+  Check,
+  Table2,
+  Building2,
+  Eye,
+  SlidersHorizontal,
+  Layers,
+  Scale,
+  FileSpreadsheet,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
+import { Slider } from "@/components/ui/slider";
 import {
   Dialog,
   DialogTrigger,
@@ -40,15 +45,25 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogBody,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { toast } from "sonner";
-
-// --- TIPOS DE EVALUACIÓN ---
+import { CriteriosEvaluacionTabla } from "./criterios-evaluacion-tabla";
+import { SabanaConsolidadoSemestral } from "./sabana-consolidado-semestral";
+import { FormularioF03 } from "./formulario-f03";
+import { FirmaDigital } from "./firma-digital";
+import { EvaluacionSocioeconomicaVista } from "./evaluacion-socioeconomica-vista";
+import {
+  BECARIOS_SEMESTRE_II,
+  CATALOGO_IGLESIAS_INSTITUCIONALES,
+  PREGUNTAS_MENTOR_ESCALA,
+  PREGUNTAS_ABIERTAS_MENTOR,
+  PREGUNTAS_BIENESTAR_INICIALES,
+  RANGOS_APROBACION_OFICIALES,
+  CRITERIOS_EVALUACION_OFICIALES,
+  BecarioEvaluacionSemestral,
+} from "./evaluaciones-datos-semestre";
 
 export interface PeriodoSemestral {
   id: "s2" | "s1";
@@ -58,36 +73,91 @@ export interface PeriodoSemestral {
   habilitado: boolean;
 }
 
-export interface ModuloSemestral {
-  numero: string;
-  titulo: string;
-  evaluador: string;
-  puntaje: number;
-  maximo: number;
-  estado: "completado" | "pendiente" | "incompleto";
-  archivo_adjunto?: string;
-  fecha_envio?: string;
-  comentario?: string;
-}
-
-export interface ArchivoAdjunto {
-  id: string;
+export interface ModuloPonderado {
+  id: number;
+  clave: "liderazgo" | "academica" | "mentor" | "practicas" | "socioeconomica";
   nombre: string;
-  tamaño: string;
-  fecha: string;
+  evaluador_rol: string;
+  ponderacion_porcentaje: number;
+  descripcion: string;
 }
 
-/**
- * @component EvaluacionesVista
- * @description Módulo de Evaluación de Desempeño 360° semestral, incorporando control
- * de apertura de periodos (Semestre II / Semestre I), modal interactivo completo del Formulario
- * F-03 del Pastor con sus 3 secciones y exportación PDF, y subida multi-archivo para Autoevaluación.
- */
-export function EvaluacionesVista() {
+const MODULOS_OFICIALES: ModuloPonderado[] = [
+  {
+    id: 1,
+    clave: "liderazgo",
+    nombre: "1. Iglesia (Formulario Pastoral F-03)",
+    evaluador_rol: "Pastor de la Congregación Local",
+    ponderacion_porcentaje: 20,
+    descripcion: "Evaluación ministerial de comunión, liderazgo, discipulado y testimonio.",
+  },
+  {
+    id: 2,
+    clave: "academica",
+    nombre: "2. Académica (Récord & Historial, Meta ≥ 75 Pts)",
+    evaluador_rol: "Kárdex Universitario y Tutor",
+    ponderacion_porcentaje: 20,
+    descripcion: "Certificado oficial de calificaciones. Cumplimiento contractual institucional.",
+  },
+  {
+    id: 3,
+    clave: "mentor",
+    nombre: "3. Mentor / Supervisor vía QR (21 Preguntas)",
+    evaluador_rol: "Supervisor Diaconía y Mentor en Terreno",
+    ponderacion_porcentaje: 20,
+    descripcion: "18 reactivos en escala 1-10 más 3 preguntas abiertas de desempeño laboral.",
+  },
+  {
+    id: 4,
+    clave: "practicas",
+    nombre: "4. Escuela de Líderes (Viernes y 12 Tareas CETI)",
+    evaluador_rol: "Coordinación CETI / Asistencia",
+    ponderacion_porcentaje: 20,
+    descripcion: "12 tareas teológicas y registro de asistencia presencial a los encuentros.",
+  },
+  {
+    id: 5,
+    clave: "socioeconomica",
+    nombre: "5. Socioeconómica (Bienestar Universitario 26P)",
+    evaluador_rol: "Trabajo Social",
+    ponderacion_porcentaje: 20,
+    descripcion: "Diagnóstico socioeconómico de 26 preguntas y Semáforo de Vulnerabilidad.",
+  },
+];
+
+const TAREAS_CETI_CATALOGO = [
+  { numero: 1, tema: "Liderazgo Servidor y Mayordomía Cristiana", ponderacion: "8.33%" },
+  { numero: 2, tema: "Misión Integral y Vocación Diaconal", ponderacion: "8.33%" },
+  { numero: 3, tema: "Ética Profesional en el Ámbito Financiero y Social", ponderacion: "8.33%" },
+  { numero: 4, tema: "Acompañamiento a Grupos Vulnerables", ponderacion: "8.33%" },
+  { numero: 5, tema: "Resolución de Conflictos en la Comunidad Eclesial", ponderacion: "8.33%" },
+  { numero: 6, tema: "Diseño y Planificación de Proyectos de Servicio", ponderacion: "8.33%" },
+  { numero: 7, tema: "Oración, Intercesión y Vida Devocional Comunitaria", ponderacion: "8.33%" },
+  { numero: 8, tema: "Comunicación Asertiva y Testimonio Universitario", ponderacion: "8.33%" },
+  { numero: 9, tema: "Finanzas Personales Bíblicas y Responsabilidad", ponderacion: "8.33%" },
+  { numero: 10, tema: "Salud Mental y Manejo del Estrés en Época Académica", ponderacion: "8.33%" },
+  { numero: 11, tema: "Discipulado Generacional y Mentoría a Nuevos Becarios", ponderacion: "8.33%" },
+  { numero: 12, tema: "Evaluación Integral de Impacto Comunitario", ponderacion: "8.33%" },
+];
+
+interface EvaluacionesVistaProps {
+  pestaña_inicial?: string;
+}
+
+export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: EvaluacionesVistaProps) {
   const { usuario } = usarAutenticacion();
   const es_admin = usuario?.rol === "administrador";
+  const es_supervisor = usuario?.rol === "supervisor";
 
-  // Control de periodos semestrales
+  const [pestaña_activa, set_pestaña_activa] = useState<string>(pestaña_inicial);
+
+  useEffect(() => {
+    if (pestaña_inicial) {
+      set_pestaña_activa(pestaña_inicial);
+    }
+  }, [pestaña_inicial]);
+
+  // Periodos Semestrales
   const [periodos, set_periodos] = useState<PeriodoSemestral[]>([
     {
       id: "s2",
@@ -104,131 +174,54 @@ export function EvaluacionesVista() {
       habilitado: false,
     },
   ]);
-
   const [periodo_activo, set_periodo_activo] = useState<"s2" | "s1">("s2");
+
+  // Ponderaciones oficiales (Base 20% adaptable)
+  const [modulos, set_modulos] = useState<ModuloPonderado[]>(MODULOS_OFICIALES);
+  const [panel_ponderacion_abierto, set_panel_ponderacion_abierto] = useState<boolean>(false);
+  const [ponderacion_temporal, set_ponderacion_temporal] = useState<Record<string, number>>({
+    liderazgo: 20,
+    academica: 20,
+    mentor: 20,
+    practicas: 20,
+    socioeconomica: 20,
+  });
+
+  // Firma Digital Institucional Canvas
+  const [firma_supervisor, set_firma_supervisor] = useState<string | null>(null);
+  const [dialogo_firma_abierto, set_dialogo_firma_abierto] = useState<boolean>(false);
+
+  // Estados para Diálogos Modales de Vista Previa (Preview)
+  const [modal_preview_f03_abierto, set_modal_preview_f03_abierto] = useState<boolean>(false);
+  const [modal_preview_academica_abierto, set_modal_preview_academica_abierto] = useState<boolean>(false);
+  const [modal_preview_mentor_abierto, set_modal_preview_mentor_abierto] = useState<boolean>(false);
+  const [modal_preview_lideres_abierto, set_modal_preview_lideres_abierto] = useState<boolean>(false);
+  const [modal_preview_socioeconomica_abierto, set_modal_preview_socioeconomica_abierto] = useState<boolean>(false);
+  const [modal_qr_mentor_abierto, set_modal_qr_mentor_abierto] = useState<boolean>(false);
+
+  // Modal para inspeccionar expediente de un becario de la sábana
+  const [becario_inspeccionado, set_becario_inspeccionado] = useState<BecarioEvaluacionSemestral | null>(null);
+
+  // Modal apertura de nuevo semestre
   const [modal_nuevo_semestre_abierto, set_modal_nuevo_semestre_abierto] = useState(false);
   const [nuevo_titulo, set_nuevo_titulo] = useState("Semestre I · 2027");
   const [nuevo_subtitulo, set_nuevo_subtitulo] = useState("Apertura institucional 2027");
   const [nuevo_rango, set_nuevo_rango] = useState("Enero – Junio 2027");
 
-  // Módulos para Semestre II (Periodo actual)
-  const modulos_s2: ModuloSemestral[] = [
-    {
-      numero: "01",
-      titulo: "Liderazgo en la Iglesia (F-03)",
-      evaluador: "Evaluador: Pastor de la Congregación",
-      puntaje: 18,
-      maximo: 20,
-      estado: "completado",
-      archivo_adjunto: "Formulario_F03_firmado.pdf",
-      fecha_envio: "04 ago · 2026",
-      comentario: "Excelente compromiso pastoral. Participación activa en el ministerio juvenil.",
-    },
-    {
-      numero: "02",
-      titulo: "Autoevaluación Académica",
-      evaluador: "Evaluador: Estudiante Becario",
-      puntaje: 20,
-      maximo: 20,
-      estado: "completado",
-      archivo_adjunto: "Record_academico_s2.pdf",
-      fecha_envio: "06 ago · 2026",
-      comentario: "Rendimiento académico sobresaliente durante el semestre, mantiene el promedio.",
-    },
-    {
-      numero: "03",
-      titulo: "Evaluación del Mentor",
-      evaluador: "Evaluador: Supervisor Diaconía",
-      puntaje: 14,
-      maximo: 20,
-      estado: "completado",
-      archivo_adjunto: "Evaluacion_mentor_s2.pdf",
-      fecha_envio: "09 ago · 2026",
-      comentario: "Cumple con las tareas asignadas, aunque se sugiere mejorar la comunicación de avances.",
-    },
-    {
-      numero: "04",
-      titulo: "Evaluación Escuela de Líderes",
-      evaluador: "Evaluador: Facilitador BUMAND",
-      puntaje: 17,
-      maximo: 20,
-      estado: "completado",
-      archivo_adjunto: "Tareas_modulo6_liderazgo.zip",
-      fecha_envio: "10 ago · 2026",
-      comentario: "Participación activa en los módulos de formación diaconal.",
-    },
-    {
-      numero: "05",
-      titulo: "Evaluación Socioeconómica",
-      evaluador: "Evaluador: Trabajo Social",
-      puntaje: 0,
-      maximo: 20,
-      estado: "pendiente",
-      comentario: "Pendiente de visita y revisión de boletas de servicios básicos.",
-    },
-  ];
+  // Configuración de campos F-03: Conexión a Catálogo
+  const [campo_iglesia_conectado, set_campo_iglesia_conectado] = useState<boolean>(true);
+  const [campo_pastor_conectado, set_campo_pastor_conectado] = useState<boolean>(true);
 
-  // Módulos para Semestre I (Histórico)
-  const modulos_s1: ModuloSemestral[] = [
-    {
-      numero: "01",
-      titulo: "Liderazgo en la Iglesia (F-03)",
-      evaluador: "Evaluador: Pastor",
-      puntaje: 16,
-      maximo: 20,
-      estado: "completado",
-      archivo_adjunto: "F03_semestre1.pdf",
-      fecha_envio: "12 feb · 2026",
-      comentario: "Participación constante en las actividades de la congregación.",
-    },
-    {
-      numero: "02",
-      titulo: "Autoevaluación Académica",
-      evaluador: "Evaluador: Becario",
-      puntaje: 19,
-      maximo: 20,
-      estado: "completado",
-      archivo_adjunto: "Historial_academico_s1.pdf",
-      fecha_envio: "14 feb · 2026",
-      comentario: "Buen desempeño académico general en el primer semestre.",
-    },
-    {
-      numero: "03",
-      titulo: "Evaluación del Mentor",
-      evaluador: "Evaluador: Supervisor",
-      puntaje: 18,
-      maximo: 20,
-      estado: "completado",
-      archivo_adjunto: "Informe_mentor_s1.pdf",
-      fecha_envio: "20 feb · 2026",
-      comentario: "Cumplimiento adecuado de las actividades encomendadas.",
-    },
-    {
-      numero: "04",
-      titulo: "Evaluación Escuela de Líderes",
-      evaluador: "Evaluador: Facilitador",
-      puntaje: 15,
-      maximo: 20,
-      estado: "completado",
-      archivo_adjunto: "Modulo3_lideres.zip",
-      fecha_envio: "22 feb · 2026",
-      comentario: "Entrega parcial de tareas del módulo.",
-    },
-    {
-      numero: "05",
-      titulo: "Evaluación Socioeconómica",
-      evaluador: "Evaluador: Trabajo Social",
-      puntaje: 0,
-      maximo: 20,
-      estado: "incompleto",
-      comentario: "No se recibió el documento antes del cierre del periodo en Kardex.",
-    },
-  ];
+  // Métricas Administrativas Oficiales del Semestre II (21 Becarios)
+  const total_becarios = BECARIOS_SEMESTRE_II.length;
+  const becarios_optimos = BECARIOS_SEMESTRE_II.filter((b) => b.total >= 70).length;
+  const becarios_condicionados = BECARIOS_SEMESTRE_II.filter((b) => b.total >= 51 && b.total < 70).length;
+  const becarios_reprobados = BECARIOS_SEMESTRE_II.filter((b) => b.total < 51).length;
 
-  const periodo_actual_info = periodos.find((p) => p.id === periodo_activo)!;
-  const modulos_visibles = periodo_activo === "s2" ? modulos_s2 : modulos_s1;
+  const suma_ponderaciones = Object.values(ponderacion_temporal).reduce((a, b) => a + b, 0);
+  const ponderaciones_validas = suma_ponderaciones === 100;
+  const periodo_actual_info = periodos.find((p) => p.id === periodo_activo) || periodos[0];
 
-  // Toggle de habilitar/cerrar periodo
   const alternarEstadoPeriodo = (id_periodo: "s2" | "s1", e: React.MouseEvent) => {
     e.stopPropagation();
     set_periodos((prev) =>
@@ -236,9 +229,8 @@ export function EvaluacionesVista() {
         if (p.id === id_periodo) {
           const nuevo_estado = !p.habilitado;
           toast.success(
-            nuevo_estado
-              ? `Periodo ${p.titulo} habilitado exitosamente.`
-              : `Periodo ${p.titulo} cerrado para nuevas cargas.`
+            nuevo_estado ? `Período ${p.titulo} habilitado` : `Período ${p.titulo} cerrado`,
+            { description: nuevo_estado ? "Recepción de expedientes activada." : "El ciclo pasa a modo histórico de solo lectura." }
           );
           return { ...p, habilitado: nuevo_estado };
         }
@@ -249,1093 +241,1151 @@ export function EvaluacionesVista() {
 
   const manejarCrearNuevoSemestre = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!es_admin) {
-      toast.error("Solo el Administrador puede habilitar nuevos semestres.");
-      return;
-    }
-
-    const nuevo_id = `s${periodos.length + 1}` as "s2" | "s1";
-    const nuevo_obj: PeriodoSemestral = {
-      id: nuevo_id,
-      titulo: nuevo_titulo,
-      subtitulo: nuevo_subtitulo,
-      rango: nuevo_rango,
-      habilitado: true,
-    };
-
-    set_periodos([nuevo_obj, ...periodos]);
-    set_periodo_activo(nuevo_id);
+    if (!nuevo_titulo.trim()) return;
+    toast.success(`Nuevo período "${nuevo_titulo}" habilitado exitosamente`, {
+      description: `Rango: ${nuevo_rango} con ponderación base oficial al 20%.`,
+    });
     set_modal_nuevo_semestre_abierto(false);
-    toast.success(`Nuevo período "${nuevo_titulo}" habilitado exitosamente.`);
   };
 
-  // --- ESTADOS Y MANEJADORES DEL FORMULARIO F-03 DEL PASTOR ---
-  const [modal_f03_abierto, set_modal_f03_abierto] = useState<boolean>(false);
-  const [f03_error, set_f03_error] = useState<string | null>(null);
-
-  // Sección I: Datos Pastor e Iglesia
-  const [pastor_nombre, set_pastor_nombre] = useState("Pastor Juan Ramos Mamani");
-  const [pastor_correo, set_pastor_correo] = useState("pastor.ramos@iglesiabautista.bo");
-  const [pastor_celular, set_pastor_celular] = useState("71249823");
-  const [iglesia_nombre, set_iglesia_nombre] = useState("Iglesia Bautista Central El Alto");
-  const [iglesia_direccion, set_iglesia_direccion] = useState("Av. 6 de Marzo #420, El Alto");
-  const [lider_nombre, set_lider_nombre] = useState("Hno. David Mendoza");
-  const [lider_cargo, set_lider_cargo] = useState("Líder de Diaconía y Misiones");
-
-  // Sección II: Preguntas 1 a 13
-  const [becario_nombre, set_becario_nombre] = useState("María Catunta Laime");
-  const [frecuencia_asistencia, set_frecuencia_asistencia] = useState("Es miembro en plena comunión");
-  const [demuestra_compromiso, set_demuestra_compromiso] = useState("Sí");
-  const [ocupa_cargo, set_ocupa_cargo] = useState("Sí");
-  const [cargo_actual, set_cargo_actual] = useState("Líder de Jóvenes y Escuela Dominical");
-  const [cumplimiento_cargos, set_cumplimiento_cargos] = useState("Muy bien");
-
-  const [pregunta_conviccion, set_pregunta_conviccion] = useState(
-    "Muestra sincera vocación y disposición de servicio constante en las actividades de la congregación."
-  );
-  const [pregunta_ejemplo, set_pregunta_ejemplo] = useState(
-    "En la puntualidad a los cultos, fidelidad en el servicio y respeto hacia los líderes espirituales."
-  );
-  const [pregunta_capacitaciones, set_pregunta_capacitaciones] = useState(
-    "Asiste a todos los talleres juveniles y participa activamente en los estudios bíblicos semanales."
-  );
-  const [pregunta_testimonio, set_pregunta_testimonio] = useState(
-    "Excelente testimonio tanto dentro de la comunidad de fe como en su entorno universitario y familiar."
-  );
-  const [pregunta_relacion, set_pregunta_relacion] = useState(
-    "Trato fraternal, humilde y siempre presto a colaborar en las necesidades de los hermanos."
-  );
-  const [pregunta_nuevos_lideres, set_pregunta_nuevos_lideres] = useState(
-    "Se encuentra mentoreando a dos señoritas del grupo de adolescentes en el área de alabanza."
-  );
-  const [pregunta_fortalezas, set_pregunta_fortalezas] = useState(
-    "Compromiso, empatía, responsabilidad y facilidad de comunicación."
-  );
-  const [pregunta_debilidades, set_pregunta_debilidades] = useState(
-    "A veces sobrecarga sus horarios universitarios con compromisos extraordinarios."
-  );
-  const [pregunta_opinion, set_pregunta_opinion] = useState(
-    "El aporte del programa BUMAND en la vida de María ha sido un testimonio palpable de edificación para toda la iglesia."
-  );
-
-  // Sección III: Declaración Jurada
-  const [declara_nombre, set_declara_nombre] = useState("Pastor Juan Ramos Mamani");
-  const [declara_ci, set_declara_ci] = useState("3498214 LP");
-  const [declara_aceptada, set_declara_aceptada] = useState(true);
-
-  // Función de exportación PDF F-03
-  const exportarPdfF03 = () => {
-    if (!pastor_nombre.trim() || !pastor_correo.trim()) {
-      set_f03_error("Debe ingresar el nombre y correo del pastor.");
+  const manejarGuardarPonderaciones = () => {
+    if (!ponderaciones_validas) {
+      toast.error(`La suma debe ser exactamente 100%. Actual: ${suma_ponderaciones}%.`);
       return;
     }
-    if (!declara_aceptada) {
-      set_f03_error("Debe marcar la casilla de declaración jurada antes de exportar.");
-      return;
-    }
-
-    set_f03_error(null);
-    const fecha_actual = new Date().toLocaleDateString("es-BO", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-
-    const html_pdf = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>F-03 · Formulario de Evaluación del Becario - ${becario_nombre}</title>
-        <style>
-          body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; max-width: 800px; margin: 30px auto; padding: 0 25px; line-height: 1.5; font-size: 12px; }
-          .hdr { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #063A6B; padding-bottom: 8px; margin-bottom: 12px; }
-          .hdr b { font-size: 22px; color: #063A6B; }
-          .hdr small { display: block; font-size: 9px; color: #17B4C4; font-weight: bold; }
-          h1 { font-size: 18px; text-align: center; margin: 6px 0 2px; color: #063A6B; }
-          h2 { font-size: 13px; text-align: center; margin: 0 0 10px; color: #5B6D77; font-weight: normal; }
-          p.lead { font-size: 11px; font-style: italic; background: #F8F9FA; padding: 8px 12px; border-left: 3px solid #17B4C4; margin: 10px 0; }
-          h3 { font-size: 13px; margin: 16px 0 8px; color: #063A6B; border-bottom: 1px solid #E3DCCB; padding-bottom: 3px; }
-          .row { margin: 6px 0; display: flex; }
-          .row b { min-width: 240px; color: #1E293B; }
-          .q { margin: 10px 0 3px; font-weight: bold; color: #063A6B; }
-          .a { border-bottom: 1px dotted #888; padding-bottom: 3px; margin-bottom: 6px; color: #333; }
-          .foot { margin-top: 35px; border-top: 1px solid #ccc; padding-top: 15px; }
-          @media print { .noprint { display: none; } }
-        </style>
-      </head>
-      <body>
-        <div class="hdr">
-          <div>
-            <b>Diaconía FRIF-IFD</b>
-            <small>PROGRAMA DE BECAS UNIVERSITARIAS BUMAND</small>
-          </div>
-          <div style="text-align:right; font-family:monospace; font-size:11px;">
-            Código: <b>F-03 PASTORAL</b><br>
-            Emisión: ${fecha_actual}
-          </div>
-        </div>
-
-        <h1>FORMULARIO F-03 DE EVALUACIÓN DEL BECARIO</h1>
-        <h2>Programa de Becas · Escuela de Líderes BUMAN-D — Evaluación Ministerial</h2>
-
-        <p class="lead">
-          Se solicita al Pastor y líderes principales evaluar con objetividad y fidelidad espiritual el aporte a su congregación del becario universitario que forma parte del programa BUMAND.
-        </p>
-
-        <h3>I. Datos del Pastor y de la Iglesia Local</h3>
-        <div class="row"><b>Nombre del Pastor:</b> <span>${pastor_nombre}</span></div>
-        <div class="row"><b>Correo electrónico:</b> <span>${pastor_correo}</span></div>
-        <div class="row"><b>N.º Celular:</b> <span>${pastor_celular}</span></div>
-        <div class="row"><b>Nombre de la Iglesia:</b> <span>${iglesia_nombre}</span></div>
-        <div class="row"><b>Dirección de la Iglesia:</b> <span>${iglesia_direccion}</span></div>
-        <div class="row"><b>Líder de la Congregación:</b> <span>${lider_nombre} (${lider_cargo})</span></div>
-
-        <h3>II. Referencias acerca del Becario Universitario</h3>
-        <div class="row"><b>1. Nombre del Becario:</b> <span>${becario_nombre}</span></div>
-        <div class="row"><b>2. Frecuencia de asistencia:</b> <span>${frecuencia_asistencia}</span></div>
-        <div class="row"><b>3. ¿Demuestra compromiso con el Señor y la Iglesia?:</b> <span>${demuestra_compromiso}</span></div>
-        <div class="row"><b>4. ¿Ocupa algún cargo en la iglesia?:</b> <span>${ocupa_cargo} — Cargo: ${cargo_actual}</span></div>
-        <div class="row"><b>5. ¿Cómo ha cumplido con sus cargos?:</b> <span>${cumplimiento_cargos}</span></div>
-
-        <div class="q">6. ¿Demuestra convicción al llamado de Dios?</div>
-        <div class="a">${pregunta_conviccion}</div>
-
-        <div class="q">7. ¿En qué áreas demuestra ejemplo en la congregación?</div>
-        <div class="a">${pregunta_ejemplo}</div>
-
-        <div class="q">8. ¿Demuestra compromiso con las capacitaciones?</div>
-        <div class="a">${pregunta_capacitaciones}</div>
-
-        <div class="q">9. ¿Cómo es su testimonio como cristiano?</div>
-        <div class="a">${pregunta_testimonio}</div>
-
-        <div class="q">10. ¿Cómo se relaciona con los demás miembros?</div>
-        <div class="a">${pregunta_relacion}</div>
-
-        <div class="q">11. ¿Se encuentra desarrollando a nuevos líderes?</div>
-        <div class="a">${pregunta_nuevos_lideres}</div>
-
-        <div class="q">12. Fortalezas y debilidades observadas:</div>
-        <div class="a"><b>Fortalezas:</b> ${pregunta_fortalezas} | <b>Debilidades:</b> ${pregunta_debilidades}</div>
-
-        <div class="q">13. Opinión general acerca del becario:</div>
-        <div class="a">${pregunta_opinion}</div>
-
-        <h3>III. Declaración Jurada y Firma Pastoral</h3>
-        <p>Como pastor de la congregación del/la becario, declaro solemnemente que todos los datos consignados en este formulario son verídicos y fidedignos.</p>
-        
-        <div class="foot">
-          <div class="row"><b>Pastor Declarante:</b> <span>${declara_nombre}</span></div>
-          <div class="row"><b>Cédula de Identidad:</b> <span>${declara_ci}</span></div>
-          <div class="row"><b>Firma Electrónica Verificada:</b> <span>${pastor_correo} (Certificado BUMAND)</span></div>
-          <div class="row" style="margin-top:15px;"><b>Lugar y Fecha:</b> <span>El Alto / La Paz, ${fecha_actual}</span></div>
-        </div>
-
-        <script>
-          window.onload = function() { window.print(); };
-        </script>
-      </body>
-      </html>
-    `;
-
-    const ventana_impresion = window.open("", "_blank");
-    if (ventana_impresion) {
-      ventana_impresion.document.open();
-      ventana_impresion.document.write(html_pdf);
-      ventana_impresion.document.close();
-      toast.success("Documento F-03 generado con éxito", {
-        description: "Se ha abierto el diálogo oficial de impresión y exportación a PDF.",
-      });
-    } else {
-      toast.warning("Habilite las ventanas emergentes del navegador para exportar el PDF.");
-    }
-  };
-
-  // --- ESTADOS Y MANEJADORES DE SUBIDA MÚLTIPLE DE ARCHIVOS ---
-  const [modal_subida_abierto, set_modal_subida_abierto] = useState<boolean>(false);
-  const [archivos_seleccionados, set_archivos_seleccionados] = useState<File[]>([]);
-  const [archivos_acreditados, set_archivos_acreditados] = useState<ArchivoAdjunto[]>([
-    { id: "1", nombre: "Record_Academico_Oficial_2026.pdf", tamaño: "1.4 MB", fecha: "06/08/2026" },
-    { id: "2", nombre: "Matricula_Inscripcion_Semestre2.pdf", tamaño: "850 KB", fecha: "06/08/2026" },
-  ]);
-
-  const manejarSeleccionArchivos = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const nuevos = Array.from(e.target.files);
-      set_archivos_seleccionados((prev) => [...prev, ...nuevos]);
-      e.target.value = "";
-    }
-  };
-
-  const eliminarArchivoSeleccionado = (indice: number) => {
-    set_archivos_seleccionados((prev) => prev.filter((_, i) => i !== indice));
-  };
-
-  const confirmarSubidaArchivos = () => {
-    if (archivos_seleccionados.length === 0) {
-      toast.error("Debe elegir al menos un archivo antes de confirmar.");
-      return;
-    }
-
-    const nuevos_acreditados: ArchivoAdjunto[] = archivos_seleccionados.map((f, i) => ({
-      id: `${Date.now()}-${i}`,
-      nombre: f.name,
-      tamaño: `${(f.size / (1024 * 1024)).toFixed(2)} MB`,
-      fecha: new Date().toLocaleDateString("es-BO"),
-    }));
-
-    set_archivos_acreditados((prev) => [...nuevos_acreditados, ...prev]);
-    toast.success(`✓ ${archivos_seleccionados.length} documento(s) subido(s) correctamente`, {
-      description: "Los archivos han sido agregados a su expediente de Autoevaluación Académica.",
-    });
-
-    set_archivos_seleccionados([]);
-    set_modal_subida_abierto(false);
+    set_modulos((prev) =>
+      prev.map((m) => ({
+        ...m,
+        ponderacion_porcentaje: ponderacion_temporal[m.clave] ?? m.ponderacion_porcentaje,
+      }))
+    );
+    toast.success("Ponderaciones oficiales actualizadas exitosamente (Suma exacta del 100%).");
+    set_panel_ponderacion_abierto(false);
   };
 
   return (
-    <div className="space-y-8">
-      {/* 1. CABECERA CON CITA BÍBLICA INSTITUCIONAL DESTACADA (Tarjeta Devocional Diaconal) */}
-      <Card className="border-[#E3DCCB] bg-gradient-to-r from-[#063A6B] via-[#09477e] to-[#063A6B] text-white rounded-2xl shadow-md overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-radial from-[#17B4C4]/20 via-transparent to-transparent pointer-events-none" />
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-[#F8C766]/20 border border-[#F8C766]/30 flex items-center justify-center shrink-0 text-[#F8C766]">
-                <BookOpen className="w-6 h-6" />
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <Badge className="bg-[#F8C766] text-[#063A6B] font-bold text-xs uppercase px-2.5 py-0.5">
-                    Cita Bíblica Institucional
-                  </Badge>
-                  <span className="text-xs text-[#7FE0E6] font-mono font-semibold">
-                    Colosenses 3:23-24 (RVR1960)
-                  </span>
-                </div>
-                <blockquote className="text-sm md:text-base font-serif italic text-white/95 leading-relaxed pt-1">
-                  &ldquo;Y todo lo que hagáis, hacedlo de corazón, como para el Señor y no para los hombres; sabiendo que del Señor recibiréis la recompensa de la herencia, porque a Cristo el Señor servís.&rdquo;
-                </blockquote>
-                <p className="text-xs text-[#7FE0E6] font-medium flex items-center gap-1.5 pt-0.5">
-                  <HeartHandshake className="w-3.5 h-3.5" />
-                  La evaluación semestral 360° en BUMAND mide el carácter, la puntualidad, el testimonio eclesial y el compromiso universitario.
-                </p>
-              </div>
-            </div>
+    <div className="space-y-6">
+      {/* ============================================================== */}
+      {/* BARRA DE PESTAÑAS (TABS) SUPERIOR LIMPIA (SIN REDUNDANCIA)    */}
+      {/* ============================================================== */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-1.5 bg-slate-100 rounded-2xl border border-slate-200 shadow-2xs">
+        <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto">
+          <button
+            type="button"
+            onClick={() => set_pestaña_activa("consolidado")}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+              pestaña_activa === "consolidado"
+                ? "bg-[#063A6B] text-white shadow-xs"
+                : "text-slate-700 hover:text-[#063A6B] hover:bg-white/80"
+            }`}
+          >
+            <Table2 className="w-3.5 h-3.5 text-[#F8C766]" />
+            <span>Sábana Consolidada</span>
+            <span className={`text-[10px] font-mono px-1.5 py-0 rounded-full font-bold ${
+              pestaña_activa === "consolidado" ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
+            }`}>
+              {total_becarios}
+            </span>
+          </button>
 
-            {/* Botón exclusivo para Administrador: Habilitar Nuevo Semestre */}
-            {es_admin && (
-              <Dialog open={modal_nuevo_semestre_abierto} onOpenChange={set_modal_nuevo_semestre_abierto}>
-                {/* @ts-ignore */}
-                <DialogTrigger asChild>
-                  <Button
-                    size="sm"
-                    className="h-10 px-4 bg-[#17B4C4] hover:bg-[#17B4C4]/90 text-[#063A6B] font-bold rounded-xl text-xs flex items-center gap-1.5 shrink-0 shadow-sm"
-                  >
-                    <CalendarPlus className="w-4 h-4" />
-                    Habilitar Nuevo Semestre
-                  </Button>
-                </DialogTrigger>
-                <DialogContent
-                  showCloseButton={false}
-                  className="sm:max-w-[460px] p-0 overflow-hidden bg-white rounded-2xl border-[#E3DCCB] shadow-2xl"
-                >
-                  <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] bg-[#F8F9FA]">
-                    <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
-                      <CalendarPlus className="w-5 h-5 text-[#17B4C4]" />
-                      Habilitar Nuevo Semestre Académico
-                    </DialogTitle>
-                    <CardDescription className="text-xs text-muted-foreground">
-                      Apertura de nuevo período semestral de evaluación con los 5 módulos institucionales.
-                    </CardDescription>
-                  </DialogHeader>
+          <button
+            type="button"
+            onClick={() => set_pestaña_activa("iglesia_f03")}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+              pestaña_activa === "iglesia_f03"
+                ? "bg-[#063A6B] text-white shadow-xs"
+                : "text-slate-700 hover:text-[#063A6B] hover:bg-white/80"
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <span>1. Iglesia (F-03)</span>
+          </button>
 
-                  <form onSubmit={manejarCrearNuevoSemestre} className="p-6 space-y-4">
-                    <div className="space-y-1">
-                      <Label className="text-xs font-semibold">Título del Semestre</Label>
-                      <Input
-                        value={nuevo_titulo}
-                        onChange={(e) => set_nuevo_titulo(e.target.value)}
-                        required
-                        className="h-9 text-xs border-[#E3DCCB]"
-                        placeholder="Ej. Semestre I · 2027"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs font-semibold">Subtítulo Descriptivo</Label>
-                      <Input
-                        value={nuevo_subtitulo}
-                        onChange={(e) => set_nuevo_subtitulo(e.target.value)}
-                        required
-                        className="h-9 text-xs border-[#E3DCCB]"
-                        placeholder="Ej. Apertura institucional 2027"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs font-semibold">Rango Temporal de Vigencia</Label>
-                      <Input
-                        value={nuevo_rango}
-                        onChange={(e) => set_nuevo_rango(e.target.value)}
-                        required
-                        className="h-9 text-xs border-[#E3DCCB]"
-                        placeholder="Ej. Enero – Junio 2027"
-                      />
-                    </div>
+          <button
+            type="button"
+            onClick={() => set_pestaña_activa("academica")}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+              pestaña_activa === "academica"
+                ? "bg-[#063A6B] text-white shadow-xs"
+                : "text-slate-700 hover:text-[#063A6B] hover:bg-white/80"
+            }`}
+          >
+            <GraduationCap className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <span>2. Académica (≥75)</span>
+          </button>
 
-                    <div className="p-3 bg-slate-50 border border-[#E3DCCB] rounded-xl text-xs space-y-1">
-                      <p className="font-bold text-[#063A6B]">Ponderaciones Asignadas (Base 20%):</p>
-                      <p className="text-muted-foreground">
-                        Liderazgo (20%), Académica (20%), Mentor (20%), Prácticas/Escuela Líderes (20%), Socioeconómica (20%).
-                      </p>
-                    </div>
+          <button
+            type="button"
+            onClick={() => set_pestaña_activa("mentor")}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+              pestaña_activa === "mentor"
+                ? "bg-[#063A6B] text-white shadow-xs"
+                : "text-slate-700 hover:text-[#063A6B] hover:bg-white/80"
+            }`}
+          >
+            <QrCode className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <span>3. Mentor (QR)</span>
+          </button>
 
-                    <DialogFooter className="pt-2 flex justify-end gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => set_modal_nuevo_semestre_abierto(false)}
-                        className="h-9 text-xs rounded-xl"
-                      >
-                        Cancelar
-                      </Button>
-                      <Button
-                        type="submit"
-                        className="h-9 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs"
-                      >
-                        Habilitar Período
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          <button
+            type="button"
+            onClick={() => set_pestaña_activa("lideres")}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+              pestaña_activa === "lideres"
+                ? "bg-[#063A6B] text-white shadow-xs"
+                : "text-slate-700 hover:text-[#063A6B] hover:bg-white/80"
+            }`}
+          >
+            <Users className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <span>4. Escuela de Líderes</span>
+          </button>
 
-      {/* Cabecera y Rango de Evaluación */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold font-display text-[#063A6B] flex items-center gap-2">
-            <Award className="w-6 h-6 text-[#17B4C4]" />
-            Evaluación Integral de Desempeño 360°
-          </h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            5 módulos semestrales · Base 20% cada uno · Formulario F-03 ministerial y autoevaluación.
-          </p>
+          <button
+            type="button"
+            onClick={() => set_pestaña_activa("socioeconomica")}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+              pestaña_activa === "socioeconomica"
+                ? "bg-[#063A6B] text-white shadow-xs"
+                : "text-slate-700 hover:text-[#063A6B] hover:bg-white/80"
+            }`}
+          >
+            <HeartHandshake className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <span>5. Socioeconómica (26P)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => set_pestaña_activa("periodos")}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+              pestaña_activa === "periodos"
+                ? "bg-[#063A6B] text-white shadow-xs"
+                : "text-slate-700 hover:text-[#063A6B] hover:bg-white/80"
+            }`}
+          >
+            <Calendar className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <span>Ponderaciones y Criterios</span>
+          </button>
         </div>
 
-        <Badge variant="outline" className="font-mono text-xs border-[#E3DCCB] text-[#063A6B] self-start sm:self-center">
-          {periodo_actual_info.rango}
-        </Badge>
+        <div className="flex items-center gap-2 px-2 shrink-0">
+          <Badge variant="outline" className="font-mono text-xs border-slate-300 text-[#063A6B] bg-white px-2.5 py-1 font-bold">
+            {periodo_actual_info.titulo}
+          </Badge>
+          {es_admin && (
+            <Button
+              size="sm"
+              onClick={() => set_modal_nuevo_semestre_abierto(true)}
+              className="h-8 px-3 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs gap-1.5 shadow-xs"
+            >
+              <CalendarPlus className="w-3.5 h-3.5 text-[#F8C766]" />
+              Nuevo Semestre
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* ============================================================== */}
-      {/* 1. SELECTOR Y CONTROL DE PERIODOS SEMESTRALES                  */}
+      {/* TAB 1: SÁBANA CONSOLIDADA OFICIAL (METRICAS REALES)           */}
       {/* ============================================================== */}
-      <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl">
-        <CardHeader className="pb-3 border-b border-[#E3DCCB]/60 bg-[#F8F9FA]/80">
-          <div className="flex items-center justify-between">
-            <CardTitle className="font-display text-base text-[#063A6B] flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-[#063A6B]" />
-              Control de Periodos Semestrales
-            </CardTitle>
-            <Badge variant="outline" className="text-xs font-mono border-[#17B4C4] text-[#063A6B]">
-              Total: {periodos.length} períodos
-            </Badge>
-          </div>
-          <CardDescription className="text-xs text-muted-foreground">
-            Habilite o cierre periodos de evaluación para permitir la carga y validación de expedientes.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-4 space-y-3">
-          {periodos.map((periodo) => (
-            <div
-              key={periodo.id}
-              onClick={() => set_periodo_activo(periodo.id)}
-              className={`p-3.5 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer ${
-                periodo_activo === periodo.id
-                  ? "border-[#063A6B] bg-[#063A6B]/5 shadow-xs"
-                  : "border-[#E3DCCB] hover:border-slate-400 bg-white"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold font-mono text-xs ${
-                    periodo_activo === periodo.id
-                      ? "bg-[#063A6B] text-white"
-                      : "bg-slate-100 text-slate-600"
-                  }`}
-                >
-                  {periodo.id.toUpperCase()}
+      {pestaña_activa === "consolidado" && (
+        <div className="space-y-6">
+          {/* Métricas Administrativas Oficiales del Semestre II */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* KPI 1: Total Becarios Titulares */}
+            <Card className="border-[#E3DCCB] bg-gradient-to-br from-[#063A6B] to-[#04284d] text-white rounded-2xl shadow-xs">
+              <CardContent className="p-5 flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-[11px] font-mono text-[#7FE0E6] uppercase font-bold tracking-wider">
+                    Becarios en Programa
+                  </p>
+                  <h3 className="text-3xl font-display font-bold text-[#F8C766]">
+                    {total_becarios} <span className="text-sm font-normal text-white/70">titulares</span>
+                  </h3>
+                  <p className="text-xs text-white/90 font-medium pt-0.5">
+                    100% Expedientes Semestre II
+                  </p>
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm text-[#063A6B]">{periodo.titulo}</span>
-                    {periodo_activo === periodo.id && (
-                      <span className="text-[10px] bg-[#17B4C4] text-white font-mono px-2 py-0.2 rounded-full font-semibold">
-                        Viendo ahora
-                      </span>
+                <div className="p-3 bg-white/10 rounded-2xl">
+                  <Users className="w-8 h-8 text-[#F8C766]" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* KPI 2: Aprobación Óptima */}
+            <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
+              <CardContent className="p-5 flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold tracking-wider">
+                    Aprobación Óptima (≥ 70 Pts)
+                  </p>
+                  <h3 className="text-3xl font-display font-bold text-emerald-700">
+                    {becarios_optimos} <span className="text-sm font-normal text-muted-foreground">estudiantes</span>
+                  </h3>
+                  <div>
+                    <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-[11px]">
+                      <CheckCircle className="w-3 h-3 mr-1" /> {((becarios_optimos / total_becarios) * 100).toFixed(1)}% Renovación
+                    </Badge>
+                  </div>
+                </div>
+                <div className="p-3 bg-emerald-50 rounded-2xl">
+                  <ShieldCheck className="w-8 h-8 text-emerald-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* KPI 3: Acompañamiento / Condicionados */}
+            <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
+              <CardContent className="p-5 flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold tracking-wider">
+                    En Acompañamiento (51 - 69 Pts)
+                  </p>
+                  <h3 className="text-3xl font-display font-bold text-amber-600">
+                    {becarios_condicionados} <span className="text-sm font-normal text-muted-foreground">becarios</span>
+                  </h3>
+                  <div>
+                    <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50 font-bold text-[11px]">
+                      <AlertCircle className="w-3 h-3 mr-1" /> {becarios_reprobados} en reprobación
+                    </Badge>
+                  </div>
+                </div>
+                <div className="p-3 bg-amber-50 rounded-2xl">
+                  <AlertTriangle className="w-8 h-8 text-amber-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* KPI 4: Convalidación y Gobernanza */}
+            <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
+              <CardContent className="p-5 flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold tracking-wider">
+                    Gobernanza Institucional
+                  </p>
+                  <h3 className="text-3xl font-display font-bold text-[#063A6B]">
+                    5 / 5 <span className="text-sm font-normal text-muted-foreground">módulos</span>
+                  </h3>
+                  <div className="pt-0.5">
+                    {firma_supervisor ? (
+                      <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-xs py-0.5">
+                        <CheckCircle2 className="w-3 h-3 mr-1" /> Convalidado
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50 font-bold text-[10px]">
+                        Firma Digital Pendiente
+                      </Badge>
                     )}
                   </div>
-                  <span className="text-xs text-muted-foreground">{periodo.subtitulo}</span>
                 </div>
+                <div className="p-3 bg-[#17B4C4]/10 rounded-2xl">
+                  <Scale className="w-8 h-8 text-[#17B4C4]" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sábana Maestra de Calificaciones Semestrales Oficiales */}
+          <div className="space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-base font-bold font-display text-[#063A6B] flex items-center gap-2">
+                  <Table2 className="w-4 h-4 text-[#17B4C4]" />
+                  Sábana Maestra de Calificaciones Semestrales Oficiales (14 Columnas)
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Registros asentados por supervisores y pastores evaluadores · 21 Becarios titulares del Semestre II.
+                </p>
               </div>
 
-              <div className="flex items-center gap-3 self-end sm:self-center">
-                {/* Badge Habilitado / Inhabilitado */}
-                {periodo.habilitado ? (
-                  <Badge className="bg-emerald-50 text-emerald-700 border-emerald-300 font-bold text-xs flex items-center gap-1.5 py-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    Habilitado
-                  </Badge>
-                ) : (
-                  <Badge className="bg-slate-100 text-slate-600 border-slate-300 font-bold text-xs flex items-center gap-1.5 py-1">
-                    <Lock className="w-3 h-3 text-slate-500" />
-                    Inhabilitado
-                  </Badge>
-                )}
-
-                {/* Botón Toggle Habilitar / Cerrar periodo */}
+              {(es_admin || es_supervisor) && (
                 <Button
-                  type="button"
-                  size="sm"
-                  variant={periodo.habilitado ? "destructive" : "outline"}
-                  onClick={(e) => alternarEstadoPeriodo(periodo.id, e)}
-                  className={`h-8 px-3 text-xs font-bold rounded-lg ${
-                    periodo.habilitado
-                      ? "bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200"
-                      : "border-emerald-600 text-emerald-700 hover:bg-emerald-50"
-                  }`}
+                  onClick={() => set_dialogo_firma_abierto(true)}
+                  className="h-9 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs shrink-0"
                 >
-                  {periodo.habilitado ? "Cerrar periodo" : "Habilitar periodo"}
+                  <ShieldCheck className="w-4 h-4 text-[#F8C766]" />
+                  Convalidar Acta con Firma Digital
                 </Button>
-              </div>
+              )}
             </div>
-          ))}
-        </CardContent>
-      </Card>
 
-      {/* BANNER DE ESTADO CUANDO EL PERIODO ESTÁ INHABILITADO */}
-      {!periodo_actual_info.habilitado && (
-        <div className="p-3 bg-slate-100 border border-slate-300 rounded-xl flex items-center gap-2 text-xs text-slate-700 font-medium">
-          <Lock className="w-4 h-4 text-slate-600 shrink-0" />
-          <span>
-            Periodo cerrado — Este registro se encuentra en modo histórico de solo lectura.
-          </span>
+            <SabanaConsolidadoSemestral />
+          </div>
+
+          {/* Modal de Firma Digital Canvas */}
+          <Dialog open={dialogo_firma_abierto} onOpenChange={set_dialogo_firma_abierto}>
+            <DialogContent className="sm:max-w-[450px] p-0 border-none bg-transparent shadow-none">
+              <FirmaDigital
+                alFirmar={(_b64) => {
+                  set_firma_supervisor(_b64);
+                  set_dialogo_firma_abierto(false);
+                  toast.success("Firma institucional convalidada correctamente", {
+                    description: "El acta semestral consolidada ha sido sellada formalmente.",
+                  });
+                }}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
       )}
 
       {/* ============================================================== */}
-      {/* 2. TARJETAS DE LOS 5 MÓDULOS DE EVALUACIÓN SEMESTRAL           */}
+      {/* TAB 2: ESTRUCTURA FORMULARIO F-03 (MINISTERIAL / IGLESIA)      */}
       {/* ============================================================== */}
-      <div className="space-y-3">
-        <h3 className="text-base font-bold font-display text-[#063A6B] flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-[#F8C766]" />
-          Módulos de Evaluación · {periodo_actual_info.titulo}
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          {modulos_visibles.map((mod) => (
-            <Card
-              key={mod.numero}
-              className={`border-[#E3DCCB] shadow-xs bg-white rounded-xl flex flex-col justify-between hover:border-[#17B4C4] transition-all cursor-pointer ${
-                mod.numero === "01" ? "ring-2 ring-[#063A6B]/20" : ""
-              }`}
-              onClick={() => {
-                if (mod.numero === "01") {
-                  set_modal_f03_abierto(true);
-                } else if (mod.numero === "02") {
-                  set_modal_subida_abierto(true);
-                } else {
-                  toast.info(`${mod.titulo}`, {
-                    description: `${mod.evaluador} · Puntaje registrado: ${mod.puntaje}/${mod.maximo}`,
-                  });
-                }
-              }}
-            >
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="w-6 h-6 rounded-full bg-[#063A6B] text-white flex items-center justify-center font-mono font-bold text-xs">
-                    {mod.numero}
-                  </span>
-                  <Badge
-                    variant="outline"
-                    className={`text-[10px] font-mono font-bold ${
-                      mod.estado === "completado"
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-300"
-                        : mod.estado === "pendiente"
-                        ? "bg-amber-50 text-amber-700 border-amber-300"
-                        : "bg-rose-50 text-rose-700 border-rose-300"
-                    }`}
-                  >
-                    {mod.estado === "completado" ? `${mod.puntaje}/${mod.maximo}` : mod.estado}
-                  </Badge>
+      {pestaña_activa === "iglesia_f03" && (
+        <div className="space-y-6">
+          <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
+            <CardHeader className="border-b border-[#E3DCCB]/60 bg-slate-50/50 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="border-[#17B4C4] text-[#063A6B] font-bold text-[10px]">
+                      Módulo 01 · 20% Oficial
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">Evaluador: Pastor de la Iglesia Local</span>
+                  </div>
+                  <CardTitle className="text-lg font-bold text-[#063A6B] flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-[#17B4C4]" />
+                    Gobernanza del Instrumento F-03 · Evaluación Ministerial del Becario
+                  </CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground">
+                    Configure la estructura del formulario que el pastor responde semestralmente, la conexión con el catálogo de iglesias y sus 13 preguntas.
+                  </CardDescription>
                 </div>
 
-                <div>
-                  <h4 className="font-bold text-xs text-[#063A6B] leading-tight line-clamp-2">
-                    {mod.titulo}
-                  </h4>
-                  <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
-                    {mod.evaluador}
+                <Button
+                  onClick={() => set_modal_preview_f03_abierto(true)}
+                  className="h-10 px-4 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs shrink-0"
+                >
+                  <Eye className="w-4 h-4 text-[#F8C766]" />
+                  Vista Previa del Formulario F-03
+                </Button>
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-6 space-y-6">
+              {/* Configuración de Conexión a Catálogo de Iglesias */}
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                <h4 className="text-xs font-mono font-bold uppercase text-[#063A6B] flex items-center gap-1.5">
+                  <Building2 className="w-4 h-4 text-[#17B4C4]" />
+                  Conexión de Campos a Catálogos Institucionales
+                </h4>
+                <p className="text-xs text-muted-foreground">
+                  Determine si los datos de la congregación y pastor se seleccionan desde el directorio auditado de Diaconía (Combobox) o permiten texto libre.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-slate-800">Nombre de la Iglesia Local</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {campo_iglesia_conectado ? "Conectado a Catálogo (Combobox de 6 congregaciones)" : "Entrada libre de texto abierto"}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={campo_iglesia_conectado ? "default" : "outline"}
+                      onClick={() => set_campo_iglesia_conectado(!campo_iglesia_conectado)}
+                      className={`h-7 text-xs font-bold rounded-lg ${campo_iglesia_conectado ? "bg-[#063A6B]" : ""}`}
+                    >
+                      {campo_iglesia_conectado ? "Conectado" : "Texto Libre"}
+                    </Button>
+                  </div>
+
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-slate-800">Pastor y Celular de Contacto</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {campo_pastor_conectado ? "Autocompletado desde directorio pastoral" : "Entrada manual de contacto"}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={campo_pastor_conectado ? "default" : "outline"}
+                      onClick={() => set_campo_pastor_conectado(!campo_pastor_conectado)}
+                      className={`h-7 text-xs font-bold rounded-lg ${campo_pastor_conectado ? "bg-[#063A6B]" : ""}`}
+                    >
+                      {campo_pastor_conectado ? "Conectado" : "Texto Libre"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Muestra de Catálogo Actual de Iglesias */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-bold text-[#063A6B]">Directorio Institucional de Congregaciones Registradas (6)</Label>
+                  <span className="text-[11px] text-muted-foreground">Base oficial Diaconía FRIF-IFD</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                  {CATALOGO_IGLESIAS_INSTITUCIONALES.map((ig) => (
+                    <div key={ig.id} className="p-3 bg-white rounded-xl border border-slate-200 text-xs space-y-1">
+                      <p className="font-bold text-slate-800 truncate">{ig.nombre}</p>
+                      <p className="text-[11px] text-muted-foreground">{ig.pastor_nombre} · {ig.ciudad}</p>
+                      <Badge variant="outline" className="text-[10px] border-slate-300 font-mono">
+                        {ig.denominacion}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Estructura de las 13 Preguntas Ministeriales */}
+              <div className="space-y-3 pt-2">
+                <Label className="text-xs font-mono uppercase font-bold text-slate-600">
+                  Estructura Canónica de Evaluación Ministerial (13 Preguntas)
+                </Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
+                    <p className="font-bold text-[#063A6B]">Preguntas 1 a 4: Compromiso y Cargos</p>
+                    <p className="text-[11px] text-muted-foreground">Frecuencia de asistencia (cultos y escuela dominical), compromiso en reuniones, cargos que ocupa en la iglesia y calidad de cumplimiento.</p>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
+                    <p className="font-bold text-[#063A6B]">Preguntas 5 a 8: Testimonio y Capacitación</p>
+                    <p className="text-[11px] text-muted-foreground">Convicción de llamado, áreas en las que es ejemplo, asistencia a capacitaciones y testimonio dentro y fuera de la iglesia.</p>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
+                    <p className="font-bold text-[#063A6B]">Preguntas 9 a 10: Relaciones y Discipulado</p>
+                    <p className="text-[11px] text-muted-foreground">Relaciones interpersonales con líderes y miembros, y desarrollo de nuevos líderes bajo su tutela.</p>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
+                    <p className="font-bold text-[#063A6B]">Preguntas 11 a 13: Fortalezas, Debilidades y Aporte</p>
+                    <p className="text-[11px] text-muted-foreground">Diagnóstico de fortalezas, debilidades y apreciación pastoral sobre el impacto del programa BUMAND.</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Diálogo Modal de Vista Previa del F-03 */}
+          <Dialog open={modal_preview_f03_abierto} onOpenChange={set_modal_preview_f03_abierto}>
+            <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto p-4 bg-white rounded-2xl">
+              <DialogHeader className="pb-2 border-b border-slate-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
+                      <Eye className="w-4 h-4 text-[#17B4C4]" />
+                      Vista Previa Interactiva: Formulario F-03 Ministerial
+                    </DialogTitle>
+                    <DialogDescription className="text-xs text-muted-foreground">
+                      Esta es la interfaz y flujo exacto que el pastor o supervisor utiliza para responder y emitir la acreditación firmada.
+                    </DialogDescription>
+                  </div>
+                  <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-800 text-[10px] font-bold">
+                    Modo Previsualización
+                  </Badge>
+                </div>
+              </DialogHeader>
+              <div className="pt-2">
+                <FormularioF03 />
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB 3: ESTRUCTURA ACADÉMICA (KÁRDEX Y UMBRAL CONTRACTUAL)      */}
+      {/* ============================================================== */}
+      {pestaña_activa === "academica" && (
+        <div className="space-y-6">
+          <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
+            <CardHeader className="border-b border-[#E3DCCB]/60 bg-slate-50/50 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="border-[#17B4C4] text-[#063A6B] font-bold text-[10px]">
+                      Módulo 02 · 20% Oficial
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">Evaluador: Acreditación de Kárdex Universitario</span>
+                  </div>
+                  <CardTitle className="text-lg font-bold text-[#063A6B] flex items-center gap-2">
+                    <GraduationCap className="w-5 h-5 text-[#17B4C4]" />
+                    Gobernanza del Récord Académico y Normativa Contractual
+                  </CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground">
+                    Definición de umbrales de promedio universitario, penalizaciones por materias reprobadas y requisitos de respaldo.
+                  </CardDescription>
+                </div>
+
+                <Button
+                  onClick={() => set_modal_preview_academica_abierto(true)}
+                  className="h-10 px-4 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs shrink-0"
+                >
+                  <Eye className="w-4 h-4 text-[#F8C766]" />
+                  Vista Previa de Carga de Kárdex
+                </Button>
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-6 space-y-6">
+              {/* Reglas Normativas Oficiales */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#063A6B]">Umbral Contractual</span>
+                    <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] font-bold">
+                      Obligatorio
+                    </Badge>
+                  </div>
+                  <h4 className="text-2xl font-bold font-display text-[#063A6B]">≥ 75 Pts</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Promedio mínimo exigido por contrato institucional de beca. Si es inferior a 75 pts, el expediente entra en estado de observación tutorial.
                   </p>
                 </div>
 
-                <div className="pt-2 border-t border-[#E3DCCB]/60 text-[11px] text-[#17B4C4] font-bold flex items-center justify-between">
-                  <span>{mod.numero === "01" ? "Ver Formulario F-03" : mod.numero === "02" ? "Ver/Subir Archivos" : "Ver Detalle"}</span>
-                  <ExternalLink className="w-3 h-3" />
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#063A6B]">Materias Aprobadas</span>
+                    <Badge variant="outline" className="border-slate-300 text-slate-700 text-[10px] font-bold">
+                      Baremo Oficial
+                    </Badge>
+                  </div>
+                  <h4 className="text-2xl font-bold font-display text-emerald-700">20 / 20 Pts</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Todas las materias aprobadas con promedio mayor o igual a 70 pts otorgan la nota máxima del módulo (20 puntos).
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
 
-      {/* ============================================================== */}
-      {/* 3. MODAL COMPLETO DEL FORMULARIO F-03 DEL PASTOR (3 SECCIONES)  */}
-      {/* ============================================================== */}
-      <Dialog open={modal_f03_abierto} onOpenChange={set_modal_f03_abierto}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl bg-white border border-[#E3DCCB]">
-          <DialogHeader className="p-5 pb-3 border-b border-[#E3DCCB] bg-[#F8F9FA] shrink-0">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-[#17B4C4] font-bold block">
-                  Módulo 01 · Formulario Oficial F-03
-                </span>
-                <DialogTitle className="font-display text-lg text-[#063A6B]">
-                  Formulario de Evaluación del Becario (Pastor / Iglesia)
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#063A6B]">Penalización Reprobación</span>
+                    <Badge className="bg-rose-100 text-rose-800 border-rose-300 text-[10px] font-bold">
+                      Crítico
+                    </Badge>
+                  </div>
+                  <h4 className="text-2xl font-bold font-display text-rose-700">0 Pts</h4>
+                  <p className="text-xs text-muted-foreground">
+                    1 materia reprobada con promedio mayor a 51 pts equivale a 10 pts. Más de una materia reprobada equivale a 0 pts en el módulo.
+                  </p>
+                </div>
+              </div>
+
+              {/* Documentos Requeridos */}
+              <div className="p-4 bg-[#063A6B]/5 rounded-xl border border-[#17B4C4]/30 space-y-2">
+                <h4 className="text-xs font-bold text-[#063A6B] flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-[#17B4C4]" />
+                  Documentos Oficiales Acreditables para el Semestre
+                </h4>
+                <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-5">
+                  <li><strong>Historial Académico Oficial / Kárdex:</strong> Expedido por el sistema universitario oficial (UMSA, UPEA, Católica, etc.).</li>
+                  <li><strong>Boleta de Notas Legalizada:</strong> Sellada por dirección de carrera o secretaría académica de la facultad.</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Diálogo Modal de Vista Previa Académica */}
+          <Dialog open={modal_preview_academica_abierto} onOpenChange={set_modal_preview_academica_abierto}>
+            <DialogContent className="sm:max-w-2xl p-6 bg-white rounded-2xl">
+              <DialogHeader className="pb-2 border-b border-slate-200">
+                <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-[#17B4C4]" />
+                  Vista Previa: Interfaz de Recepción y Carga de Kárdex
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
-                  Programa de Becas · Escuela de Líderes BUMAN-D — a ser completado por el Pastor Local.
+                  Pantalla donde el becario adjunta sus certificados PDF y el supervisor valida el cumplimiento contractual.
                 </DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
-
-          <DialogBody className="p-6 space-y-6 flex-1 overflow-y-auto">
-            {/* SECCIÓN I: DATOS DEL PASTOR Y DE LA IGLESIA LOCAL */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 pb-1 border-b border-[#E3DCCB]">
-                <UserCheck className="w-4 h-4 text-[#063A6B]" />
-                <h4 className="font-display text-sm font-bold text-[#063A6B] uppercase tracking-wide">
-                  I. Datos del pastor y de la iglesia local
-                </h4>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-[#1E293B]">Nombre del pastor *</Label>
-                  <Input
-                    value={pastor_nombre}
-                    onChange={(e) => set_pastor_nombre(e.target.value)}
-                    placeholder="Nombre completo del pastor"
-                    className="h-9 text-xs border-[#E3DCCB]"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-[#1E293B]">Correo del pastor *</Label>
-                  <Input
-                    type="email"
-                    value={pastor_correo}
-                    onChange={(e) => set_pastor_correo(e.target.value)}
-                    placeholder="pastor@correo.com"
-                    className="h-9 text-xs border-[#E3DCCB]"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-[#1E293B]">N.º celular del pastor</Label>
-                  <Input
-                    value={pastor_celular}
-                    onChange={(e) => set_pastor_celular(e.target.value)}
-                    placeholder="Ej. 71234567"
-                    className="h-9 text-xs border-[#E3DCCB]"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-[#1E293B]">Nombre de la iglesia</Label>
-                  <Input
-                    value={iglesia_nombre}
-                    onChange={(e) => set_iglesia_nombre(e.target.value)}
-                    placeholder="Nombre de la congregación"
-                    className="h-9 text-xs border-[#E3DCCB]"
-                  />
-                </div>
-                <div className="space-y-1 sm:col-span-2">
-                  <Label className="text-xs font-semibold text-[#1E293B]">Dirección de la iglesia</Label>
-                  <Input
-                    value={iglesia_direccion}
-                    onChange={(e) => set_iglesia_direccion(e.target.value)}
-                    placeholder="Dirección de la congregación"
-                    className="h-9 text-xs border-[#E3DCCB]"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-[#1E293B]">Líder de la congregación</Label>
-                  <Input
-                    value={lider_nombre}
-                    onChange={(e) => set_lider_nombre(e.target.value)}
-                    placeholder="Nombre de un líder principal"
-                    className="h-9 text-xs border-[#E3DCCB]"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-[#1E293B]">Cargo del líder</Label>
-                  <Input
-                    value={lider_cargo}
-                    onChange={(e) => set_lider_cargo(e.target.value)}
-                    placeholder="Cargo que ocupa"
-                    className="h-9 text-xs border-[#E3DCCB]"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* SECCIÓN II: REFERENCIAS ACERCA DEL BECARIO (PREGUNTAS 1 A 13) */}
-            <div className="space-y-5">
-              <div className="flex items-center gap-2 pb-1 border-b border-[#E3DCCB]">
-                <FileText className="w-4 h-4 text-[#17B4C4]" />
-                <h4 className="font-display text-sm font-bold text-[#063A6B] uppercase tracking-wide">
-                  II. Referencias acerca del becario universitario
-                </h4>
-              </div>
-
-              {/* 1. Nombre del becario */}
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-[#1E293B]">1. Nombre del becario</Label>
-                <Input
-                  value={becario_nombre}
-                  onChange={(e) => set_becario_nombre(e.target.value)}
-                  className="h-9 text-xs border-[#E3DCCB] font-bold text-[#063A6B]"
-                />
-              </div>
-
-              {/* 2. Frecuencia de asistencia */}
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold text-[#1E293B]">
-                  2. ¿Con qué frecuencia el becario asiste a la iglesia?
-                </Label>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    "Es miembro en plena comunión",
-                    "Asiste sólo domingos",
-                    "Viene como visita",
-                    "No asiste",
-                  ].map((opc) => (
-                    <button
-                      key={opc}
-                      type="button"
-                      onClick={() => set_frecuencia_asistencia(opc)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                        frecuencia_asistencia === opc
-                          ? "bg-[#17B4C4]/15 border-[#17B4C4] text-[#0E7A85] font-bold shadow-xs"
-                          : "border-[#E3DCCB] bg-white text-slate-700 hover:bg-slate-50"
-                      }`}
-                    >
-                      {opc}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 3. Compromiso */}
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold text-[#1E293B]">
-                  3. ¿Demuestra compromiso con el Señor y la Iglesia?
-                </Label>
-                <div className="flex gap-2">
-                  {["Sí", "No"].map((opc) => (
-                    <button
-                      key={opc}
-                      type="button"
-                      onClick={() => set_demuestra_compromiso(opc)}
-                      className={`px-4 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                        demuestra_compromiso === opc
-                          ? "bg-[#063A6B] border-[#063A6B] text-white font-bold"
-                          : "border-[#E3DCCB] bg-white text-slate-700 hover:bg-slate-50"
-                      }`}
-                    >
-                      {opc}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 4. Ocupa cargo y Cargo 2026 */}
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold text-[#1E293B]">
-                  4. ¿Ocupa actualmente algún cargo en la iglesia?
-                </Label>
-                <div className="flex gap-2">
-                  {["Sí", "No"].map((opc) => (
-                    <button
-                      key={opc}
-                      type="button"
-                      onClick={() => set_ocupa_cargo(opc)}
-                      className={`px-4 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                        ocupa_cargo === opc
-                          ? "bg-[#063A6B] border-[#063A6B] text-white font-bold"
-                          : "border-[#E3DCCB] bg-white text-slate-700 hover:bg-slate-50"
-                      }`}
-                    >
-                      {opc}
-                    </button>
-                  ))}
-                </div>
-                {ocupa_cargo === "Sí" && (
-                  <div className="pt-1">
-                    <Label className="text-[11px] text-muted-foreground">Cargo que desempeña actualmente</Label>
-                    <Input
-                      value={cargo_actual}
-                      onChange={(e) => set_cargo_actual(e.target.value)}
-                      placeholder="Ej. Líder de jóvenes, Alabanza, Diaconía"
-                      className="h-8 text-xs border-[#E3DCCB] mt-1"
-                    />
+              </DialogHeader>
+              <div className="py-4 space-y-4">
+                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-emerald-600" />
+                    <div>
+                      <p className="text-xs font-bold text-emerald-900">Validación de Meta Contractual</p>
+                      <p className="text-[11px] text-emerald-700">El becario debe registrar notas iguales o superiores a 75 pts.</p>
+                    </div>
                   </div>
-                )}
+                  <Badge className="bg-emerald-600 text-white font-bold text-xs">≥ 75 Pts</Badge>
+                </div>
+
+                <div className="border-2 border-dashed border-[#E3DCCB] rounded-2xl p-6 text-center bg-slate-50/50">
+                  <Upload className="w-8 h-8 text-[#17B4C4] mx-auto mb-2" />
+                  <p className="text-xs font-bold text-slate-800">Zona de Carga de Documentos Académicos</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Formatos admitidos: PDF, JPG, PNG (Hasta 10 MB)</p>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB 4: ESTRUCTURA MENTOR / SUPERVISOR VÍA QR (21 REACTIVOS)   */}
+      {/* ============================================================== */}
+      {pestaña_activa === "mentor" && (
+        <div className="space-y-6">
+          <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
+            <CardHeader className="border-b border-[#E3DCCB]/60 bg-slate-50/50 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="border-[#17B4C4] text-[#063A6B] font-bold text-[10px]">
+                      Módulo 03 · 20% Oficial
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">Evaluador: Mentor / Supervisor Diaconía en Terreno</span>
+                  </div>
+                  <CardTitle className="text-lg font-bold text-[#063A6B] flex items-center gap-2">
+                    <QrCode className="w-5 h-5 text-[#17B4C4]" />
+                    Gobernanza del Instrumento de Mentoría / Práctica Preprofesional (PP²)
+                  </CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground">
+                    Banco oficial de 21 reactivos (18 escala 1 a 10 + 3 preguntas abiertas valoradas sobre 10 pts) y código QR institucional.
+                  </CardDescription>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                    onClick={() => set_modal_qr_mentor_abierto(true)}
+                    variant="outline"
+                    className="h-10 px-3 border-[#063A6B] text-[#063A6B] font-bold rounded-xl text-xs gap-1.5 hover:bg-[#063A6B]/5"
+                  >
+                    <QrCode className="w-4 h-4 text-[#17B4C4]" />
+                    Ver Código QR
+                  </Button>
+
+                  <Button
+                    onClick={() => set_modal_preview_mentor_abierto(true)}
+                    className="h-10 px-4 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs"
+                  >
+                    <Eye className="w-4 h-4 text-[#F8C766]" />
+                    Vista Previa Rúbrica
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-6 space-y-6">
+              {/* Parámetros de Ponderación de Mentoría */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#063A6B]">Sección I: 18 Reactivos de Desempeño</span>
+                    <Badge variant="outline" className="border-slate-300 font-mono text-[10px]">Escala 1 a 10</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Evalúa cumplimiento, calidad, iniciativa, trabajo en equipo, respeto y valores de Diaconía IFD. Promedio directo escalado a <strong>10 Puntos</strong>.
+                  </p>
+                </div>
+
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#063A6B]">Sección II: 3 Preguntas Abiertas (19, 20, 21)</span>
+                    <Badge variant="outline" className="border-slate-300 font-mono text-[10px]">Rúbrica Cualitativa</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Aporte del becario (3.33 pts), fortalezas (3.33 pts) y áreas de mejora (3.34 pts), sumando <strong>10 Puntos</strong>. Total del módulo: <strong>20 Puntos</strong>.
+                  </p>
+                </div>
               </div>
 
-              {/* 5. Cumplimiento con cargos */}
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold text-[#1E293B]">
-                  5. ¿Hasta el momento cómo ha cumplido con sus cargos?
+              {/* Lista de los 18 Reactivos Oficiales */}
+              <div className="space-y-3">
+                <Label className="text-xs font-mono uppercase font-bold text-slate-600">
+                  Banco de Reactivos del Mentor (18 Escala 1 a 10)
                 </Label>
-                <div className="flex flex-wrap gap-2">
-                  {["Muy bien", "Bien", "Necesita Apoyo", "No cumple"].map((opc) => (
-                    <button
-                      key={opc}
-                      type="button"
-                      onClick={() => set_cumplimiento_cargos(opc)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                        cumplimiento_cargos === opc
-                          ? "bg-[#17B4C4]/15 border-[#17B4C4] text-[#0E7A85] font-bold shadow-xs"
-                          : "border-[#E3DCCB] bg-white text-slate-700 hover:bg-slate-50"
-                      }`}
-                    >
-                      {opc}
-                    </button>
+                <div className="space-y-2">
+                  {PREGUNTAS_MENTOR_ESCALA.map((p) => (
+                    <div key={p.numero} className="p-3 bg-white rounded-xl border border-slate-200 text-xs flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-[#063A6B]/10 text-[#063A6B] font-mono font-bold flex items-center justify-center text-[10px]">
+                          {p.numero}
+                        </span>
+                        <span className="text-slate-800 font-medium">{p.enunciado}</span>
+                      </div>
+                      <Badge variant="outline" className="border-slate-300 font-mono text-[10px] shrink-0">
+                        Escala 1 a 10
+                      </Badge>
+                    </div>
                   ))}
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
-              {/* 6. Convicción */}
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-[#1E293B]">
-                  6. ¿Demuestra convicción al llamado de Dios? Favor de explicar
-                </Label>
-                <Textarea
-                  rows={2}
-                  value={pregunta_conviccion}
-                  onChange={(e) => set_pregunta_conviccion(e.target.value)}
-                  className="text-xs border-[#E3DCCB]"
-                />
-              </div>
-
-              {/* 7. Áreas de ejemplo */}
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-[#1E293B]">
-                  7. ¿En qué áreas demuestra ejemplo en la congregación?
-                </Label>
-                <Textarea
-                  rows={2}
-                  value={pregunta_ejemplo}
-                  onChange={(e) => set_pregunta_ejemplo(e.target.value)}
-                  className="text-xs border-[#E3DCCB]"
-                />
-              </div>
-
-              {/* 8. Compromiso capacitaciones */}
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-[#1E293B]">
-                  8. ¿Demuestra compromiso con las capacitaciones (talleres, cursos, estudios)?
-                </Label>
-                <Textarea
-                  rows={2}
-                  value={pregunta_capacitaciones}
-                  onChange={(e) => set_pregunta_capacitaciones(e.target.value)}
-                  className="text-xs border-[#E3DCCB]"
-                />
-              </div>
-
-              {/* 9. Testimonio cristiano */}
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-[#1E293B]">
-                  9. ¿Cómo es su testimonio como cristiano?
-                </Label>
-                <Textarea
-                  rows={2}
-                  value={pregunta_testimonio}
-                  onChange={(e) => set_pregunta_testimonio(e.target.value)}
-                  className="text-xs border-[#E3DCCB]"
-                />
-              </div>
-
-              {/* 10. Relación con miembros */}
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-[#1E293B]">
-                  10. ¿Cómo se relaciona con los demás miembros?
-                </Label>
-                <Textarea
-                  rows={2}
-                  value={pregunta_relacion}
-                  onChange={(e) => set_pregunta_relacion(e.target.value)}
-                  className="text-xs border-[#E3DCCB]"
-                />
-              </div>
-
-              {/* 11. Nuevos líderes */}
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-[#1E293B]">
-                  11. ¿Se encuentra desarrollando a nuevos líderes? ¿A quiénes?
-                </Label>
-                <Textarea
-                  rows={2}
-                  value={pregunta_nuevos_lideres}
-                  onChange={(e) => set_pregunta_nuevos_lideres(e.target.value)}
-                  className="text-xs border-[#E3DCCB]"
-                />
-              </div>
-
-              {/* 12. Fortalezas y Debilidades */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-[#1E293B]">12. a) Fortalezas del becario</Label>
-                  <Textarea
-                    rows={2}
-                    value={pregunta_fortalezas}
-                    onChange={(e) => set_pregunta_fortalezas(e.target.value)}
-                    className="text-xs border-[#E3DCCB]"
-                  />
+          {/* Diálogo Modal de Código QR */}
+          <Dialog open={modal_qr_mentor_abierto} onOpenChange={set_modal_qr_mentor_abierto}>
+            <DialogContent className="sm:max-w-sm p-6 bg-white rounded-2xl text-center space-y-4">
+              <DialogHeader>
+                <DialogTitle className="text-[#063A6B] font-bold text-base flex items-center justify-center gap-2">
+                  <QrCode className="w-5 h-5 text-[#17B4C4]" />
+                  Código QR de Acceso Institucional
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Escanee este código con la cámara de su móvil para acceder al formulario web de evaluación de mentoría.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 inline-block mx-auto">
+                <div className="w-48 h-48 bg-white border-2 border-[#063A6B] rounded-xl flex items-center justify-center shadow-inner">
+                  <QrCode className="w-36 h-36 text-[#063A6B]" />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-[#1E293B]">12. b) Debilidades del becario</Label>
-                  <Textarea
-                    rows={2}
-                    value={pregunta_debilidades}
-                    onChange={(e) => set_pregunta_debilidades(e.target.value)}
-                    className="text-xs border-[#E3DCCB]"
-                  />
-                </div>
-              </div>
-
-              {/* 13. Opinión general */}
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-[#1E293B]">
-                  13. ¿Cuál es su opinión general del becario?
-                </Label>
-                <Textarea
-                  rows={2}
-                  value={pregunta_opinion}
-                  onChange={(e) => set_pregunta_opinion(e.target.value)}
-                  className="text-xs border-[#E3DCCB]"
-                />
-              </div>
-            </div>
-
-            {/* SECCIÓN III: DECLARACIÓN JURADA Y FIRMA */}
-            <div className="space-y-4 pt-2">
-              <div className="flex items-center gap-2 pb-1 border-b border-[#E3DCCB]">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <h4 className="font-display text-sm font-bold text-[#063A6B] uppercase tracking-wide">
-                  III. Declaración Jurada Pastoral
-                </h4>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-[#1E293B]">Nombre del pastor (declaración)</Label>
-                  <Input
-                    value={declara_nombre}
-                    onChange={(e) => set_declara_nombre(e.target.value)}
-                    className="h-9 text-xs border-[#E3DCCB]"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-[#1E293B]">C.I. del pastor</Label>
-                  <Input
-                    value={declara_ci}
-                    onChange={(e) => set_declara_ci(e.target.value)}
-                    placeholder="Número de C.I."
-                    className="h-9 text-xs border-[#E3DCCB]"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2.5 p-3 rounded-xl border border-[#E3DCCB] bg-slate-50">
-                <Checkbox
-                  id="check-declaracion"
-                  checked={declara_aceptada}
-                  onCheckedChange={(checked) => set_declara_aceptada(Boolean(checked))}
-                  className="mt-0.5 data-[state=checked]:bg-[#063A6B]"
-                />
-                <Label
-                  htmlFor="check-declaracion"
-                  className="text-xs text-[#1E293B] leading-relaxed cursor-pointer font-medium"
-                >
-                  Como pastor de la congregación del/la becario, declaro que todos los datos proporcionados
-                  en este formulario F-03 son verídicos y fidedignos.
-                </Label>
-              </div>
-
-              {f03_error && (
-                <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl flex items-center gap-2 font-medium">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{f03_error}</span>
-                </div>
-              )}
-            </div>
-          </DialogBody>
-
-          <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-slate-50 flex sm:justify-between items-center gap-2 shrink-0">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => set_modal_f03_abierto(false)}
-              className="text-xs border-[#E3DCCB]"
-            >
-              Cerrar
-            </Button>
-            <Button
-              type="button"
-              onClick={exportarPdfF03}
-              className="bg-[#F8C766] hover:bg-[#F5A623] text-[#3A2400] font-bold text-xs rounded-xl h-10 px-5 shadow-sm"
-            >
-              <Printer className="w-4 h-4 mr-2" />
-              Exportar PDF (F-03 firmado)
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ============================================================== */}
-      {/* 4. MODAL DE SUBIDA MULTI-ARCHIVO: AUTOEVALUACIÓN ACADÉMICA      */}
-      {/* ============================================================== */}
-      <Dialog open={modal_subida_abierto} onOpenChange={set_modal_subida_abierto}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl bg-white border border-[#E3DCCB]">
-          <DialogHeader className="p-5 pb-3 border-b border-[#E3DCCB] bg-[#F8F9FA] shrink-0">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[#17B4C4] font-bold block">
-              Módulo 02 · Autoevaluación Académica
-            </span>
-            <DialogTitle className="font-display text-base text-[#063A6B]">
-              Subida de Archivos y Acreditación Académica
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              Adjunte récord de calificaciones, boleta de inscripción o certificados en formato PDF/imagen.
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogBody className="p-5 space-y-5 flex-1 overflow-y-auto">
-            {/* ZONA DE CARGA MÚLTIPLE */}
-            <div className="p-4 rounded-xl border-2 border-dashed border-[#17B4C4]/50 bg-[#17B4C4]/5 text-center space-y-3">
-              <Upload className="w-8 h-8 text-[#17B4C4] mx-auto" />
-              <div>
-                <p className="text-xs font-bold text-[#063A6B]">Seleccione uno o varios archivos</p>
-                <p className="text-[11px] text-muted-foreground">
-                  Formatos permitidos: PDF, JPG, PNG, ZIP · Máx. 15 MB por archivo
+                <p className="text-[11px] font-mono text-slate-500 mt-3 font-semibold">
+                  bumand.diaconia.bo/evaluacion/mentor
                 </p>
               </div>
+            </DialogContent>
+          </Dialog>
 
-              <div className="flex justify-center">
-                <label
-                  htmlFor="input-archivos-multiples"
-                  className="px-4 py-2 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs"
-                >
-                  Elegir archivos
-                </label>
-                <input
-                  id="input-archivos-multiples"
-                  type="file"
-                  multiple
-                  accept=".pdf,.jpg,.jpeg,.png,.zip"
-                  onChange={manejarSeleccionArchivos}
-                  className="hidden"
-                />
+          {/* Diálogo Modal de Vista Previa de Rúbrica */}
+          <Dialog open={modal_preview_mentor_abierto} onOpenChange={set_modal_preview_mentor_abierto}>
+            <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-y-auto p-6 bg-white rounded-2xl">
+              <DialogHeader className="pb-2 border-b border-slate-200">
+                <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-[#17B4C4]" />
+                  Vista Previa: Instrumento de Mentoría en Terreno
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Simulación de la rúbrica móvil de 18 notas escalares y 3 campos abiertos que responde el tutor.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-3">
+                <div className="p-4 bg-[#063A6B]/5 border border-[#17B4C4]/30 rounded-xl text-xs space-y-1">
+                  <p className="font-bold text-[#063A6B]">Instrucciones para el Mentor:</p>
+                  <p className="text-muted-foreground">Califique de 1 (deficiente) a 10 (excelente) cada reactivo de desempeño profesional y complete las preguntas cualitativas.</p>
+                </div>
+                <div className="space-y-2">
+                  {PREGUNTAS_MENTOR_ESCALA.slice(0, 5).map((p) => (
+                    <div key={p.numero} className="p-3 bg-white rounded-xl border border-slate-200 text-xs flex items-center justify-between">
+                      <span className="font-medium text-slate-800">{p.numero}. {p.enunciado}</span>
+                      <span className="font-mono font-bold text-[#063A6B] bg-slate-100 px-2 py-1 rounded-lg">10 / 10</span>
+                    </div>
+                  ))}
+                  <p className="text-[11px] text-center text-muted-foreground italic">+ 13 preguntas adicionales en la versión completa</p>
+                </div>
               </div>
-            </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
 
-            {/* LISTA DE ARCHIVOS RECIÉN SELECCIONADOS PENDIENTES DE SUBIR */}
-            {archivos_seleccionados.length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-xs font-mono font-bold text-[#063A6B] uppercase">
-                  Archivos Listos para Subir ({archivos_seleccionados.length})
+      {/* ============================================================== */}
+      {/* TAB 5: ESTRUCTURA ESCUELA DE LÍDERES / CETI (12 TAREAS)        */}
+      {/* ============================================================== */}
+      {pestaña_activa === "lideres" && (
+        <div className="space-y-6">
+          <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
+            <CardHeader className="border-b border-[#E3DCCB]/60 bg-slate-50/50 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="border-[#17B4C4] text-[#063A6B] font-bold text-[10px]">
+                      Módulo 04 · 20% Oficial
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">Evaluador: Coordinación CETI y Asistencia</span>
+                  </div>
+                  <CardTitle className="text-lg font-bold text-[#063A6B] flex items-center gap-2">
+                    <Users className="w-5 h-5 text-[#17B4C4]" />
+                    Gobernanza de Escuela de Líderes y Formación Teológica CETI
+                  </CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground">
+                    Catálogo de las 12 tareas teológicas, ponderación individual y baremo de asistencia de los viernes.
+                  </CardDescription>
+                </div>
+
+                <Button
+                  onClick={() => set_modal_preview_lideres_abierto(true)}
+                  className="h-10 px-4 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs shrink-0"
+                >
+                  <Eye className="w-4 h-4 text-[#F8C766]" />
+                  Vista Previa Registro CETI
+                </Button>
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-6 space-y-6">
+              {/* Reglas de Asistencia de Viernes */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <h4 className="text-xs font-bold text-[#063A6B]">Asistencia Presencial a Reuniones de Viernes</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Reuniones formativas obligatorias. Tolerancia máxima de 1 inasistencia justificada por semestre. Más de 1 falta sin justificación anula la nota del módulo.
+                  </p>
+                </div>
+
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <h4 className="text-xs font-bold text-[#063A6B]">Ponderación de las 12 Tareas CETI</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Cada tarea representa un 8.33% de la nota teológica. El promedio general escalado al 20% aporta la nota semestral oficial.
+                  </p>
+                </div>
+              </div>
+
+              {/* Catálogo de las 12 Tareas Teológicas */}
+              <div className="space-y-3">
+                <Label className="text-xs font-mono uppercase font-bold text-slate-600">
+                  Catálogo Canónico de Tareas Semestrales (12 Módulos)
                 </Label>
-                <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
-                  {archivos_seleccionados.map((archivo, index) => (
-                    <div
-                      key={`${archivo.name}-${index}`}
-                      className="p-2.5 rounded-lg border border-amber-200 bg-amber-50/50 flex items-center justify-between text-xs"
-                    >
-                      <div className="flex items-center gap-2 truncate pr-2">
-                        <File className="w-4 h-4 text-amber-600 shrink-0" />
-                        <span className="font-medium text-[#1E293B] truncate">{archivo.name}</span>
-                        <span className="text-[10px] font-mono text-muted-foreground shrink-0">
-                          ({(archivo.size / 1024).toFixed(0)} KB)
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  {TAREAS_CETI_CATALOGO.map((t) => (
+                    <div key={t.numero} className="p-3 bg-white rounded-xl border border-slate-200 text-xs flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-[#063A6B]/10 text-[#063A6B] font-mono font-bold flex items-center justify-center text-[10px]">
+                          {t.numero}
                         </span>
+                        <span className="text-slate-800 font-medium">{t.tema}</span>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => eliminarArchivoSeleccionado(index)}
-                        className="p-1 text-rose-500 hover:text-rose-700 shrink-0 font-bold text-xs"
-                        title="Eliminar archivo"
-                      >
-                        ✕
-                      </button>
+                      <Badge variant="outline" className="border-slate-300 font-mono text-[10px] shrink-0">
+                        {t.ponderacion}
+                      </Badge>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
+            </CardContent>
+          </Card>
 
-            {/* LISTA DE ARCHIVOS YA ACREDITADOS EN EL EXPEDIENTE */}
-            <div className="space-y-2">
-              <Label className="text-xs font-mono font-bold text-muted-foreground uppercase">
-                Documentos ya Acreditados en el Semestre ({archivos_acreditados.length})
-              </Label>
-              <div className="space-y-1.5">
-                {archivos_acreditados.map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-2.5 rounded-lg border border-[#E3DCCB] bg-slate-50 flex items-center justify-between text-xs"
+          {/* Diálogo Modal de Vista Previa CETI */}
+          <Dialog open={modal_preview_lideres_abierto} onOpenChange={set_modal_preview_lideres_abierto}>
+            <DialogContent className="sm:max-w-2xl p-6 bg-white rounded-2xl">
+              <DialogHeader className="pb-2 border-b border-slate-200">
+                <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-[#17B4C4]" />
+                  Vista Previa: Registro de Tareas y Asistencias CETI
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Pantalla donde el coordinador asienta las calificaciones individuales de cada entrega teológica.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3 py-3">
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                  <span className="font-bold text-[#063A6B]">Total Tareas Registradas: 12 / 12</span>
+                  <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold">100 Pts Promedio</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">Permite marcar entregas, cargar observaciones y calcular multas por inasistencias no justificadas.</p>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB 6: ESTRUCTURA SOCIOECONÓMICA (BIENESTAR 26P)               */}
+      {/* ============================================================== */}
+      {pestaña_activa === "socioeconomica" && (
+        <div className="space-y-6">
+          <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
+            <CardHeader className="border-b border-[#E3DCCB]/60 bg-slate-50/50 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="border-[#17B4C4] text-[#063A6B] font-bold text-[10px]">
+                      Módulo 05 · 20% Oficial
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">Evaluador: Área de Trabajo Social</span>
+                  </div>
+                  <CardTitle className="text-lg font-bold text-[#063A6B] flex items-center gap-2">
+                    <HeartHandshake className="w-5 h-5 text-[#17B4C4]" />
+                    Gobernanza del Cuestionario de Bienestar Universitario (26 Preguntas)
+                  </CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground">
+                    Catálogo oficial de reactivos socioeconómicos y determinación automática del Semáforo Institucional de Vulnerabilidad.
+                  </CardDescription>
+                </div>
+
+                <Button
+                  onClick={() => set_modal_preview_socioeconomica_abierto(true)}
+                  className="h-10 px-4 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs shrink-0"
+                >
+                  <Eye className="w-4 h-4 text-[#F8C766]" />
+                  Vista Previa Cuestionario 26P
+                </Button>
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-6 space-y-6">
+              {/* Diagnóstico Semáforo Institucional */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                    <span className="text-xs font-bold text-emerald-900">Semáforo Verde</span>
+                  </div>
+                  <p className="text-xs text-emerald-800">Condición estable, sin riesgo crítico en hogar, salud ni finanzas.</p>
+                </div>
+
+                <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-amber-500" />
+                    <span className="text-xs font-bold text-amber-900">Semáforo Amarillo</span>
+                  </div>
+                  <p className="text-xs text-amber-800">Alerta preventiva, requiere seguimiento tutorial de Trabajo Social.</p>
+                </div>
+
+                <div className="p-4 bg-rose-50 rounded-xl border border-rose-200 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-rose-500" />
+                    <span className="text-xs font-bold text-rose-900">Semáforo Rojo</span>
+                  </div>
+                  <p className="text-xs text-rose-800">Vulnerabilidad alta, intervención prioritaria y plan de apoyo institucional.</p>
+                </div>
+              </div>
+
+              {/* Muestra de las 26 Preguntas */}
+              <div className="space-y-3">
+                <Label className="text-xs font-mono uppercase font-bold text-slate-600">
+                  Banco de Preguntas Canónicas de Bienestar Personal, Social y Universitario (26 Reactivos)
+                </Label>
+                <div className="space-y-2">
+                  {PREGUNTAS_BIENESTAR_INICIALES.slice(0, 6).map((p) => (
+                    <div key={p.id} className="p-3 bg-white rounded-xl border border-slate-200 text-xs flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-[#063A6B]/10 text-[#063A6B] font-mono font-bold flex items-center justify-center text-[10px]">
+                          {p.numero}
+                        </span>
+                        <div>
+                          <p className="font-bold text-slate-800">{p.titulo}</p>
+                          <p className="text-[11px] text-muted-foreground">{p.enunciado}</p>
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="border-slate-300 font-mono text-[10px] shrink-0">
+                        {p.opciones.length} Opciones
+                      </Badge>
+                    </div>
+                  ))}
+                  <p className="text-[11px] text-center text-muted-foreground italic">+ 20 preguntas estructuradas en el instrumento oficial</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Diálogo Modal de Vista Previa Socioeconómica */}
+          <Dialog open={modal_preview_socioeconomica_abierto} onOpenChange={set_modal_preview_socioeconomica_abierto}>
+            <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto p-4 bg-white rounded-2xl">
+              <DialogHeader className="pb-2 border-b border-slate-200">
+                <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-[#17B4C4]" />
+                  Vista Previa Interactiva: Cuestionario de Bienestar (26 Preguntas)
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Instrumento completo que el estudiante responde semestralmente con evaluación de Trabajo Social.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="pt-2">
+                <EvaluacionSocioeconomicaVista />
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB 7: PONDERACIONES, RANGOS Y PERIODOS SEMESTRALES            */}
+      {/* ============================================================== */}
+      {pestaña_activa === "periodos" && (
+        <div className="space-y-6">
+          {/* Calibración de Ponderaciones Oficiales */}
+          <Card className="border-[#17B4C4] bg-white rounded-2xl shadow-xs overflow-hidden">
+            <CardHeader className="bg-[#17B4C4]/10 pb-3 border-b border-[#17B4C4]/30">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <CardTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
+                    <SlidersHorizontal className="w-4 h-4 text-[#17B4C4]" />
+                    Ponderación Oficial de los 5 Módulos Canónicos (Suma = 100%)
+                  </CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground">
+                    Ajuste la distribución porcentual de cada eje evaluativo. Por defecto: 20% equitativo.
+                  </CardDescription>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-mono font-bold px-3 py-1 rounded-full border ${
+                    ponderaciones_validas ? "bg-emerald-50 text-emerald-800 border-emerald-300" : "bg-rose-50 text-rose-800 border-rose-300"
+                  }`}>
+                    Total: {suma_ponderaciones}% {ponderaciones_validas ? "✓" : "≠ 100%"}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      set_ponderacion_temporal({
+                        liderazgo: 20,
+                        academica: 20,
+                        mentor: 20,
+                        practicas: 20,
+                        socioeconomica: 20,
+                      });
+                      toast.info("Valores restablecidos a base 20% equitativa.");
+                    }}
+                    className="h-8 px-3 text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 font-bold rounded-lg text-xs"
                   >
-                    <div className="flex items-center gap-2 truncate">
-                      <FileCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span className="font-semibold text-[#063A6B] truncate">{item.nombre}</span>
+                    Restablecer 20%
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={manejarGuardarPonderaciones}
+                    disabled={!ponderaciones_validas}
+                    className="h-8 px-4 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-lg text-xs shadow-xs"
+                  >
+                    Guardar
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                {modulos.map((m) => (
+                  <div key={m.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-bold text-slate-800 truncate" title={m.nombre}>
+                        {m.nombre.split(" ")[1] || m.nombre}
+                      </Label>
+                      <span className="font-mono font-bold text-xs text-[#063A6B]">
+                        {ponderacion_temporal[m.clave]}%
+                      </span>
                     </div>
-                    <div className="flex items-center gap-2 font-mono text-[10px] text-muted-foreground shrink-0">
-                      <span>{item.tamaño}</span>
-                      <span>·</span>
-                      <span>{item.fecha}</span>
-                    </div>
+                    <Slider
+                      min={0}
+                      max={50}
+                      step={5}
+                      value={[ponderacion_temporal[m.clave] ?? 20]}
+                      onValueChange={(val) => {
+                        const v = Array.isArray(val) ? val[0] : (val as unknown as number);
+                        set_ponderacion_temporal((prev) => ({ ...prev, [m.clave]: v }));
+                      }}
+                      className="cursor-pointer"
+                    />
+                    <p className="text-[10px] text-muted-foreground truncate">{m.evaluador_rol}</p>
                   </div>
                 ))}
               </div>
-            </div>
-          </DialogBody>
+            </CardContent>
+          </Card>
 
-          <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-slate-50 flex sm:justify-between items-center gap-2 shrink-0">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => set_modal_subida_abierto(false)}
-              className="text-xs border-[#E3DCCB]"
-            >
-              Cerrar
-            </Button>
-            <Button
-              type="button"
-              onClick={confirmarSubidaArchivos}
-              disabled={archivos_seleccionados.length === 0}
-              className={`text-xs font-bold rounded-xl h-10 px-5 shadow-sm ${
-                archivos_seleccionados.length > 0
-                  ? "bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
-                  : "bg-slate-200 text-slate-400 cursor-not-allowed opacity-60"
-              }`}
-            >
-              <Upload className="w-4 h-4 mr-1.5" />
-              Subir {archivos_seleccionados.length} Archivo(s)
-            </Button>
-          </DialogFooter>
+          {/* Rangos Oficiales de Aprobación */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-bold font-display text-[#063A6B] flex items-center gap-2">
+              <Scale className="w-4 h-4 text-[#17B4C4]" />
+              Escala y Rangos de Aprobación Oficial Institucional (Diaconía FRIF-IFD)
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {RANGOS_APROBACION_OFICIALES.map((r, i) => (
+                <div key={i} className="p-4 bg-white rounded-xl border border-[#E3DCCB] space-y-2 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#063A6B]">{r.calificacion}</span>
+                    <Badge variant="outline" className="font-mono font-bold text-xs border-slate-300">
+                      {r.rango} pts
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{r.descripcion}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Criterios de Evaluación Oficiales */}
+          <div className="space-y-3 pt-2">
+            <h3 className="text-sm font-bold font-display text-[#063A6B] flex items-center gap-2">
+              <Layers className="w-4 h-4 text-[#17B4C4]" />
+              Matriz Normativa de Criterios Canónicos Semestrales
+            </h3>
+            <CriteriosEvaluacionTabla />
+          </div>
+
+          {/* Gestión de Periodos Semestrales */}
+          <div className="space-y-3 pt-2">
+            <h3 className="text-sm font-bold font-display text-[#063A6B] flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-[#17B4C4]" />
+              Ciclos Semestrales Activos
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {periodos.map((p) => {
+                const es_activo = p.id === periodo_activo;
+                return (
+                  <div
+                    key={p.id}
+                    onClick={() => set_periodo_activo(p.id)}
+                    className={`p-4 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                      es_activo
+                        ? "bg-[#063A6B]/5 border-[#17B4C4] shadow-xs"
+                        : "bg-white border-[#E3DCCB] hover:border-slate-300"
+                    }`}
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs text-[#063A6B]">{p.titulo}</span>
+                        {p.habilitado ? (
+                          <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] font-bold">
+                            Activo
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-slate-500 border-slate-300 text-[10px]">
+                            Cerrado
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">{p.subtitulo}</p>
+                      <p className="text-[10px] font-mono text-slate-500">{p.rango}</p>
+                    </div>
+
+                    {es_admin && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => alternarEstadoPeriodo(p.id, e)}
+                        className="text-xs h-7 border-slate-300 shrink-0"
+                      >
+                        {p.habilitado ? "Cerrar Ciclo" : "Reabrir Ciclo"}
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para Crear Nuevo Semestre */}
+      <Dialog open={modal_nuevo_semestre_abierto} onOpenChange={set_modal_nuevo_semestre_abierto}>
+        <DialogContent className="sm:max-w-md bg-white rounded-2xl border-[#E3DCCB]">
+          <DialogHeader>
+            <DialogTitle className="text-[#063A6B] font-bold text-base flex items-center gap-2">
+              <CalendarPlus className="w-5 h-5 text-[#17B4C4]" />
+              Apertura de Nuevo Semestre Institucional
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Habilita un nuevo periodo evaluativo con base estándar del 20% y registro de expedientes.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={manejarCrearNuevoSemestre} className="space-y-3 pt-2">
+            <div>
+              <Label className="text-xs">Título del Semestre</Label>
+              <Input
+                value={nuevo_titulo}
+                onChange={(e) => set_nuevo_titulo(e.target.value)}
+                placeholder="Ej. Semestre I · 2027"
+                className="h-8 text-xs mt-1"
+                required
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Descripción / Subtítulo</Label>
+              <Input
+                value={nuevo_subtitulo}
+                onChange={(e) => set_nuevo_subtitulo(e.target.value)}
+                placeholder="Ej. Ciclo lectivo regular"
+                className="h-8 text-xs mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Rango de Meses</Label>
+              <Input
+                value={nuevo_rango}
+                onChange={(e) => set_nuevo_rango(e.target.value)}
+                placeholder="Ej. Enero – Junio 2027"
+                className="h-8 text-xs mt-1"
+                required
+              />
+            </div>
+            <DialogFooter className="pt-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => set_modal_nuevo_semestre_abierto(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" size="sm" className="bg-[#063A6B] hover:bg-[#063A6B]/90 font-bold">
+                Habilitar Semestre
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

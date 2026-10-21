@@ -20,14 +20,12 @@ import { HistorialAsistenciaBecario } from "@/components/asistencia/historial-as
 import { AuditoriaAsistencia } from "@/components/asistencia/auditoria-asistencia";
 import { AprobacionPasajes } from "@/components/pasajes/aprobacion-pasajes";
 import { PasajesVista } from "@/components/pasajes/pasajes-vista";
-import { MatrizEvaluacion360 } from "@/components/evaluaciones/matriz-evaluacion-360";
 import { EvaluacionesVista } from "@/components/evaluaciones/evaluaciones-vista";
 import { VisorReportesPdf } from "@/components/reportes/visor-reportes-pdf";
 import { CentroNotificaciones } from "@/components/notificaciones/centro-notificaciones";
 import { RadarGeocerca } from "@/components/recorridos/radar-geocerca";
 import { RegistroRecorrido } from "@/components/recorridos/registro-recorrido";
 import { FormularioF03 } from "@/components/evaluaciones/formulario-f03";
-import { FirmaDigital } from "@/components/evaluaciones/firma-digital";
 import { RegistroDevocionales } from "@/components/devocionales/registro-devocionales";
 import { GestionEventos } from "@/components/eventos/gestion-eventos";
 import { BandejaJustificaciones } from "@/components/justificaciones/bandeja-justificaciones";
@@ -47,10 +45,12 @@ import {
   Menu, 
   ChevronRight,
   BookOpen,
-  Clock
+  Clock,
+  HeartHandshake,
+  Award
 } from "lucide-react";
 
-function obtenerDetallesSeccion(seccion: string, rol: string) {
+function obtenerDetallesSeccion(seccion: string, rol: string, subpestaña?: string) {
   switch (seccion) {
     case "administracion":
       return {
@@ -80,9 +80,16 @@ function obtenerDetallesSeccion(seccion: string, rol: string) {
       return {
         titulo: rol === "becario" ? "Mis Devocionales y Crecimiento Espiritual" : "Seguimiento y Retroalimentación",
       };
+    case "evaluaciones":
     case "evaluacion_360":
       return {
-        titulo: "Matriz de Evaluación 360°",
+        titulo: subpestaña === "socioeconomica"
+          ? "Evaluación Socioeconómica · Bienestar Universitario (26 Preguntas)"
+          : (rol === "becario" ? "Mis Evaluaciones y Matriz" : "Matriz de Evaluación"),
+      };
+    case "evaluacion_socioeconomica":
+      return {
+        titulo: "Evaluación Socioeconómica · Bienestar Universitario (26 Preguntas)",
       };
     case "eventos":
       return {
@@ -91,7 +98,7 @@ function obtenerDetallesSeccion(seccion: string, rol: string) {
       };
     case "justificaciones":
       return {
-        titulo: rol === "becario" ? "Mis Justificaciones e Incidencias" : "Bandeja de Justificaciones e Incidencias",
+        titulo: rol === "becario" ? "Mis Permisos y Justificaciones" : "Permisos y Justificaciones",
       };
     case "reportes":
       return {
@@ -127,6 +134,7 @@ export default function PaginaInicio() {
   const [menu_movil_abierto, set_menu_movil_abierto] = useState<boolean>(false);
   const [modal_versiculo_abierto, set_modal_versiculo_abierto] = useState<boolean>(false);
   const [dialogo_asistencia_abierto, set_dialogo_asistencia_abierto] = useState<boolean>(false);
+  const [subpestaña_evaluaciones, set_subpestaña_evaluaciones] = useState<"matriz" | "socioeconomica">("matriz");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -165,7 +173,7 @@ export default function PaginaInicio() {
     return null;
   }
 
-  const detalles_seccion = obtenerDetallesSeccion(pestaña_activa, rol);
+  const detalles_seccion = obtenerDetallesSeccion(pestaña_activa, rol, subpestaña_evaluaciones);
 
   return (
     <div className="relative flex min-h-screen text-[#1E293B]">
@@ -378,6 +386,15 @@ export default function PaginaInicio() {
                             <FormularioF03 becario_id={usuario.becario_id || 1} />
                           </DialogContent>
                         </Dialog>
+
+                        <BotonJuicy
+                          onClick={() => { set_pestaña_activa("evaluaciones"); set_subpestaña_evaluaciones("socioeconomica"); }}
+                          variante="fantasma"
+                          className="h-11 w-full border border-[#17B4C4] bg-[#17B4C4]/10 text-[#063A6B] font-bold rounded-xl text-xs justify-center hover:bg-[#17B4C4]/20"
+                        >
+                          <HeartHandshake className="w-4 h-4 mr-2 text-[#17B4C4]" />
+                          Responder Evaluación Socioeconómica (26 Preguntas)
+                        </BotonJuicy>
                       </div>
                     </div>
                   </div>
@@ -420,27 +437,18 @@ export default function PaginaInicio() {
               <RegistroDevocionales />
             </TabsContent>
 
-            {/* SPRINT 5: Evaluación 360° Semestral y Validación */}
+            {/* SPRINT 5: Matriz de Evaluación Semestral, Módulos y Socioeconómica */}
+            <TabsContent value="evaluaciones" className="space-y-6">
+              <EvaluacionesVista pestaña_inicial={subpestaña_evaluaciones === "socioeconomica" ? "socioeconomica" : "consolidado"} />
+            </TabsContent>
+
             <TabsContent value="evaluacion_360" className="space-y-6">
-              <EvaluacionesVista />
-              <div className="mt-8 pt-8 border-t border-[#E3DCCB]">
-                <MatrizEvaluacion360 />
-              </div>
-              {(es_admin || es_supervisor) && (
-                <div className="mt-6 flex justify-end">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="h-10 border-[#063A6B] text-[#063A6B] font-bold rounded-xl text-xs hover:bg-[#063A6B]/5">
-                        <ShieldCheck className="w-4 h-4 mr-2" />
-                        Convalidar con Firma Digital Canvas
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[450px] max-h-[90vh] p-0 border-none bg-transparent shadow-none">
-                      <FirmaDigital alFirmar={(_b64) => toast.success("Firma digital convalidada correctamente", { description: "La acreditación ha sido registrada en el expediente institucional." })} />
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              )}
+              <EvaluacionesVista pestaña_inicial="consolidado" />
+            </TabsContent>
+
+            {/* SPRINT 5.5: Evaluación Socioeconómica (26 Preguntas Canónicas) */}
+            <TabsContent value="evaluacion_socioeconomica" className="space-y-6">
+              <EvaluacionesVista pestaña_inicial="socioeconomica" />
             </TabsContent>
 
             {/* Módulo de Gestión de Eventos y Encuentros Geolocalizados */}

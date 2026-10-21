@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
 export interface ReglaCampo<TValores> {
@@ -251,11 +251,37 @@ export function useFormularioValidado<TValores extends Record<string, unknown>>(
     [obtenerMensajeError]
   );
 
+  const tiene_cambios = useMemo<boolean>(() => {
+    const algun_tocado = Object.values(tocados).some(Boolean);
+    if (algun_tocado) return true;
+
+    for (const clave in valores_iniciales) {
+      const val_actual = valores[clave];
+      const val_inicial = valores_iniciales[clave];
+
+      if (val_actual instanceof Date && val_inicial instanceof Date) {
+        if (val_actual.getTime() !== val_inicial.getTime()) return true;
+      } else if (val_actual !== val_inicial) {
+        return true;
+      }
+    }
+    return false;
+  }, [tocados, valores, valores_iniciales]);
+
+  const notificarExito = useCallback(
+    (titulo: string, descripcion?: string) => {
+      toast.success(titulo, { description: descripcion });
+    },
+    []
+  );
+
   return {
     valores,
     errores,
     tocados,
     intento_envio,
+    tiene_cambios,
+    notificarExito,
     cambiarValor,
     tocarCampo,
     establecerValores,
@@ -268,3 +294,4 @@ export function useFormularioValidado<TValores extends Record<string, unknown>>(
     renderizarMensajeError,
   };
 }
+

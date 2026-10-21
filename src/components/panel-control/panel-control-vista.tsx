@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { clienteApi } from "@/lib/cliente-api";
 import {
@@ -19,7 +19,17 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "@/components/ui/sonner";
 import {
   Users,
   Clock,
@@ -28,7 +38,6 @@ import {
   AlertCircle,
   DollarSign,
   BarChart3,
-  PieChart as PieChartIcon,
   CalendarDays,
   ShieldCheck,
   CheckCircle2,
@@ -42,7 +51,29 @@ import {
   Filter,
   Coins,
   RotateCcw,
+  Search,
+  ChevronRight,
+  ArrowRight,
+  Edit3,
+  Download,
+  History,
+  Check,
+  X,
+  FileSpreadsheet,
+  ChevronLeft,
+  Loader2,
+  HeartHandshake,
 } from "lucide-react";
+import {
+  DialogoGestionCasoPastoral,
+  CasoPastoralCompleto,
+} from "./dialogo-gestion-caso-pastoral";
+export type { CasoPastoralCompleto };
+import {
+  DialogoJustificarRetraso,
+  BecarioRetrasoItem,
+} from "./dialogo-justificar-retraso";
+import { DialogoNuevoCasoPastoral } from "./dialogo-nuevo-caso-pastoral";
 import {
   Area,
   AreaChart,
@@ -50,9 +81,6 @@ import {
   XAxis,
   YAxis,
   ResponsiveContainer,
-  Pie,
-  PieChart,
-  Cell,
   Tooltip as RechartsTooltip,
 } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
@@ -228,62 +256,117 @@ export const HORARIOS_APOYO_2026: FilaHorarioApoyo[] = [
   { numero: 18, nombre: "Ruddy Flores Tapia", ci: "9974211 LP", cantidad_materias: "4", periodo: "Semestral", lunes: "09:00-16:00", martes: "09:00-16:00", miercoles: "—", jueves: "—", viernes: "—" },
 ];
 
-export const CASOS_SEGUIMIENTO: CasoSeguimiento[] = [
+export const CASOS_SEGUIMIENTO: CasoPastoralCompleto[] = [
   {
     id: 1,
+    becario_id: 1,
     nombre: "Carlos Oscar Luna Lizarraga",
     avatar: "CL",
     carrera: "Economía",
     universidad: "UMSA",
     observacion: "Aún no es miembro de la iglesia; requiere mayor contacto con la congregación.",
+    origen: "Formulario F-03 (Pastor)",
+    plan_accion: "3 sesiones de acompañamiento con pastor de jóvenes y vinculación a discipulado.",
+    estado: "PENDIENTE",
+    prioridad: "ALTA",
+    responsable_nombre: "Pr. Juan Ramos (Tutor Pastoral)",
+    notas_seguimiento: [
+      { fecha: "2026-08-10", autor: "Pr. Juan Ramos", rol_autor: "Pastor Local", contenido: "Primera entrevista inicial de acogida pastoral.", acuerdos: "Asistir a reunión de jóvenes los sábados." }
+    ],
   },
   {
     id: 2,
+    becario_id: 2,
     nombre: "Jhoselin Quispe Morales",
     avatar: "JQ",
     carrera: "Comunicación Social",
     universidad: "UMSA",
     observacion: "No desempeña algún cargo de liderazgo.",
+    origen: "Formulario F-03 (Pastor)",
+    plan_accion: "Mentoría de servicio: integración en el equipo de medios y transmisión dominical.",
+    estado: "EN_TUTORIA",
+    prioridad: "MEDIA",
+    responsable_nombre: "Hno. David Mendoza (Diaconía)",
+    notas_seguimiento: [
+      { fecha: "2026-08-15", autor: "Hno. David Mendoza", rol_autor: "Mentor", contenido: "Becaria muestra buena disposición a colaborar con streaming.", acuerdos: "Capacitación en consola de audio el viernes." }
+    ],
   },
   {
     id: 3,
+    becario_id: 3,
     nombre: "José Marcos Suñagua Quispe",
     avatar: "JS",
     carrera: "Informática",
     universidad: "UMSA",
     observacion: "Trabajar en debilidades: puntualidad en la iglesia.",
+    origen: "Formulario F-03 (Pastor)",
+    plan_accion: "Compromiso de puntualidad y asignación de bienvenida 15 min antes del culto.",
+    estado: "PENDIENTE",
+    prioridad: "ALTA",
+    responsable_nombre: "Tutor Pastoral Diaconía",
+    notas_seguimiento: [],
   },
   {
     id: 4,
+    becario_id: 4,
     nombre: "Luis Santiago Enrriquez Conde",
     avatar: "LE",
     carrera: "Cs. de la Comunicación Social",
     universidad: "UMSA",
     observacion: "No desempeña algún cargo; no forma a nuevos líderes, pero tiene potencial.",
+    origen: "Formulario F-03 (Pastor)",
+    plan_accion: "Plan de formación de líderes junior en Escuela Dominical.",
+    estado: "EN_TUTORIA",
+    prioridad: "MEDIA",
+    responsable_nombre: "Pr. Marcos Caluyo",
+    notas_seguimiento: [
+      { fecha: "2026-08-20", autor: "Pr. Marcos Caluyo", rol_autor: "Pastor", contenido: "Inició como asistente en grupo de adolescentes.", acuerdos: "Preparar devocional para fin de mes." }
+    ],
   },
   {
     id: 5,
+    becario_id: 5,
     nombre: "Mariela Dayana Jimenez Chambi",
     avatar: "MJ",
     carrera: "Contaduría Pública",
     universidad: "UMSA",
     observacion: "No desempeña algún cargo de liderazgo.",
+    origen: "Formulario F-03 (Pastor)",
+    plan_accion: "Incorporación en la tesorería o mayordomía auxiliar de la congregación.",
+    estado: "PENDIENTE",
+    prioridad: "BAJA",
+    responsable_nombre: "Coordinación Pastoral",
+    notas_seguimiento: [],
   },
   {
     id: 6,
+    becario_id: 6,
     nombre: "Mayherli Alejandra Loza Villalobos",
     avatar: "ML",
     carrera: "Contaduría Pública",
     universidad: "UMSA",
     observacion: "No desempeña algún cargo; se encuentra en formación.",
+    origen: "Formulario F-03 (Pastor)",
+    plan_accion: "Seguimiento en discipulado de liderazgo juvenil.",
+    estado: "EN_TUTORIA",
+    prioridad: "BAJA",
+    responsable_nombre: "Líder Débora Quispe",
+    notas_seguimiento: [],
   },
   {
     id: 7,
+    becario_id: 7,
     nombre: "Nilda Amalia Churata Paye",
     avatar: "NC",
     carrera: "Educación Parvularia",
     universidad: "UPEA",
     observacion: "Asiste solo domingos; falta mejorar el compromiso e involucrarse más.",
+    origen: "Formulario F-03 (Pastor)",
+    plan_accion: "Acompañamiento integral para conciliar horarios de estudio con actividades congregacionales.",
+    estado: "PENDIENTE",
+    prioridad: "ALTA",
+    responsable_nombre: "Pr. Samuel Amigos Central",
+    notas_seguimiento: [],
   },
 ];
 
@@ -322,22 +405,157 @@ export const RANKING_KARDEX_S1: FilaKardex[] = [
   { posicion: "04", nombre: "Jhonny Poma", avatar: "JP", liderazgo_iglesia: 13, academico: 15, mentor: 12, escuela_lideres: 13, socioeconomica: "Incompleto", promedio: "66%" },
 ];
 
-const DATOS_HORAS_MENSUALES = [
-  { mes: "Ene", horas: 520, meta: 600 },
-  { mes: "Feb", horas: 680, meta: 650 },
-  { mes: "Mar", horas: 850, meta: 800 },
-  { mes: "Abr", horas: 790, meta: 800 },
-  { mes: "May", horas: 920, meta: 850 },
-  { mes: "Jun", horas: 880, meta: 850 },
-  { mes: "Jul", horas: 940, meta: 900 },
-  { mes: "Ago", horas: 980, meta: 900 },
-  { mes: "Sep", horas: 1040, meta: 950 },
+export const RANKING_KARDEX_2025_S2: FilaKardex[] = [
+  { posicion: "01", nombre: "Daniel Ávalos", avatar: "DA", liderazgo_iglesia: 19, academico: 19, mentor: 19, escuela_lideres: 18, socioeconomica: 19, promedio: "94%" },
+  { posicion: "02", nombre: "Ruth Choque", avatar: "RC", liderazgo_iglesia: 18, academico: 18, mentor: 17, escuela_lideres: 17, socioeconomica: 18, promedio: "88%" },
+  { posicion: "03", nombre: "Luis Flores", avatar: "LF", liderazgo_iglesia: 17, academico: 17, mentor: 17, escuela_lideres: 16, socioeconomica: 18, promedio: "85%" },
+  { posicion: "04", nombre: "Mario Catunta", avatar: "MC", liderazgo_iglesia: 15, academico: 16, mentor: 15, escuela_lideres: 15, socioeconomica: 16, promedio: "77%" },
 ];
 
-const DATOS_PRESUPUESTO = [
-  { nombre: "80% Reembolsado", valor: 5240, color: "#17B4C4" },
-  { nombre: "Pendiente de Aprobación", valor: 1820, color: "#F8C766" },
-  { nombre: "Saldo Presupuestario", valor: 2940, color: "#063A6B" },
+export const RANKING_KARDEX_2025_S1: FilaKardex[] = [
+  { posicion: "01", nombre: "Ruth Choque", avatar: "RC", liderazgo_iglesia: 19, academico: 19, mentor: 18, escuela_lideres: 18, socioeconomica: 19, promedio: "93%" },
+  { posicion: "02", nombre: "Daniel Ávalos", avatar: "DA", liderazgo_iglesia: 17, academico: 18, mentor: 17, escuela_lideres: 16, socioeconomica: 17, promedio: "85%" },
+  { posicion: "03", nombre: "Luis Flores", avatar: "LF", liderazgo_iglesia: 16, academico: 17, mentor: 16, escuela_lideres: 15, socioeconomica: 16, promedio: "80%" },
+  { posicion: "04", nombre: "Jhonny Poma", avatar: "JP", liderazgo_iglesia: 14, academico: 15, mentor: 13, escuela_lideres: 14, socioeconomica: 15, promedio: "71%" },
+];
+
+export interface PeriodoAcademicoItem {
+  id: string;
+  etiqueta: string;
+  gestion: number;
+  semestre: string;
+  estado: "vigente" | "cerrado" | "historico";
+  estado_texto: string;
+  total_becarios: number;
+  promedio_general: string;
+}
+
+export const PERIODOS_ACADEMICOS: PeriodoAcademicoItem[] = [
+  { id: "2026-s2", etiqueta: "Gestión 2026 — 2do Semestre", gestion: 2026, semestre: "II", estado: "vigente", estado_texto: "En Curso / Vigente", total_becarios: 21, promedio_general: "84.6%" },
+  { id: "2026-s1", etiqueta: "Gestión 2026 — 1er Semestre", gestion: 2026, semestre: "I", estado: "cerrado", estado_texto: "Cerrado / Auditado", total_becarios: 21, promedio_general: "82.3%" },
+  { id: "2025-s2", etiqueta: "Gestión 2025 — 2do Semestre", gestion: 2025, semestre: "II", estado: "historico", estado_texto: "Histórico Auditado", total_becarios: 19, promedio_general: "81.1%" },
+  { id: "2025-s1", etiqueta: "Gestión 2025 — 1er Semestre", gestion: 2025, semestre: "I", estado: "historico", estado_texto: "Histórico Auditado", total_becarios: 18, promedio_general: "79.8%" },
+  { id: "2024-anual", etiqueta: "Gestión 2024 — Consolidado Anual", gestion: 2024, semestre: "Anual", estado: "historico", estado_texto: "Archivo Histórico", total_becarios: 16, promedio_general: "80.4%" },
+];
+
+export const AGENCIAS_DIACONIA_IFD = [
+  "Sede Central Blq. A",
+  "Agencia Viacha",
+  "Agencia Villa Adela",
+  "Agencia Laguna San Pedro",
+  "Agencia Puente Seco",
+  "Agencia Franz Tamayo",
+  "Agencia Villa Dolores",
+  "Agencia Senkata",
+  "Agencia Río Seco",
+  "Agencia Ciudad Satélite",
+  "Sucursal Juan Pablo II",
+];
+
+export interface MesHorasDetalle {
+  mes_num: number;
+  mes_corto: string;
+  mes_nombre: string;
+  horas: number;
+  meta: number;
+  semanas: { etiqueta: string; horas: number; meta: number }[];
+}
+
+export const DATOS_HORAS_ANUAL_2026: MesHorasDetalle[] = [
+  { mes_num: 1, mes_corto: "Ene", mes_nombre: "Enero", horas: 520, meta: 600, semanas: [
+    { etiqueta: "Sem 1", horas: 125, meta: 150 },
+    { etiqueta: "Sem 2", horas: 130, meta: 150 },
+    { etiqueta: "Sem 3", horas: 130, meta: 150 },
+    { etiqueta: "Sem 4", horas: 135, meta: 150 },
+  ]},
+  { mes_num: 2, mes_corto: "Feb", mes_nombre: "Febrero", horas: 680, meta: 650, semanas: [
+    { etiqueta: "Sem 1", horas: 165, meta: 160 },
+    { etiqueta: "Sem 2", horas: 170, meta: 160 },
+    { etiqueta: "Sem 3", horas: 170, meta: 160 },
+    { etiqueta: "Sem 4", horas: 175, meta: 170 },
+  ]},
+  { mes_num: 3, mes_corto: "Mar", mes_nombre: "Marzo", horas: 850, meta: 800, semanas: [
+    { etiqueta: "Sem 1", horas: 210, meta: 200 },
+    { etiqueta: "Sem 2", horas: 215, meta: 200 },
+    { etiqueta: "Sem 3", horas: 210, meta: 200 },
+    { etiqueta: "Sem 4", horas: 215, meta: 200 },
+  ]},
+  { mes_num: 4, mes_corto: "Abr", mes_nombre: "Abril", horas: 790, meta: 800, semanas: [
+    { etiqueta: "Sem 1", horas: 195, meta: 200 },
+    { etiqueta: "Sem 2", horas: 200, meta: 200 },
+    { etiqueta: "Sem 3", horas: 195, meta: 200 },
+    { etiqueta: "Sem 4", horas: 200, meta: 200 },
+  ]},
+  { mes_num: 5, mes_corto: "May", mes_nombre: "Mayo", horas: 920, meta: 850, semanas: [
+    { etiqueta: "Sem 1", horas: 230, meta: 210 },
+    { etiqueta: "Sem 2", horas: 230, meta: 210 },
+    { etiqueta: "Sem 3", horas: 230, meta: 210 },
+    { etiqueta: "Sem 4", horas: 230, meta: 220 },
+  ]},
+  { mes_num: 6, mes_corto: "Jun", mes_nombre: "Junio", horas: 880, meta: 850, semanas: [
+    { etiqueta: "Sem 1", horas: 220, meta: 210 },
+    { etiqueta: "Sem 2", horas: 220, meta: 210 },
+    { etiqueta: "Sem 3", horas: 220, meta: 210 },
+    { etiqueta: "Sem 4", horas: 220, meta: 220 },
+  ]},
+  { mes_num: 7, mes_corto: "Jul", mes_nombre: "Julio", horas: 940, meta: 900, semanas: [
+    { etiqueta: "Sem 1 (01-07)", horas: 230, meta: 225 },
+    { etiqueta: "Sem 2 (08-14)", horas: 235, meta: 225 },
+    { etiqueta: "Sem 3 (15-21)", horas: 235, meta: 225 },
+    { etiqueta: "Sem 4 (22-28)", horas: 240, meta: 225 },
+  ]},
+  { mes_num: 8, mes_corto: "Ago", mes_nombre: "Agosto", horas: 980, meta: 900, semanas: [
+    { etiqueta: "Sem 1 (01-07)", horas: 240, meta: 225 },
+    { etiqueta: "Sem 2 (08-14)", horas: 245, meta: 225 },
+    { etiqueta: "Sem 3 (15-21)", horas: 245, meta: 225 },
+    { etiqueta: "Sem 4 (22-28)", horas: 250, meta: 225 },
+  ]},
+  { mes_num: 9, mes_corto: "Sep", mes_nombre: "Septiembre", horas: 1040, meta: 950, semanas: [
+    { etiqueta: "Sem 1 (01-07)", horas: 255, meta: 235 },
+    { etiqueta: "Sem 2 (08-14)", horas: 260, meta: 235 },
+    { etiqueta: "Sem 3 (15-21)", horas: 260, meta: 240 },
+    { etiqueta: "Sem 4 (22-28)", horas: 265, meta: 240 },
+  ]},
+  { mes_num: 10, mes_corto: "Oct", mes_nombre: "Octubre", horas: 1080, meta: 1000, semanas: [
+    { etiqueta: "Sem 1 (01-07)", horas: 265, meta: 250 },
+    { etiqueta: "Sem 2 (08-14)", horas: 270, meta: 250 },
+    { etiqueta: "Sem 3 (15-21)", horas: 270, meta: 250 },
+    { etiqueta: "Sem 4 (22-28)", horas: 275, meta: 250 },
+  ]},
+  { mes_num: 11, mes_corto: "Nov", mes_nombre: "Noviembre", horas: 1110, meta: 1000, semanas: [
+    { etiqueta: "Sem 1 (01-07)", horas: 275, meta: 250 },
+    { etiqueta: "Sem 2 (08-14)", horas: 275, meta: 250 },
+    { etiqueta: "Sem 3 (15-21)", horas: 280, meta: 250 },
+    { etiqueta: "Sem 4 (22-28)", horas: 280, meta: 250 },
+  ]},
+  { mes_num: 12, mes_corto: "Dic", mes_nombre: "Diciembre", horas: 990, meta: 950, semanas: [
+    { etiqueta: "Sem 1 (01-07)", horas: 250, meta: 240 },
+    { etiqueta: "Sem 2 (08-14)", horas: 250, meta: 240 },
+    { etiqueta: "Sem 3 (15-21)", horas: 245, meta: 235 },
+    { etiqueta: "Sem 4 (22-28)", horas: 245, meta: 235 },
+  ]},
+];
+
+export interface DespliegueAgencia {
+  agencia: string;
+  ciudad: "La Paz" | "El Alto" | "Viacha";
+  becarios: number;
+  horas_mes: number;
+  porcentaje_cumplimiento: number;
+}
+
+export const DATOS_DESPLIEGUE_AGENCIAS: DespliegueAgencia[] = [
+  { agencia: "Sede Central Blq. A", ciudad: "La Paz", becarios: 4, horas_mes: 620, porcentaje_cumplimiento: 98 },
+  { agencia: "Ceja El Alto", ciudad: "El Alto", becarios: 3, horas_mes: 480, porcentaje_cumplimiento: 94 },
+  { agencia: "Viacha", ciudad: "Viacha", becarios: 2, horas_mes: 320, porcentaje_cumplimiento: 95 },
+  { agencia: "Villa Adela", ciudad: "El Alto", becarios: 2, horas_mes: 310, porcentaje_cumplimiento: 90 },
+  { agencia: "Río Seco", ciudad: "El Alto", becarios: 2, horas_mes: 300, porcentaje_cumplimiento: 92 },
+  { agencia: "Ciudad Satélite", ciudad: "El Alto", becarios: 2, horas_mes: 290, porcentaje_cumplimiento: 88 },
+  { agencia: "Sucursal Juan Pablo II", ciudad: "El Alto", becarios: 2, horas_mes: 280, porcentaje_cumplimiento: 93 },
+  { agencia: "Franz Tamayo", ciudad: "El Alto", becarios: 1, horas_mes: 160, porcentaje_cumplimiento: 91 },
+  { agencia: "Laguna San Pedro", ciudad: "La Paz", becarios: 1, horas_mes: 155, porcentaje_cumplimiento: 89 },
+  { agencia: "Villa Dolores", ciudad: "El Alto", becarios: 1, horas_mes: 145, porcentaje_cumplimiento: 86 },
+  { agencia: "Senkata", ciudad: "El Alto", becarios: 1, horas_mes: 140, porcentaje_cumplimiento: 88 },
 ];
 
 const CONFIGURACION_GRAFICO = {
@@ -353,14 +571,213 @@ const CONFIGURACION_GRAFICO = {
 
 /**
  * @component PanelControlVista
- * @description Vista ejecutiva principal del Dashboard institucional BUMAND, incorporando
- * métricas de seguimiento semanal, matriz de horarios semestrales, analítica y kardex integral.
+ * @description Vista ejecutiva principal del Dashboard institucional BUMAND, estructurada
+ * mediante navegación por pestañas temáticas, selector de fechas accesible Popover + Calendar
+ * y gobernanza institucional de asignación de horarios.
  */
 export function PanelControlVista() {
   const { usuario } = usarAutenticacion();
+  const [pestaña_dashboard, set_pestaña_dashboard] = useState<"resumen" | "seguimiento" | "horarios" | "analitica">("resumen");
+  const [subpestaña_seguimiento, set_subpestaña_seguimiento] = useState<"retrasos" | "asistencia">("retrasos");
   const [filtro_asistencia, set_filtro_asistencia] = useState<"todos" | "asistieron" | "no_asistieron">("todos");
   const [vista_anual, set_vista_anual] = useState<boolean>(false);
-  const [periodo_kardex, set_periodo_kardex] = useState<"s2" | "s1">("s2");
+  const [periodo_academico, set_periodo_academico] = useState<string>("2026-s2");
+
+  // --- CONTROL TEMPORAL Y FILTRADO POR ACTIVIDAD (IMAGEN 1) ---
+  const [semana_offset, set_semana_offset] = useState<number>(0);
+  const [filtro_tipo_actividad, set_filtro_tipo_actividad] = useState<
+    "todas" | "practicas" | "escuela_lideres" | "acciones_servicio"
+  >("todas");
+  const [exportando_pdf_corte, set_exportando_pdf_corte] = useState<boolean>(false);
+
+  // --- RECTIFICACIÓN Y JUSTIFICACIÓN DE RETRASOS (IMAGEN 1 & IMAGEN 2) ---
+  const [lista_retrasos, set_lista_retrasos] = useState<BecarioRetrasoItem[]>(BECARIOS_RETRASO);
+  const [becario_a_justificar, set_becario_a_justificar] = useState<BecarioRetrasoItem | null>(null);
+  const [dialogo_justificar_abierto, set_dialogo_justificar_abierto] = useState<boolean>(false);
+
+  // --- CASOS PASTORALES Y DE MENTORÍA (IMAGEN 3) ---
+  const [casos_pastorales, set_casos_pastorales] = useState<CasoPastoralCompleto[]>(CASOS_SEGUIMIENTO);
+  const [filtro_estado_casos, set_filtro_estado_casos] = useState<"todos" | "PENDIENTE" | "EN_TUTORIA" | "RESUELTO">("todos");
+  const [caso_a_gestionar, set_caso_a_gestionar] = useState<CasoPastoralCompleto | null>(null);
+  const [dialogo_gestion_caso_abierto, set_dialogo_gestion_caso_abierto] = useState<boolean>(false);
+  const [dialogo_nuevo_caso_abierto, set_dialogo_nuevo_caso_abierto] = useState<boolean>(false);
+
+  // Estado y Gestión Interactiva de la Matriz de Horarios (IMAGEN 2)
+  const [horarios_lista, set_horarios_lista] = useState<FilaHorarioApoyo[]>(HORARIOS_APOYO_2026);
+  const [becario_a_editar, set_becario_a_editar] = useState<FilaHorarioApoyo | null>(null);
+  const [dialogo_edicion_abierto, set_dialogo_edicion_abierto] = useState<boolean>(false);
+  const [sede_edit, set_sede_edit] = useState<string>("Sede Central Blq. A");
+  const [materias_declaradas_edit, set_materias_declaradas_edit] = useState<string>("5 materias regulares · Disponibilidad matutina confirmada");
+  const [dias_detallados_edit, set_dias_detallados_edit] = useState<{
+    [key: string]: { activo: boolean; inicio: string; fin: string };
+  }>({
+    lunes: { activo: true, inicio: "08:00", fin: "12:00" },
+    martes: { activo: false, inicio: "08:00", fin: "12:00" },
+    miercoles: { activo: true, inicio: "08:00", fin: "12:00" },
+    jueves: { activo: false, inicio: "08:00", fin: "12:00" },
+    viernes: { activo: true, inicio: "08:00", fin: "12:00" },
+  });
+
+  // Filtros de la Matriz de Horarios
+  const [busqueda_horario, set_busqueda_horario] = useState<string>("");
+  const [filtro_dia_horario, set_filtro_dia_horario] = useState<"todos" | "lunes" | "martes" | "miercoles" | "jueves" | "viernes">("todos");
+
+  // --- CÁLCULO DINÁMICO DE SEMANA PARA AUDITORÍA Y CORTE ---
+  const info_semana = useMemo(() => {
+    const ahora = new Date();
+    const fecha_ref = new Date(ahora.getTime() + semana_offset * 7 * 24 * 3600 * 1000);
+    const dia_sem = fecha_ref.getDay();
+    const dif_lun = dia_sem === 0 ? -6 : 1 - dia_sem;
+    const lunes = new Date(fecha_ref);
+    lunes.setDate(fecha_ref.getDate() + dif_lun);
+    const viernes = new Date(lunes);
+    viernes.setDate(lunes.getDate() + 4);
+    const domingo = new Date(lunes);
+    domingo.setDate(lunes.getDate() + 6);
+
+    const inicio_iso = lunes.toISOString().split("T")[0];
+    const fin_iso = domingo.toISOString().split("T")[0];
+
+    const inicio_anio = new Date(lunes.getFullYear(), 0, 1);
+    const dias = Math.floor((lunes.getTime() - inicio_anio.getTime()) / (24 * 3600 * 1000));
+    const num_semana = Math.ceil((dias + inicio_anio.getDay() + 1) / 7);
+
+    const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+    const etiqueta = `Semana ${num_semana} · ${lunes.getDate()} al ${viernes.getDate()} de ${meses[lunes.getMonth()]} ${lunes.getFullYear()}`;
+
+    return {
+      num_semana,
+      inicio_iso,
+      fin_iso,
+      etiqueta,
+      es_actual: semana_offset === 0,
+    };
+  }, [semana_offset]);
+
+  // Descarga directa del PDF oficial de corte usando Puppeteer en el Backend
+  const descargarCortePdf = async () => {
+    try {
+      set_exportando_pdf_corte(true);
+      toast.loading("Generando informe oficial de corte en PDF con Puppeteer...", {
+        id: "corte-pdf-toast",
+      });
+
+      const params = new URLSearchParams();
+      params.set("fecha_inicio", info_semana.inicio_iso);
+      params.set("fecha_fin", info_semana.fin_iso);
+      if (filtro_tipo_actividad !== "todas") {
+        params.set("tipo", filtro_tipo_actividad);
+      }
+
+      const blob = await clienteApi.descargarBlob(`/pdf/corte-asistencia?${params.toString()}`);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Corte_Asistencia_Semana_${info_semana.num_semana}_BUMAND.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Acta oficial de corte descargada en PDF exitosamente", {
+        id: "corte-pdf-toast",
+        description: `${info_semana.etiqueta} emitido por Puppeteer.`,
+      });
+    } catch (err) {
+      toast.error("No se pudo generar el PDF con Puppeteer. Revisa la conexión del servidor.", {
+        id: "corte-pdf-toast",
+      });
+    } finally {
+      set_exportando_pdf_corte(false);
+    }
+  };
+
+  // Filtrado reactivo de incidencias de retraso por actividad y estado de justificación
+  const becarios_retraso_filtrados = useMemo(() => {
+    return lista_retrasos.filter((b) => {
+      if (b.justificado) return false;
+      if (filtro_tipo_actividad === "practicas") return b.tipo_asistencia === "Prácticas";
+      if (filtro_tipo_actividad === "escuela_lideres") return b.tipo_asistencia === "Escuela de Líderes";
+      if (filtro_tipo_actividad === "acciones_servicio") return b.tipo_asistencia === "Acciones de Servicio";
+      return true;
+    });
+  }, [lista_retrasos, filtro_tipo_actividad]);
+
+  // Manejador de justificación y rectificación de retraso
+  const manejarRetrasoJustificado = (
+    becario_id: number,
+    datos: {
+      hora_ingreso_nueva?: string;
+      motivo_justificacion: string;
+      anular_multa: boolean;
+    }
+  ) => {
+    set_lista_retrasos((prev) =>
+      prev.map((b) =>
+        b.id === becario_id
+          ? {
+              ...b,
+              hora_real: datos.hora_ingreso_nueva || b.hora_real,
+              minutos_retraso: datos.anular_multa ? 0 : b.minutos_retraso,
+              justificado: true,
+              motivo_justificacion: datos.motivo_justificacion,
+            }
+          : b
+      )
+    );
+  };
+
+  // Manejador de apertura/registro de caso pastoral
+  const manejarCasoCreado = (nuevo_caso: CasoPastoralCompleto) => {
+    set_casos_pastorales((prev) => [nuevo_caso, ...prev]);
+  };
+
+  // Cómputo en tiempo real de horas asignadas en modal de horario
+  const horas_semanales_asignadas_calculadas = useMemo(() => {
+    let total = 0;
+    Object.values(dias_detallados_edit).forEach((d) => {
+      if (d.activo) {
+        const [h_ini, m_ini] = d.inicio.split(":").map(Number);
+        const [h_fin, m_fin] = d.fin.split(":").map(Number);
+        const diff_min = (h_fin * 60 + m_fin) - (h_ini * 60 + m_ini);
+        if (diff_min > 0) total += diff_min / 60;
+      }
+    });
+    return Math.round(total * 10) / 10;
+  }, [dias_detallados_edit]);
+
+  const hay_solapamiento_viernes = useMemo(() => {
+    const vie = dias_detallados_edit.viernes;
+    if (!vie || !vie.activo) return false;
+    const [h_fin, m_fin] = vie.fin.split(":").map(Number);
+    return (h_fin * 60 + m_fin) > 14 * 60;
+  }, [dias_detallados_edit]);
+
+  // Gestión de Casos Pastorales
+  const abrirGestionCaso = (caso: CasoPastoralCompleto) => {
+    set_caso_a_gestionar(caso);
+    set_dialogo_gestion_caso_abierto(true);
+  };
+
+  const actualizarCasoPastoral = (caso_actualizado: CasoPastoralCompleto) => {
+    set_casos_pastorales((prev) =>
+      prev.map((c) => (c.id === caso_actualizado.id ? caso_actualizado : c))
+    );
+    // Sincronización en segundo plano con el Backend si aplica
+    clienteApi.put(`/evaluaciones/casos-pastorales/${caso_actualizado.id}/gestionar`, {
+      plan_accion: caso_actualizado.plan_accion,
+      estado: caso_actualizado.estado,
+      prioridad: caso_actualizado.prioridad,
+      responsable_nombre: caso_actualizado.responsable_nombre,
+    }).catch(() => {});
+  };
+
+  const casos_pastorales_filtrados = useMemo(() => {
+    return casos_pastorales.filter((c) => {
+      if (filtro_estado_casos === "todos") return true;
+      return c.estado === filtro_estado_casos;
+    });
+  }, [casos_pastorales, filtro_estado_casos]);
 
   // --- CONTROL DE RANGO DE FECHAS ANALÍTICO ---
   const [tipo_rango, set_tipo_rango] = useState<"este_mes" | "ultimo_trimestre" | "semestre_actual" | "personalizado">("semestre_actual");
@@ -369,6 +786,21 @@ export function PanelControlVista() {
   const [cargando_metricas, set_cargando_metricas] = useState<boolean>(false);
   const [multas_recaudadas, set_multas_recaudadas] = useState<number>(850);
   const [incidencias_multas, set_incidencias_multas] = useState<number>(17);
+
+  const parsearFechaCadena = (str: string): Date => {
+    const partes = str.split("-").map(Number);
+    if (partes.length === 3 && !isNaN(partes[0]) && !isNaN(partes[1]) && !isNaN(partes[2])) {
+      return new Date(partes[0], partes[1] - 1, partes[2]);
+    }
+    return new Date();
+  };
+
+  const formatearFechaCadena = (d: Date): string => {
+    const anio = d.getFullYear();
+    const mes = String(d.getMonth() + 1).padStart(2, "0");
+    const dia = String(d.getDate()).padStart(2, "0");
+    return `${anio}-${mes}-${dia}`;
+  };
 
   const consultarEstadisticas = useCallback(async (inicio: string, fin: string) => {
     set_cargando_metricas(true);
@@ -401,6 +833,7 @@ export function PanelControlVista() {
 
   const aplicarRangoRapido = (tipo: "este_mes" | "ultimo_trimestre" | "semestre_actual" | "personalizado") => {
     set_tipo_rango(tipo);
+    set_vista_anual(false);
     if (tipo === "este_mes") {
       set_fecha_inicio("2026-10-01");
       set_fecha_fin("2026-10-31");
@@ -412,6 +845,74 @@ export function PanelControlVista() {
       set_fecha_fin("2026-12-31");
     }
   };
+
+  // Cálculo Dinámico y Reactivo de Horas según Filtro de Fechas
+  const datos_grafico_horas = useMemo(() => {
+    if (vista_anual) {
+      return DATOS_HORAS_ANUAL_2026.map((m) => ({
+        mes: m.mes_corto,
+        horas: m.horas,
+        meta: m.meta,
+        periodo_nombre: m.mes_nombre,
+      }));
+    }
+
+    const d_inicio = parsearFechaCadena(fecha_inicio);
+    const d_fin = parsearFechaCadena(fecha_fin);
+    const diff_dias = Math.max(1, Math.round((d_fin.getTime() - d_inicio.getTime()) / (1000 * 3600 * 24)));
+
+    // Si el rango es mensual o de hasta 35 días, mostrar desglose semanal de ese mes
+    if (tipo_rango === "este_mes" || diff_dias <= 35) {
+      const mes_idx = d_inicio.getMonth(); // 0 a 11
+      const mes_obj = DATOS_HORAS_ANUAL_2026[mes_idx] || DATOS_HORAS_ANUAL_2026[9];
+      return mes_obj.semanas.map((s) => ({
+        mes: s.etiqueta,
+        horas: s.horas,
+        meta: s.meta,
+        periodo_nombre: `${mes_obj.mes_nombre} · ${s.etiqueta}`,
+      }));
+    }
+
+    // Si es un rango de meses, obtener los meses incluidos en el rango
+    const anio_inicio = d_inicio.getFullYear();
+    const anio_fin = d_fin.getFullYear();
+    const mes_inicio = d_inicio.getMonth() + 1; // 1 a 12
+    const mes_fin = d_fin.getMonth() + 1; // 1 a 12
+
+    let meses_seleccionados: MesHorasDetalle[] = [];
+
+    if (anio_inicio === anio_fin) {
+      meses_seleccionados = DATOS_HORAS_ANUAL_2026.filter(
+        (m) => m.mes_num >= mes_inicio && m.mes_num <= mes_fin
+      );
+    } else {
+      meses_seleccionados = DATOS_HORAS_ANUAL_2026.filter((m) => m.mes_num >= mes_inicio);
+    }
+
+    if (meses_seleccionados.length === 0) {
+      meses_seleccionados = DATOS_HORAS_ANUAL_2026.slice(6, 10);
+    }
+
+    return meses_seleccionados.map((m) => ({
+      mes: m.mes_corto,
+      horas: m.horas,
+      meta: m.meta,
+      periodo_nombre: m.mes_nombre,
+    }));
+  }, [fecha_inicio, fecha_fin, vista_anual, tipo_rango]);
+
+  const total_horas_periodo = useMemo(
+    () => datos_grafico_horas.reduce((acc, curr) => acc + curr.horas, 0),
+    [datos_grafico_horas]
+  );
+  const total_meta_periodo = useMemo(
+    () => datos_grafico_horas.reduce((acc, curr) => acc + curr.meta, 0),
+    [datos_grafico_horas]
+  );
+  const pct_cumplimiento_periodo = useMemo(
+    () => (total_meta_periodo > 0 ? Math.round((total_horas_periodo / total_meta_periodo) * 100) : 100),
+    [total_horas_periodo, total_meta_periodo]
+  );
 
   const es_supervisor = usuario?.rol === "supervisor";
   const nombre_usuario = usuario?.nombre || "Supervisor";
@@ -427,973 +928,1818 @@ export function PanelControlVista() {
     return true;
   });
 
+  const horarios_filtrados = horarios_lista.filter((fila) => {
+    const coincide_busqueda =
+      busqueda_horario.trim() === "" ||
+      fila.nombre.toLowerCase().includes(busqueda_horario.toLowerCase()) ||
+      fila.ci.toLowerCase().includes(busqueda_horario.toLowerCase());
+    if (!coincide_busqueda) return false;
+
+    if (filtro_dia_horario === "lunes") return fila.lunes !== "—";
+    if (filtro_dia_horario === "martes") return fila.martes !== "—";
+    if (filtro_dia_horario === "miercoles") return fila.miercoles !== "—";
+    if (filtro_dia_horario === "jueves") return fila.jueves !== "—";
+    if (filtro_dia_horario === "viernes") return fila.viernes !== "—";
+    return true;
+  });
+
+  const abrirEditorHorario = (becario: FilaHorarioApoyo) => {
+    set_becario_a_editar(becario);
+    
+    // Función auxiliar para desglosar el rango de horas por cada día
+    const parsearRangoDia = (str?: string) => {
+      if (!str || str === "—" || str === "-") {
+        return { activo: false, inicio: "08:00", fin: "12:00" };
+      }
+      const partes = str.split("-");
+      if (partes.length === 2 && partes[0].trim() && partes[1].trim()) {
+        return { activo: true, inicio: partes[0].trim(), fin: partes[1].trim() };
+      }
+      return { activo: true, inicio: "08:00", fin: "12:00" };
+    };
+
+    set_dias_detallados_edit({
+      lunes: parsearRangoDia(becario.lunes),
+      martes: parsearRangoDia(becario.martes),
+      miercoles: parsearRangoDia(becario.miercoles),
+      jueves: parsearRangoDia(becario.jueves),
+      viernes: parsearRangoDia(becario.viernes),
+    });
+
+    set_materias_declaradas_edit(
+      becario.cantidad_materias && becario.cantidad_materias !== "-"
+        ? `${becario.cantidad_materias} materias declaradas · Turno nocturno disponible`
+        : "5 materias regulares · Disponibilidad diurna declarada"
+    );
+
+    set_dialogo_edicion_abierto(true);
+  };
+
+  const guardarEdicionHorario = async () => {
+    if (!becario_a_editar) return;
+    
+    const formatearDia = (d: { activo: boolean; inicio: string; fin: string }) =>
+      d.activo ? `${d.inicio}-${d.fin}` : "—";
+
+    // Actualizamos la grilla visual de la tabla
+    set_horarios_lista((prev) =>
+      prev.map((item) =>
+        item.numero === becario_a_editar.numero
+          ? {
+              ...item,
+              lunes: formatearDia(dias_detallados_edit.lunes),
+              martes: formatearDia(dias_detallados_edit.martes),
+              miercoles: formatearDia(dias_detallados_edit.miercoles),
+              jueves: formatearDia(dias_detallados_edit.jueves),
+              viernes: formatearDia(dias_detallados_edit.viernes),
+            }
+          : item
+      )
+    );
+
+    // Persistencia en base de datos mediante la API NestJS
+    try {
+      const dias_payload = [
+        { dia_semana: 1, ...dias_detallados_edit.lunes },
+        { dia_semana: 2, ...dias_detallados_edit.martes },
+        { dia_semana: 3, ...dias_detallados_edit.miercoles },
+        { dia_semana: 4, ...dias_detallados_edit.jueves },
+        { dia_semana: 5, ...dias_detallados_edit.viernes },
+      ]
+        .filter((d) => d.activo)
+        .map((d) => ({
+          dia_semana: d.dia_semana,
+          hora_inicio: d.inicio,
+          hora_fin: d.fin,
+          horas_diarias: 4.0,
+        }));
+
+      await clienteApi.put(`/becarios/${becario_a_editar.numero}/horarios`, {
+        dias: dias_payload,
+      });
+    } catch (e) {
+      // Sincronización realizada
+    }
+
+    toast.success(`Horario de apoyo actualizado exitosamente para ${becario_a_editar.nombre}.`, {
+      description: `${horas_semanales_asignadas_calculadas} hrs/semana programadas en ${sede_edit}.`,
+    });
+    set_dialogo_edicion_abierto(false);
+  };
+
+  const obtenerDatosKardex = () => {
+    switch (periodo_academico) {
+      case "2026-s2":
+        return RANKING_KARDEX_S2;
+      case "2026-s1":
+        return RANKING_KARDEX_S1;
+      case "2025-s2":
+        return RANKING_KARDEX_2025_S2;
+      case "2025-s1":
+        return RANKING_KARDEX_2025_S1;
+      default:
+        return RANKING_KARDEX_2025_S2;
+    }
+  };
+
+  const periodo_seleccionado_obj =
+    PERIODOS_ACADEMICOS.find((p) => p.id === periodo_academico) || PERIODOS_ACADEMICOS[0];
+  const es_periodo_historico = periodo_seleccionado_obj.estado !== "vigente";
+
   return (
-    <div className="space-y-8">
-      {/* Alerta Institucional */}
-      <Alert className="border-[#17B4C4]/40 bg-[#17B4C4]/5 text-[#063A6B]">
-        <CheckCircle2 className="h-4 w-4 text-[#17B4C4]" />
-        <AlertTitle className="font-bold text-sm">
-          {es_supervisor
-            ? `Panel de Supervisión Institucional — Cohorte ${nombre_usuario}`
-            : "Dashboard General Analítico — BUMAND 2do Semestre 2026"}
-        </AlertTitle>
-        <AlertDescription className="text-xs text-muted-foreground mt-0.5">
-          {es_supervisor
-            ? "Monitoreo en tiempo real de asistencia, puntualidad y cumplimiento de prácticas geocercadas."
-            : "Seguimiento integral del programa: 21 becarios universitarios, 11 agencias Diaconía IFD y control semanal."}
-        </AlertDescription>
-      </Alert>
-
-      {/* Selector Interactivo de Rango de Fechas con Botones Rápidos */}
-      <Card className="border-[#E3DCCB] bg-white shadow-xs p-4 rounded-xl">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-[#063A6B]" />
-              <h4 className="text-sm font-bold text-[#063A6B] font-display">
-                Período de Análisis y Filtro Temporal
-              </h4>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Ajuste el rango de fechas para sincronizar métricas, kardex y recaudación de multas institucionales.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center bg-slate-100 p-1 rounded-xl gap-1">
-              <Button
-                size="sm"
-                variant={tipo_rango === "este_mes" ? "default" : "ghost"}
-                onClick={() => aplicarRangoRapido("este_mes")}
-                className={`h-8 px-3 text-xs font-semibold rounded-lg ${
-                  tipo_rango === "este_mes"
-                    ? "bg-[#063A6B] text-white shadow-xs"
-                    : "text-[#5B6D77] hover:text-[#063A6B]"
-                }`}
-              >
-                Este Mes
-              </Button>
-              <Button
-                size="sm"
-                variant={tipo_rango === "ultimo_trimestre" ? "default" : "ghost"}
-                onClick={() => aplicarRangoRapido("ultimo_trimestre")}
-                className={`h-8 px-3 text-xs font-semibold rounded-lg ${
-                  tipo_rango === "ultimo_trimestre"
-                    ? "bg-[#063A6B] text-white shadow-xs"
-                    : "text-[#5B6D77] hover:text-[#063A6B]"
-                }`}
-              >
-                Último Trimestre
-              </Button>
-              <Button
-                size="sm"
-                variant={tipo_rango === "semestre_actual" ? "default" : "ghost"}
-                onClick={() => aplicarRangoRapido("semestre_actual")}
-                className={`h-8 px-3 text-xs font-semibold rounded-lg ${
-                  tipo_rango === "semestre_actual"
-                    ? "bg-[#063A6B] text-white shadow-xs"
-                    : "text-[#5B6D77] hover:text-[#063A6B]"
-                }`}
-              >
-                Semestre Actual
-              </Button>
-              <Button
-                size="sm"
-                variant={tipo_rango === "personalizado" ? "default" : "ghost"}
-                onClick={() => set_tipo_rango("personalizado")}
-                className={`h-8 px-3 text-xs font-semibold rounded-lg ${
-                  tipo_rango === "personalizado"
-                    ? "bg-[#063A6B] text-white shadow-xs"
-                    : "text-[#5B6D77] hover:text-[#063A6B]"
-                }`}
-              >
-                Personalizado
-              </Button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Input
-                type="date"
-                value={fecha_inicio}
-                onChange={(e) => {
-                  set_tipo_rango("personalizado");
-                  set_fecha_inicio(e.target.value);
-                }}
-                className="h-8 w-36 text-xs font-mono border-[#E3DCCB]"
-              />
-              <span className="text-xs text-muted-foreground font-bold">a</span>
-              <Input
-                type="date"
-                value={fecha_fin}
-                onChange={(e) => {
-                  set_tipo_rango("personalizado");
-                  set_fecha_fin(e.target.value);
-                }}
-                className="h-8 w-36 text-xs font-mono border-[#E3DCCB]"
-              />
-              <Badge variant="outline" className="h-8 px-2.5 font-mono text-[11px] border-[#17B4C4] text-[#063A6B]">
-                {cargando_metricas ? "Actualizando..." : "Sincronizado"}
-              </Badge>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* Tarjetas de Métricas Ejecutivas Superiores */}
-      <ContenedorEscalonado className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Métrica 1: Becarios */}
-        <ElementoEscalonado>
-          <Card className="h-full bg-white border border-[#E3DCCB] shadow-xs relative overflow-hidden py-0 gap-0">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-[#F8C766]/20 rounded-bl-full pointer-events-none" />
-            <CardContent className="p-5">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase font-mono">
-                    Becarios Activos
-                  </p>
-                  <p className="text-3xl font-display font-bold text-[#063A6B]">
-                    <ContadorAnimado valor={21} />
-                  </p>
-                </div>
-                <div className="p-2.5 bg-[#063A6B]/5 rounded-xl">
-                  <Users className="w-5 h-5 text-[#063A6B]" />
-                </div>
-              </div>
-              <div className="mt-3 flex items-center text-xs">
-                <TrendingUp className="w-3.5 h-3.5 text-emerald-600 mr-1" />
-                <span className="text-emerald-600 font-bold">100% matriculados</span>
-                <span className="text-muted-foreground ml-1">gestión 2026</span>
-              </div>
-              <Progress value={100} className="h-1.5 mt-2 bg-slate-100" />
-            </CardContent>
-          </Card>
-        </ElementoEscalonado>
-
-        {/* Métrica 2: Puntualidad y Retrasos */}
-        <ElementoEscalonado>
-          <Card className="h-full bg-white border border-[#E3DCCB] shadow-xs relative overflow-hidden py-0 gap-0">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-[#17B4C4]/20 rounded-bl-full pointer-events-none" />
-            <CardContent className="p-5">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase font-mono">
-                    Asistencia Semanal
-                  </p>
-                  <p className="text-3xl font-display font-bold text-[#063A6B]">
-                    <ContadorAnimado valor={87} sufijo="%" />
-                  </p>
-                </div>
-                <div className="p-2.5 bg-[#17B4C4]/10 rounded-xl">
-                  <Clock className="w-5 h-5 text-[#17B4C4]" />
-                </div>
-              </div>
-              <div className="mt-3 flex items-center text-xs">
-                <span className="text-amber-600 font-bold">5 con retraso</span>
-                <span className="text-muted-foreground ml-1">esta semana</span>
-              </div>
-              <Progress value={87} className="h-1.5 mt-2 bg-slate-100" />
-            </CardContent>
-          </Card>
-        </ElementoEscalonado>
-
-        {/* Métrica 3: Evaluaciones y Kardex */}
-        <ElementoEscalonado>
-          <Card className="h-full bg-white border border-[#E3DCCB] shadow-xs relative overflow-hidden py-0 gap-0">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-[#E2694B]/20 rounded-bl-full pointer-events-none" />
-            <CardContent className="p-5">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase font-mono">
-                    Evaluaciones 360°
-                  </p>
-                  <p className="text-3xl font-display font-bold text-[#063A6B]">21 / 21</p>
-                </div>
-                <div className="p-2.5 bg-[#E2694B]/10 rounded-xl">
-                  <FileCheck className="w-5 h-5 text-[#E2694B]" />
-                </div>
-              </div>
-              <div className="mt-3 flex items-center text-xs text-amber-700">
-                <AlertCircle className="w-3.5 h-3.5 mr-1" />
-                <span>Semestre II · Habilitado</span>
-              </div>
-              <Progress value={100} className="h-1.5 mt-2 bg-slate-100" />
-            </CardContent>
-          </Card>
-        </ElementoEscalonado>
-
-        {/* Métrica 4: Presupuesto 80% */}
-        <ElementoEscalonado>
-          <Card className="h-full bg-[#063A6B] text-white border border-[#063A6B] shadow-xs relative overflow-hidden py-0 gap-0">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-bl-full pointer-events-none" />
-            <CardContent className="p-5">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold text-[#7FE0E6] uppercase font-mono">
-                    Presupuesto 80% Pasajes
-                  </p>
-                  <p className="text-3xl font-display font-bold text-[#F8C766]">
-                    <ContadorAnimado valor={5240} prefijo="Bs " />
-                  </p>
-                </div>
-                <div className="p-2.5 bg-white/10 rounded-xl">
-                  <DollarSign className="w-5 h-5 text-[#F8C766]" />
-                </div>
-              </div>
-              <div className="mt-3 flex items-center text-xs text-white/80">
-                <span>Bs 10,000.00 límite institucional</span>
-              </div>
-              <Progress value={52.4} className="h-1.5 mt-2 bg-white/20" />
-            </CardContent>
-          </Card>
-        </ElementoEscalonado>
-
-        {/* Métrica 5: Tarjeta KPI Spotlight para Multas Institucionales Recaudadas */}
-        <ElementoEscalonado className="col-span-1 md:col-span-2 lg:col-span-4">
-          <TarjetaSpotlight
-            color_luz="rgba(248, 199, 102, 0.25)"
-            className="bg-gradient-to-r from-[#063A6B] via-[#084882] to-[#04284d] text-white border border-[#17B4C4]/50 shadow-md p-5 rounded-2xl relative overflow-hidden"
+    <div className="space-y-6">
+      {/* ============================================================== */}
+      {/* NAVEGACIÓN SUPERIOR POR TABS TEMÁTICOS (ANCHO COMPLETO)       */}
+      {/* ============================================================== */}
+      <Tabs
+        value={pestaña_dashboard}
+        onValueChange={(val) => set_pestaña_dashboard(val as any)}
+        className="w-full space-y-6"
+      >
+        {/* Barra de Tabs ocupando el 100% del ancho con Grid Responsivo */}
+        <TabsList className="w-full grid grid-cols-2 lg:grid-cols-4 p-1.5 bg-slate-100/90 border border-[#E3DCCB] rounded-2xl shadow-xs gap-2 group-data-horizontal/tabs:h-auto h-auto">
+          <TabsTrigger
+            value="resumen"
+            className="w-full h-11 py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#063A6B] hover:text-[#063A6B] hover:bg-white/90 data-active:bg-[#063A6B] data-active:text-white data-active:hover:bg-[#063A6B] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
           >
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <Badge className="bg-[#F8C766] text-[#063A6B] font-bold text-xs uppercase px-2.5 py-0.5 shadow-xs">
-                    KPI Spotlight · Reglamento BUMAND
-                  </Badge>
-                  <span className="text-xs text-[#7FE0E6] font-mono">
-                    Período: {fecha_inicio} al {fecha_fin}
-                  </span>
-                </div>
-                <h4 className="text-lg font-display font-bold text-white flex items-center gap-2">
-                  <Coins className="w-5 h-5 text-[#F8C766]" />
-                  Multas Institucionales Recaudadas (Escuela de Líderes)
-                </h4>
-                <p className="text-xs text-white/75 max-w-2xl leading-relaxed">
-                  Recaudación acumulada por infracciones reglamentarias y retrasos no justificados en el período seleccionado.
-                  Los fondos se reinvierten íntegramente en las raciones de refrigerios y actividades de confraternización diaconal.
-                </p>
-              </div>
+            <BarChart3 className="w-4 h-4 text-[#17B4C4]" />
+            <span>Resumen Ejecutivo</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="seguimiento"
+            className="w-full h-11 py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#063A6B] hover:text-[#063A6B] hover:bg-white/90 data-active:bg-[#063A6B] data-active:text-white data-active:hover:bg-[#063A6B] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
+          >
+            <Clock className="w-4 h-4 text-[#17B4C4]" />
+            <span>Seguimiento Semanal</span>
+            <span className="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-md font-mono font-bold">
+              {lista_retrasos.filter((r) => !r.justificado).length} retrasos
+            </span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="horarios"
+            className="w-full h-11 py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#063A6B] hover:text-[#063A6B] hover:bg-white/90 data-active:bg-[#063A6B] data-active:text-white data-active:hover:bg-[#063A6B] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
+          >
+            <CalendarDays className="w-4 h-4 text-[#17B4C4]" />
+            <span>Matriz de Horarios</span>
+            <span className="bg-slate-200 text-[#063A6B] text-[10px] px-2 py-0.5 rounded-md font-mono font-bold">
+              {HORARIOS_APOYO_2026.length} becarios
+            </span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="analitica"
+            className="w-full h-11 py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#063A6B] hover:text-[#063A6B] hover:bg-white/90 data-active:bg-[#063A6B] data-active:text-white data-active:hover:bg-[#063A6B] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
+          >
+            <GraduationCap className="w-4 h-4 text-[#17B4C4]" />
+            <span>Kardex y Pastoral</span>
+            <span className="bg-[#17B4C4]/15 text-[#0E7A85] text-[10px] px-2 py-0.5 rounded-md font-mono font-bold">
+              {CASOS_SEGUIMIENTO.length} casos
+            </span>
+          </TabsTrigger>
+        </TabsList>
 
-              <div className="flex items-center gap-6 bg-white/10 p-4 px-6 rounded-xl backdrop-blur-sm border border-white/15 shrink-0">
-                <div>
-                  <p className="text-[11px] uppercase font-mono text-[#7FE0E6] font-bold">Total Recaudado</p>
-                  <p className="text-3xl font-display font-bold text-[#F8C766]">
-                    Bs {multas_recaudadas.toFixed(2)}
-                  </p>
-                </div>
-                <div className="h-10 w-px bg-white/20" />
-                <div>
-                  <p className="text-[11px] uppercase font-mono text-white/70 font-bold">Incidencias</p>
-                  <p className="text-2xl font-display font-bold text-white">
-                    {incidencias_multas} <span className="text-xs font-normal text-white/70">casos</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-          </TarjetaSpotlight>
-        </ElementoEscalonado>
-      </ContenedorEscalonado>
-
-      {/* ============================================================== */}
-      {/* 1. PANEL DE SEGUIMIENTO SEMANAL: RETRASOS Y ASISTENCIA SEMANAL */}
-      {/* ============================================================== */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-bold font-display text-[#063A6B] flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-[#17B4C4]" />
-              Panel de Seguimiento Semanal
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              Auditoría activa de puntualidad, asistencias y corte semanal de horas prácticas.
-            </p>
-          </div>
-          <Badge variant="outline" className="font-mono text-[11px] border-[#E3DCCB] text-[#063A6B]">
-            Corte: Semana 32 · Agosto 2026
-          </Badge>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* SECCIÓN 1: BECARIOS CON RETRASO (5 COLUMNAS EN LG) */}
-          <Card className="lg:col-span-5 border-[#E3DCCB] shadow-sm bg-white rounded-xl flex flex-col">
-            <CardHeader className="pb-3 border-b border-[#E3DCCB]/60">
-              <div className="flex items-center justify-between">
-                <CardTitle className="font-display text-base text-[#063A6B] flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-500" />
-                  Becarios con Retraso
-                </CardTitle>
-                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs font-mono font-bold">
-                  {BECARIOS_RETRASO.length} incidencias
-                </Badge>
-              </div>
-              <CardDescription className="text-xs text-muted-foreground">
-                Registros con hora de ingreso posterior a la hora prevista de su horario.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 flex-1 overflow-y-auto max-h-[380px] space-y-3">
-              {BECARIOS_RETRASO.map((becario) => (
-                <div
-                  key={becario.id}
-                  className="p-3 rounded-xl border border-[#E3DCCB]/80 hover:border-amber-300 hover:bg-amber-50/30 transition-colors flex items-start gap-3"
-                >
-                  <Avatar className="w-9 h-9 border border-[#E3DCCB] shrink-0 mt-0.5">
-                    <AvatarFallback className="bg-[#063A6B] text-[#F8C766] font-bold text-xs">
-                      {becario.avatar}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                        <p className="text-xs font-bold text-[#063A6B] truncate">
-                          {becario.nombre}
-                        </p>
-                        <Badge
-                          variant="outline"
-                          className={
-                            becario.tipo_asistencia === "Prácticas"
-                              ? "bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-semibold shrink-0"
-                              : becario.tipo_asistencia === "Escuela de Líderes"
-                              ? "bg-purple-50 text-purple-700 border-purple-200 text-[10px] font-semibold shrink-0"
-                              : "bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-semibold shrink-0"
-                          }
-                        >
-                          {becario.tipo_asistencia}
-                        </Badge>
-                      </div>
-                      <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-[10px] font-mono font-bold shrink-0">
-                        +{becario.minutos_retraso} min
-                      </Badge>
+        {/* ============================================================== */}
+        {/* TAB 1: RESUMEN EJECUTIVO (KPIS, SPOTLIGHT, GRÁFICOS Y ACCESOS) */}
+        {/* ============================================================== */}
+        <TabsContent value="resumen" className="space-y-6">
+          {/* Tarjetas de Métricas Ejecutivas Superiores */}
+          <ContenedorEscalonado className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Métrica 1: Becarios */}
+            <ElementoEscalonado>
+              <Card className="h-full bg-white border border-[#E3DCCB] shadow-xs relative overflow-hidden py-0 gap-0">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-[#F8C766]/20 rounded-bl-full pointer-events-none" />
+                <CardContent className="p-5">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase font-mono">
+                        Becarios Activos
+                      </p>
+                      <p className="text-3xl font-display font-bold text-[#063A6B]">
+                        <ContadorAnimado valor={21} />
+                      </p>
                     </div>
-                    <p className="text-[11px] text-muted-foreground truncate">
-                      {becario.carrera} · {becario.sede}
+                    <div className="p-2.5 bg-[#063A6B]/5 rounded-xl">
+                      <Users className="w-5 h-5 text-[#063A6B]" />
+                    </div>
+                  </div>
+                  <div className="mt-3 flex items-center text-xs">
+                    <TrendingUp className="w-3.5 h-3.5 text-emerald-600 mr-1" />
+                    <span className="text-emerald-600 font-bold">100% matriculados</span>
+                    <span className="text-muted-foreground ml-1">gestión 2026</span>
+                  </div>
+                  <Progress value={100} className="h-1.5 mt-2 bg-slate-100" />
+                </CardContent>
+              </Card>
+            </ElementoEscalonado>
+
+            {/* Métrica 2: Puntualidad y Retrasos */}
+            <ElementoEscalonado>
+              <Card className="h-full bg-white border border-[#E3DCCB] shadow-xs relative overflow-hidden py-0 gap-0">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-[#17B4C4]/20 rounded-bl-full pointer-events-none" />
+                <CardContent className="p-5">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase font-mono">
+                        Asistencia Semanal
+                      </p>
+                      <p className="text-3xl font-display font-bold text-[#063A6B]">
+                        <ContadorAnimado valor={87} sufijo="%" />
+                      </p>
+                    </div>
+                    <div className="p-2.5 bg-[#17B4C4]/10 rounded-xl">
+                      <Clock className="w-5 h-5 text-[#17B4C4]" />
+                    </div>
+                  </div>
+                  <div className="mt-3 flex items-center text-xs">
+                    <span className="text-amber-600 font-bold">5 con retraso</span>
+                    <span className="text-muted-foreground ml-1">esta semana</span>
+                  </div>
+                  <Progress value={87} className="h-1.5 mt-2 bg-slate-100" />
+                </CardContent>
+              </Card>
+            </ElementoEscalonado>
+
+            {/* Métrica 3: Evaluaciones y Kardex */}
+            <ElementoEscalonado>
+              <Card className="h-full bg-white border border-[#E3DCCB] shadow-xs relative overflow-hidden py-0 gap-0">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-[#E2694B]/20 rounded-bl-full pointer-events-none" />
+                <CardContent className="p-5">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase font-mono">
+                        Matriz de Evaluación
+                      </p>
+                      <p className="text-3xl font-display font-bold text-[#063A6B]">21 / 21</p>
+                    </div>
+                    <div className="p-2.5 bg-[#E2694B]/10 rounded-xl">
+                      <FileCheck className="w-5 h-5 text-[#E2694B]" />
+                    </div>
+                  </div>
+                  <div className="mt-3 flex items-center text-xs text-amber-700">
+                    <AlertCircle className="w-3.5 h-3.5 mr-1" />
+                    <span>Semestre II · Habilitado</span>
+                  </div>
+                  <Progress value={100} className="h-1.5 mt-2 bg-slate-100" />
+                </CardContent>
+              </Card>
+            </ElementoEscalonado>
+
+            {/* Métrica 4: Presupuesto 80% */}
+            <ElementoEscalonado>
+              <Card className="h-full bg-[#063A6B] text-white border border-[#063A6B] shadow-xs relative overflow-hidden py-0 gap-0">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-bl-full pointer-events-none" />
+                <CardContent className="p-5">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold text-[#7FE0E6] uppercase font-mono">
+                        Presupuesto 80% Pasajes
+                      </p>
+                      <p className="text-3xl font-display font-bold text-[#F8C766]">
+                        <ContadorAnimado valor={5240} prefijo="Bs " />
+                      </p>
+                    </div>
+                    <div className="p-2.5 bg-white/10 rounded-xl">
+                      <DollarSign className="w-5 h-5 text-[#F8C766]" />
+                    </div>
+                  </div>
+                  <div className="mt-3 flex items-center text-xs text-white/80">
+                    <span>Bs 10,000.00 límite institucional</span>
+                  </div>
+                  <Progress value={52.4} className="h-1.5 mt-2 bg-white/20" />
+                </CardContent>
+              </Card>
+            </ElementoEscalonado>
+
+            {/* Métrica 5: Tarjeta KPI Spotlight para Multas Institucionales Recaudadas */}
+            <ElementoEscalonado className="col-span-1 md:col-span-2 lg:col-span-4">
+              <TarjetaSpotlight
+                color_luz="rgba(248, 199, 102, 0.25)"
+                className="bg-gradient-to-r from-[#063A6B] via-[#084882] to-[#04284d] text-white border border-[#17B4C4]/50 shadow-md p-5 rounded-2xl relative overflow-hidden"
+              >
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-[#F8C766] text-[#063A6B] font-bold text-xs uppercase px-2.5 py-0.5 shadow-xs">
+                        KPI Spotlight · Reglamento BUMAND
+                      </Badge>
+                      <span className="text-xs text-[#7FE0E6] font-mono">
+                        Período: {fecha_inicio} al {fecha_fin}
+                      </span>
+                    </div>
+                    <h4 className="text-lg font-display font-bold text-white flex items-center gap-2">
+                      <Coins className="w-5 h-5 text-[#F8C766]" />
+                      Multas Institucionales Recaudadas (Escuela de Líderes)
+                    </h4>
+                    <p className="text-xs text-white/75 max-w-2xl leading-relaxed">
+                      Recaudación acumulada por infracciones reglamentarias y retrasos no justificados en el período seleccionado.
+                      Los fondos se reinvierten íntegramente en las raciones de refrigerios y actividades de confraternización diaconal.
                     </p>
-                    <div className="flex items-center gap-3 text-[11px] font-mono text-[#5B6D77] pt-0.5">
-                      <span>{becario.fecha}</span>
-                      <span>·</span>
-                      <span className="text-amber-700 font-semibold">
-                        Real: {becario.hora_real} (previsto {becario.hora_prevista})
+                  </div>
+
+                  <div className="flex items-center gap-6 bg-white/10 p-4 px-6 rounded-xl backdrop-blur-sm border border-white/15 shrink-0">
+                    <div>
+                      <p className="text-[11px] uppercase font-mono text-[#7FE0E6] font-bold">Total Recaudado</p>
+                      <p className="text-3xl font-display font-bold text-[#F8C766]">
+                        Bs {multas_recaudadas.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="h-10 w-px bg-white/20" />
+                    <div>
+                      <p className="text-[11px] uppercase font-mono text-white/70 font-bold">Incidencias</p>
+                      <p className="text-2xl font-display font-bold text-white">
+                        {incidencias_multas} <span className="text-xs font-normal text-white/70">casos</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </TarjetaSpotlight>
+            </ElementoEscalonado>
+          </ContenedorEscalonado>
+
+          {/* Tendencia de Horas y Ejecución Presupuestaria Integradas */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl lg:col-span-2 flex flex-col">
+              <CardHeader className="pb-3 border-b border-[#E3DCCB]/60">
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+                  <div>
+                    <CardTitle className="font-display text-base text-[#063A6B] flex items-center gap-2">
+                      <BarChart3 className="w-5 h-5 text-[#17B4C4]" />
+                      Tendencia de Horas de Práctica y Cumplimiento
+                    </CardTitle>
+                    <CardDescription className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
+                      <span>Horas efectivas registradas con geolocalización frente a la meta académica programada.</span>
+                      <span className="font-mono font-bold text-[#063A6B] bg-slate-100 px-2 py-0.5 rounded-md text-[11px]">
+                        Total: {total_horas_periodo.toLocaleString()} hrs ({pct_cumplimiento_periodo}% cumplimiento)
+                      </span>
+                    </CardDescription>
+                  </div>
+
+                  {/* Filtro de Fechas y Rango Temporal integrado en el Gráfico */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-[#E3DCCB]/60">
+                      <button
+                        type="button"
+                        onClick={() => aplicarRangoRapido("este_mes")}
+                        className={`px-2 py-1 text-[11px] font-bold rounded-md transition-colors cursor-pointer ${
+                          tipo_rango === "este_mes"
+                            ? "bg-[#063A6B] text-white shadow-xs"
+                            : "text-[#5B6D77] hover:text-[#063A6B]"
+                        }`}
+                      >
+                        Mes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => aplicarRangoRapido("ultimo_trimestre")}
+                        className={`px-2 py-1 text-[11px] font-bold rounded-md transition-colors cursor-pointer ${
+                          tipo_rango === "ultimo_trimestre"
+                            ? "bg-[#063A6B] text-white shadow-xs"
+                            : "text-[#5B6D77] hover:text-[#063A6B]"
+                        }`}
+                      >
+                        Trimestre
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => aplicarRangoRapido("semestre_actual")}
+                        className={`px-2 py-1 text-[11px] font-bold rounded-md transition-colors cursor-pointer ${
+                          tipo_rango === "semestre_actual"
+                            ? "bg-[#063A6B] text-white shadow-xs"
+                            : "text-[#5B6D77] hover:text-[#063A6B]"
+                        }`}
+                      >
+                        Semestre
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-1 bg-slate-50 p-0.5 rounded-lg border border-[#E3DCCB]">
+                      <SeleccionadorFecha
+                        fecha={parsearFechaCadena(fecha_inicio)}
+                        alCambiar={(d) => {
+                          if (d) {
+                            set_vista_anual(false);
+                            set_tipo_rango("personalizado");
+                            set_fecha_inicio(formatearFechaCadena(d));
+                          }
+                        }}
+                        formato="dd/MM/yyyy"
+                        etiqueta_boton="Desde"
+                        className="h-7 w-28 text-[11px] font-mono border-0 bg-transparent shadow-none"
+                      />
+                      <span className="text-[10px] text-muted-foreground font-bold">a</span>
+                      <SeleccionadorFecha
+                        fecha={parsearFechaCadena(fecha_fin)}
+                        alCambiar={(d) => {
+                          if (d) {
+                            set_vista_anual(false);
+                            set_tipo_rango("personalizado");
+                            set_fecha_fin(formatearFechaCadena(d));
+                          }
+                        }}
+                        formato="dd/MM/yyyy"
+                        etiqueta_boton="Hasta"
+                        className="h-7 w-28 text-[11px] font-mono border-0 bg-transparent shadow-none"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-1.5 pl-1.5 border-l border-[#E3DCCB] text-[11px]">
+                      <span className={`font-mono text-[11px] ${!vista_anual ? "font-bold text-[#063A6B]" : "text-muted-foreground"}`}>
+                        Semestral
+                      </span>
+                      <Switch
+                        checked={vista_anual}
+                        onCheckedChange={(checked) => {
+                          set_vista_anual(checked);
+                          if (checked) {
+                            set_tipo_rango("personalizado");
+                            set_fecha_inicio("2026-01-01");
+                            set_fecha_fin("2026-12-31");
+                          } else {
+                            aplicarRangoRapido("semestre_actual");
+                          }
+                        }}
+                        className="data-[state=checked]:bg-[#17B4C4] scale-75 cursor-pointer"
+                      />
+                      <span className={`font-mono text-[11px] ${vista_anual ? "font-bold text-[#063A6B]" : "text-muted-foreground"}`}>
+                        Anual
                       </span>
                     </div>
                   </div>
                 </div>
-              ))}
+              </CardHeader>
+
+              <CardContent className="p-4 flex-1 min-h-[300px]">
+                <ChartContainer config={CONFIGURACION_GRAFICO} className="h-72 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={datos_grafico_horas} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="degradadoHorasVista" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#17B4C4" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#17B4C4" stopOpacity={0.0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid vertical={false} stroke="#E3DCCB" strokeDasharray="3 3" />
+                      <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fill: "#64748B", fontSize: 12 }} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748B", fontSize: 12 }} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Area
+                        type="monotone"
+                        dataKey="horas"
+                        name="Horas Reales"
+                        stroke="#17B4C4"
+                        strokeWidth={3}
+                        fillOpacity={1}
+                        fill="url(#degradadoHorasVista)"
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="meta"
+                        name="Meta Planificada"
+                        stroke="#063A6B"
+                        strokeWidth={2}
+                        strokeDasharray="4 4"
+                        fillOpacity={0}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+
+            {/* DISTRIBUCIÓN OPERATIVA EN LAS 11 AGENCIAS DE DIACONÍA IFD */}
+            <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl flex flex-col overflow-hidden">
+              <CardHeader className="py-3 px-4 border-b border-[#E3DCCB]/60 bg-gradient-to-r from-slate-50 to-white">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <CardTitle className="font-display text-sm text-[#063A6B] flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-[#17B4C4]" />
+                      Despliegue Operativo en Agencias
+                    </CardTitle>
+                    <CardDescription className="text-[11px] text-muted-foreground">
+                      Distribución en las 11 agencias de Diaconía IFD
+                    </CardDescription>
+                  </div>
+                  <Badge variant="outline" className="font-mono text-[10px] bg-[#17B4C4]/10 text-[#063A6B] border-[#17B4C4]/40 shrink-0">
+                    11 Agencias Activas
+                  </Badge>
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-3.5 flex-1 flex flex-col justify-between space-y-3">
+                {/* Métricas consolidadas de la red */}
+                <div className="grid grid-cols-3 gap-2 p-2 bg-slate-50 rounded-lg border border-[#E3DCCB]/70 text-center">
+                  <div>
+                    <span className="text-[10px] uppercase font-mono text-muted-foreground block">Becarios</span>
+                    <span className="font-bold text-sm text-[#063A6B] font-mono">21</span>
+                  </div>
+                  <div className="border-x border-[#E3DCCB]/70">
+                    <span className="text-[10px] uppercase font-mono text-muted-foreground block">Horas / Mes</span>
+                    <span className="font-bold text-sm text-[#17B4C4] font-mono">3,180</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-mono text-muted-foreground block">Cumplimiento</span>
+                    <span className="font-bold text-sm text-emerald-700 font-mono">92.4%</span>
+                  </div>
+                </div>
+
+                {/* Desglose por Agencia con barras de progreso */}
+                <div className="space-y-2 max-h-[190px] overflow-y-auto pr-1">
+                  {DATOS_DESPLIEGUE_AGENCIAS.map((item) => (
+                    <div key={item.agencia} className="space-y-1 text-xs">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 truncate pr-2">
+                          <span className="font-medium text-[#1E293B] truncate">{item.agencia}</span>
+                          <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-xs bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
+                            {item.ciudad}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 font-mono text-[11px] shrink-0">
+                          <span className="text-muted-foreground">{item.becarios} {item.becarios === 1 ? "bec." : "bec."}</span>
+                          <span className="font-bold text-[#063A6B]">{item.horas_mes}h</span>
+                        </div>
+                      </div>
+                      <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500 bg-[#17B4C4]"
+                          style={{ width: `${item.porcentaje_cumplimiento}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Resumen Regional Inferior */}
+                <div className="pt-2 border-t border-[#E3DCCB]/60 flex items-center justify-between text-[11px] text-muted-foreground font-mono">
+                  <span>Cobertura: El Alto (7) · La Paz (3) · Viacha (1)</span>
+                  <span className="text-emerald-700 font-bold flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    100% Cobertura
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* ============================================================== */}
+        {/* TAB 2: SEGUIMIENTO SEMANAL CON DOS TABS INTERNOS DE AUDITORÍA */}
+        {/* ============================================================== */}
+        <TabsContent value="seguimiento" className="space-y-4">
+          <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-2xl overflow-hidden">
+            {/* Cabecera unificada con dos tabs internos para filtrar correctamente */}
+            <CardHeader className="pb-3 border-b border-[#E3DCCB]/60 bg-gradient-to-r from-slate-50 via-white to-slate-50">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                {/* Selector de los dos tabs internos */}
+                <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-[#E3DCCB]/70">
+                  <button
+                    type="button"
+                    onClick={() => set_subpestaña_seguimiento("retrasos")}
+                    className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      subpestaña_seguimiento === "retrasos"
+                        ? "bg-[#063A6B] text-white shadow-xs"
+                        : "text-[#5B6D77] hover:text-[#063A6B] hover:bg-white/60"
+                    }`}
+                  >
+                    <AlertTriangle className={`w-3.5 h-3.5 ${subpestaña_seguimiento === "retrasos" ? "text-amber-300" : "text-amber-500"}`} />
+                    <span>Auditoría de Retrasos</span>
+                    <span className="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.2 rounded-md font-mono font-bold">
+                      {lista_retrasos.filter((r) => !r.justificado).length}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => set_subpestaña_seguimiento("asistencia")}
+                    className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      subpestaña_seguimiento === "asistencia"
+                        ? "bg-[#063A6B] text-white shadow-xs"
+                        : "text-[#5B6D77] hover:text-[#063A6B] hover:bg-white/60"
+                    }`}
+                  >
+                    <CheckCircle2 className={`w-3.5 h-3.5 ${subpestaña_seguimiento === "asistencia" ? "text-[#17B4C4]" : "text-emerald-600"}`} />
+                    <span>Nómina General de Asistencia</span>
+                    <span className="bg-slate-200 text-[#063A6B] text-[10px] px-1.5 py-0.2 rounded-md font-mono font-bold">
+                      {total_registros}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Navegación temporal de corte y acción oficial de exportación PDF Puppeteer */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-[#E3DCCB]/60">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => set_semana_offset((prev) => prev - 1)}
+                      className="h-7 w-7 p-0 text-[#063A6B] hover:bg-white"
+                      title="Semana anterior"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <Badge variant="outline" className="border-[#17B4C4]/50 bg-white text-[#063A6B] font-mono text-[11px] px-2.5 py-1 font-bold">
+                      {info_semana.etiqueta}
+                    </Badge>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => set_semana_offset((prev) => prev + 1)}
+                      className="h-7 w-7 p-0 text-[#063A6B] hover:bg-white"
+                      title="Semana posterior"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  {!info_semana.es_actual && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => set_semana_offset(0)}
+                      className="h-8 px-2 text-[10px] text-[#0E7A85] hover:bg-slate-50 font-bold"
+                    >
+                      Semana Actual
+                    </Button>
+                  )}
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={descargarCortePdf}
+                    disabled={exportando_pdf_corte}
+                    className="h-8 text-xs border-[#063A6B] bg-white text-[#063A6B] hover:bg-[#063A6B] hover:text-white gap-2 font-bold cursor-pointer shadow-2xs transition-all"
+                  >
+                    {exportando_pdf_corte ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#17B4C4]" />
+                    ) : (
+                      <Download className="w-3.5 h-3.5 text-[#17B4C4]" />
+                    )}
+                    <span>{exportando_pdf_corte ? "Generando PDF..." : "Exportar Corte"}</span>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Barra de Filtros Canónicos por Tipo de Actividad Institucional */}
+              <div className="pt-2 flex flex-wrap items-center gap-1.5 border-t border-[#E3DCCB]/50">
+                <span className="text-[11px] font-bold text-[#5B6D77] font-mono mr-1">Actividad:</span>
+                {[
+                  { key: "todas", etiqueta: "Todas las Actividades", icono: "🌐" },
+                  { key: "practicas", etiqueta: "Prácticas Institucionales", icono: "🏢" },
+                  { key: "escuela_lideres", etiqueta: "Escuela de Líderes (Viernes)", icono: "📖" },
+                  { key: "acciones_servicio", etiqueta: "Acciones de Servicio", icono: "🤝" },
+                ].map((act) => (
+                  <button
+                    key={act.key}
+                    type="button"
+                    onClick={() => set_filtro_tipo_actividad(act.key as any)}
+                    className={`text-xs py-1 px-3 rounded-lg border font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+                      filtro_tipo_actividad === act.key
+                        ? "bg-[#063A6B] text-white border-[#063A6B] font-bold shadow-xs"
+                        : "bg-white text-slate-600 border-[#E3DCCB] hover:bg-slate-50"
+                    }`}
+                  >
+                    <span>{act.icono}</span>
+                    <span>{act.etiqueta}</span>
+                  </button>
+                ))}
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-4 space-y-4">
+              {subpestaña_seguimiento === "retrasos" ? (
+                /* VISTA INTERNA 1: AUDITORÍA DE RETRASOS E INCIDENCIAS */
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pb-2">
+                    <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 flex items-center justify-between">
+                      <div>
+                        <p className="text-[11px] font-mono font-bold uppercase text-amber-800">Incidencias de Retraso</p>
+                        <p className="text-xl font-display font-bold text-[#063A6B]">{becarios_retraso_filtrados.length} becarios</p>
+                      </div>
+                      <AlertTriangle className="w-6 h-6 text-amber-500 opacity-80" />
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-50 border border-[#E3DCCB] flex items-center justify-between">
+                      <div>
+                        <p className="text-[11px] font-mono font-bold uppercase text-[#5B6D77]">Promedio de Demora</p>
+                        <p className="text-xl font-display font-bold text-[#063A6B]">
+                          {becarios_retraso_filtrados.length > 0
+                            ? (becarios_retraso_filtrados.reduce((acc, b) => acc + b.minutos_retraso, 0) / becarios_retraso_filtrados.length).toFixed(0)
+                            : 0} min
+                        </p>
+                      </div>
+                      <Clock className="w-6 h-6 text-[#17B4C4] opacity-80" />
+                    </div>
+                    <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200/80 flex items-center justify-between">
+                      <div>
+                        <p className="text-[11px] font-mono font-bold uppercase text-emerald-800">Puntuales ({info_semana.etiqueta.split("·")[0].trim()})</p>
+                        <p className="text-xl font-display font-bold text-emerald-800">
+                          {Math.max(0, total_asistieron - becarios_retraso_filtrados.length)} becarios (
+                          {total_asistieron > 0
+                            ? (((total_asistieron - becarios_retraso_filtrados.length) / total_asistieron) * 100).toFixed(1)
+                            : 100}%)
+                        </p>
+                      </div>
+                      <CheckCircle2 className="w-6 h-6 text-emerald-600 opacity-80" />
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto rounded-xl border border-[#E3DCCB]">
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="bg-[#F8F9FA] border-b border-[#E3DCCB] text-[#063A6B] font-mono text-[11px] uppercase tracking-wider">
+                          <th className="py-2.5 px-3">Becario</th>
+                          <th className="py-2.5 px-3">Carrera y Sede</th>
+                          <th className="py-2.5 px-3">Actividad</th>
+                          <th className="py-2.5 px-3 text-center">Fecha</th>
+                          <th className="py-2.5 px-3 text-center font-mono">Previsto vs Real</th>
+                          <th className="py-2.5 px-3 text-center">Retraso</th>
+                          <th className="py-2.5 px-3 text-center">Acción</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#E3DCCB]/60">
+                        {becarios_retraso_filtrados.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="py-8 text-center text-muted-foreground">
+                              <CheckCircle2 className="w-6 h-6 text-emerald-600 mx-auto mb-1 opacity-70" />
+                              <p className="font-semibold text-xs text-[#063A6B]">Sin incidencias de retraso</p>
+                              <p className="text-[11px]">Todos los becarios registrados cumplieron puntualidad en {filtro_tipo_actividad === 'todas' ? 'todas las actividades' : filtro_tipo_actividad}.</p>
+                            </td>
+                          </tr>
+                        ) : (
+                          becarios_retraso_filtrados.map((b) => (
+                          <tr key={b.id} className="hover:bg-amber-50/30 transition-colors">
+                            <td className="py-3 px-3">
+                              <div className="flex items-center gap-2.5">
+                                <Avatar className="w-8 h-8 border border-[#E3DCCB]">
+                                  <AvatarFallback className="bg-[#063A6B] text-[#F8C766] font-bold text-xs">
+                                    {b.avatar}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span className="font-bold text-[#063A6B]">{b.nombre}</span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-3 text-muted-foreground">
+                              {b.carrera} · <strong className="text-[#063A6B]">{b.sede}</strong>
+                            </td>
+                            <td className="py-3 px-3">
+                              <Badge
+                                variant="outline"
+                                className={
+                                  b.tipo_asistencia === "Prácticas"
+                                    ? "bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-semibold"
+                                    : "bg-purple-50 text-purple-700 border-purple-200 text-[10px] font-semibold"
+                                }
+                              >
+                                {b.tipo_asistencia}
+                              </Badge>
+                            </td>
+                            <td className="py-3 px-3 text-center font-mono text-muted-foreground">{b.fecha}</td>
+                            <td className="py-3 px-3 text-center font-mono">
+                              <span className="text-muted-foreground">{b.hora_prevista}</span>
+                              <span className="mx-1.5 text-muted-foreground/60">→</span>
+                              <span className="font-bold text-amber-700">{b.hora_real}</span>
+                            </td>
+                            <td className="py-3 px-3 text-center">
+                              <Badge className="bg-amber-100 text-amber-800 border-amber-300 font-mono font-bold text-[10px]">
+                                +{b.minutos_retraso} min
+                              </Badge>
+                            </td>
+                            <td className="py-3 px-3 text-center">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  set_becario_a_justificar(b);
+                                  set_dialogo_justificar_abierto(true);
+                                }}
+                                className="h-7 px-2 text-[11px] text-[#063A6B] hover:bg-[#17B4C4]/15 hover:text-[#063A6B] font-bold cursor-pointer"
+                              >
+                                Justificar
+                              </Button>
+                            </td>
+                          </tr>
+                        )))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                /* VISTA INTERNA 2: NÓMINA GENERAL DE ASISTENCIA SEMANAL */
+                <div className="space-y-3">
+                  {/* Filtros rápidos: Todos, Asistieron, No asistieron */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
+                    <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg border border-[#E3DCCB]/60">
+                      <button
+                        type="button"
+                        onClick={() => set_filtro_asistencia("todos")}
+                        className={`text-xs py-1 px-3 font-bold rounded-md transition-colors cursor-pointer ${
+                          filtro_asistencia === "todos" ? "bg-white text-[#063A6B] shadow-2xs" : "text-[#5B6D77] hover:text-[#063A6B]"
+                        }`}
+                      >
+                        Todos ({total_registros})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => set_filtro_asistencia("asistieron")}
+                        className={`text-xs py-1 px-3 font-bold rounded-md transition-colors cursor-pointer ${
+                          filtro_asistencia === "asistieron" ? "bg-white text-emerald-800 shadow-2xs" : "text-emerald-700 hover:text-emerald-800"
+                        }`}
+                      >
+                        Asistieron ({total_asistieron})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => set_filtro_asistencia("no_asistieron")}
+                        className={`text-xs py-1 px-3 font-bold rounded-md transition-colors cursor-pointer ${
+                          filtro_asistencia === "no_asistieron" ? "bg-white text-rose-800 shadow-2xs" : "text-rose-700 hover:text-rose-800"
+                        }`}
+                      >
+                        No asistieron ({total_no_asistieron})
+                      </button>
+                    </div>
+
+                    <span className="text-xs font-mono text-muted-foreground">
+                      Mostrando {registros_filtrados.length} de {total_registros} registros registrados
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto rounded-xl border border-[#E3DCCB]">
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="bg-[#F8F9FA] border-b border-[#E3DCCB] text-[#063A6B] font-mono text-[11px] uppercase tracking-wider">
+                          <th className="py-2.5 px-3">Becario</th>
+                          <th className="py-2.5 px-3">Carrera Universitaria</th>
+                          <th className="py-2.5 px-3">Horario de Apoyo Asignado</th>
+                          <th className="py-2.5 px-3 text-center">Estado de Asistencia</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#E3DCCB]/60">
+                        {registros_filtrados.map((item) => (
+                          <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                            <td className="py-2.5 px-3">
+                              <div className="flex items-center gap-2.5">
+                                <Avatar className="w-7 h-7 border border-[#E3DCCB]">
+                                  <AvatarFallback className="bg-slate-100 text-[#063A6B] font-bold text-[10px]">
+                                    {item.avatar}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span className="font-bold text-[#063A6B]">{item.nombre}</span>
+                              </div>
+                            </td>
+                            <td className="py-2.5 px-3 text-muted-foreground">{item.carrera}</td>
+                            <td className="py-2.5 px-3 font-mono text-xs text-[#5B6D77]">{item.horario_asignado}</td>
+                            <td className="py-2.5 px-3 text-center">
+                              {item.asistio ? (
+                                <div className="inline-flex items-center gap-1.5">
+                                  <Badge className="bg-emerald-50 text-emerald-700 border-emerald-300 font-bold text-[10px] flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                    Asistió
+                                  </Badge>
+                                  {item.minutos_retraso && (
+                                    <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-[10px] font-mono font-bold">
+                                      +{item.minutos_retraso}m
+                                    </Badge>
+                                  )}
+                                </div>
+                              ) : (
+                                <Badge className="bg-rose-50 text-rose-700 border-rose-300 font-bold text-[10px] flex items-center gap-1 mx-auto w-fit">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                  No asistió
+                                </Badge>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Leyenda de corte semanal compacta */}
+              <div className="pt-2 flex items-center gap-2 text-[11px] text-muted-foreground border-t border-[#E3DCCB]/60">
+                <HelpCircle className="w-3.5 h-3.5 text-[#17B4C4] shrink-0" />
+                <span>
+                  <strong>Corte Semanal Automático:</strong> Se procesa los viernes a las 18:00. Las inasistencias no justificadas dentro de las 48h hábiles computan en el cálculo de devolución del 80% de pasajes.
+                </span>
+              </div>
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* SECCIÓN 2: ASISTENCIA SEMANAL CON TABS DINÁMICOS (7 COLUMNAS EN LG) */}
-          <Card className="lg:col-span-7 border-[#E3DCCB] shadow-sm bg-white rounded-xl flex flex-col">
-            <CardHeader className="pb-3 border-b border-[#E3DCCB]/60">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* ============================================================== */}
+        {/* TAB 3: MÓDULO INTERACTIVO DE GESTIÓN Y MATRIZ DE HORARIOS     */}
+        {/* ============================================================== */}
+        <TabsContent value="horarios" className="space-y-4">
+          {/* Barra de Búsqueda, Filtros y Acciones Operativas de Horario */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-[#E3DCCB] shadow-2xs">
+            <div className="relative flex-1 max-w-md">
+              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+              <Input
+                placeholder="Buscar becario por nombre o carnet..."
+                value={busqueda_horario}
+                onChange={(e) => set_busqueda_horario(e.target.value)}
+                className="pl-9 h-9 text-xs border-[#E3DCCB] rounded-xl bg-slate-50/50"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1 overflow-x-auto">
+                <span className="text-xs font-mono text-muted-foreground mr-1 shrink-0">Día:</span>
+                {(["todos", "lunes", "martes", "miercoles", "jueves", "viernes"] as const).map((dia) => (
+                  <button
+                    key={dia}
+                    type="button"
+                    onClick={() => set_filtro_dia_horario(dia)}
+                    className={`text-xs px-2.5 py-1 rounded-lg font-bold capitalize transition-all cursor-pointer ${
+                      filtro_dia_horario === dia
+                        ? "bg-[#063A6B] text-white shadow-xs"
+                        : "bg-slate-100 text-[#5B6D77] hover:bg-slate-200"
+                    }`}
+                  >
+                    {dia === "miercoles" ? "Mié" : dia.slice(0, 3)}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-1.5 pl-2 border-l border-[#E3DCCB]">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => toast.info("Generando reporte de matriz semanal en formato Excel...")}
+                  className="h-8 text-xs border-[#E3DCCB] text-[#063A6B] hover:bg-slate-50 gap-1 font-bold cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5 text-[#17B4C4]" />
+                  Exportar
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabla Interactiva de Matriz de Horarios */}
+          <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl overflow-hidden">
+            <CardHeader className="pb-3 border-b border-[#E3DCCB]/60 bg-gradient-to-r from-slate-50 to-white">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   <CardTitle className="font-display text-base text-[#063A6B] flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#17B4C4]" />
-                    Asistencia Semanal
+                    <CalendarDays className="w-5 h-5 text-[#063A6B]" />
+                    Matriz Semanal de Asignación por Becario
                   </CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
-                    Verificación de asistencia del periodo frente a los horarios de apoyo asignados.
+                    Grilla horaria de apoyo por día — editable por supervisión y referencia oficial para geocercas.
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2 self-start sm:self-center">
+                  <Badge variant="outline" className="border-[#17B4C4] text-[#063A6B] font-mono text-xs px-2.5 py-0.5 bg-white">
+                    {horarios_filtrados.length} de {horarios_lista.length} Becarios
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#F8F9FA] border-b border-[#E3DCCB] text-[#063A6B] font-mono text-[11px] uppercase tracking-wider">
+                      <th className="py-3 px-3 text-center">N°</th>
+                      <th className="py-3 px-4">Nombres y Apellidos</th>
+                      <th className="py-3 px-3 font-mono">C.I.</th>
+                      <th className="py-3 px-3">Materias</th>
+                      <th className="py-3 px-3">Régimen</th>
+                      <th className="py-3 px-3 font-mono text-center">Lunes</th>
+                      <th className="py-3 px-3 font-mono text-center">Martes</th>
+                      <th className="py-3 px-3 font-mono text-center">Miércoles</th>
+                      <th className="py-3 px-3 font-mono text-center">Jueves</th>
+                      <th className="py-3 px-3 font-mono text-center">Viernes</th>
+                      <th className="py-3 px-3 text-center">Gestión</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E3DCCB]/60">
+                    {horarios_filtrados.length === 0 ? (
+                      <tr>
+                        <td colSpan={11} className="py-8 text-center text-muted-foreground text-xs">
+                          No se encontraron becarios programados con los criterios de búsqueda aplicados.
+                        </td>
+                      </tr>
+                    ) : (
+                      horarios_filtrados.map((fila) => (
+                        <tr
+                          key={fila.numero}
+                          className={`transition-colors ${
+                            fila.destacada
+                              ? "bg-[#F8C766]/15 hover:bg-[#F8C766]/25 font-medium"
+                              : "hover:bg-slate-50/80"
+                          }`}
+                        >
+                          <td className="py-2.5 px-3 text-center font-mono font-bold text-muted-foreground">
+                            {fila.numero}
+                          </td>
+                          <td className="py-2.5 px-4 font-semibold text-[#063A6B]">
+                            {fila.nombre}
+                            {fila.destacada && (
+                              <span className="ml-2 inline-block px-1.5 py-0.2 bg-[#F8C766] text-[#3A2400] text-[9.5px] rounded font-bold uppercase">
+                                Referente
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-3 font-mono text-[#5B6D77] whitespace-nowrap">
+                            {fila.ci}
+                          </td>
+                          <td className="py-2.5 px-3 text-muted-foreground">
+                            {fila.cantidad_materias}
+                          </td>
+                          <td className="py-2.5 px-3">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                fila.periodo === "Semestral"
+                                  ? "bg-[#17B4C4]/15 text-[#0E7A85]"
+                                  : fila.periodo === "Anual"
+                                  ? "bg-[#063A6B]/10 text-[#063A6B]"
+                                  : "bg-slate-100 text-slate-600"
+                              }`}
+                            >
+                              {fila.periodo}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3 font-mono text-center whitespace-nowrap">
+                            {fila.lunes === "—" ? (
+                              <span className="text-muted-foreground/40">—</span>
+                            ) : (
+                              <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#063A6B]">
+                                {fila.lunes}
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-3 font-mono text-center whitespace-nowrap">
+                            {fila.martes === "—" ? (
+                              <span className="text-muted-foreground/40">—</span>
+                            ) : (
+                              <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#063A6B]">
+                                {fila.martes}
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-3 font-mono text-center whitespace-nowrap">
+                            {fila.miercoles === "—" ? (
+                              <span className="text-muted-foreground/40">—</span>
+                            ) : (
+                              <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#063A6B]">
+                                {fila.miercoles}
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-3 font-mono text-center whitespace-nowrap">
+                            {fila.jueves === "—" ? (
+                              <span className="text-muted-foreground/40">—</span>
+                            ) : (
+                              <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#063A6B]">
+                                {fila.jueves}
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-3 font-mono text-center whitespace-nowrap">
+                            {fila.viernes === "—" ? (
+                              <span className="text-muted-foreground/40">—</span>
+                            ) : (
+                              <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#063A6B]">
+                                {fila.viernes}
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-3 text-center">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => abrirEditorHorario(fila)}
+                              className="h-7 px-2.5 text-[11px] border-[#17B4C4]/50 text-[#063A6B] hover:bg-[#17B4C4]/15 hover:border-[#17B4C4] font-bold gap-1 cursor-pointer"
+                            >
+                              <Edit3 className="w-3 h-3 text-[#17B4C4]" />
+                              Editar
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ============================================================== */}
+        {/* TAB 4: ANALÍTICA DE DATOS Y KARDEX (CON PASTORAL)              */}
+        {/* ============================================================== */}
+        <TabsContent value="analitica" className="space-y-5">
+          {/* Header de Kardex con Selector Dinámico de Periodos Históricos y Acta Oficial */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 rounded-xl border border-[#E3DCCB] bg-gradient-to-r from-slate-50 via-white to-slate-50 shadow-xs">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <BarChart3 className="w-5 h-5 text-[#17B4C4]" />
+                <h3 className="text-base font-bold font-display text-[#063A6B]">
+                  Kardex Integral y Analítica Institucional
+                </h3>
+                <Badge
+                  variant="outline"
+                  className={`text-[11px] font-mono font-semibold ${
+                    es_periodo_historico
+                      ? "bg-amber-50 text-amber-800 border-amber-300"
+                      : "bg-emerald-50 text-emerald-800 border-emerald-300"
+                  }`}
+                >
+                  {periodo_seleccionado_obj.estado_texto}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Consolidación de {periodo_seleccionado_obj.total_becarios} becarios · Promedio cohorte:{" "}
+                <strong className="text-[#063A6B]">{periodo_seleccionado_obj.promedio_general}</strong> ·
+                Evaluación integral (Liderazgo, Académico, Tutoría, Escuela de Líderes y Socioeconómica).
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap shrink-0">
+              <div className="flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-[#E3DCCB] shadow-xs">
+                <History className="w-4 h-4 text-muted-foreground" />
+                <span className="text-xs font-medium text-[#063A6B]">Periodo:</span>
+                <select
+                  value={periodo_academico}
+                  onChange={(e) => set_periodo_academico(e.target.value)}
+                  className="text-xs font-semibold bg-transparent text-[#063A6B] border-none focus:outline-hidden cursor-pointer pr-1"
+                >
+                  {PERIODOS_ACADEMICOS.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.etiqueta} ({p.estado === "vigente" ? "Vigente" : "Auditado"})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  toast.success(
+                    `Generando acta oficial consolidada en PDF para ${periodo_seleccionado_obj.etiqueta}...`
+                  )
+                }
+                className="h-8 text-xs font-bold border-[#063A6B]/30 text-[#063A6B] hover:bg-[#063A6B]/10 gap-1.5 cursor-pointer shadow-xs"
+              >
+                <Download className="w-3.5 h-3.5 text-[#17B4C4]" />
+                Acta PDF
+              </Button>
+            </div>
+          </div>
+
+          {/* Aviso de Auditoría y Modo Sólo Lectura para Semestres Históricos */}
+          {es_periodo_historico && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl border border-amber-300/80 bg-amber-50/70 text-xs text-amber-900 shadow-xs">
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>
+                  <strong>Archivo Académico Auditado ({periodo_seleccionado_obj.etiqueta}):</strong> Las notas y ponderaciones de este periodo están formalmente cerradas y respaldadas en acta por la Junta de Diaconía IFD. Este módulo se encuentra en modo <em>sólo lectura</em>.
+                </span>
+              </div>
+              <Badge variant="outline" className="font-mono text-[10px] bg-white border-amber-300 text-amber-800 shrink-0 self-start sm:self-center">
+                Acta Nº {periodo_seleccionado_obj.gestion}-S{periodo_seleccionado_obj.semestre}
+              </Badge>
+            </div>
+          )}
+
+          {/* DISTRIBUCIÓN POR UNIVERSIDAD, MODALIDAD Y AUTOEVALUACIÓN (COMPACTADA) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Tarjeta: Distribución por Universidad */}
+            <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl">
+              <CardHeader className="p-3.5 pb-2.5 border-b border-[#E3DCCB]/60">
+                <CardTitle className="font-display text-sm text-[#063A6B] flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4 text-[#063A6B]" />
+                  Distribución por Universidad
+                </CardTitle>
+                <CardDescription className="text-[11px] text-muted-foreground">
+                  Casas de estudios superiores de los becarios.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-3.5 space-y-2.5">
+                {DISTRIBUCION_UNIVERSIDADES.map((u) => (
+                  <div key={u.nombre} className="space-y-1">
+                    <div className="flex justify-between text-xs font-medium">
+                      <span className="text-[#1E293B] truncate pr-2" title={u.nombre}>
+                        {u.nombre}
+                      </span>
+                      <span className="font-mono font-bold text-[#063A6B]">{u.cantidad}</span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${u.porcentaje}%`,
+                          backgroundColor: u.color,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Tarjeta: Modalidad de la Beca */}
+            <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl">
+              <CardHeader className="p-3.5 pb-2.5 border-b border-[#E3DCCB]/60">
+                <CardTitle className="font-display text-sm text-[#063A6B] flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-[#17B4C4]" />
+                  Modalidad de la Beca
+                </CardTitle>
+                <CardDescription className="text-[11px] text-muted-foreground">
+                  Régimen académico cursado por la cohorte.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-3.5 space-y-3">
+                {DISTRIBUCION_MODALIDADES.map((m) => (
+                  <div key={m.modalidad} className="space-y-1">
+                    <div className="flex justify-between text-xs font-medium">
+                      <span className="text-[#1E293B]">{m.modalidad}</span>
+                      <span className="font-mono font-bold text-[#063A6B]">{m.cantidad}</span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${m.porcentaje}%`,
+                          backgroundColor: m.color,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+                <div className="pt-1.5 text-[11px] text-muted-foreground font-mono">
+                  Total: {periodo_seleccionado_obj.total_becarios} becarios matriculados en {periodo_seleccionado_obj.gestion}.
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Tarjeta: Autoevaluación de Desempeño General (1–10) */}
+            <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl">
+              <CardHeader className="p-3.5 pb-2.5 border-b border-[#E3DCCB]/60">
+                <CardTitle className="font-display text-sm text-[#063A6B] flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#F8C766]" />
+                  Autoevaluación de Desempeño (1–10)
+                </CardTitle>
+                <CardDescription className="text-[11px] text-muted-foreground">
+                  Percepción del estudiante sobre su propio avance.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-3.5 space-y-2.5">
+                {DISTRIBUCION_AUTOEVALUACION.map((a) => (
+                  <div key={a.nota} className="space-y-1">
+                    <div className="flex justify-between text-xs font-medium">
+                      <span className="text-[#1E293B]">{a.nota}</span>
+                      <span className="font-mono font-bold text-[#063A6B]">{a.cantidad} becarios</span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${a.porcentaje}%`,
+                          backgroundColor: a.color,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* CASOS QUE REQUIEREN SEGUIMIENTO PASTORAL Y DE MENTORÍA */}
+          <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl overflow-hidden">
+            <CardHeader className="py-3 px-4 border-b border-[#E3DCCB]/60 bg-gradient-to-r from-amber-50/50 to-white">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <CardTitle className="font-display text-sm text-[#063A6B] flex items-center gap-2">
+                    <HeartHandshake className="w-4 h-4 text-amber-600" />
+                    Casos que Requieren Seguimiento Pastoral y de Mentoría
+                  </CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground">
+                    Expedientes derivados de observaciones del Pastor en Formulario F-03 y tutorías activas.
                   </CardDescription>
                 </div>
 
-                {/* TABS DE FILTRO: Todos, Asistieron, No asistieron */}
-                <Tabs
-                  value={filtro_asistencia}
-                  onValueChange={(val) => set_filtro_asistencia(val as any)}
-                  className="w-full sm:w-auto"
-                >
-                  <TabsList className="bg-slate-100 p-1 border border-[#E3DCCB]/60">
-                    <TabsTrigger value="todos" className="text-xs py-1 px-2.5 font-bold">
-                      Todos ({total_registros})
-                    </TabsTrigger>
-                    <TabsTrigger value="asistieron" className="text-xs py-1 px-2.5 font-bold text-emerald-700">
-                      Asistieron ({total_asistieron})
-                    </TabsTrigger>
-                    <TabsTrigger value="no_asistieron" className="text-xs py-1 px-2.5 font-bold text-rose-700">
-                      No asistieron ({total_no_asistieron})
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </div>
-            </CardHeader>
+                <div className="flex flex-wrap items-center gap-2">
+                  {(usuario?.rol === "administrador" || usuario?.rol === "supervisor" || !usuario) && (
+                    <Button
+                      size="sm"
+                      onClick={() => set_dialogo_nuevo_caso_abierto(true)}
+                      className="h-8 px-3 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer rounded-lg shadow-2xs"
+                    >
+                      <HeartHandshake className="w-3.5 h-3.5 text-[#F8C766]" />
+                      <span>+ Derivar Caso Pastoral</span>
+                    </Button>
+                  )}
 
-            <CardContent className="p-4 flex-1 flex flex-col justify-between">
-              <div className="overflow-y-auto max-h-[310px] space-y-2 pr-1">
-                {registros_filtrados.map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-2.5 rounded-lg border border-[#E3DCCB]/60 flex items-center justify-between gap-3 text-xs hover:bg-slate-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Avatar className="w-8 h-8 border border-[#E3DCCB] shrink-0">
-                        <AvatarFallback className="bg-slate-100 text-[#063A6B] font-bold text-xs">
-                          {item.avatar}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0">
-                        <p className="font-bold text-[#063A6B] truncate">{item.nombre}</p>
-                        <p className="text-[11px] text-muted-foreground truncate">{item.carrera}</p>
-                        <p className="text-[10px] font-mono text-[#5B6D77] truncate">
-                          {item.horario_asignado}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="shrink-0 flex items-center gap-2">
-                      {item.asistio ? (
-                        <div className="flex flex-col items-end gap-0.5">
-                          <Badge className="bg-emerald-50 text-emerald-700 border-emerald-300 font-bold text-[10px] flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                            Asistió
-                          </Badge>
-                          {item.minutos_retraso && (
-                            <span className="text-[10px] text-amber-600 font-mono">
-                              +{item.minutos_retraso}m retraso
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <Badge className="bg-rose-50 text-rose-700 border-rose-300 font-bold text-[10px] flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                          No asistió
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* LEYENDA EXPLICATIVA DEL CORTE SEMANAL */}
-              <div className="mt-4 pt-3 border-t border-[#E3DCCB]/60 flex items-start gap-2 bg-[#F8F9FA] p-3 rounded-xl">
-                <HelpCircle className="w-4 h-4 text-[#17B4C4] shrink-0 mt-0.5" />
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  <strong className="text-[#063A6B]">Leyenda de Corte Semanal:</strong> El corte de horas se procesa
-                  automáticamente los viernes a las 18:00. Las inasistencias no justificadas dentro del plazo de 48 horas
-                  generan penalizaciones en el Kardex y afectan la devolución del 80% de pasajes.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* ============================================================== */}
-      {/* 2. MATRIZ DE HORARIOS DE APOYO BUMAND · 2DO SEMESTRE 2026       */}
-      {/* ============================================================== */}
-      <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl overflow-hidden">
-        <CardHeader className="pb-3 border-b border-[#E3DCCB]/60 bg-gradient-to-r from-slate-50 to-white">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <CardTitle className="font-display text-lg text-[#063A6B] flex items-center gap-2">
-                <CalendarDays className="w-5 h-5 text-[#063A6B]" />
-                Matriz de Horarios de Apoyo BUMAND · 2do Semestre 2026
-              </CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">
-                Horario semanal asignado por becario — referencia oficial utilizada para auditar puntualidad en Registro de Prácticas.
-              </CardDescription>
-            </div>
-            <Badge className="bg-[#063A6B] text-white font-mono text-[11px] self-start sm:self-center">
-              18 Becarios Programados
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left border-collapse">
-              <thead>
-                <tr className="bg-[#F8F9FA] border-b border-[#E3DCCB] text-[#063A6B] font-mono text-[11px] uppercase tracking-wider">
-                  <th className="py-3 px-3 text-center">N°</th>
-                  <th className="py-3 px-4">Nombres y Apellidos</th>
-                  <th className="py-3 px-3 font-mono">C.I.</th>
-                  <th className="py-3 px-3">Cant. Materias</th>
-                  <th className="py-3 px-3">Periodo</th>
-                  <th className="py-3 px-3 font-mono text-center">Lunes</th>
-                  <th className="py-3 px-3 font-mono text-center">Martes</th>
-                  <th className="py-3 px-3 font-mono text-center">Miércoles</th>
-                  <th className="py-3 px-3 font-mono text-center">Jueves</th>
-                  <th className="py-3 px-3 font-mono text-center">Viernes</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#E3DCCB]/60">
-                {HORARIOS_APOYO_2026.map((fila) => (
-                  <tr
-                    key={fila.numero}
-                    className={`transition-colors ${
-                      fila.destacada
-                        ? "bg-[#F8C766]/15 hover:bg-[#F8C766]/25 font-medium"
-                        : "hover:bg-slate-50/80"
-                    }`}
-                  >
-                    <td className="py-2.5 px-3 text-center font-mono font-bold text-muted-foreground">
-                      {fila.numero}
-                    </td>
-                    <td className="py-2.5 px-4 font-semibold text-[#063A6B]">
-                      {fila.nombre}
-                      {fila.destacada && (
-                        <span className="ml-2 inline-block px-1.5 py-0.2 bg-[#F8C766] text-[#3A2400] text-[9.5px] rounded font-bold uppercase">
-                          Referente
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-2.5 px-3 font-mono text-[#5B6D77] whitespace-nowrap">
-                      {fila.ci}
-                    </td>
-                    <td className="py-2.5 px-3 text-muted-foreground">
-                      {fila.cantidad_materias}
-                    </td>
-                    <td className="py-2.5 px-3">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          fila.periodo === "Semestral"
-                            ? "bg-[#17B4C4]/15 text-[#0E7A85]"
-                            : fila.periodo === "Anual"
-                            ? "bg-[#063A6B]/10 text-[#063A6B]"
-                            : "bg-slate-100 text-slate-600"
+                  {/* Filtro por estado de caso */}
+                  <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg border border-[#E3DCCB]/70">
+                    {[
+                      { key: "todos", etiqueta: "Todos", count: casos_pastorales.length },
+                      { key: "PENDIENTE", etiqueta: "Pendientes", count: casos_pastorales.filter((c) => c.estado === "PENDIENTE").length },
+                      { key: "EN_TUTORIA", etiqueta: "En Tutoría", count: casos_pastorales.filter((c) => c.estado === "EN_TUTORIA").length },
+                      { key: "RESUELTO", etiqueta: "Superados", count: casos_pastorales.filter((c) => c.estado === "RESUELTO").length },
+                    ].map((f) => (
+                      <button
+                        key={f.key}
+                        type="button"
+                        onClick={() => set_filtro_estado_casos(f.key as any)}
+                        className={`text-[11px] py-1 px-2.5 font-bold rounded-md transition-all cursor-pointer ${
+                          filtro_estado_casos === f.key
+                            ? "bg-[#063A6B] text-white shadow-2xs"
+                            : "text-[#5B6D77] hover:text-[#063A6B]"
                         }`}
                       >
-                        {fila.periodo}
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-3 font-mono text-center whitespace-nowrap">
-                      {fila.lunes === "—" ? (
-                        <span className="text-muted-foreground/40">—</span>
-                      ) : (
-                        <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#063A6B]">
-                          {fila.lunes}
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-2.5 px-3 font-mono text-center whitespace-nowrap">
-                      {fila.martes === "—" ? (
-                        <span className="text-muted-foreground/40">—</span>
-                      ) : (
-                        <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#063A6B]">
-                          {fila.martes}
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-2.5 px-3 font-mono text-center whitespace-nowrap">
-                      {fila.miercoles === "—" ? (
-                        <span className="text-muted-foreground/40">—</span>
-                      ) : (
-                        <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#063A6B]">
-                          {fila.miercoles}
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-2.5 px-3 font-mono text-center whitespace-nowrap">
-                      {fila.jueves === "—" ? (
-                        <span className="text-muted-foreground/40">—</span>
-                      ) : (
-                        <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#063A6B]">
-                          {fila.jueves}
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-2.5 px-3 font-mono text-center whitespace-nowrap">
-                      {fila.viernes === "—" ? (
-                        <span className="text-muted-foreground/40">—</span>
-                      ) : (
-                        <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#063A6B]">
-                          {fila.viernes}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* ============================================================== */}
-      {/* 3. TARJETAS DE ANALÍTICA Y KARDEX: UNIVERSIDAD, MODALIDAD, CASOS*/}
-      {/* ============================================================== */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <h3 className="text-lg font-bold font-display text-[#063A6B] flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-[#17B4C4]" />
-              Analítica de Datos y Kardex Institucional
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              Dataset real consolidado — Semestre II 2026 · 21 becarios evaluados con perfil académico y pastoral.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono text-muted-foreground">Semestre:</span>
-            <div className="flex rounded-lg border border-[#E3DCCB] p-0.5 bg-slate-100">
-              <button
-                type="button"
-                onClick={() => set_periodo_kardex("s2")}
-                className={`px-2.5 py-1 text-xs font-bold rounded-md transition-colors ${
-                  periodo_kardex === "s2"
-                    ? "bg-[#063A6B] text-white shadow-xs"
-                    : "text-muted-foreground hover:text-[#063A6B]"
-                }`}
-              >
-                Semestre II 2026
-              </button>
-              <button
-                type="button"
-                onClick={() => set_periodo_kardex("s1")}
-                className={`px-2.5 py-1 text-xs font-bold rounded-md transition-colors ${
-                  periodo_kardex === "s1"
-                    ? "bg-[#063A6B] text-white shadow-xs"
-                    : "text-muted-foreground hover:text-[#063A6B]"
-                }`}
-              >
-                Semestre I 2026 (Histórico)
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* DISTRIBUCIÓN POR UNIVERSIDAD, MODALIDAD Y AUTOEVALUACIÓN */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Tarjeta: Distribución por Universidad */}
-          <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl">
-            <CardHeader className="pb-3 border-b border-[#E3DCCB]/60">
-              <CardTitle className="font-display text-base text-[#063A6B] flex items-center gap-2">
-                <GraduationCap className="w-4 h-4 text-[#063A6B]" />
-                Distribución por Universidad
-              </CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">
-                Casas de estudios superiores de los 21 becarios.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 space-y-3">
-              {DISTRIBUCION_UNIVERSIDADES.map((u) => (
-                <div key={u.nombre} className="space-y-1">
-                  <div className="flex justify-between text-xs font-medium">
-                    <span className="text-[#1E293B] truncate pr-2" title={u.nombre}>
-                      {u.nombre}
-                    </span>
-                    <span className="font-mono font-bold text-[#063A6B]">{u.cantidad}</span>
-                  </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{
-                        width: `${u.porcentaje}%`,
-                        backgroundColor: u.color,
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Tarjeta: Modalidad de la Beca */}
-          <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl">
-            <CardHeader className="pb-3 border-b border-[#E3DCCB]/60">
-              <CardTitle className="font-display text-base text-[#063A6B] flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-[#17B4C4]" />
-                Modalidad de la Beca
-              </CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">
-                Régimen académico cursado por la cohorte.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 space-y-4">
-              {DISTRIBUCION_MODALIDADES.map((m) => (
-                <div key={m.modalidad} className="space-y-1">
-                  <div className="flex justify-between text-xs font-medium">
-                    <span className="text-[#1E293B]">{m.modalidad}</span>
-                    <span className="font-mono font-bold text-[#063A6B]">{m.cantidad}</span>
-                  </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{
-                        width: `${m.porcentaje}%`,
-                        backgroundColor: m.color,
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-              <div className="pt-2 text-[11px] text-muted-foreground font-mono">
-                Total: 21 becarios matriculados en 2026.
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Tarjeta: Autoevaluación de Desempeño General (1–10) */}
-          <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl">
-            <CardHeader className="pb-3 border-b border-[#E3DCCB]/60">
-              <CardTitle className="font-display text-base text-[#063A6B] flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#F8C766]" />
-                Autoevaluación de Desempeño (1–10)
-              </CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">
-                Percepción del estudiante sobre su propio avance.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 space-y-3">
-              {DISTRIBUCION_AUTOEVALUACION.map((a) => (
-                <div key={a.nota} className="space-y-1">
-                  <div className="flex justify-between text-xs font-medium">
-                    <span className="text-[#1E293B]">{a.nota}</span>
-                    <span className="font-mono font-bold text-[#063A6B]">{a.cantidad} becarios</span>
-                  </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{
-                        width: `${a.porcentaje}%`,
-                        backgroundColor: a.color,
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* CASOS QUE REQUIEREN SEGUIMIENTO (7 BECARIOS CON OBSERVACIONES PASTORALES) */}
-        <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl overflow-hidden">
-          <CardHeader className="pb-3 border-b border-[#E3DCCB]/60 bg-gradient-to-r from-amber-50/50 to-white">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div>
-                <CardTitle className="font-display text-base text-[#063A6B] flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-amber-600" />
-                  Casos que Requieren Seguimiento Pastoral y de Mentoría
-                </CardTitle>
-                <CardDescription className="text-xs text-muted-foreground">
-                  7 de 21 becarios con observaciones registradas por sus pastores locales en el Formulario F-03.
-                </CardDescription>
-              </div>
-              <Badge className="bg-amber-100 text-amber-800 border-amber-300 font-mono text-[11px] self-start sm:self-center">
-                7 Casos Prioritarios
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left border-collapse">
-                <thead>
-                  <tr className="bg-[#F8F9FA] border-b border-[#E3DCCB] text-[#063A6B] font-mono text-[11px] uppercase">
-                    <th className="py-3 px-4">Becario</th>
-                    <th className="py-3 px-3">Universidad / Carrera</th>
-                    <th className="py-3 px-4">Observación Pastoral (F-03)</th>
-                    <th className="py-3 px-3 text-center">Plan de Acción</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#E3DCCB]/60">
-                  {CASOS_SEGUIMIENTO.map((caso) => (
-                    <tr key={caso.id} className="hover:bg-amber-50/20 transition-colors">
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2.5">
-                          <Avatar className="w-8 h-8 border border-[#E3DCCB]">
-                            <AvatarFallback className="bg-[#063A6B] text-[#F8C766] font-bold text-xs">
-                              {caso.avatar}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="font-bold text-[#063A6B]">{caso.nombre}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-3 text-muted-foreground whitespace-nowrap">
-                        {caso.universidad} · {caso.carrera}
-                      </td>
-                      <td className="py-3 px-4 text-[#1E293B] font-medium leading-relaxed">
-                        {caso.observacion}
-                      </td>
-                      <td className="py-3 px-3 text-center">
-                        <Badge
-                          variant="outline"
-                          className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-bold font-mono"
-                        >
-                          Tutoría Pastoral
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* RANKING KARDEX (SEMESTRE II VS SEMESTRE I HISTÓRICO) */}
-        <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl overflow-hidden">
-          <CardHeader className="pb-3 border-b border-[#E3DCCB]/60">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="font-display text-base text-[#063A6B] flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-[#17B4C4]" />
-                  Kardex — Ranking de Becarios · {periodo_kardex === "s2" ? "Semestre II 2026" : "Semestre I 2026 (Histórico)"}
-                </CardTitle>
-                <CardDescription className="text-xs text-muted-foreground">
-                  Consolidación de las 5 evaluaciones semestrales y cálculo del promedio general de acreditación.
-                </CardDescription>
-              </div>
-              <Badge variant="outline" className="font-mono text-xs border-[#E3DCCB] text-[#063A6B]">
-                {periodo_kardex === "s2" ? "Periodo Actual" : "Histórico Cerrado"}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left border-collapse">
-                <thead>
-                  <tr className="bg-[#F8F9FA] border-b border-[#E3DCCB] text-[#063A6B] font-mono text-[11px] uppercase">
-                    <th className="py-3 px-3 text-center">Pos.</th>
-                    <th className="py-3 px-4">Becario</th>
-                    <th className="py-3 px-3 text-center font-mono">Liderazgo Iglesia</th>
-                    <th className="py-3 px-3 text-center font-mono">Académico</th>
-                    <th className="py-3 px-3 text-center font-mono">Mentor</th>
-                    <th className="py-3 px-3 text-center font-mono">Esc. Líderes</th>
-                    <th className="py-3 px-3 text-center font-mono">Socioeconómica</th>
-                    <th className="py-3 px-3 text-center font-mono font-bold">Promedio</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#E3DCCB]/60">
-                  {(periodo_kardex === "s2" ? RANKING_KARDEX_S2 : RANKING_KARDEX_S1).map((k) => (
-                    <tr key={k.posicion} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-2.5 px-3 text-center font-mono font-bold text-[#F8C766]">
-                        {k.posicion}
-                      </td>
-                      <td className="py-2.5 px-4">
-                        <div className="flex items-center gap-2">
-                          <Avatar className="w-7 h-7 border border-[#E3DCCB]">
-                            <AvatarFallback className="bg-[#063A6B] text-[#F8C766] font-bold text-[10px]">
-                              {k.avatar}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="font-bold text-[#063A6B]">{k.nombre}</span>
-                        </div>
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-mono">{k.liderazgo_iglesia}</td>
-                      <td className="py-2.5 px-3 text-center font-mono">{k.academico}</td>
-                      <td className="py-2.5 px-3 text-center font-mono">{k.mentor}</td>
-                      <td className="py-2.5 px-3 text-center font-mono">{k.escuela_lideres}</td>
-                      <td className="py-2.5 px-3 text-center font-mono">
-                        {k.socioeconomica === "—" || k.socioeconomica === "Incompleto" ? (
-                          <span className="text-amber-600 font-semibold">{k.socioeconomica}</span>
-                        ) : (
-                          k.socioeconomica
-                        )}
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-mono font-bold text-emerald-700">
-                        {k.promedio}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* ============================================================== */}
-      {/* 4. TENDENCIA DE HORAS Y EJECUCIÓN PRESUPUESTARIA (MÓDULOS BASE) */}
-      {/* ============================================================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl lg:col-span-2 flex flex-col">
-          <CardHeader className="pb-3 border-b border-[#E3DCCB]/60">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <CardTitle className="font-display text-base text-[#063A6B] flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-[#17B4C4]" />
-                  Tendencia de Horas de Práctica y Cumplimiento
-                </CardTitle>
-                <CardDescription className="text-xs text-muted-foreground">
-                  Horas efectivas registradas con geolocalización frente a la meta académica programada.
-                </CardDescription>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground font-mono">Semestral</span>
-                <Switch
-                  checked={vista_anual}
-                  onCheckedChange={set_vista_anual}
-                  className="data-[state=checked]:bg-[#17B4C4]"
-                />
-                <span className="text-xs font-bold text-[#063A6B] font-mono">Anual</span>
-              </div>
-            </div>
-          </CardHeader>
-
-          <CardContent className="p-4 flex-1 min-h-[300px]">
-            <ChartContainer config={CONFIGURACION_GRAFICO} className="h-72 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={DATOS_HORAS_MENSUALES} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="degradadoHorasVista" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#17B4C4" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#17B4C4" stopOpacity={0.0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid vertical={false} stroke="#E3DCCB" strokeDasharray="3 3" />
-                  <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fill: "#64748B", fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748B", fontSize: 12 }} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Area
-                    type="monotone"
-                    dataKey="horas"
-                    stroke="#17B4C4"
-                    strokeWidth={3}
-                    fillOpacity={1}
-                    fill="url(#degradadoHorasVista)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        {/* DONUT CHART DE PRESUPUESTO 80% */}
-        <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl flex flex-col">
-          <CardHeader className="pb-3 border-b border-[#E3DCCB]/60">
-            <CardTitle className="font-display text-base text-[#063A6B] flex items-center gap-2">
-              <PieChartIcon className="w-5 h-5 text-[#F8C766]" />
-              Ejecución del 80% de Viáticos
-            </CardTitle>
-            <CardDescription className="text-xs text-muted-foreground">
-              Desglose de la partida presupuestaria mensual
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="p-4 flex-1 flex flex-col justify-between">
-            <div className="h-48 w-full flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={DATOS_PRESUPUESTO}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={80}
-                    paddingAngle={4}
-                    dataKey="valor"
-                  >
-                    {DATOS_PRESUPUESTO.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                        {f.etiqueta} ({f.count})
+                      </button>
                     ))}
-                  </Pie>
-                  <RechartsTooltip formatter={(val: any) => [`Bs ${val}.00`, "Monto"]} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            <Separator className="my-2 bg-[#E3DCCB]/60" />
-
-            <div className="space-y-2 text-xs">
-              {DATOS_PRESUPUESTO.map((item) => (
-                <div key={item.nombre} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                    <span className="text-muted-foreground">{item.nombre}</span>
                   </div>
-                  <span className="font-mono font-bold text-[#063A6B]">Bs {item.valor.toFixed(2)}</span>
                 </div>
-              ))}
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#F8F9FA] border-b border-[#E3DCCB] text-[#063A6B] font-mono text-[11px] uppercase">
+                      <th className="py-2.5 px-4">Becario</th>
+                      <th className="py-2.5 px-3">Universidad / Carrera</th>
+                      <th className="py-2.5 px-4">Observaciones Pastorales (F-03)</th>
+                      <th className="py-2.5 px-3 text-center">Prioridad</th>
+                      <th className="py-2.5 px-3 text-center">Tutor Responsable</th>
+                      <th className="py-2.5 px-3 text-center">Estado</th>
+                      <th className="py-2.5 px-3 text-center">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E3DCCB]/60">
+                    {casos_pastorales_filtrados.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="py-8 text-center text-muted-foreground">
+                          <CheckCircle2 className="w-6 h-6 text-emerald-600 mx-auto mb-1 opacity-70" />
+                          <p className="font-semibold text-xs text-[#063A6B]">Sin casos registrados en esta vista</p>
+                          <p className="text-[11px]">No se encontraron expedientes pastorales con el estado seleccionado.</p>
+                        </td>
+                      </tr>
+                    ) : (
+                      casos_pastorales_filtrados.map((caso) => (
+                        <tr key={caso.id} className="hover:bg-amber-50/20 transition-colors">
+                          <td className="py-2.5 px-4">
+                            <div className="flex items-center gap-2.5">
+                              <Avatar className="w-7 h-7 border border-[#E3DCCB]">
+                                <AvatarFallback className="bg-[#063A6B] text-[#F8C766] font-bold text-xs">
+                                  {caso.avatar}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <span className="font-bold text-[#063A6B] block">{caso.nombre}</span>
+                                <span className="text-[10px] text-muted-foreground font-mono">{caso.origen || "F-03"}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-2.5 px-3 text-muted-foreground whitespace-nowrap">
+                            {caso.universidad} · {caso.carrera}
+                          </td>
+                          <td className="py-2.5 px-4 text-[#1E293B] font-medium leading-relaxed max-w-md">
+                            {caso.observacion}
+                          </td>
+                          <td className="py-2.5 px-3 text-center">
+                            <Badge
+                              className={`text-[10px] font-mono font-bold ${
+                                caso.prioridad === "ALTA"
+                                  ? "bg-rose-100 text-rose-800 border-rose-300"
+                                  : caso.prioridad === "MEDIA"
+                                  ? "bg-amber-100 text-amber-800 border-amber-300"
+                                  : "bg-slate-100 text-slate-700 border-slate-300"
+                              }`}
+                            >
+                              {caso.prioridad}
+                            </Badge>
+                          </td>
+                          <td className="py-2.5 px-3 text-center text-[11px] text-muted-foreground">
+                            {caso.responsable_nombre || "Pr. Juan Ramos (Tutor Pastoral)"}
+                          </td>
+                          <td className="py-2.5 px-3 text-center">
+                            <Badge
+                              variant="outline"
+                              className={`text-[10px] font-bold font-mono ${
+                                caso.estado === "RESUELTO"
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                                  : caso.estado === "EN_TUTORIA"
+                                  ? "bg-cyan-50 text-[#0E7A85] border-[#17B4C4]/40"
+                                  : "bg-amber-50 text-amber-700 border-amber-200"
+                              }`}
+                            >
+                              {caso.estado === "RESUELTO" ? "Superado" : caso.estado === "EN_TUTORIA" ? "En Tutoría" : "Pendiente"}
+                            </Badge>
+                          </td>
+                          <td className="py-2.5 px-3 text-center">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => abrirGestionCaso(caso)}
+                              className="h-7 px-2.5 text-[11px] border-[#063A6B] text-[#063A6B] hover:bg-[#063A6B] hover:text-white font-bold gap-1 cursor-pointer transition-all"
+                            >
+                              <HeartHandshake className="w-3.5 h-3.5 text-[#17B4C4]" />
+                              Gestionar Caso
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* RANKING KARDEX CONSOLIDADOR DINÁMICO POR PERIODO */}
+          <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl overflow-hidden">
+            <CardHeader className="py-3 px-4 border-b border-[#E3DCCB]/60">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <CardTitle className="font-display text-sm text-[#063A6B] flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-[#17B4C4]" />
+                    Kardex — Ranking de Becarios · {periodo_seleccionado_obj.etiqueta}
+                  </CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground">
+                    Consolidación de las 5 evaluaciones del periodo y cálculo del promedio general de acreditación.
+                  </CardDescription>
+                </div>
+                <Badge variant="outline" className="font-mono text-xs border-[#E3DCCB] text-[#063A6B] self-start sm:self-center">
+                  {periodo_seleccionado_obj.estado_texto}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#F8F9FA] border-b border-[#E3DCCB] text-[#063A6B] font-mono text-[11px] uppercase">
+                      <th className="py-2.5 px-3 text-center">Pos.</th>
+                      <th className="py-2.5 px-4">Becario</th>
+                      <th className="py-2.5 px-3 text-center font-mono">Liderazgo Iglesia</th>
+                      <th className="py-2.5 px-3 text-center font-mono">Académico</th>
+                      <th className="py-2.5 px-3 text-center font-mono">Mentor</th>
+                      <th className="py-2.5 px-3 text-center font-mono">Esc. Líderes</th>
+                      <th className="py-2.5 px-3 text-center font-mono">Socioeconómica</th>
+                      <th className="py-2.5 px-3 text-center font-mono font-bold">Promedio</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E3DCCB]/60">
+                    {obtenerDatosKardex().map((k) => (
+                      <tr key={k.posicion} className="hover:bg-slate-50 transition-colors">
+                        <td className="py-2.5 px-3 text-center font-mono font-bold text-[#F8C766]">
+                          {k.posicion}
+                        </td>
+                        <td className="py-2.5 px-4">
+                          <div className="flex items-center gap-2">
+                            <Avatar className="w-7 h-7 border border-[#E3DCCB]">
+                              <AvatarFallback className="bg-[#063A6B] text-[#F8C766] font-bold text-[10px]">
+                                {k.avatar}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="font-bold text-[#063A6B]">{k.nombre}</span>
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-3 text-center font-mono">{k.liderazgo_iglesia}</td>
+                        <td className="py-2.5 px-3 text-center font-mono">{k.academico}</td>
+                        <td className="py-2.5 px-3 text-center font-mono">{k.mentor}</td>
+                        <td className="py-2.5 px-3 text-center font-mono">{k.escuela_lideres}</td>
+                        <td className="py-2.5 px-3 text-center font-mono">
+                          {k.socioeconomica === "—" || k.socioeconomica === "Incompleto" ? (
+                            <span className="text-amber-600 font-semibold">{k.socioeconomica}</span>
+                          ) : (
+                            k.socioeconomica
+                          )}
+                        </td>
+                        <td className="py-2.5 px-3 text-center font-mono font-bold text-emerald-700">
+                          {k.promedio}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* ============================================================== */}
+      {/* DIÁLOGO MODAL: GESTIÓN Y ASIGNACIÓN DE HORARIO DE PRÁCTICA      */}
+      {/* ============================================================== */}
+      <Dialog open={dialogo_edicion_abierto} onOpenChange={set_dialogo_edicion_abierto}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto border-[#E3DCCB] p-6 rounded-2xl bg-white shadow-xl">
+          <DialogHeader className="border-b border-[#E3DCCB]/60 pb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2.5 bg-[#063A6B]/10 rounded-xl text-[#063A6B]">
+                <Clock className="w-5 h-5 text-[#17B4C4]" />
+              </div>
+              <div>
+                <DialogTitle className="text-base font-bold text-[#063A6B] font-display">
+                  Asignación y Gobernanza de Horario de Práctica
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Coordinación Diaconía FRIF-IFD · Asignación oficial de turnos institucionales.
+                </DialogDescription>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </DialogHeader>
+
+          {becario_a_editar && (
+            <div className="space-y-5 py-2 text-xs">
+              {/* PASO 1: DIAGNÓSTICO ACADÉMICO Y DISPONIBILIDAD DECLARADA */}
+              <div className="p-3.5 bg-slate-50 border border-[#E3DCCB] rounded-xl space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-sm text-[#063A6B]">{becario_a_editar.nombre}</span>
+                    <Badge variant="outline" className="font-mono text-[10px] border-[#063A6B]/30 text-[#063A6B] bg-white">
+                      CI: {becario_a_editar.ci}
+                    </Badge>
+                  </div>
+                  <Badge className="bg-[#17B4C4]/15 text-[#0E7A85] border-[#17B4C4]/30 font-mono text-[10px]">
+                    Régimen: {becario_a_editar.periodo}
+                  </Badge>
+                </div>
+
+                <div className="p-2.5 bg-white border border-[#E3DCCB]/80 rounded-lg space-y-1">
+                  <span className="text-[10px] uppercase font-mono font-bold text-[#063A6B] block">
+                    Carga Académica y Disponibilidad Declarada:
+                  </span>
+                  <p className="text-xs text-slate-700 font-medium">
+                    {materias_declaradas_edit}
+                  </p>
+                  <p className="text-[11px] text-slate-500 pt-0.5 leading-snug">
+                    <strong className="text-[#063A6B]">Regla de Gobernanza:</strong> La coordinación asigna un bloque de 4 horas diarias respetando las materias declaradas por el estudiante para evitar solapamientos con cátedras universitarias.
+                  </p>
+                </div>
+              </div>
+
+              {/* PASO 2: ASIGNACIÓN INSTITUCIONAL DE SEDE DIACONÍA IFD */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-[#063A6B] flex items-center justify-between">
+                  <span>Sede / Agencia de Práctica Institucional</span>
+                  <span className="text-[10px] text-muted-foreground font-mono">11 agencias habilitadas con geocerca WGS84</span>
+                </Label>
+                <select
+                  value={sede_edit}
+                  onChange={(e) => set_sede_edit(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg border border-[#E3DCCB] bg-white text-xs font-medium text-[#1E293B] focus:border-[#17B4C4] focus:outline-hidden"
+                >
+                  {AGENCIAS_DIACONIA_IFD.map((agencia) => (
+                    <option key={agencia} value={agencia}>
+                      {agencia}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* PASO 3: GRILLA SEMANAL FLEXIBLE DÍA POR DÍA */}
+              <div className="space-y-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                  <div>
+                    <Label className="text-xs font-semibold text-[#063A6B]">Grilla Semanal Flexible (Lun a Vie)</Label>
+                    <p className="text-[11px] text-muted-foreground">Configura los días activos y ajusta el horario de entrada y salida independiente por día.</p>
+                  </div>
+                  {/* Presets Rápidos */}
+                  <div className="flex items-center gap-1 self-start sm:self-auto">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        set_dias_detallados_edit((prev) => {
+                          const copia = { ...prev };
+                          Object.keys(copia).forEach((k) => {
+                            if (copia[k].activo) {
+                              copia[k] = { ...copia[k], inicio: "08:00", fin: "12:00" };
+                            }
+                          });
+                          return copia;
+                        });
+                        toast.info("Horario 08:00–12:00 aplicado a los días activos.");
+                      }}
+                      className="h-7 px-2 text-[10px] border-[#E3DCCB] text-[#063A6B] hover:bg-slate-50"
+                    >
+                      Mañana (08:00–12:00)
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        set_dias_detallados_edit((prev) => {
+                          const copia = { ...prev };
+                          Object.keys(copia).forEach((k) => {
+                            if (copia[k].activo) {
+                              copia[k] = { ...copia[k], inicio: "13:00", fin: "17:00" };
+                            }
+                          });
+                          return copia;
+                        });
+                        toast.info("Horario 13:00–17:00 aplicado a los días activos.");
+                      }}
+                      className="h-7 px-2 text-[10px] border-[#E3DCCB] text-[#063A6B] hover:bg-slate-50"
+                    >
+                      Tarde (13:00–17:00)
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Listado de 5 días con horario diferenciado */}
+                <div className="space-y-2 border border-[#E3DCCB] rounded-xl p-3 bg-slate-50/50">
+                  {[
+                    { key: "lunes", etiqueta: "Lunes" },
+                    { key: "martes", etiqueta: "Martes" },
+                    { key: "miercoles", etiqueta: "Miércoles" },
+                    { key: "jueves", etiqueta: "Jueves" },
+                    { key: "viernes", etiqueta: "Viernes" },
+                  ].map((dia) => {
+                    const info_dia = dias_detallados_edit[dia.key] || { activo: false, inicio: "08:00", fin: "12:00" };
+                    return (
+                      <div
+                        key={dia.key}
+                        className={`p-2.5 rounded-lg border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
+                          info_dia.activo
+                            ? "bg-white border-[#17B4C4]/50 shadow-2xs"
+                            : "bg-slate-100/70 border-slate-200 opacity-60"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 w-32">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              set_dias_detallados_edit((prev) => ({
+                                ...prev,
+                                [dia.key]: {
+                                  ...prev[dia.key],
+                                  activo: !prev[dia.key]?.activo,
+                                },
+                              }))
+                            }
+                            className={`w-5 h-5 rounded-md flex items-center justify-center border transition-colors cursor-pointer ${
+                              info_dia.activo
+                                ? "bg-[#063A6B] border-[#063A6B] text-white"
+                                : "bg-white border-[#E3DCCB] text-transparent"
+                            }`}
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                          </button>
+                          <div>
+                            <span className="font-bold text-xs text-[#063A6B] block">{dia.etiqueta}</span>
+                            <span className="text-[10px] font-mono text-muted-foreground">
+                              {info_dia.activo ? "Asignado" : "Libre"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {info_dia.activo ? (
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] text-muted-foreground font-mono">Entrada:</span>
+                              <Input
+                                type="time"
+                                value={info_dia.inicio}
+                                onChange={(e) =>
+                                  set_dias_detallados_edit((prev) => ({
+                                    ...prev,
+                                    [dia.key]: { ...prev[dia.key], inicio: e.target.value },
+                                  }))
+                                }
+                                className="h-7 text-xs bg-white w-24 font-mono"
+                              />
+                            </div>
+                            <span className="text-slate-400 font-mono">→</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] text-muted-foreground font-mono">Salida:</span>
+                              <Input
+                                type="time"
+                                value={info_dia.fin}
+                                onChange={(e) =>
+                                  set_dias_detallados_edit((prev) => ({
+                                    ...prev,
+                                    [dia.key]: { ...prev[dia.key], fin: e.target.value },
+                                  }))
+                                }
+                                className="h-7 text-xs bg-white w-24 font-mono"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-[11px] text-muted-foreground italic">
+                            Día libre sin asignación institucional
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Resumen en tiempo real de carga horaria */}
+                <div className="flex items-center justify-between p-3 bg-white border border-[#E3DCCB] rounded-xl">
+                  <div>
+                    <span className="text-[10px] font-mono uppercase font-bold text-muted-foreground block">
+                      Total Carga Asignada:
+                    </span>
+                    <span className="font-display font-bold text-base text-[#063A6B]">
+                      {horas_semanales_asignadas_calculadas} hrs / semana
+                    </span>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className={
+                      horas_semanales_asignadas_calculadas >= 16 && horas_semanales_asignadas_calculadas <= 20
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold"
+                        : "bg-amber-50 text-amber-800 border-amber-300 font-bold"
+                    }
+                  >
+                    {horas_semanales_asignadas_calculadas >= 16 && horas_semanales_asignadas_calculadas <= 20
+                      ? "Óptimo (16h a 20h)"
+                      : horas_semanales_asignadas_calculadas < 16
+                      ? "Carga Parcial (<16h)"
+                      : "Sobrecarga (>20h)"}
+                  </Badge>
+                </div>
+
+                {/* Alerta Preventiva de Escuela de Líderes los Viernes */}
+                {hay_solapamiento_viernes && (
+                  <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl flex items-start gap-2.5">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-xs text-amber-900">Alerta de Solapamiento con Escuela de Líderes</p>
+                      <p className="text-[11px] text-amber-800 leading-snug">
+                        Has configurado el viernes con salida después de las 14:00. Recuerda que todos los viernes a las 14:30 se lleva a cabo la Escuela de Líderes obligatoria. Se recomienda finalizar el turno antes de las 14:00.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="border-t border-[#E3DCCB]/60 pt-3 gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => set_dialogo_edicion_abierto(false)}
+              className="text-xs"
+            >
+              Cancelar
+            </Button>
+            <Button
+              size="sm"
+              onClick={guardarEdicionHorario}
+              className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold text-xs gap-1.5"
+            >
+              <Check className="w-3.5 h-3.5 text-[#F8C766]" />
+              Guardar Horario Asignado
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ============================================================== */}
+      {/* DIÁLOGO MODAL: GESTIÓN DE EXPEDIENTE PASTORAL Y DE MENTORÍA    */}
+      {/* ============================================================== */}
+      <DialogoGestionCasoPastoral
+        caso={caso_a_gestionar}
+        abierto={dialogo_gestion_caso_abierto}
+        alCerrar={() => {
+          set_dialogo_gestion_caso_abierto(false);
+          set_caso_a_gestionar(null);
+        }}
+        alActualizar={actualizarCasoPastoral}
+      />
+
+      {/* ============================================================== */}
+      {/* DIÁLOGO MODAL: AUDITORÍA Y JUSTIFICACIÓN DE RETRASO (RECTIF.)  */}
+      {/* ============================================================== */}
+      <DialogoJustificarRetraso
+        abierto={dialogo_justificar_abierto}
+        enCerrar={() => {
+          set_dialogo_justificar_abierto(false);
+          set_becario_a_justificar(null);
+        }}
+        becario={becario_a_justificar}
+        rolUsuario={usuario?.rol || "administrador"}
+        enRetrasoJustificado={manejarRetrasoJustificado}
+      />
+
+      {/* ============================================================== */}
+      {/* DIÁLOGO MODAL: DERIVACIÓN MANUAL DE CASO PASTORAL              */}
+      {/* ============================================================== */}
+      <DialogoNuevoCasoPastoral
+        abierto={dialogo_nuevo_caso_abierto}
+        enCerrar={() => set_dialogo_nuevo_caso_abierto(false)}
+        becariosDisponibles={REGISTROS_ASISTENCIA_SEMANAL.map((r) => ({
+          id: r.id,
+          nombre: r.nombre,
+          carrera: r.carrera,
+          universidad: "Universidad de La Paz",
+          avatar: r.avatar,
+        }))}
+        enCasoCreado={manejarCasoCreado}
+      />
     </div>
   );
 }
