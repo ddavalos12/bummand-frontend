@@ -28,7 +28,7 @@ export function SelectorUbicacionGoogleMaps({
   radio_tolerancia_m,
   alCambiarUbicacion,
 }: PropsSelectorUbicacion) {
-  const { esta_cargado, cargando, error_carga, tiene_clave_valida } = useGoogleMaps();
+  const { esta_cargado, cargando, error_carga, fallo_autenticacion, tiene_clave_valida } = useGoogleMaps();
   const contenedor_mapa_ref = useRef<HTMLDivElement | null>(null);
 
   const instancia_mapa_ref = useRef<google.maps.Map | null>(null);
@@ -38,7 +38,7 @@ export function SelectorUbicacionGoogleMaps({
   const [obteniendo_gps, set_obteniendo_gps] = useState(false);
 
   // Si no hay una clave API válida configurada o falló, usar el selector libre sin popups ni marcas de agua
-  if (!tiene_clave_valida) {
+  if (!tiene_clave_valida || fallo_autenticacion || Boolean(error_carga)) {
     return (
       <SelectorUbicacionLeaflet
         latitud={latitud}
@@ -51,91 +51,114 @@ export function SelectorUbicacionGoogleMaps({
 
   // Inicializar Google Maps cuando el SDK esté disponible
   useEffect(() => {
-    if (!esta_cargado || !contenedor_mapa_ref.current) return;
+    if (
+      !esta_cargado ||
+      !contenedor_mapa_ref.current ||
+      typeof window === "undefined" ||
+      !window.google?.maps
+    ) {
+      return;
+    }
 
-    const centro_inicial = {
-      lat: !isNaN(latitud) && latitud !== 0 ? latitud : -16.500053,
-      lng: !isNaN(longitud) && longitud !== 0 ? longitud : -68.173455,
-    };
-
-    if (!instancia_mapa_ref.current) {
-      const opciones: google.maps.MapOptions = {
-        center: centro_inicial,
-        zoom: 16,
-        mapTypeId: google.maps.MapTypeId.ROADMAP,
-        disableDefaultUI: false,
-        zoomControl: true,
-        streetViewControl: false,
-        mapTypeControl: false,
-        fullscreenControl: false,
-        styles: [
-          {
-            featureType: "poi",
-            elementType: "labels",
-            stylers: [{ visibility: "off" }],
-          },
-        ],
+    try {
+      const centro_inicial = {
+        lat: !isNaN(latitud) && latitud !== 0 ? latitud : -16.500053,
+        lng: !isNaN(longitud) && longitud !== 0 ? longitud : -68.173455,
       };
 
-      const mapa = new google.maps.Map(contenedor_mapa_ref.current, opciones);
-      instancia_mapa_ref.current = mapa;
+      if (!instancia_mapa_ref.current) {
+        const opciones: google.maps.MapOptions = {
+          center: centro_inicial,
+          zoom: 16,
+          mapTypeId: "roadmap",
+          disableDefaultUI: false,
+          zoomControl: true,
+          streetViewControl: false,
+          mapTypeControl: false,
+          fullscreenControl: false,
+          styles: [
+            {
+              featureType: "poi",
+              elementType: "labels",
+              stylers: [{ visibility: "off" }],
+            },
+          ],
+        };
 
-      // Marcador arrastrable para fijar la sede
-      const marcador = new google.maps.Marker({
-        position: centro_inicial,
-        map: mapa,
-        draggable: true,
-        animation: google.maps.Animation.DROP,
-        title: "Ubicación Geodésica de la Sede",
-      });
-      marcador_ref.current = marcador;
+        const mapa = new window.google.maps.Map(contenedor_mapa_ref.current, opciones);
+        instancia_mapa_ref.current = mapa;
 
-      // Círculo de tolerancia de geocerca
-      const circulo = new google.maps.Circle({
-        map: mapa,
-        center: centro_inicial,
-        radius: radio_tolerancia_m > 0 ? radio_tolerancia_m : 80,
-        fillColor: "#17B4C4",
-        fillOpacity: 0.22,
-        strokeColor: "#063A6B",
-        strokeOpacity: 0.85,
-        strokeWeight: 2,
-      });
-      circulo_ref.current = circulo;
+        // Marcador arrastrable para fijar la sede
+        const marcador = new window.google.maps.Marker({
+          position: centro_inicial,
+          map: mapa,
+          draggable: true,
+          animation: window.google.maps.Animation?.DROP,
+          title: "Ubicación Geodésica de la Sede",
+        });
+        marcador_ref.current = marcador;
 
-      // Evento de arrastre del marcador
-      marcador.addListener("dragend", (e: google.maps.MapMouseEvent) => {
-        if (e.latLng) {
-          const nueva_lat = parseFloat(e.latLng.lat().toFixed(6));
-          const nueva_lng = parseFloat(e.latLng.lng().toFixed(6));
-          circulo.setCenter(e.latLng);
-          alCambiarUbicacion(nueva_lat, nueva_lng);
-        }
-      });
+        // Círculo de tolerancia de geocerca
+        const circulo = new window.google.maps.Circle({
+          map: mapa,
+          center: centro_inicial,
+          radius: radio_tolerancia_m > 0 ? radio_tolerancia_m : 80,
+          fillColor: "#17B4C4",
+          fillOpacity: 0.22,
+          strokeColor: "#063A6B",
+          strokeOpacity: 0.85,
+          strokeWeight: 2,
+        });
+        circulo_ref.current = circulo;
 
-      // Evento de clic en el mapa para reposicionar
-      mapa.addListener("click", (e: google.maps.MapMouseEvent) => {
-        if (e.latLng) {
-          const nueva_lat = parseFloat(e.latLng.lat().toFixed(6));
-          const nueva_lng = parseFloat(e.latLng.lng().toFixed(6));
-          marcador.setPosition(e.latLng);
-          circulo.setCenter(e.latLng);
-          mapa.panTo(e.latLng);
-          alCambiarUbicacion(nueva_lat, nueva_lng);
-        }
-      });
+        // Evento de arrastre del marcador
+        marcador.addListener("dragend", (e: google.maps.MapMouseEvent) => {
+          if (e.latLng) {
+            const nueva_lat = parseFloat(e.latLng.lat().toFixed(6));
+            const nueva_lng = parseFloat(e.latLng.lng().toFixed(6));
+            circulo.setCenter(e.latLng);
+            alCambiarUbicacion(nueva_lat, nueva_lng);
+          }
+        });
+
+        // Evento de clic en el mapa para reposicionar
+        mapa.addListener("click", (e: google.maps.MapMouseEvent) => {
+          if (e.latLng) {
+            const nueva_lat = parseFloat(e.latLng.lat().toFixed(6));
+            const nueva_lng = parseFloat(e.latLng.lng().toFixed(6));
+            marcador.setPosition(e.latLng);
+            circulo.setCenter(e.latLng);
+            mapa.panTo(e.latLng);
+            alCambiarUbicacion(nueva_lat, nueva_lng);
+          }
+        });
+      }
+    } catch (e) {
+      console.warn("[SelectorUbicacionGoogleMaps] Error al instanciar Google Maps:", e);
     }
   }, [esta_cargado]);
 
   // Actualizar la posición cuando las coordenadas cambian externamente
   useEffect(() => {
-    if (!instancia_mapa_ref.current || !marcador_ref.current || !circulo_ref.current) return;
+    if (
+      !instancia_mapa_ref.current ||
+      !marcador_ref.current ||
+      !circulo_ref.current ||
+      typeof window === "undefined" ||
+      !window.google?.maps
+    ) {
+      return;
+    }
     if (isNaN(latitud) || isNaN(longitud)) return;
 
-    const nueva_pos = new google.maps.LatLng(latitud, longitud);
-    marcador_ref.current.setPosition(nueva_pos);
-    circulo_ref.current.setCenter(nueva_pos);
-    instancia_mapa_ref.current.panTo(nueva_pos);
+    try {
+      const nueva_pos = new window.google.maps.LatLng(latitud, longitud);
+      marcador_ref.current.setPosition(nueva_pos);
+      circulo_ref.current.setCenter(nueva_pos);
+      instancia_mapa_ref.current.panTo(nueva_pos);
+    } catch (e) {
+      console.warn("[SelectorUbicacionGoogleMaps] Error al reposicionar:", e);
+    }
   }, [latitud, longitud]);
 
   // Actualizar el radio cuando cambia el input numérico

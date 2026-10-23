@@ -35,12 +35,14 @@ export function useGoogleMaps() {
     // Registrar interceptor de error de autenticación de Google Maps
     (window as any).gm_authFailure = () => {
       set_fallo_autenticacion(true);
+      set_esta_cargado(false);
+      set_cargando(false);
       set_error_carga(
         "Google Maps no tiene una clave API autorizada o el proyecto no tiene facturación activa."
       );
     };
 
-    if (window.google && window.google.maps) {
+    if (typeof window !== "undefined" && window.google?.maps?.Map) {
       set_esta_cargado(true);
       set_cargando(false);
       return;
@@ -50,21 +52,35 @@ export function useGoogleMaps() {
     set_error_carga(null);
     set_fallo_autenticacion(false);
 
+    const verificarDisponibilidad = (reintentos = 0) => {
+      if (typeof window !== "undefined" && window.google?.maps?.Map) {
+        set_esta_cargado(true);
+        set_cargando(false);
+      } else if (reintentos < 25) {
+        setTimeout(() => verificarDisponibilidad(reintentos + 1), 100);
+      } else {
+        set_fallo_autenticacion(true);
+        set_error_carga("No se pudo inicializar la API de Google Maps.");
+        set_esta_cargado(false);
+        set_cargando(false);
+      }
+    };
+
     const script_existente = document.getElementById(ID_SCRIPT_GOOGLE_MAPS) as HTMLScriptElement | null;
 
     if (script_existente) {
-      if (window.google?.maps) {
+      if (typeof window !== "undefined" && window.google?.maps?.Map) {
         set_esta_cargado(true);
         set_cargando(false);
         return;
       }
 
       const alCargar = () => {
-        set_esta_cargado(true);
-        set_cargando(false);
+        verificarDisponibilidad(0);
       };
       const alFallar = () => {
         set_error_carga("No se pudo cargar la librería de Google Maps. Verifique su conexión de red.");
+        set_esta_cargado(false);
         set_cargando(false);
       };
 
@@ -80,15 +96,15 @@ export function useGoogleMaps() {
     script.defer = true;
 
     const parametro_clave = clave_actual.trim() ? `&key=${encodeURIComponent(clave_actual.trim())}` : "";
-    script.src = `https://maps.googleapis.com/maps/api/js?libraries=places,geometry${parametro_clave}&loading=async`;
+    script.src = `https://maps.googleapis.com/maps/api/js?libraries=places,geometry${parametro_clave}`;
 
     script.onload = () => {
-      set_esta_cargado(true);
-      set_cargando(false);
+      verificarDisponibilidad(0);
     };
 
     script.onerror = () => {
       set_error_carga("Error de red al conectar con Google Maps API.");
+      set_esta_cargado(false);
       set_cargando(false);
     };
 
@@ -122,11 +138,11 @@ export function useGoogleMaps() {
   }, [cargarScriptGoogleMaps]);
 
   return {
-    esta_cargado: esta_cargado && !fallo_autenticacion,
+    esta_cargado: esta_cargado && !fallo_autenticacion && !error_carga,
     cargando,
     error_carga,
     fallo_autenticacion,
-    tiene_clave_valida: Boolean(clave_api.trim() && !fallo_autenticacion),
+    tiene_clave_valida: Boolean(clave_api.trim() && !fallo_autenticacion && !error_carga),
     clave_api,
     guardarClaveApi,
     reintentarCarga: () => cargarScriptGoogleMaps(),

@@ -55,10 +55,10 @@ export function VisorGoogleMapsGeocerca({
   alSeleccionarBloque,
   alAbrirAjusteClave,
 }: PropsVisorGoogleMaps) {
-  const { esta_cargado, cargando, error_carga, tiene_clave_valida } = useGoogleMaps();
+  const { esta_cargado, cargando, error_carga, fallo_autenticacion, tiene_clave_valida } = useGoogleMaps();
 
   // Si no hay clave API configurada o falló la autenticación con Google Cloud, usar el visor satelital y urbano libre
-  if (!tiene_clave_valida) {
+  if (!tiene_clave_valida || fallo_autenticacion || Boolean(error_carga)) {
     return (
       <VisorLeafletGeocerca
         sede={sede}
@@ -101,166 +101,211 @@ export function VisorGoogleMapsGeocerca({
 
   // Inicializar Google Maps
   useEffect(() => {
-    if (!esta_cargado || !contenedor_mapa_ref.current || modo_radar) return;
+    if (
+      !esta_cargado ||
+      !contenedor_mapa_ref.current ||
+      modo_radar ||
+      typeof window === "undefined" ||
+      !window.google?.maps
+    ) {
+      return;
+    }
 
-    const centro = { lat: bloque_activo.latitud, lng: bloque_activo.longitud };
+    try {
+      const centro = { lat: bloque_activo.latitud, lng: bloque_activo.longitud };
 
-    if (!instancia_mapa_ref.current) {
-      const opciones: google.maps.MapOptions = {
-        center: centro,
-        zoom: 17,
-        mapTypeId: tipo_mapa === "roadmap" ? google.maps.MapTypeId.ROADMAP : google.maps.MapTypeId.HYBRID,
-        disableDefaultUI: false,
-        zoomControl: true,
-        streetViewControl: false,
-        mapTypeControl: false,
-        fullscreenControl: true,
-        styles: [
-          {
-            featureType: "poi.business",
-            stylers: [{ visibility: "off" }],
-          },
-        ],
-      };
+      if (!instancia_mapa_ref.current) {
+        const opciones: google.maps.MapOptions = {
+          center: centro,
+          zoom: 17,
+          mapTypeId: tipo_mapa,
+          disableDefaultUI: false,
+          zoomControl: true,
+          streetViewControl: false,
+          mapTypeControl: false,
+          fullscreenControl: true,
+          styles: [
+            {
+              featureType: "poi.business",
+              stylers: [{ visibility: "off" }],
+            },
+          ],
+        };
 
-      const mapa = new google.maps.Map(contenedor_mapa_ref.current, opciones);
-      instancia_mapa_ref.current = mapa;
-      ventana_info_ref.current = new google.maps.InfoWindow();
+        const mapa = new window.google.maps.Map(contenedor_mapa_ref.current, opciones);
+        instancia_mapa_ref.current = mapa;
+        ventana_info_ref.current = new window.google.maps.InfoWindow();
 
-      // Círculo concéntrico de geocerca
-      const circulo = new google.maps.Circle({
-        map: mapa,
-        center: centro,
-        radius: radio_tolerancia_m,
-        fillColor: "#17B4C4",
-        fillOpacity: 0.22,
-        strokeColor: "#063A6B",
-        strokeOpacity: 0.9,
-        strokeWeight: 2.5,
-      });
-      circulo_geocerca_ref.current = circulo;
-
-      // Marcador del Becario GPS (Punto verde / ámbar)
-      const marcador_becario = new google.maps.Marker({
-        position: { lat: becario_lat, lng: becario_lng },
-        map: mapa,
-        title: "GPS Becario en Tiempo Real",
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 9,
-          fillColor: becario_en_rango ? "#10B981" : "#F59E0B",
-          fillOpacity: 1,
-          strokeColor: "#FFFFFF",
+        // Círculo concéntrico de geocerca
+        const circulo = new window.google.maps.Circle({
+          map: mapa,
+          center: centro,
+          radius: radio_tolerancia_m,
+          fillColor: "#17B4C4",
+          fillOpacity: 0.22,
+          strokeColor: "#063A6B",
+          strokeOpacity: 0.9,
           strokeWeight: 2.5,
-        },
-      });
-      marcador_becario_ref.current = marcador_becario;
+        });
+        circulo_geocerca_ref.current = circulo;
+
+        // Marcador del Becario GPS (Punto verde / ámbar)
+        const marcador_becario = new window.google.maps.Marker({
+          position: { lat: becario_lat, lng: becario_lng },
+          map: mapa,
+          title: "GPS Becario en Tiempo Real",
+          icon: {
+            path: window.google.maps.SymbolPath?.CIRCLE ?? 0,
+            scale: 9,
+            fillColor: becario_en_rango ? "#10B981" : "#F59E0B",
+            fillOpacity: 1,
+            strokeColor: "#FFFFFF",
+            strokeWeight: 2.5,
+          },
+        });
+        marcador_becario_ref.current = marcador_becario;
+      }
+    } catch (e) {
+      console.warn("[VisorGoogleMapsGeocerca] Error al instanciar Google Maps:", e);
     }
   }, [esta_cargado, modo_radar]);
 
   // Actualizar marcadores de los bloques de la sede activa
   useEffect(() => {
-    if (!instancia_mapa_ref.current || !esta_cargado || modo_radar) return;
+    if (
+      !instancia_mapa_ref.current ||
+      !esta_cargado ||
+      modo_radar ||
+      typeof window === "undefined" ||
+      !window.google?.maps
+    ) {
+      return;
+    }
 
-    // Limpiar marcadores anteriores
-    marcadores_bloques_ref.current.forEach((m) => m.setMap(null));
-    marcadores_bloques_ref.current = [];
+    try {
+      // Limpiar marcadores anteriores
+      marcadores_bloques_ref.current.forEach((m) => m.setMap(null));
+      marcadores_bloques_ref.current = [];
 
-    const mapa = instancia_mapa_ref.current;
+      const mapa = instancia_mapa_ref.current;
 
-    sede.bloques.forEach((bloque) => {
-      const es_activo = bloque.id === bloque_activo.id;
+      sede.bloques.forEach((bloque) => {
+        const es_activo = bloque.id === bloque_activo.id;
 
-      const marcador = new google.maps.Marker({
-        position: { lat: bloque.latitud, lng: bloque.longitud },
-        map: mapa,
-        title: `${bloque.nombre} - ${sede.nombre}`,
-        label: {
-          text: bloque.nombre.includes("Bloque A") ? "A" : "B",
-          color: "#FFFFFF",
-          fontWeight: "bold",
-          fontSize: "12px",
-        },
-        icon: {
-          path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z",
-          fillColor: es_activo ? "#063A6B" : "#17B4C4",
-          fillOpacity: 1,
-          strokeColor: "#FFFFFF",
-          strokeWeight: 2,
-          scale: 1.8,
-          anchor: new google.maps.Point(12, 22),
-          labelOrigin: new google.maps.Point(12, 9),
-        },
-        zIndex: es_activo ? 100 : 50,
-      });
+        const marcador = new window.google.maps.Marker({
+          position: { lat: bloque.latitud, lng: bloque.longitud },
+          map: mapa,
+          title: `${bloque.nombre} - ${sede.nombre}`,
+          label: {
+            text: bloque.nombre.includes("Bloque A") ? "A" : "B",
+            color: "#FFFFFF",
+            fontWeight: "bold",
+            fontSize: "12px",
+          },
+          icon: {
+            path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z",
+            fillColor: es_activo ? "#063A6B" : "#17B4C4",
+            fillOpacity: 1,
+            strokeColor: "#FFFFFF",
+            strokeWeight: 2,
+            scale: 1.8,
+            anchor: new window.google.maps.Point(12, 22),
+            labelOrigin: new window.google.maps.Point(12, 9),
+          },
+          zIndex: es_activo ? 100 : 50,
+        });
 
-      marcador.addListener("click", () => {
-        alSeleccionarBloque(bloque);
-        if (ventana_info_ref.current) {
-          ventana_info_ref.current.setContent(`
-            <div style="padding: 6px; font-family: sans-serif; font-size: 12px; color: #1E293B; max-width: 220px;">
-              <strong style="color: #063A6B; font-size: 13px; display: block; margin-bottom: 2px;">
-                ${bloque.nombre}
-              </strong>
-              <span style="font-size: 11px; color: #64748B; display: block; margin-bottom: 4px;">
-                ${sede.nombre}
-              </span>
-              <p style="margin: 0 0 6px 0; font-size: 11px; line-height: 1.3;">
-                ${bloque.descripcion || "Punto geodésico institucional"}
-              </p>
-              <div style="font-family: monospace; font-size: 10px; background: #F1F5F9; padding: 2px 4px; border-radius: 4px;">
-                ${bloque.latitud.toFixed(6)}, ${bloque.longitud.toFixed(6)}
+        marcador.addListener("click", () => {
+          alSeleccionarBloque(bloque);
+          if (ventana_info_ref.current) {
+            ventana_info_ref.current.setContent(`
+              <div style="padding: 6px; font-family: sans-serif; font-size: 12px; color: #1E293B; max-width: 220px;">
+                <strong style="color: #063A6B; font-size: 13px; display: block; margin-bottom: 2px;">
+                  ${bloque.nombre}
+                </strong>
+                <span style="font-size: 11px; color: #64748B; display: block; margin-bottom: 4px;">
+                  ${sede.nombre}
+                </span>
+                <p style="margin: 0 0 6px 0; font-size: 11px; line-height: 1.3;">
+                  ${bloque.descripcion || "Punto geodésico institucional"}
+                </p>
+                <div style="font-family: monospace; font-size: 10px; background: #F1F5F9; padding: 2px 4px; border-radius: 4px;">
+                  ${bloque.latitud.toFixed(6)}, ${bloque.longitud.toFixed(6)}
+                </div>
               </div>
-            </div>
-          `);
-          ventana_info_ref.current.open(mapa, marcador);
-        }
-      });
+            `);
+            ventana_info_ref.current.open(mapa, marcador);
+          }
+        });
 
-      marcadores_bloques_ref.current.push(marcador);
-    });
+        marcadores_bloques_ref.current.push(marcador);
+      });
+    } catch (e) {
+      console.warn("[VisorGoogleMapsGeocerca] Error al pintar bloques:", e);
+    }
   }, [sede, bloque_activo, esta_cargado, alSeleccionarBloque, modo_radar]);
 
   // Actualizar círculo de geocerca y centro cuando cambia bloque_activo o radio
   useEffect(() => {
-    if (!instancia_mapa_ref.current || !circulo_geocerca_ref.current || modo_radar) return;
+    if (
+      !instancia_mapa_ref.current ||
+      !circulo_geocerca_ref.current ||
+      modo_radar ||
+      typeof window === "undefined" ||
+      !window.google?.maps
+    ) {
+      return;
+    }
 
-    const centro = new google.maps.LatLng(bloque_activo.latitud, bloque_activo.longitud);
-    circulo_geocerca_ref.current.setCenter(centro);
-    circulo_geocerca_ref.current.setRadius(radio_tolerancia_m);
-    instancia_mapa_ref.current.panTo(centro);
+    try {
+      const centro = new window.google.maps.LatLng(bloque_activo.latitud, bloque_activo.longitud);
+      circulo_geocerca_ref.current.setCenter(centro);
+      circulo_geocerca_ref.current.setRadius(radio_tolerancia_m);
+      instancia_mapa_ref.current.panTo(centro);
+    } catch (e) {
+      console.warn("[VisorGoogleMapsGeocerca] Error al recentrar geocerca:", e);
+    }
   }, [bloque_activo, radio_tolerancia_m, modo_radar]);
 
   // Actualizar posición y color del marcador del becario
   useEffect(() => {
-    if (!marcador_becario_ref.current || modo_radar) return;
+    if (
+      !marcador_becario_ref.current ||
+      modo_radar ||
+      typeof window === "undefined" ||
+      !window.google?.maps
+    ) {
+      return;
+    }
 
-    const pos = new google.maps.LatLng(becario_lat, becario_lng);
-    marcador_becario_ref.current.setPosition(pos);
-    marcador_becario_ref.current.setIcon({
-      path: google.maps.SymbolPath.CIRCLE,
-      scale: 9,
-      fillColor: becario_en_rango ? "#10B981" : "#EF4444",
-      fillOpacity: 1,
-      strokeColor: "#FFFFFF",
-      strokeWeight: 2.5,
-    });
+    try {
+      const pos = new window.google.maps.LatLng(becario_lat, becario_lng);
+      marcador_becario_ref.current.setPosition(pos);
+      marcador_becario_ref.current.setIcon({
+        path: window.google.maps.SymbolPath?.CIRCLE ?? 0,
+        scale: 9,
+        fillColor: becario_en_rango ? "#10B981" : "#EF4444",
+        fillOpacity: 1,
+        strokeColor: "#FFFFFF",
+        strokeWeight: 2.5,
+      });
+    } catch (e) {
+      console.warn("[VisorGoogleMapsGeocerca] Error al actualizar becario:", e);
+    }
   }, [becario_lat, becario_lng, becario_en_rango, modo_radar]);
 
   // Alternar tipo de mapa (Roadmap / Hybrid)
   const alternarTipoMapa = (tipo: "roadmap" | "hybrid") => {
     set_tipo_mapa(tipo);
     if (instancia_mapa_ref.current) {
-      instancia_mapa_ref.current.setMapTypeId(
-        tipo === "roadmap" ? google.maps.MapTypeId.ROADMAP : google.maps.MapTypeId.HYBRID
-      );
+      instancia_mapa_ref.current.setMapTypeId(tipo);
     }
   };
 
   // Recentrar vista en el bloque activo
   const recentrarEnBloque = () => {
-    if (instancia_mapa_ref.current) {
-      const centro = new google.maps.LatLng(bloque_activo.latitud, bloque_activo.longitud);
+    if (instancia_mapa_ref.current && typeof window !== "undefined" && window.google?.maps) {
+      const centro = new window.google.maps.LatLng(bloque_activo.latitud, bloque_activo.longitud);
       instancia_mapa_ref.current.panTo(centro);
       instancia_mapa_ref.current.setZoom(17);
     }
