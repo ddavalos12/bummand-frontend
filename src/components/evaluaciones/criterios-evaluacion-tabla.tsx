@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Combobox, OpcionCombobox } from "@/components/ui/combobox";
 import {
   BookOpen,
   Award,
@@ -22,6 +23,18 @@ import {
   CRITERIOS_EVALUACION_OFICIALES,
   RANGOS_APROBACION_OFICIALES,
 } from "./evaluaciones-datos-semestre";
+
+const OPCIONES_MATERIAS_REPROBADAS: OpcionCombobox[] = [
+  { valor: "0", etiqueta: "0 (Todas Aprobadas)", colorPunto: "bg-emerald-500" },
+  { valor: "1", etiqueta: "1 Reprobada", colorPunto: "bg-amber-500" },
+  { valor: "2", etiqueta: "Más de 1 Reprobada", colorPunto: "bg-rose-500" },
+];
+
+const OPCIONES_EVALUACION_IGLESIA: OpcionCombobox[] = [
+  { valor: "buena", etiqueta: "Buena (20 pts)", colorPunto: "bg-emerald-500" },
+  { valor: "regular", etiqueta: "Regular (15 pts)", colorPunto: "bg-amber-500" },
+  { valor: "no_cumple", etiqueta: "No cumple / No presenta (0 pts)", colorPunto: "bg-rose-500" },
+];
 
 export function CriteriosEvaluacionTabla() {
   const [panel_calculadora_abierto, set_panel_calculadora_abierto] = useState(false);
@@ -162,15 +175,13 @@ export function CriteriosEvaluacionTabla() {
                 </div>
                 <div>
                   <Label className="text-[11px] text-muted-foreground">Materias Reprobadas:</Label>
-                  <select
-                    value={materias_reprobadas}
-                    onChange={(e) => set_materias_reprobadas(parseInt(e.target.value, 10))}
-                    className="w-full h-8 px-2 text-xs border border-[#E3DCCB] rounded-lg bg-white"
-                  >
-                    <option value={0}>0 (Todas Aprobadas)</option>
-                    <option value={1}>1 Reprobada</option>
-                    <option value={2}>Más de 1 Reprobada</option>
-                  </select>
+                  <Combobox
+                    valor={materias_reprobadas.toString()}
+                    alCambiar={(val) => set_materias_reprobadas(parseInt(val, 10))}
+                    opciones={OPCIONES_MATERIAS_REPROBADAS}
+                    tamaño="sm"
+                    className="w-full mt-1"
+                  />
                 </div>
                 <div className="pt-1 text-right font-mono font-bold text-[#063A6B]">
                   Puntaje: {pts_academico} / 20 pts
@@ -182,15 +193,13 @@ export function CriteriosEvaluacionTabla() {
                 <span className="font-bold text-[#063A6B] block">2. Iglesia (/20 pts)</span>
                 <div>
                   <Label className="text-[11px] text-muted-foreground">Evaluación Pastoral:</Label>
-                  <select
-                    value={evaluacion_iglesia}
-                    onChange={(e) => set_evaluacion_iglesia(e.target.value as "buena" | "regular" | "no_cumple")}
-                    className="w-full h-8 px-2 text-xs border border-[#E3DCCB] rounded-lg bg-white"
-                  >
-                    <option value="buena">Buena (20 pts)</option>
-                    <option value="regular">Regular (15 pts)</option>
-                    <option value="no_cumple">No cumple / No presenta (0 pts)</option>
-                  </select>
+                  <Combobox
+                    valor={evaluacion_iglesia}
+                    alCambiar={(val) => set_evaluacion_iglesia(val as "buena" | "regular" | "no_cumple")}
+                    opciones={OPCIONES_EVALUACION_IGLESIA}
+                    tamaño="sm"
+                    className="w-full mt-1"
+                  />
                 </div>
                 <p className="text-[10px] text-muted-foreground pt-1">
                   Certificado pastoral con firma y sello.

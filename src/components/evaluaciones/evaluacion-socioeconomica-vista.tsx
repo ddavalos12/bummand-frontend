@@ -928,7 +928,7 @@ export function EvaluacionSocioeconomicaVista() {
                       className="h-9 px-3.5 border-[#063A6B] text-[#063A6B] hover:bg-[#063A6B]/5 rounded-xl text-xs font-bold flex items-center gap-1.5"
                     >
                       <PlusCircle className="w-3.5 h-3.5 text-[#17B4C4]" />
-                      + Añadir Pregunta
+                      Añadir Pregunta
                     </Button>
                     <Button
                       size="sm"

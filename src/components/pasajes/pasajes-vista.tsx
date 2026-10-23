@@ -22,7 +22,10 @@ import {
   Eye,
   Route,
   ArrowRight,
+  Printer,
+  Loader2,
 } from "lucide-react";
+import { clienteApi } from "@/lib/cliente-api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -94,112 +97,7 @@ export const OPCIONES_TARIFAS_LOCALES = [
   { codigo: "custom", label: "Otro (escribir monto)…", monto: 0 },
 ];
 
-export const RECORRIDOS_INICIALES: RecorridoMensual[] = [
-  {
-    id: 1,
-    fecha: "23-02",
-    descripcion: "Ceja El Alto – Mi Teleférico Roja – Of. Central Diaconía",
-    monto: 3.5,
-    tramo: "ida",
-    origen: "Ceja El Alto",
-    destino: "Of. Central Diaconía",
-    medio_transporte: "Minibús + Mi Teleférico Línea Roja",
-    tipo_actividad: "Prácticas",
-    calles_declaradas: "Ceja El Alto (Calle 1) → Av. Naciones Unidas → Mi Teleférico Línea Roja → Estación Central → Av. Mariscal Santa Cruz",
-    apoyo_realizado: "Revisión de carpetas crediticias y conciliación de extractos bancarios",
-  },
-  {
-    id: 2,
-    fecha: "23-02",
-    descripcion: "Of. Central Diaconía – Mi Teleférico Roja – Ceja El Alto",
-    monto: 3.5,
-    tramo: "vuelta",
-    origen: "Of. Central Diaconía",
-    destino: "Ceja El Alto",
-    medio_transporte: "Mi Teleférico Línea Roja + Minibús",
-    tipo_actividad: "Prácticas",
-    calles_declaradas: "Av. Mariscal Santa Cruz → Estación Central → Mi Teleférico Línea Roja → Av. Naciones Unidas → Ceja El Alto",
-    apoyo_realizado: "Retorno a domicilio tras culminación de horas de práctica",
-  },
-  {
-    id: 3,
-    fecha: "27-02",
-    descripcion: "Av. Buenos Aires – Plaza San Francisco – Of. Central",
-    monto: 2.5,
-    tramo: "ida",
-    origen: "Av. Buenos Aires",
-    destino: "Of. Central Diaconía",
-    medio_transporte: "Minibús Urbano",
-    tipo_actividad: "Prácticas",
-    calles_declaradas: "Av. Buenos Aires (Garita de Lima) → Calle Max Paredes → Av. Tumusla → Plaza San Francisco → Of. Central",
-    apoyo_realizado: "Conciliación de saldos diarios y arqueo de caja",
-  },
-  {
-    id: 4,
-    fecha: "02-03",
-    descripcion: "Ciudad Satélite – Mi Teleférico Amarilla – Sede Central",
-    monto: 3.0,
-    tramo: "ida",
-    origen: "Ciudad Satélite",
-    destino: "Sede Central (Auditorio Diaconía)",
-    medio_transporte: "Mi Teleférico Línea Amarilla",
-    tipo_actividad: "Escuela de Líderes",
-    calles_declaradas: "Ciudad Satélite (Plaza Bolivia) → Estación Mirador → Mi Teleférico Línea Amarilla → Estación Sopocachi → Plaza Abaroa",
-    apoyo_realizado: "Asistencia a módulo presencial de Formación de Líderes CETI",
-  },
-  {
-    id: 5,
-    fecha: "04-03",
-    descripcion: "Pérez Velasco – Mi Teleférico Morada – Centró Evangelistico Caluyo",
-    monto: 3.5,
-    tramo: "ida",
-    origen: "Pérez Velasco",
-    destino: "Centró Evangelistico Caluyo",
-    medio_transporte: "Mi Teleférico Línea Morada + Minibús",
-    tipo_actividad: "Acciones de Servicio",
-    calles_declaradas: "Pérez Velasco → Estación Obelisco → Mi Teleférico Línea Morada → Estación Faro Murillo → Av. Civica Caluyo",
-    apoyo_realizado: "Campaña de servicio comunitario diaconal y apoyo pastoral",
-  },
-  {
-    id: 6,
-    fecha: "06-03",
-    descripcion: "Villa Adela – Cruce Viacha – Of. Central Bloque B",
-    monto: 3.5,
-    tramo: "ida",
-    origen: "Villa Adela",
-    destino: "Of. Central Bloque B",
-    medio_transporte: "Minibús Interciudad",
-    tipo_actividad: "Prácticas",
-    calles_declaradas: "Villa Adela (Plaza Principal) → Av. Bolivia → Cruce Viacha → Ceja El Alto → Autopista → Pérez Velasco",
-    apoyo_realizado: "Análisis de ratios y evaluación de garantías prendarias",
-  },
-  {
-    id: 7,
-    fecha: "09-03",
-    descripcion: "Extranca Río Seco – Mi Teleférico Azul – Estación Central",
-    monto: 3.5,
-    tramo: "ida",
-    origen: "Río Seco",
-    destino: "Oficina Central Diaconía",
-    medio_transporte: "Mi Teleférico Línea Azul + Roja",
-    tipo_actividad: "Prácticas",
-    calles_declaradas: "Extranca Río Seco → Mi Teleférico Línea Azul → Estación 16 de Julio → Mi Teleférico Línea Roja → Estación Central",
-    apoyo_realizado: "Mantenimiento preventivo de torniquetes biométricos",
-  },
-  {
-    id: 8,
-    fecha: "11-03",
-    descripcion: "Av. Buenos Aires – San Pedro – Of. Central Bloque A",
-    monto: 2.5,
-    tramo: "ida",
-    origen: "Av. Buenos Aires",
-    destino: "Of. Central Bloque A",
-    medio_transporte: "Minibús Urbano",
-    tipo_actividad: "Prácticas",
-    calles_declaradas: "Av. Buenos Aires (Cruce Landaeta) → Plaza Sucre (San Pedro) → Calle Colombia → Av. Camacho",
-    apoyo_realizado: "Auditoría de compras y cotejo presupuestario",
-  },
-];
+export const RECORRIDOS_INICIALES: RecorridoMensual[] = [];
 
 export const obtenerEstiloTransporte = (medio?: string) => {
   if (!medio) return "bg-slate-100 text-slate-800 border-slate-300";
@@ -263,6 +161,31 @@ export function PasajesVista() {
   const [recorridos, set_recorridos] = useState<RecorridoMensual[]>(RECORRIDOS_INICIALES);
   const [fecha_recorrido, set_fecha_recorrido] = useState<string>("2026-03-12");
   const [recorrido_seleccionado, set_recorrido_seleccionado] = useState<RecorridoMensual | null>(null);
+  const [descargando_pdf, set_descargando_pdf] = useState<boolean>(false);
+
+  const descargarExpedientePdf = async () => {
+    try {
+      set_descargando_pdf(true);
+      toast.info("Generando expediente mensual de recorridos con Puppeteer...", {
+        description: "Preparando documento oficial en formato PDF.",
+      });
+      const id_becario = usuario?.id || 1;
+      const blob = await clienteApi.descargarBlob("/pdf/recorridos-estudiante/" + id_becario + "?mes=2026-10");
+      const url = window.URL.createObjectURL(blob);
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      enlace.download = "Expediente_Recorridos_Estudiante_" + id_becario + "_2026_10.pdf";
+      document.body.appendChild(enlace);
+      enlace.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(enlace);
+      toast.success("Expediente de recorridos descargado exitosamente");
+    } catch (_error) {
+      toast.error("Error al exportar el expediente de recorridos en PDF con Puppeteer");
+    } finally {
+      set_descargando_pdf(false);
+    }
+  };
 
   const {
     confirmarEliminacionRegistro,
@@ -742,7 +665,7 @@ export function PasajesVista() {
                       className="text-xs font-bold text-[#17B4C4] hover:text-[#0E7A85] flex items-center gap-1 transition-colors"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      + Agregar parada
+                      Agregar parada
                     </button>
                     <span className="text-[11px] text-muted-foreground font-mono">
                       {paradas_ida.length} paradas configuradas
@@ -822,7 +745,7 @@ export function PasajesVista() {
                       className="text-xs font-bold text-[#063A6B] hover:text-[#17B4C4] flex items-center gap-1 transition-colors pt-1"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      + Agregar tramo de tarifa (transbordo)
+                      Agregar tramo de tarifa (transbordo)
                     </button>
                   </div>
 
@@ -943,7 +866,7 @@ export function PasajesVista() {
                       className="text-xs font-bold text-[#17B4C4] hover:text-[#0E7A85] flex items-center gap-1 transition-colors"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      + Agregar parada de retorno
+                      Agregar parada de retorno
                     </button>
                     <span className="text-[11px] text-muted-foreground font-mono">
                       {paradas_vuelta.length} paradas configuradas
@@ -1023,7 +946,7 @@ export function PasajesVista() {
                       className="text-xs font-bold text-[#063A6B] hover:text-[#17B4C4] flex items-center gap-1 transition-colors pt-1"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      + Agregar tramo de tarifa (transbordo)
+                      Agregar tramo de tarifa (transbordo)
                     </button>
                   </div>
                 </div>
@@ -1150,9 +1073,26 @@ export function PasajesVista() {
 
               {/* LISTA DE RECORRIDOS DECLARADOS DEL MES */}
               <div>
-                <Label className="text-xs font-mono uppercase font-bold text-muted-foreground block mb-2">
-                  Recorridos Declarados en el Mes
-                </Label>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-xs font-mono uppercase font-bold text-muted-foreground block">
+                    Recorridos Declarados en el Mes
+                  </Label>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={descargarExpedientePdf}
+                    disabled={descargando_pdf}
+                    className="h-7 px-2.5 text-[11px] font-bold border-[#063A6B] text-[#063A6B] hover:bg-slate-100 rounded-lg gap-1.5 shadow-2xs"
+                    title="Exportar expediente mensual de recorridos a PDF con Puppeteer"
+                  >
+                    {descargando_pdf ? (
+                      <Loader2 className="w-3 h-3 animate-spin text-[#17B4C4]" />
+                    ) : (
+                      <Printer className="w-3 h-3 text-[#17B4C4]" />
+                    )}
+                    <span>Exportar PDF</span>
+                  </Button>
+                </div>
                 <div className="overflow-y-auto max-h-[250px] space-y-2 border border-[#E3DCCB]/80 rounded-xl p-2 bg-white">
                   {recorridos.map((rec) => (
                     <div

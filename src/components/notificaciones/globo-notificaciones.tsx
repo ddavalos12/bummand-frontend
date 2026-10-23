@@ -18,6 +18,7 @@ import {
 import { InsigniaPulsoVivo } from "@/components/animaciones/insignia-pulso-vivo";
 import { BotonConEstado } from "@/components/animaciones/boton-con-estado";
 import { useTiempoReal } from "@/hooks/useTiempoReal";
+import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { peticionApi } from "@/lib/cliente-api";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -85,6 +86,7 @@ export function GloboNotificaciones({
   alNavegarASeccion,
   className,
 }: PropiedadesGloboNotificaciones) {
+  const { usuario } = usarAutenticacion();
   const [abierto, set_abierto] = useState<boolean>(false);
   const [notificaciones, set_notificaciones] = useState<NotificacionItem[]>(NOTIFICACIONES_BASE);
   const [filtro, set_filtro] = useState<"todas" | "pendientes">("todas");
@@ -94,6 +96,11 @@ export function GloboNotificaciones({
   useTiempoReal({
     eventos: {
       codigo_verificacion_tutor: (datos: unknown) => {
+        // El código sólo le llega a los administradores, ya no al supervisor
+        if (usuario && usuario.rol !== "administrador") {
+          return;
+        }
+
         const carga = (datos || {}) as {
           codigo?: string;
           becario_nombre?: string;
@@ -105,16 +112,16 @@ export function GloboNotificaciones({
         const nueva: NotificacionItem = {
           id: Date.now(),
           tipo: "evaluacion",
-          titulo: `🔐 Código de Supervisor: ${codigo_str}`,
+          titulo: `🔐 Código de Administrador: ${codigo_str}`,
           mensaje:
             carga.mensaje ||
-            `Código de 6 dígitos para evaluar a ${becario_str}: ${codigo_str} (válido por 10 min).`,
+            `Código de 6 dígitos para autorizar evaluación de ${becario_str}: ${codigo_str} (válido por 10 min).`,
           tiempo: "Ahora mismo",
           leido: false,
         };
         set_notificaciones((prev) => [nueva, ...prev]);
         set_abierto(true);
-        toast.info(`Código de Verificación de Tutor: ${codigo_str}`, {
+        toast.info(`Código de Verificación (Administración): ${codigo_str}`, {
           description: `Ingresa el código ${codigo_str} para autorizar la evaluación de ${becario_str}.`,
           duration: 15000,
         });
@@ -143,7 +150,7 @@ export function GloboNotificaciones({
           return {
             id: r.id + 10000,
             tipo: tipo_item,
-            titulo: es_codigo ? "🔐 Código de Autorización de Tutor" : "Notificación Institucional",
+            titulo: es_codigo ? "🔐 Código de Autorización de Administración" : "Notificación Institucional",
             mensaje: r.mensaje,
             tiempo: "Reciente",
             leido: Boolean(r.leido),

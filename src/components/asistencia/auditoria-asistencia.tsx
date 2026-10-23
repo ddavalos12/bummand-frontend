@@ -26,7 +26,12 @@ import {
   ListChecks,
   Plus,
   Trash2,
+  ClipboardCheck,
 } from "lucide-react";
+import {
+  DialogoJustificarFalta,
+  type IncidenciaAsistenciaInicial,
+} from "./dialogo-justificar-falta";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -430,7 +435,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
           return respuesta.map((item, idx) => ({
             id: item.id || idx + 1,
             becario_id: item.becario_id || idx + 1,
-            nombre: item.becario?.usuario?.nombre || item.nombre || `Becario ${idx + 1}`,
+            nombre: item.becario?.nombre || item.becario?.usuario?.nombre || item.nombre || `Becario ${idx + 1}`,
             ci: item.becario?.ci || item.ci || "—",
             carrera: item.becario?.carrera || item.carrera || "Carrera BUMAND",
             sede: item.becario?.lugar_practica?.nombre || item.sede || "Sede Diaconía",
@@ -575,6 +580,30 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
   const [registro_detalle, set_registro_detalle] = useState<RegistroAuditoriaAsistencia | null>(
     null
   );
+  const [dialogo_justificar_abierto, set_dialogo_justificar_abierto] = useState<boolean>(false);
+  const [incidencia_a_justificar, set_incidencia_a_justificar] =
+    useState<IncidenciaAsistenciaInicial | null>(null);
+
+  const abrirJustificacionParaRegistro = (item: RegistroAuditoriaAsistencia) => {
+    let tipo_incidencia: IncidenciaAsistenciaInicial["tipo_incidencia"] = "asistencia_practicas";
+    if (item.tipo_actividad === "escuela_lideres") tipo_incidencia = "escuela_lideres";
+    else if (item.tipo_actividad === "acciones_servicio") tipo_incidencia = "asistencia_evento";
+
+    set_incidencia_a_justificar({
+      id: item.id,
+      fecha: item.fecha,
+      tipo_incidencia,
+      hora: item.hora_ingreso,
+      sede: item.sede_nombre,
+      referencia_id: item.id,
+      motivo_sugerido:
+        item.motivo_convalidacion ||
+        (item.minutos_retraso
+          ? `Retraso de ${item.minutos_retraso} min registrado en marcación`
+          : undefined),
+    });
+    set_dialogo_justificar_abierto(true);
+  };
 
   // Estados para Llamada de Lista en Vivo (Viernes de Formación / Práctica)
   const [modal_lista_vivo_abierto, set_modal_lista_vivo_abierto] = useState<boolean>(false);
@@ -656,7 +685,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
         return respuesta.map((item) => ({
           id: item.id,
           becario_id: item.becario_id,
-          becario_nombre: item.becario?.usuario?.nombre || "Becario Institucional",
+          becario_nombre: item.becario?.nombre || item.becario?.usuario?.nombre || "Becario Institucional",
           carrera: item.becario?.carrera || "Carrera BUMAND",
           sede_nombre: item.becario?.lugar_practica?.nombre || "Sede Diaconía",
           fecha: item.fecha ? String(item.fecha).split("T")[0] : "2026-10-10",
@@ -779,7 +808,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
               title="Registrar Asistencia Manual (Contingencia sin megas u olvido)"
             >
               <Plus className="w-4 h-4 text-[#F8C766]" />
-              + Añadir Asistencia Manual
+              Añadir Asistencia Manual
             </Button>
           )}
 
@@ -1134,17 +1163,30 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
 
                           {/* Botón de Convalidación para anomalías */}
                           {(item.estado === "fuera_geocerca" || item.estado === "tardanza") && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                set_registro_convalidador(item);
-                                set_motivo_convalidacion("");
-                              }}
-                              className="h-8 px-2.5 text-xs font-bold border-[#063A6B] text-[#063A6B] hover:bg-[#063A6B]/5 rounded-lg"
-                            >
-                              Convalidar
-                            </Button>
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  set_registro_convalidador(item);
+                                  set_motivo_convalidacion("");
+                                }}
+                                className="h-8 px-2.5 text-xs font-bold border-[#063A6B] text-[#063A6B] hover:bg-[#063A6B]/5 rounded-lg"
+                              >
+                                Convalidar
+                              </Button>
+
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => abrirJustificacionParaRegistro(item)}
+                                className="h-8 px-2 text-xs font-bold border-amber-300 text-amber-800 bg-amber-50 hover:bg-amber-100 rounded-lg gap-1"
+                                title="Subir o radicar justificación con comprobante en PDF/imagen"
+                              >
+                                <ClipboardCheck className="w-3.5 h-3.5 text-amber-700" />
+                                <span className="hidden sm:inline">Justificar</span>
+                              </Button>
+                            </>
                           )}
 
                           {/* Botón para eliminar/anular registro de asistencia manual */}
@@ -1789,12 +1831,31 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             </div>
           )}
 
-          <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-[#F8F9FA]">
+          <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-[#F8F9FA] flex flex-col sm:flex-row gap-2">
+            {registro_detalle &&
+              (registro_detalle.estado === "fuera_geocerca" ||
+                registro_detalle.estado === "tardanza") && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const reg = registro_detalle;
+                    set_registro_detalle(null);
+                    if (reg) {
+                      abrirJustificacionParaRegistro(reg);
+                    }
+                  }}
+                  className="rounded-xl text-xs font-bold border-amber-300 text-amber-800 bg-amber-50 hover:bg-amber-100 gap-1.5 w-full sm:w-auto"
+                >
+                  <ClipboardCheck className="w-3.5 h-3.5 text-amber-700" />
+                  <span>Justificar con Comprobante (PDF/Foto)</span>
+                </Button>
+              )}
             <Button
               size="sm"
               variant="outline"
               onClick={() => set_registro_detalle(null)}
-              className="rounded-xl w-full text-xs font-bold"
+              className="rounded-xl w-full sm:w-auto text-xs font-bold ml-auto"
             >
               Cerrar Detalle de Auditoría
             </Button>
@@ -2172,6 +2233,29 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
 
       {/* Diálogo de Confirmación Institucional Unificado */}
       {DialogoConfirmacionInstitucional}
+
+      {/* Diálogo Modal de Justificación con Carga de Comprobante PDF / Imagen */}
+      <DialogoJustificarFalta
+        abierto={dialogo_justificar_abierto}
+        alCambiarAbierto={set_dialogo_justificar_abierto}
+        incidencia={incidencia_a_justificar}
+        alCompletar={() => {
+          if (incidencia_a_justificar?.id) {
+            set_registros_locales((prev) =>
+              prev.map((r) =>
+                r.id === incidencia_a_justificar.id
+                  ? {
+                      ...r,
+                      estado: "convalidado",
+                      convalidado_por: usuario?.nombre || "Supervisor Diaconía",
+                      motivo_convalidacion: "Justificación radicada con respaldo documental probatorio",
+                    }
+                  : r
+              )
+            );
+          }
+        }}
+      />
     </div>
   );
 }

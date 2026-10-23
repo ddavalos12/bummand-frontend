@@ -213,7 +213,7 @@ export function FormularioF03({
                     {ig.nombre} · {ig.pastor_nombre} ({ig.ciudad})
                   </option>
                 ))}
-                <option value="manual">+ Otra congregación no listada (Ingreso manual)</option>
+                <option value="manual">Otra congregación no listada (Ingreso manual)</option>
               </select>
             </div>
           )}

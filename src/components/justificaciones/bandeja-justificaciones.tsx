@@ -342,7 +342,7 @@ export function BandejaJustificaciones() {
         return respuesta.map((item) => ({
           id: item.id,
           becario_id: item.becario_id,
-          becario_nombre: item.becario?.usuario?.nombre || "Becario Institucional",
+          becario_nombre: item.becario?.nombre || item.becario?.usuario?.nombre || "Becario Institucional",
           carrera: item.becario?.carrera || "Carrera BUMAND",
           sede_nombre: item.becario?.lugar_practica?.nombre || "Sede Diaconía",
           tipo_incidencia: item.tipo_incidencia || "asistencia_practicas",
@@ -512,7 +512,7 @@ export function BandejaJustificaciones() {
           className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs h-10 gap-2 shadow-sm shrink-0"
         >
           <Plus className="w-4 h-4 text-[#F8C766]" />
-          + Registrar Permiso / Justificación
+          Registrar Permiso / Justificación
         </Button>
       </div>
 

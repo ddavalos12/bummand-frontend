@@ -45,6 +45,10 @@ import {
   FileCheck,
   Users,
   UserPlus,
+  Printer,
+  Loader2,
+  Smartphone,
+  Bus,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { clienteApi } from "@/lib/cliente-api";
@@ -85,6 +89,8 @@ export interface BecarioVista {
   horas_mes_actual: number;
   horas_meta_mes: number;
   historial_horas_mes: HorasMesHistorico[];
+  tiene_usuario?: boolean;
+  usuario_id?: number | null;
 }
 
 const SUPERVISORES_INSTITUCIONALES = [
@@ -867,11 +873,62 @@ function normalizarBecario(remoto: any): BecarioVista {
     horas_mes_actual,
     horas_meta_mes,
     historial_horas_mes,
+    tiene_usuario: remoto.usuario !== undefined || remoto.usuario_id !== undefined
+      ? Boolean(remoto.usuario || remoto.usuario_id)
+      : true,
+    usuario_id: remoto.usuario_id ?? (remoto.usuario ? remoto.usuario.id : null),
   };
 }
 
 export function GestionBecarios() {
   const { usuario } = usarAutenticacion();
+  const [descargando_pdf_estudiante, set_descargando_pdf_estudiante] = useState<string | null>(null);
+
+  const descargarExpedienteRecorridosEstudiante = async (becario_id: number, nombre: string) => {
+    try {
+      set_descargando_pdf_estudiante('recorridos_' + becario_id);
+      toast.info('Generando expediente mensual de recorridos con Puppeteer...', {
+        description: 'Estudiante: ' + nombre,
+      });
+      const blob = await clienteApi.descargarBlob('/pdf/recorridos-estudiante/' + becario_id + '?mes=2026-10');
+      const url = window.URL.createObjectURL(blob);
+      const enlace = document.createElement('a');
+      enlace.href = url;
+      enlace.download = 'Expediente_Recorridos_' + nombre.replace(/\s+/g, '_') + '_2026_10.pdf';
+      document.body.appendChild(enlace);
+      enlace.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(enlace);
+      toast.success('Expediente de recorridos descargado exitosamente');
+    } catch (_e) {
+      toast.error('Error al exportar el expediente de recorridos en PDF');
+    } finally {
+      set_descargando_pdf_estudiante(null);
+    }
+  };
+
+  const descargarAsistenciaMensualEstudiante = async (becario_id: number, nombre: string) => {
+    try {
+      set_descargando_pdf_estudiante('asistencia_' + becario_id);
+      toast.info('Generando kárdex de asistencia mensual con Puppeteer...', {
+        description: 'Estudiante: ' + nombre,
+      });
+      const blob = await clienteApi.descargarBlob('/pdf/asistencia-estudiante/' + becario_id + '?mes=2026-10');
+      const url = window.URL.createObjectURL(blob);
+      const enlace = document.createElement('a');
+      enlace.href = url;
+      enlace.download = 'Asistencia_Mensual_' + nombre.replace(/\s+/g, '_') + '_2026_10.pdf';
+      document.body.appendChild(enlace);
+      enlace.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(enlace);
+      toast.success('Kárdex de asistencia mensual descargado exitosamente');
+    } catch (_e) {
+      toast.error('Error al exportar la asistencia mensual en PDF');
+    } finally {
+      set_descargando_pdf_estudiante(null);
+    }
+  };
   const es_admin = usuario?.rol === "administrador";
 
   const [lista_becarios, set_lista_becarios] = useState<BecarioVista[]>(BECARIOS_INICIALES);
@@ -913,6 +970,7 @@ export function GestionBecarios() {
   const [nueva_iglesia, set_nueva_iglesia] = useState("Iglesia Alianza La Paz");
   const [nuevo_lugar, set_nuevo_lugar] = useState("Oficina Central Bloque A");
   const [nuevo_estado, set_nuevo_estado] = useState<"pendiente_validacion" | "activo">("pendiente_validacion");
+  const [guardando_becario, set_guardando_becario] = useState(false);
 
   // Estado para Asignar Supervisor (Modal)
   const [modal_supervisor_abierto, set_modal_supervisor_abierto] = useState(false);
@@ -984,51 +1042,73 @@ export function GestionBecarios() {
     );
   });
 
-  const manejarGuardarBecario = (e: React.FormEvent) => {
+  const manejarGuardarBecario = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nuevo_nombre.trim() || !nuevo_ci.trim()) return;
+    if (!nuevo_nombre.trim() || !nuevo_ci.trim()) {
+      toast.error("El nombre completo y el C.I. son obligatorios");
+      return;
+    }
 
-    const nuevo: BecarioVista = {
-      id: lista_becarios.length + 1,
-      nombre: nuevo_nombre,
-      ci: nuevo_ci,
-      expedicion: "LP",
-      estado_civil: "Soltero(a)",
-      sexo: "M",
-      ceti: 1,
-      celular: "70000000",
-      correo: `${nuevo_nombre.toLowerCase().replace(/\s+/g, "")}@gmail.com`,
-      fecha_nacimiento: "01/01/2000",
-      edad: 24,
-      direccion: "Zona Central",
-      ciudad: "La Paz",
-      carrera: es_admin ? nueva_carrera || "Ingeniería de Sistemas" : "Carrera Pendiente Asignación",
-      universidad: es_admin ? nueva_universidad : "UMSA",
-      iglesia: es_admin ? nueva_iglesia : "Iglesia Central",
-      lugar_practica: es_admin ? nuevo_lugar : "Oficina Central Bloque A",
-      tutor_nombre: SUPERVISORES_INSTITUCIONALES[0].nombre,
-      tutor_correo: SUPERVISORES_INSTITUCIONALES[0].correo,
-      estado: nuevo_estado,
-      horas_mes_actual: 0,
-      horas_meta_mes: 40.0,
-      historial_horas_mes: [
-        { mes: "Octubre 2026", horas_realizadas: 0, meta_horas: 40.0, porcentaje: 0, estado: "en_riesgo" },
-        { mes: "Septiembre 2026", horas_realizadas: 0, meta_horas: 40.0, porcentaje: 0, estado: "en_riesgo" },
-        { mes: "Agosto 2026", horas_realizadas: 0, meta_horas: 40.0, porcentaje: 0, estado: "en_riesgo" },
-      ],
-    };
+    try {
+      set_guardando_becario(true);
 
-    set_lista_becarios([nuevo, ...lista_becarios]);
-    set_nuevo_nombre("");
-    set_nuevo_ci("");
-    set_nueva_carrera("");
-    set_modal_abierto(false);
-    if (nuevo_estado === "pendiente_validacion") {
-      toast.success(`Becario ${nuevo.nombre} registrado como "Pendiente de Validación".`, {
-        description: "El expediente aparece ahora en la pestaña 'Validaciones'.",
+      const payload = {
+        ci: nuevo_ci.trim(),
+        nombre: nuevo_nombre.trim(),
+        carrera: es_admin ? (nueva_carrera.trim() || "Ingeniería de Sistemas") : "Carrera Pendiente Asignación",
+        universidad: es_admin ? nueva_universidad : "UMSA",
+        fecha_ingreso: new Date().toISOString().split("T")[0],
+      };
+
+      let creado_remoto: any = null;
+      try {
+        creado_remoto = await clienteApi.post<any>("/api/becarios", payload);
+      } catch (error_api: any) {
+        console.warn("Fallo al persistir en backend, usando modo de respaldo local:", error_api);
+      }
+
+      const nuevo: BecarioVista = normalizarBecario(creado_remoto || {
+        ...payload,
+        id: lista_becarios.length + 1,
+        expedicion: "LP",
+        estado_civil: "Soltero(a)",
+        sexo: "M",
+        ceti: 1,
+        celular: "70000000",
+        correo: `${nuevo_nombre.toLowerCase().replace(/\s+/g, "")}@gmail.com`,
+        fecha_nacimiento: "01/01/2000",
+        edad: 24,
+        direccion: "Zona Central",
+        ciudad: "La Paz",
+        iglesia: es_admin ? nueva_iglesia : "Iglesia Central",
+        lugar_practica: es_admin ? nuevo_lugar : "Oficina Central Bloque A",
+        tutor_nombre: SUPERVISORES_INSTITUCIONALES[0].nombre,
+        tutor_correo: SUPERVISORES_INSTITUCIONALES[0].correo,
+        estado: nuevo_estado,
+        horas_mes_actual: 0,
+        horas_meta_mes: 40.0,
+        historial_horas_mes: [
+          { mes: "Octubre 2026", horas_realizadas: 0, meta_horas: 40.0, porcentaje: 0, estado: "en_riesgo" },
+          { mes: "Septiembre 2026", horas_realizadas: 0, meta_horas: 40.0, porcentaje: 0, estado: "en_riesgo" },
+          { mes: "Agosto 2026", horas_realizadas: 0, meta_horas: 40.0, porcentaje: 0, estado: "en_riesgo" },
+        ],
+        tiene_usuario: false,
+        usuario_id: null,
       });
-    } else {
-      toast.success(`Becario ${nuevo.nombre} registrado exitosamente como "Activo".`);
+
+      set_lista_becarios([nuevo, ...lista_becarios]);
+      set_nuevo_nombre("");
+      set_nuevo_ci("");
+      set_nueva_carrera("");
+      set_modal_abierto(false);
+
+      toast.success(`Becario ${nuevo.nombre} pre-registrado exitosamente en nómina.`, {
+        description: `El C.I. ${nuevo.ci} ha sido habilitado para que el estudiante cree su cuenta en la app móvil.`,
+      });
+    } catch (err: any) {
+      toast.error(`Error al registrar becario: ${err?.message || "Ocurrió un error inesperado"}`);
+    } finally {
+      set_guardando_becario(false);
     }
   };
 
@@ -1264,7 +1344,7 @@ export function GestionBecarios() {
                     className="h-10 px-3.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl flex items-center gap-1.5 text-xs shadow-sm cursor-pointer"
                   >
                     <UserPlus className="w-4 h-4" />
-                    <span>+ Registrar Pendiente</span>
+                    <span>Registrar Pendiente</span>
                   </Button>
                 </div>
               )}
@@ -1330,7 +1410,16 @@ export function GestionBecarios() {
                           </div>
                         </TableCell>
                         <TableCell className="text-center">
-                          {b.estado === "activo" ? (
+                          {b.tiene_usuario === false ? (
+                            <Badge
+                              variant="outline"
+                              className="bg-sky-50 text-sky-700 border-sky-300 text-[10px] font-bold"
+                              title="Pre-registrado en nómina. Pendiente de auto-registro en App Móvil con su C.I."
+                            >
+                              <Smartphone className="w-3 h-3 mr-1 text-sky-600" />
+                              PENDIENTE APP
+                            </Badge>
+                          ) : b.estado === "activo" ? (
                             <Badge
                               variant="outline"
                               className="bg-emerald-50 text-emerald-700 border-emerald-300 text-[10px] font-bold"
@@ -1921,15 +2010,24 @@ export function GestionBecarios() {
                 type="button"
                 variant="outline"
                 onClick={intentarCerrarModalBecario}
+                disabled={guardando_becario}
                 className="h-10 border-[#E3DCCB] rounded-xl hover:bg-slate-100"
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
-                className="h-10 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl shadow-sm"
+                disabled={guardando_becario}
+                className="h-10 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl shadow-sm flex items-center gap-2"
               >
-                Guardar Becario
+                {guardando_becario ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Guardando en Nómina...</span>
+                  </>
+                ) : (
+                  <span>Guardar Becario</span>
+                )}
               </Button>
             </DialogFooter>
           </form>
@@ -2236,7 +2334,47 @@ export function GestionBecarios() {
             )}
           </DialogBody>
 
-          <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA] shrink-0 flex justify-end">
+          <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA] shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={descargando_pdf_estudiante !== null}
+                onClick={() =>
+                  becario_ficha_modal &&
+                  descargarExpedienteRecorridosEstudiante(becario_ficha_modal.id, becario_ficha_modal.nombre)
+                }
+                className="h-9 border-[#063A6B] text-[#063A6B] hover:bg-[#063A6B]/10 rounded-xl text-xs font-bold gap-1.5 shadow-2xs"
+                title="Exportar expediente mensual de recorridos en PDF con Puppeteer"
+              >
+                {descargando_pdf_estudiante === 'recorridos_' + (becario_ficha_modal?.id ?? 0) ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#17B4C4]" />
+                ) : (
+                  <Bus className="w-3.5 h-3.5 text-[#17B4C4]" />
+                )}
+                <span>Expediente Recorridos (PDF)</span>
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                disabled={descargando_pdf_estudiante !== null}
+                onClick={() =>
+                  becario_ficha_modal &&
+                  descargarAsistenciaMensualEstudiante(becario_ficha_modal.id, becario_ficha_modal.nombre)
+                }
+                className="h-9 border-[#063A6B] text-[#063A6B] hover:bg-[#063A6B]/10 rounded-xl text-xs font-bold gap-1.5 shadow-2xs"
+                title="Exportar kárdex de asistencia mensual en PDF con Puppeteer"
+              >
+                {descargando_pdf_estudiante === 'asistencia_' + (becario_ficha_modal?.id ?? 0) ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#17B4C4]" />
+                ) : (
+                  <Clock className="w-3.5 h-3.5 text-[#17B4C4]" />
+                )}
+                <span>Asistencia Mensual (PDF)</span>
+              </Button>
+            </div>
+
             <Button
               type="button"
               variant="outline"

@@ -46,6 +46,8 @@ import {
   ChevronRight,
   Columns,
   FileText,
+  Printer,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
@@ -92,334 +94,7 @@ export interface SolicitudPasajeVista {
   recorridos: RecorridoItem[];
 }
 
-const SOLICITUDES_INICIALES: SolicitudPasajeVista[] = [
-  {
-    id: 101,
-    becario_nombre: "María Catunta L.",
-    iniciales: "MC",
-    carrera: "Contaduría Pública",
-    unidad: "Créditos",
-    lugar_practicas: "Oficina Central - Bloque A",
-    responsable_mentor: "Carlos Alanoca",
-    apoyo_resumen: "Envío de reportes de cartera y conciliación de extractos bancarios",
-    periodo: "Marzo 2026",
-    tipo_actividad: "Prácticas",
-    monto_total_centavos: 3500, // Bs 35.00
-    monto_devolucion_centavos: 2800, // 80% = Bs 28.00
-    estado: "pendiente",
-    fecha_envio: "2026-03-24",
-    recorridos: [
-      {
-        id: 1,
-        fecha: "27-02",
-        tramo: "ida",
-        origen: "Ceja El Alto",
-        destino: "Oficina Central Diaconía",
-        tarifa: 3.5,
-        apoyo_realizado: "Revisión de carpetas crediticias e informes de mora",
-        tiene_gps: true,
-        medio_transporte: "Minibús + Mi Teleférico Línea Roja",
-        tipo_actividad: "Prácticas",
-        calles_declaradas: "Ceja El Alto (Calle 1) → Av. Naciones Unidas → Mi Teleférico Línea Roja → Estación Central → Av. Mariscal Santa Cruz",
-      },
-      {
-        id: 2,
-        fecha: "27-02",
-        tramo: "vuelta",
-        origen: "Oficina Central Diaconía",
-        destino: "Ceja El Alto",
-        tarifa: 3.5,
-        apoyo_realizado: "Retorno a domicilio tras cierre de jornada de prácticas",
-        tiene_gps: true,
-        medio_transporte: "Mi Teleférico Línea Roja + Minibús",
-        tipo_actividad: "Prácticas",
-        calles_declaradas: "Av. Mariscal Santa Cruz → Estación Central → Mi Teleférico Línea Roja → Av. Naciones Unidas → Ceja El Alto",
-      },
-      {
-        id: 3,
-        fecha: "04-03",
-        tramo: "ida",
-        origen: "Av. Buenos Aires",
-        destino: "Oficina Central Diaconía",
-        tarifa: 2.5,
-        apoyo_realizado: "Conciliación de saldos diarios y arqueo de caja",
-        tiene_gps: true,
-        medio_transporte: "Minibús Urbano",
-        tipo_actividad: "Prácticas",
-        calles_declaradas: "Av. Buenos Aires (Plaza Garita de Lima) → Calle Max Paredes → Av. Tumusla → Plaza San Francisco → Of. Central",
-      },
-      {
-        id: 4,
-        fecha: "04-03",
-        tramo: "vuelta",
-        origen: "Oficina Central Diaconía",
-        destino: "Av. Buenos Aires",
-        tarifa: 2.5,
-        apoyo_realizado: "Retorno institucional",
-        tiene_gps: true,
-        medio_transporte: "Minibús Urbano",
-        tipo_actividad: "Prácticas",
-        calles_declaradas: "Of. Central → Plaza San Francisco → Av. Manco Kapac → Av. Buenos Aires",
-      },
-      {
-        id: 5,
-        fecha: "09-03",
-        tramo: "ida",
-        origen: "Ceja El Alto",
-        destino: "Oficina Central Diaconía",
-        tarifa: 3.5,
-        apoyo_realizado: "Digitalización de expedientes de créditos desembolsados",
-        tiene_gps: true,
-        medio_transporte: "Mi Teleférico Línea Morada",
-        tipo_actividad: "Prácticas",
-        calles_declaradas: "Estación 6 de Marzo (Ceja) → Estación Faro Murillo → Mi Teleférico Línea Morada → Estación Obelisco → Calle Ayacucho",
-      },
-      {
-        id: 6,
-        fecha: "11-03",
-        tramo: "ida",
-        origen: "Av. Buenos Aires",
-        destino: "Oficina Central Diaconía",
-        tarifa: 2.5,
-        apoyo_realizado: "Auditoría preliminar de cartera en mora y garantías",
-        tiene_gps: true,
-        medio_transporte: "Minibús Urbano",
-        tipo_actividad: "Prácticas",
-        calles_declaradas: "Av. Buenos Aires (Cruce Landaeta) → Plaza Sucre (San Pedro) → Calle Colombia → Av. Camacho",
-      },
-      {
-        id: 7,
-        fecha: "16-03",
-        tramo: "ida",
-        origen: "Ceja El Alto",
-        destino: "Oficina Central Diaconía",
-        tarifa: 3.5,
-        apoyo_realizado: "Liquidación semanal y emisión de extractos de agencias",
-        tiene_gps: true,
-        medio_transporte: "Minibús Interciudad",
-        tipo_actividad: "Prácticas",
-        calles_declaradas: "Ceja El Alto → Autopista La Paz-El Alto → Pérez Velasco → Mercado Lanza → Of. Central Bloque A",
-      },
-      {
-        id: 8,
-        fecha: "18-03",
-        tramo: "ida",
-        origen: "Av. Buenos Aires",
-        destino: "Oficina Central Diaconía",
-        tarifa: 2.5,
-        apoyo_realizado: "Cierre de expedientes mensuales y verificación contable",
-        tiene_gps: true,
-        medio_transporte: "Minibús Urbano",
-        tipo_actividad: "Prácticas",
-        calles_declaradas: "Av. Buenos Aires → Calle Vicente Ochoa → Av. Illampu → Av. Montes → Edificio Central",
-      },
-    ],
-  },
-  {
-    id: 102,
-    becario_nombre: "Jose M. Suñagua",
-    iniciales: "JS",
-    carrera: "Ingeniería Financiera",
-    unidad: "Riesgos",
-    lugar_practicas: "Oficina Central - Bloque B",
-    responsable_mentor: "Lic. Edgar Nilda",
-    apoyo_resumen: "Análisis de riesgo crediticio y evaluación de garantías",
-    periodo: "Marzo 2026",
-    tipo_actividad: "Prácticas",
-    monto_total_centavos: 7350, // Bs 73.50
-    monto_devolucion_centavos: 5880, // 80% = Bs 58.80
-    estado: "pendiente",
-    fecha_envio: "2026-03-24",
-    recorridos: [
-      {
-        id: 11,
-        fecha: "01-03",
-        tramo: "ida",
-        origen: "Villa Adela",
-        destino: "Oficina Central Diaconía",
-        tarifa: 3.5,
-        apoyo_realizado: "Evaluación de mora de cartera institucional",
-        tiene_gps: true,
-        medio_transporte: "Minibús Interciudad",
-        tipo_actividad: "Prácticas",
-        calles_declaradas: "Villa Adela (Plaza Principal) → Av. Bolivia → Cruce Viacha → Ceja El Alto → Autopista → Pérez Velasco",
-      },
-      {
-        id: 12,
-        fecha: "03-03",
-        tramo: "ida",
-        origen: "Villa Adela",
-        destino: "Oficina Central Diaconía",
-        tarifa: 3.5,
-        apoyo_realizado: "Análisis de ratios y suficiencia patrimonial",
-        tiene_gps: true,
-        medio_transporte: "Mi Teleférico Línea Morada + Minibús",
-        tipo_actividad: "Prácticas",
-        calles_declaradas: "Villa Adela → Cruce Viacha → Estación Faro Murillo (Teleférico Morado) → Estación Obelisco",
-      },
-      {
-        id: 13,
-        fecha: "05-03",
-        tramo: "vuelta",
-        origen: "Oficina Central Diaconía",
-        destino: "Villa Adela",
-        tarifa: 3.5,
-        apoyo_realizado: "Control de liquidez y retorno a base",
-        tiene_gps: true,
-        medio_transporte: "Mi Teleférico Línea Morada + Minibús",
-        tipo_actividad: "Prácticas",
-        calles_declaradas: "Estación Obelisco → Mi Teleférico Línea Morada → Faro Murillo → Cruce Viacha → Villa Adela",
-      },
-    ],
-  },
-  {
-    id: 103,
-    becario_nombre: "Ruddy Flores T.",
-    iniciales: "RF",
-    carrera: "Economía",
-    unidad: "Planif. y Presup.",
-    lugar_practicas: "Oficina Central - Bloque A",
-    responsable_mentor: "Lic. Roberto Quispe",
-    apoyo_resumen: "Consolidación de matrices presupuestarias y partidas operativas",
-    periodo: "Marzo 2026",
-    tipo_actividad: "Escuela de Líderes",
-    monto_total_centavos: 4350, // Bs 43.50
-    monto_devolucion_centavos: 3480, // 80% = Bs 34.80
-    estado: "aprobado",
-    fecha_envio: "2026-03-24",
-    firma_supervisor: "HASH_VERIFICADO_ROBERTO_QUISPE_20260324",
-    recorridos: [
-      {
-        id: 21,
-        fecha: "02-03",
-        tramo: "ida",
-        origen: "Ciudad Satélite",
-        destino: "Sede Central (Auditorio Diaconía)",
-        tarifa: 3.0,
-        apoyo_realizado: "Asistencia a módulo presencial de Formación de Líderes CETI",
-        tiene_gps: true,
-        medio_transporte: "Mi Teleférico Línea Amarilla",
-        tipo_actividad: "Escuela de Líderes",
-        calles_declaradas: "Ciudad Satélite (Plaza Bolivia) → Estación Mirador → Mi Teleférico Línea Amarilla → Estación Sopocachi → Plaza Abaroa",
-      },
-      {
-        id: 22,
-        fecha: "02-03",
-        tramo: "vuelta",
-        origen: "Sede Central (Auditorio Diaconía)",
-        destino: "Ciudad Satélite",
-        tarifa: 3.0,
-        apoyo_realizado: "Retorno de Escuela de Líderes a Satélite",
-        tiene_gps: true,
-        medio_transporte: "Mi Teleférico Línea Amarilla",
-        tipo_actividad: "Escuela de Líderes",
-        calles_declaradas: "Plaza Abaroa → Estación Sopocachi → Mi Teleférico Línea Amarilla → Estación Mirador → Ciudad Satélite",
-      },
-      {
-        id: 23,
-        fecha: "06-03",
-        tramo: "ida",
-        origen: "Ciudad Satélite",
-        destino: "Oficina Central Diaconía",
-        tarifa: 3.0,
-        apoyo_realizado: "Balance de partidas y tabulación presupuestaria",
-        tiene_gps: true,
-        medio_transporte: "Mi Teleférico Línea Plateada + Roja",
-        tipo_actividad: "Prácticas",
-        calles_declaradas: "Ciudad Satélite → Estación Mirador (Plateada) → Estación 16 de Julio → Mi Teleférico Línea Roja → Estación Central",
-      },
-    ],
-  },
-  {
-    id: 104,
-    becario_nombre: "Alejandro Paredes",
-    iniciales: "AP",
-    carrera: "Marketing y Publicidad",
-    unidad: "Marketing",
-    lugar_practicas: "Sucursal Juan Pablo II",
-    responsable_mentor: "Lic. Mariana Zeballos",
-    apoyo_resumen: "Diseño de campañas institucionales BUMAND y atención al cliente",
-    periodo: "Marzo 2026",
-    tipo_actividad: "Acciones de Servicio",
-    monto_total_centavos: 9500, // Bs 95.00
-    monto_devolucion_centavos: 7600, // 80% = Bs 76.00
-    estado: "aprobado",
-    fecha_envio: "2026-03-24",
-    firma_supervisor: "HASH_VERIFICADO_MARIANA_ZEBALLOS_20260324",
-    recorridos: [
-      {
-        id: 31,
-        fecha: "01-03",
-        tramo: "ida",
-        origen: "Pérez Velasco",
-        destino: "Centró Evangelistico Caluyo",
-        tarifa: 3.5,
-        apoyo_realizado: "Campaña de servicio comunitario diaconal y apoyo pastoral",
-        tiene_gps: true,
-        medio_transporte: "Mi Teleférico Línea Morada + Minibús",
-        tipo_actividad: "Acciones de Servicio",
-        calles_declaradas: "Pérez Velasco → Estación Obelisco → Mi Teleférico Línea Morada → Estación Faro Murillo → Av. Civica Caluyo",
-      },
-      {
-        id: 32,
-        fecha: "01-03",
-        tramo: "vuelta",
-        origen: "Centró Evangelistico Caluyo",
-        destino: "Pérez Velasco",
-        tarifa: 3.5,
-        apoyo_realizado: "Retorno tras culminación de taller con niños y jóvenes",
-        tiene_gps: true,
-        medio_transporte: "Minibús + Mi Teleférico Línea Morada",
-        tipo_actividad: "Acciones de Servicio",
-        calles_declaradas: "Av. Civica Caluyo → Faro Murillo → Mi Teleférico Línea Morada → Estación Obelisco → Pérez Velasco",
-      },
-    ],
-  },
-  {
-    id: 105,
-    becario_nombre: "Daniel Dávalos Q.",
-    iniciales: "DD",
-    carrera: "Ingeniería de Sistemas",
-    unidad: "Seguridad Física",
-    lugar_practicas: "Oficina Central - Bloque A",
-    responsable_mentor: "Carlos Alanoca",
-    apoyo_resumen: "Mantenimiento de controles de acceso biométrico, CCTV y auditoría técnica",
-    periodo: "Marzo 2026",
-    tipo_actividad: "Prácticas",
-    monto_total_centavos: 6600, // Bs 66.00
-    monto_devolucion_centavos: 5280, // 80% = Bs 52.80
-    estado: "pendiente",
-    fecha_envio: "2026-03-24",
-    recorridos: [
-      {
-        id: 41,
-        fecha: "01-03",
-        tramo: "ida",
-        origen: "Río Seco",
-        destino: "Oficina Central Diaconía",
-        tarifa: 3.5,
-        apoyo_realizado: "Inspección de cámaras y control de acceso biométrico",
-        tiene_gps: true,
-        medio_transporte: "Mi Teleférico Línea Azul + Roja",
-        tipo_actividad: "Prácticas",
-        calles_declaradas: "Extranca Río Seco → Mi Teleférico Línea Azul → Estación 16 de Julio → Mi Teleférico Línea Roja → Estación Central",
-      },
-      {
-        id: 42,
-        fecha: "01-03",
-        tramo: "vuelta",
-        origen: "Oficina Central Diaconía",
-        destino: "Río Seco",
-        tarifa: 3.5,
-        apoyo_realizado: "Retorno a Río Seco tras jornada técnica",
-        tiene_gps: true,
-        medio_transporte: "Mi Teleférico Línea Roja + Azul",
-        tipo_actividad: "Prácticas",
-        calles_declaradas: "Estación Central → Mi Teleférico Línea Roja → Estación 16 de Julio → Mi Teleférico Línea Azul → Extranca Río Seco",
-      },
-    ],
-  },
-];
+const SOLICITUDES_INICIALES: SolicitudPasajeVista[] = [];
 
 export function RecorridoEnriquecidoCard({ recorrido }: { recorrido: RecorridoItem }) {
   const calles = (recorrido.calles_declaradas || `${recorrido.origen} → ${recorrido.destino}`)
@@ -544,8 +219,35 @@ export function AprobacionPasajes() {
   const [filtro_estado, set_filtro_estado] = useState<"todos" | "pendientes" | "aprobados">("todos");
   const [subpestaña_detalle, set_subpestaña_detalle] = useState<"recorridos" | "firma">("recorridos");
   const [vista_dividida, set_vista_dividida] = useState<boolean>(false);
+  const [descargando_pdf, set_descargando_pdf] = useState<boolean>(false);
 
   const canvas_ref = useRef<HTMLCanvasElement | null>(null);
+
+  const descargarExpedientePdf = async (item: SolicitudPasajeVista) => {
+    try {
+      set_descargando_pdf(true);
+      toast.info("Generando expediente oficial de recorridos con Puppeteer...", {
+        description: `Becario: ${item.becario_nombre} · Periodo: ${item.periodo}`,
+      });
+      const id_becario = item.becario_id || item.id || 1;
+      const blob = await clienteApi.descargarBlob(
+        `/pdf/recorridos-estudiante/${id_becario}?solicitud_id=${item.id}&mes=${encodeURIComponent(item.periodo)}`
+      );
+      const url = window.URL.createObjectURL(blob);
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      enlace.download = `Expediente_Recorridos_${item.becario_nombre.replace(/\s+/g, '_')}_${item.periodo.replace(/\s+/g, '_')}.pdf`;
+      document.body.appendChild(enlace);
+      enlace.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(enlace);
+      toast.success("Expediente de recorridos descargado exitosamente");
+    } catch (_error) {
+      toast.error("Error al exportar el expediente de recorridos en PDF con Puppeteer");
+    } finally {
+      set_descargando_pdf(false);
+    }
+  };
 
   const { datos: solicitudes_servidor, invalidar } = useConsulta<SolicitudPasajeVista[]>(
     "solicitudes_pasajes_revision",
@@ -555,8 +257,8 @@ export function AprobacionPasajes() {
         if (Array.isArray(respuesta) && respuesta.length > 0) {
           return respuesta.map((item, idx) => ({
             id: item.id || 100 + idx,
-            becario_nombre: item.becario?.usuario?.nombre || item.becario_nombre || `Becario ${idx + 1}`,
-            iniciales: (item.becario?.usuario?.nombre || item.becario_nombre || "BE")
+            becario_nombre: item.becario?.nombre || item.becario?.usuario?.nombre || item.becario_nombre || `Becario ${idx + 1}`,
+            iniciales: (item.becario?.nombre || item.becario?.usuario?.nombre || item.becario_nombre || "BE")
               .split(" ")
               .map((p: string) => p[0])
               .join("")
@@ -565,7 +267,7 @@ export function AprobacionPasajes() {
             carrera: item.becario?.carrera || "Carrera BUMAND",
             unidad: item.becario?.unidad || "Unidad Diaconía",
             lugar_practicas: item.becario?.lugar_practica?.nombre || "Oficina Central - Bloque A",
-            responsable_mentor: item.becario?.supervisor?.usuario?.nombre || "Supervisor Diaconía",
+            responsable_mentor: item.becario?.supervisor?.nombre || item.becario?.supervisor?.usuario?.nombre || "Supervisor Diaconía",
             apoyo_resumen: item.apoyo_realizado || "Actividades de apoyo institucional preprofesional",
             periodo: item.periodo || "Marzo 2026",
             tipo_actividad: item.tipo_actividad || "Prácticas",
@@ -602,10 +304,9 @@ export function AprobacionPasajes() {
 
   const solicitudes = solicitudes_servidor && solicitudes_servidor.length > 0 ? solicitudes_servidor : solicitudes_locales;
 
-  const solicitud_activa =
+  const solicitud_activa: SolicitudPasajeVista | undefined =
     solicitudes.find((s) => s.id === id_seleccionado) ||
-    solicitudes[0] ||
-    SOLICITUDES_INICIALES[0];
+    solicitudes[0];
 
   const total_pendientes = solicitudes.filter((s) => s.estado === "pendiente").length;
   const total_aprobados = solicitudes.filter((s) => s.estado === "aprobado").length;
@@ -617,7 +318,7 @@ export function AprobacionPasajes() {
     return true;
   });
 
-  const indice_actual = solicitudes.findIndex((s) => s.id === solicitud_activa.id);
+  const indice_actual = solicitud_activa ? solicitudes.findIndex((s) => s.id === solicitud_activa.id) : -1;
   const irAnteriorBecario = () => {
     if (indice_actual > 0) {
       set_id_seleccionado(solicitudes[indice_actual - 1].id);
@@ -672,6 +373,7 @@ export function AprobacionPasajes() {
   };
 
   const manejarConfirmarRechazo = async () => {
+    if (!solicitud_activa) return;
     if (!texto_observacion.trim()) {
       set_error_rechazo("Es obligatorio ingresar el motivo o justificación del rechazo.");
       toast.error("Motivo obligatorio", {
@@ -697,7 +399,7 @@ export function AprobacionPasajes() {
     }
 
     toast.success("Solicitud observada", {
-      description: `Se registró la observación institucional para ${solicitud_activa.becario_nombre}.`,
+      description: `Se registró la observación institucional para ${solicitud_activa?.becario_nombre || ""}.`,
     });
     set_modal_observacion(false);
   };
@@ -763,6 +465,7 @@ export function AprobacionPasajes() {
   };
 
   const guardarFirmaModal = () => {
+    if (!solicitud_activa) return;
     const canvas = canvas_ref.current;
     if (!canvas) return;
     const data_url = canvas.toDataURL("image/png");
@@ -786,7 +489,11 @@ export function AprobacionPasajes() {
     });
   };
 
-  const renderizarDetalleCard = (con_boton_volver = true) => (
+  const renderizarDetalleCard = (con_boton_volver = true) => !solicitud_activa ? (
+    <Card className="border-[#E3DCCB] shadow-xs bg-white rounded-2xl p-10 text-center text-slate-500">
+      <p className="text-sm font-medium">No hay ninguna declaración de pasajes registrada en el periodo actual.</p>
+    </Card>
+  ) : (
     <Card className="border-[#E3DCCB] shadow-xs bg-white rounded-2xl overflow-hidden">
       <CardHeader className="pb-4 pt-5 px-6 border-b border-slate-100 bg-[#FBFBFA]/80">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -848,6 +555,23 @@ export function AprobacionPasajes() {
             <Badge variant="outline" className="border-[#E3DCCB] text-[#063A6B] text-[11px] font-mono">
               {solicitud_activa.periodo}
             </Badge>
+
+            {/* Botón de Exportación de Expediente a PDF mediante Puppeteer */}
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={descargando_pdf}
+              onClick={() => descargarExpedientePdf(solicitud_activa)}
+              className="h-8 px-2.5 text-xs font-bold border-[#063A6B] text-[#063A6B] hover:bg-slate-100 rounded-xl gap-1.5 shadow-2xs"
+              title="Descargar expediente oficial mensual de recorridos en PDF con Puppeteer"
+            >
+              {descargando_pdf ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-[#17B4C4]" />
+              ) : (
+                <Printer className="w-3.5 h-3.5 text-[#17B4C4]" />
+              )}
+              <span>Expediente PDF</span>
+            </Button>
 
             {solicitud_activa.estado === "pendiente" ? (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#FBF4E4] text-[#92400E] border border-[#FDE68A]">
@@ -1118,25 +842,27 @@ export function AprobacionPasajes() {
               )}
             </button>
 
-            <button
-              type="button"
-              onClick={() => set_subpestana("detalle")}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
-                subpestana === "detalle"
-                  ? "bg-[#063A6B] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
-              }`}
-            >
-              <Eye className="w-3.5 h-3.5" />
-              <span>Detalle · {solicitud_activa.becario_nombre}</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${
-                solicitud_activa.estado === "pendiente"
-                  ? (subpestana === "detalle" ? "bg-amber-400/30 text-amber-100" : "bg-amber-100 text-amber-800")
-                  : (subpestana === "detalle" ? "bg-emerald-400/30 text-emerald-100" : "bg-emerald-100 text-emerald-800")
-              }`}>
-                {solicitud_activa.estado === "pendiente" ? "Pendiente" : "Aprobado"}
-              </span>
-            </button>
+            {solicitud_activa && (
+              <button
+                type="button"
+                onClick={() => set_subpestana("detalle")}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
+                  subpestana === "detalle"
+                    ? "bg-[#063A6B] text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                }`}
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>Detalle · {solicitud_activa.becario_nombre}</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${
+                  solicitud_activa.estado === "pendiente"
+                    ? (subpestana === "detalle" ? "bg-amber-400/30 text-amber-100" : "bg-amber-100 text-amber-800")
+                    : (subpestana === "detalle" ? "bg-emerald-400/30 text-emerald-100" : "bg-emerald-100 text-emerald-800")
+                }`}>
+                  {solicitud_activa.estado === "pendiente" ? "Pendiente" : "Aprobado"}
+                </span>
+              </button>
+            )}
 
             <button
               type="button"
@@ -1255,7 +981,7 @@ export function AprobacionPasajes() {
                       </tr>
                     ) : (
                       solicitudes_filtradas.map((item) => {
-                        const es_seleccionado = item.id === solicitud_activa.id;
+                        const es_seleccionado = Boolean(solicitud_activa && item.id === solicitud_activa.id);
                         const es_pendiente = item.estado === "pendiente";
 
                         return (
@@ -1397,7 +1123,7 @@ export function AprobacionPasajes() {
               Firma Digital de Aprobación
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              Asiente su rúbrica para certificar la liquidación del 80% correspondiente a {solicitud_activa.becario_nombre}.
+              Asiente su rúbrica para certificar la liquidación del 80% correspondiente a {solicitud_activa?.becario_nombre || "la solicitud"}.
             </DialogDescription>
           </DialogHeader>
 
@@ -1463,7 +1189,7 @@ export function AprobacionPasajes() {
               Confirmar Observación de Pasajes
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Para observar la planilla de <strong>{solicitud_activa.becario_nombre}</strong>,
+              Para observar la planilla de <strong>{solicitud_activa?.becario_nombre || ""}</strong>,
               debe justificar formalmente el motivo para que el becario subsane su solicitud.
             </AlertDialogDescription>
           </AlertDialogHeader>

@@ -14,7 +14,12 @@ import {
   FileCheck,
   Plus,
   Coins,
+  Printer,
+  Loader2,
+  ClipboardCheck,
 } from "lucide-react";
+import { toast } from "sonner";
+import { clienteApi } from "@/lib/cliente-api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,6 +38,10 @@ import {
   InsigniaPulsoVivo,
 } from "@/components/animaciones";
 import { DialogoMarcacionAsistencia } from "./dialogo-marcacion-asistencia";
+import {
+  DialogoJustificarFalta,
+  type IncidenciaAsistenciaInicial,
+} from "./dialogo-justificar-falta";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 
 interface RegistroJornadaBecario {
@@ -45,7 +54,9 @@ interface RegistroJornadaBecario {
   horas_computadas: number;
   sede: string;
   distancia_m: number;
-  estado: "acreditado" | "en_curso" | "convalidado" | "observado";
+  estado: "acreditado" | "en_curso" | "convalidado" | "observado" | "falta";
+  justificado?: boolean;
+  motivo_observacion?: string;
 }
 
 const JORNADAS_INICIALES: RegistroJornadaBecario[] = [
@@ -121,6 +132,32 @@ const JORNADAS_INICIALES: RegistroJornadaBecario[] = [
     distancia_m: 30,
     estado: "acreditado",
   },
+  {
+    id: 7,
+    fecha: "2026-10-02",
+    dia_semana: "Viernes",
+    tipo: "escuela_lideres",
+    hora_ingreso: "--:--",
+    hora_salida: null,
+    horas_computadas: 0,
+    sede: "Auditorio Central Diaconía",
+    distancia_m: 0,
+    estado: "falta",
+    motivo_observacion: "Inasistencia a sesión formativa por cruce con examen universitario",
+  },
+  {
+    id: 8,
+    fecha: "2026-09-29",
+    dia_semana: "Martes",
+    tipo: "practicas",
+    hora_ingreso: "09:20",
+    hora_salida: "17:00",
+    horas_computadas: 7.66,
+    sede: "Oficina Central - Bloque A",
+    distancia_m: 145,
+    estado: "observado",
+    motivo_observacion: "Retraso prolongado por corte de ruta en la autopista La Paz - El Alto",
+  },
 ];
 
 interface HistorialAsistenciaBecarioProps {
@@ -130,7 +167,38 @@ interface HistorialAsistenciaBecarioProps {
 export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsistenciaBecarioProps) {
   const { usuario } = usarAutenticacion();
   const [dialogo_marcacion_abierto, set_dialogo_marcacion_abierto] = useState(false);
-  const [jornadas] = useState<RegistroJornadaBecario[]>(JORNADAS_INICIALES);
+  const [descargando_pdf, set_descargando_pdf] = useState(false);
+  const [jornadas, set_jornadas] = useState<RegistroJornadaBecario[]>(JORNADAS_INICIALES);
+  const [dialogo_justificar_abierto, set_dialogo_justificar_abierto] = useState(false);
+  const [incidencia_a_justificar, set_incidencia_a_justificar] = useState<IncidenciaAsistenciaInicial | null>(null);
+
+  const abrirJustificacionParaJornada = (j: RegistroJornadaBecario) => {
+    let tipo_incidencia: IncidenciaAsistenciaInicial["tipo_incidencia"] = "asistencia_practicas";
+    if (j.tipo === "escuela_lideres") tipo_incidencia = "escuela_lideres";
+    else if (j.tipo === "acciones_servicio" || j.tipo === "evento") tipo_incidencia = "asistencia_evento";
+
+    set_incidencia_a_justificar({
+      id: j.id,
+      fecha: j.fecha,
+      tipo_incidencia,
+      hora: j.hora_ingreso,
+      sede: j.sede,
+      referencia_id: j.id,
+      motivo_sugerido: j.motivo_observacion,
+    });
+    set_dialogo_justificar_abierto(true);
+  };
+
+  const manejarJustificacionCompletada = (jornada_id?: number) => {
+    if (!jornada_id) return;
+    set_jornadas((prev) =>
+      prev.map((j) =>
+        j.id === jornada_id
+          ? { ...j, justificado: true, estado: "convalidado" }
+          : j
+      )
+    );
+  };
 
   const [mes_seleccionado, set_mes_seleccionado] = useState<string>("2026-10");
 
@@ -153,6 +221,32 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
     }
   };
 
+  const descargarAsistenciaMensualPdf = async () => {
+    try {
+      set_descargando_pdf(true);
+      toast.info("Generando kárdex de asistencia mensual con Puppeteer en el servidor...", {
+        description: `Periodo: ${mes_seleccionado}`,
+      });
+      const id_becario = usuario?.id || 1;
+      const blob = await clienteApi.descargarBlob(
+        `/pdf/asistencia-estudiante/${id_becario}?mes=${mes_seleccionado}`
+      );
+      const url = window.URL.createObjectURL(blob);
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      enlace.download = `Asistencia_Mensual_${mes_seleccionado}.pdf`;
+      document.body.appendChild(enlace);
+      enlace.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(enlace);
+      toast.success("Kárdex de asistencia mensual descargado exitosamente");
+    } catch (_error) {
+      toast.error("Error al exportar la asistencia mensual en PDF con Puppeteer");
+    } finally {
+      set_descargando_pdf(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Cabecera Principal con Botón de Marcación Destacado */}
@@ -167,7 +261,7 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <Select value={mes_seleccionado} onValueChange={(val) => val && set_mes_seleccionado(val)}>
             <SelectTrigger className="text-xs h-10 px-3 rounded-xl border-[#E3DCCB] bg-slate-50 font-bold min-w-[170px]">
               <SelectValue placeholder="Seleccionar mes" />
@@ -178,6 +272,21 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
               <SelectItem value="2026-08">Agosto 2026</SelectItem>
             </SelectContent>
           </Select>
+
+          <Button
+            variant="outline"
+            onClick={descargarAsistenciaMensualPdf}
+            disabled={descargando_pdf}
+            className="h-10 text-xs font-bold px-3.5 gap-2 border-[#063A6B] text-[#063A6B] hover:bg-slate-100 rounded-xl shadow-2xs shrink-0"
+            title="Exportar kárdex de asistencia mensual a PDF mediante Puppeteer"
+          >
+            {descargando_pdf ? (
+              <Loader2 className="w-4 h-4 animate-spin text-[#17B4C4]" />
+            ) : (
+              <Printer className="w-4 h-4 text-[#17B4C4]" />
+            )}
+            <span>Exportar Asistencia PDF</span>
+          </Button>
 
           <BotonJuicy
             onClick={abrirDialogo}
@@ -390,8 +499,8 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
                     </div>
                   </div>
 
-                  {/* Estado */}
-                  <div>
+                  {/* Estado y Acción Directa de Justificación */}
+                  <div className="flex items-center gap-2">
                     {j.estado === "acreditado" && (
                       <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 font-bold text-xs gap-1">
                         <CheckCircle2 className="w-3.5 h-3.5" />
@@ -407,14 +516,34 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
                     {j.estado === "convalidado" && (
                       <Badge className="bg-sky-100 text-sky-800 border-sky-200 font-bold text-xs gap-1">
                         <ShieldCheck className="w-3.5 h-3.5" />
-                        Convalidado
+                        {j.justificado ? "Justificación Radicada" : "Convalidado"}
+                      </Badge>
+                    )}
+                    {j.estado === "falta" && (
+                      <Badge className="bg-rose-100 text-rose-800 border-rose-200 font-bold text-xs gap-1">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        Falta Inasistencia
                       </Badge>
                     )}
                     {j.estado === "observado" && (
-                      <Badge className="bg-rose-100 text-rose-800 border-rose-200 font-bold text-xs gap-1">
+                      <Badge className="bg-amber-100 text-amber-800 border-amber-200 font-bold text-xs gap-1">
                         <AlertCircle className="w-3.5 h-3.5" />
                         Observado
                       </Badge>
+                    )}
+
+                    {/* Botón directo "Justificar Falta" para incidencias */}
+                    {(j.estado === "falta" || j.estado === "observado") && !j.justificado && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => abrirJustificacionParaJornada(j)}
+                        className="h-8 rounded-xl text-xs font-bold border-amber-300 text-amber-800 bg-amber-50/80 hover:bg-amber-100 gap-1.5 shadow-2xs shrink-0 cursor-pointer"
+                        title="Radicar justificación con comprobante médico o académico en PDF/imagen"
+                      >
+                        <ClipboardCheck className="w-3.5 h-3.5 text-amber-700" />
+                        <span>Justificar Falta</span>
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -428,6 +557,14 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
       <DialogoMarcacionAsistencia
         abierto={dialogo_marcacion_abierto}
         alCambiarAbierto={set_dialogo_marcacion_abierto}
+      />
+
+      {/* Diálogo Modal de Justificación Directa con Carga de Comprobante PDF / Imagen */}
+      <DialogoJustificarFalta
+        abierto={dialogo_justificar_abierto}
+        alCambiarAbierto={set_dialogo_justificar_abierto}
+        incidencia={incidencia_a_justificar}
+        alCompletar={() => manejarJustificacionCompletada(incidencia_a_justificar?.id)}
       />
     </div>
   );

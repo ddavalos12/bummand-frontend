@@ -2228,7 +2228,7 @@ export function PanelControlVista() {
                       className="h-8 px-3 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer rounded-lg shadow-2xs"
                     >
                       <HeartHandshake className="w-3.5 h-3.5 text-[#F8C766]" />
-                      <span>+ Derivar Caso Pastoral</span>
+                      <span>Derivar Caso Pastoral</span>
                     </Button>
                   )}
 

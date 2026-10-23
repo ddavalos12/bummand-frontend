@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Combobox, OpcionCombobox } from "@/components/ui/combobox";
 import {
   Download,
   Printer,
@@ -31,6 +32,41 @@ import {
   RANGOS_APROBACION_OFICIALES,
   BecarioEvaluacionSemestral,
 } from "./evaluaciones-datos-semestre";
+
+const OPCIONES_FILTRO_CALIFICACION: OpcionCombobox[] = [
+  { valor: "todos", etiqueta: "Todas las calificaciones" },
+  {
+    valor: "optima",
+    etiqueta: "Aprobación Óptima (≥ 70)",
+    colorPunto: "bg-emerald-500",
+  },
+  {
+    valor: "condicionada",
+    etiqueta: "Aprobación Condicionada (51-69)",
+    colorPunto: "bg-amber-500",
+  },
+  {
+    valor: "abandonar",
+    etiqueta: "Abandonar Programa (≤ 50)",
+    colorPunto: "bg-rose-500",
+  },
+];
+
+const OPCIONES_FILTRO_BECA: OpcionCombobox[] = [
+  { valor: "todos", etiqueta: "Todos los tipos de beca" },
+  {
+    valor: "650",
+    etiqueta: "Beca Bs 650",
+    colorPunto: "bg-[#063A6B]",
+    badge: "Bs 650",
+  },
+  {
+    valor: "250",
+    etiqueta: "Beca Bs 250",
+    colorPunto: "bg-[#17B4C4]",
+    badge: "Bs 250",
+  },
+];
 
 export function SabanaConsolidadoSemestral() {
   const [busqueda, set_busqueda] = useState<string>("");
@@ -163,29 +199,26 @@ export function SabanaConsolidadoSemestral() {
                 />
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                <select
-                  value={filtro_calificacion}
-                  onChange={(e) => set_filtro_calificacion(e.target.value)}
-                  className="h-8 px-2.5 text-xs border border-[#E3DCCB] rounded-lg bg-white"
-                >
-                  <option value="todos">Todas las calificaciones</option>
-                  <option value="optima">Aprobación Óptima (≥ 70)</option>
-                  <option value="condicionada">Aprobación Condicionada (51-69)</option>
-                  <option value="abandonar">Abandonar Programa (≤ 50)</option>
-                </select>
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0">
+                <Combobox
+                  valor={filtro_calificacion}
+                  alCambiar={set_filtro_calificacion}
+                  opciones={OPCIONES_FILTRO_CALIFICACION}
+                  placeholder="Calificación..."
+                  tamaño="sm"
+                  className="w-full sm:w-[210px]"
+                />
 
-                <select
-                  value={filtro_beca}
-                  onChange={(e) => set_filtro_beca(e.target.value)}
-                  className="h-8 px-2.5 text-xs border border-[#E3DCCB] rounded-lg bg-white"
-                >
-                  <option value="todos">Todos los tipos de beca</option>
-                  <option value="650">Beca Bs 650</option>
-                  <option value="250">Beca Bs 250</option>
-                </select>
+                <Combobox
+                  valor={filtro_beca}
+                  alCambiar={set_filtro_beca}
+                  opciones={OPCIONES_FILTRO_BECA}
+                  placeholder="Tipo de beca..."
+                  tamaño="sm"
+                  className="w-full sm:w-[190px]"
+                />
 
-                <Badge variant="outline" className="font-mono text-xs">
+                <Badge variant="outline" className="font-mono text-xs shrink-0 self-center">
                   {becarios_filtrados.length} / {BECARIOS_SEMESTRE_II.length}
                 </Badge>
               </div>
