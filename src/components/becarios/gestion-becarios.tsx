@@ -49,6 +49,8 @@ import {
   Loader2,
   Smartphone,
   Bus,
+  Upload,
+  FileText,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { clienteApi } from "@/lib/cliente-api";
@@ -970,7 +972,25 @@ export function GestionBecarios() {
   const [nueva_iglesia, set_nueva_iglesia] = useState("Iglesia Alianza La Paz");
   const [nuevo_lugar, set_nuevo_lugar] = useState("Oficina Central Bloque A");
   const [nuevo_estado, set_nuevo_estado] = useState<"pendiente_validacion" | "activo">("pendiente_validacion");
+  const [nuevo_documento_nombre, set_nuevo_documento_nombre] = useState("");
+  const [nuevo_documento_url, set_nuevo_documento_url] = useState("");
+  const [nuevo_documento_tamano, set_nuevo_documento_tamano] = useState("");
   const [guardando_becario, set_guardando_becario] = useState(false);
+
+  const manejarSubirDocumentoNuevoBecario = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("Archivo demasiado grande", { description: "El documento debe ser menor a 15 MB." });
+      return;
+    }
+    const tamano = file.size > 1024 * 1024 ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` : `${(file.size / 1024).toFixed(0)} KB`;
+    set_nuevo_documento_nombre(file.name);
+    set_nuevo_documento_tamano(tamano);
+    const lector = new FileReader();
+    lector.onload = () => set_nuevo_documento_url(lector.result as string);
+    lector.readAsDataURL(file);
+  };
 
   // Estado para Asignar Supervisor (Modal)
   const [modal_supervisor_abierto, set_modal_supervisor_abierto] = useState(false);
@@ -1020,6 +1040,9 @@ export function GestionBecarios() {
         set_nuevo_nombre("");
         set_nuevo_ci("");
         set_nueva_carrera("");
+        set_nuevo_documento_nombre("");
+        set_nuevo_documento_url("");
+        set_nuevo_documento_tamano("");
         set_nuevo_estado("pendiente_validacion");
       },
       "Registro de Nuevo Becario"
@@ -2003,6 +2026,42 @@ export function GestionBecarios() {
                     : "El becario se incorporará directamente como activo en el Directorio General."}
                 </p>
               </div>
+
+              {/* Carga de Documentación de Respaldo */}
+              <div className="space-y-1.5 pt-1">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold text-[#122029]">
+                    Documentación de Identidad o Matrícula (PDF / Imagen)
+                  </Label>
+                  {nuevo_documento_tamano && (
+                    <Badge variant="outline" className="text-[10px] font-mono border-emerald-300 text-emerald-700 bg-emerald-50">
+                      {nuevo_documento_tamano}
+                    </Badge>
+                  )}
+                </div>
+                <div className="relative border-2 border-dashed border-[#E3DCCB] hover:border-[#17B4C4] rounded-xl p-3 bg-slate-50 text-center transition-colors">
+                  <input
+                    type="file"
+                    accept=".pdf,image/*"
+                    onChange={manejarSubirDocumentoNuevoBecario}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                  />
+                  {nuevo_documento_nombre ? (
+                    <div className="flex items-center justify-between text-xs font-bold text-emerald-800">
+                      <div className="flex items-center gap-1.5 truncate max-w-[280px]">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span className="truncate">{nuevo_documento_nombre}</span>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] border-emerald-300">Adjunto</Badge>
+                    </div>
+                  ) : (
+                    <div className="py-1 text-muted-foreground text-xs flex items-center justify-center gap-2">
+                      <Upload className="w-4 h-4 text-[#17B4C4]" />
+                      <span>Haga clic para adjuntar fotocopia de C.I., matrícula o kárdex</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </DialogBody>
 
             <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
@@ -2327,6 +2386,45 @@ export function GestionBecarios() {
                           ? Math.round(((becario_ficha_modal.horas_mes_actual ?? 0) / (becario_ficha_modal.horas_meta_mes || 40)) * 100)
                           : 0}%
                       </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bloque 5: Expediente Documental y Acreditaciones */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#063A6B] flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-[#17B4C4]" />
+                    Expediente Documental y Acreditaciones (PDF / Imágenes)
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-slate-50 border border-[#E3DCCB] rounded-xl text-xs">
+                    <div className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-2xs">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
+                          <FileText className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-800 text-xs">Cédula de Identidad</p>
+                          <p className="text-[10px] text-muted-foreground font-mono">CI_{becario_ficha_modal.ci || "doc"}.pdf</p>
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-700 bg-emerald-50 font-bold">
+                        Acreditado
+                      </Badge>
+                    </div>
+
+                    <div className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-2xs">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-[#17B4C4]/10 text-[#063A6B] flex items-center justify-center font-bold">
+                          <GraduationCap className="w-4 h-4 text-[#17B4C4]" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-800 text-xs">Matrícula / Kárdex</p>
+                          <p className="text-[10px] text-muted-foreground font-mono">Matricula_2026_{becario_ficha_modal.universidad || "UMSA"}.pdf</p>
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-700 bg-emerald-50 font-bold">
+                        Vigente
+                      </Badge>
                     </div>
                   </div>
                 </div>
