@@ -30,11 +30,11 @@ export interface PropiedadesBotonConEstado
 }
 
 const ESTILOS_VARIANTE = {
-  primario: "bg-[#063A6B] text-white hover:bg-[#084885] border-transparent shadow-sm hover:shadow-md",
-  secundario: "bg-[#17B4C4] text-[#063A6B] font-bold hover:bg-[#15a4b3] border-transparent shadow-sm hover:shadow-md",
-  dorado: "bg-[#F8C766] text-[#063A6B] font-bold hover:bg-[#f6bd48] border-transparent shadow-sm hover:shadow-md",
+  primario: "bg-[#035683] text-white hover:bg-[#007BBE] border-transparent shadow-sm hover:shadow-md",
+  secundario: "bg-[#00ABBD] text-white font-bold hover:bg-[#00808E] border-transparent shadow-sm hover:shadow-md",
+  dorado: "bg-[#FFB600] text-[#035683] font-bold hover:bg-[#e5a400] border-transparent shadow-sm hover:shadow-md",
   exito: "bg-emerald-600 text-white hover:bg-emerald-700 border-transparent shadow-sm hover:shadow-md",
-  contorno: "bg-white text-[#063A6B] border border-[#E3DCCB] hover:bg-slate-50 font-bold shadow-2xs hover:border-[#17B4C4]/60",
+  contorno: "bg-white text-[#035683] border border-[#E5E7EB] hover:bg-slate-50 font-bold shadow-2xs hover:border-[#00ABBD]/60",
 };
 
 const ESTILOS_TAMAÑO = {
@@ -124,7 +124,7 @@ export function BotonConEstado({
         }}
         className={cn(
           "relative overflow-hidden inline-flex items-center justify-center select-none cursor-pointer transition-colors duration-200",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#17B4C4] focus-visible:ring-offset-2",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ABBD] focus-visible:ring-offset-2",
           "disabled:opacity-50 disabled:cursor-not-allowed",
           ESTILOS_TAMAÑO[tamaño],
           estado_actual === "exito"

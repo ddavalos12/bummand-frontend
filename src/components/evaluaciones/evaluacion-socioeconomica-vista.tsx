@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -307,7 +307,7 @@ export function EvaluacionSocioeconomicaVista() {
       );
 
       toast.success("Evaluación Socioeconómica guardada exitosamente", {
-        description: `${becario_actual.nombre_completo} · Nota: ${puntaje_calculado_20} / 20 pts · Semáforo: ${semaforo_tiempo_real.toUpperCase()}`,
+        description: `${becario_actual.nombre_completo} · Nota: ${puntaje_calculado_20.toFixed(1)} / 20 pts`,
       });
     } catch (_error) {
       toast.error("No se pudo guardar la evaluación socioeconómica.");
@@ -446,20 +446,20 @@ export function EvaluacionSocioeconomicaVista() {
   return (
     <div className="space-y-6">
       {/* 1. CABECERA INSTITUCIONAL DEL MÓDULO 05 */}
-      <Card className="border-[#E3DCCB] bg-gradient-to-r from-[#063A6B] via-[#09477e] to-[#063A6B] text-white rounded-2xl shadow-md overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-72 h-72 bg-radial from-[#17B4C4]/20 via-transparent to-transparent pointer-events-none" />
+      <Card className="border-[#E5E7EB] bg-gradient-to-r from-[#035683] via-[#09477e] to-[#035683] text-white rounded-2xl shadow-md overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-72 h-72 bg-radial from-[#00ABBD]/20 via-transparent to-transparent pointer-events-none" />
         <CardContent className="p-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-[#17B4C4]/20 border border-[#17B4C4]/40 flex items-center justify-center shrink-0 text-[#F8C766]">
+              <div className="w-12 h-12 rounded-2xl bg-[#00ABBD]/20 border border-[#00ABBD]/40 flex items-center justify-center shrink-0 text-[#FFB600]">
                 <HeartHandshake className="w-6 h-6" />
               </div>
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge className="bg-[#F8C766] text-[#063A6B] font-bold text-[11px] uppercase px-2.5 py-0.5">
+                  <Badge className="bg-[#FFB600] text-[#035683] font-bold text-[11px] uppercase px-2.5 py-0.5">
                     MÓDULO 05 · TRABAJO SOCIAL Y BIENESTAR UNIVERSITARIO
                   </Badge>
-                  <span className="text-xs text-[#7FE0E6] font-mono font-semibold">
+                  <span className="text-xs text-[#00ABBD] font-mono font-semibold">
                     Instrumento Oficial · {preguntas.length} Preguntas (Sujeto a modificación de la institución)
                   </span>
                 </div>
@@ -468,7 +468,7 @@ export function EvaluacionSocioeconomicaVista() {
                 </h1>
                 {es_admin_o_supervisor ? (
                   <p className="text-xs text-white/85 leading-relaxed max-w-4xl">
-                    Ponderación oficial de <strong>20 puntos (20%)</strong> dentro de la Matriz de Evaluación Semestral y determinación automática del <strong>Semáforo Institucional de Vulnerabilidad</strong> (<span className="text-emerald-300 font-semibold">Verde</span>, <span className="text-amber-300 font-semibold">Amarillo</span>, <span className="text-rose-300 font-semibold">Rojo</span>) para seguimiento de Trabajo Social.
+                    Ponderación oficial de <strong>20 puntos (20%)</strong> dentro de la Matriz de Evaluación Semestral para el seguimiento integral de Trabajo Social y Bienestar Universitario.
                   </p>
                 ) : (
                   <p className="text-xs text-white/85 leading-relaxed max-w-4xl">
@@ -486,13 +486,13 @@ export function EvaluacionSocioeconomicaVista() {
                   onClick={() => set_modal_bienestar_abierto(true)}
                   className="h-9 px-3.5 bg-white/10 hover:bg-white/20 text-white border-white/25 rounded-xl text-xs font-bold flex items-center gap-1.5"
                 >
-                  <Eye className="w-3.5 h-3.5 text-[#F8C766]" />
+                  <Eye className="w-3.5 h-3.5 text-[#FFB600]" />
                   Vista Modal Rápida
                 </Button>
                 <Button
                   size="sm"
                   onClick={() => set_pestaña_activa("configuracion")}
-                  className="h-9 px-3.5 bg-[#17B4C4] hover:bg-[#17B4C4]/90 text-[#063A6B] font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-xs"
+                  className="h-9 px-3.5 bg-[#00ABBD] hover:bg-[#00ABBD]/90 text-[#035683] font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-xs"
                 >
                   <Settings className="w-3.5 h-3.5" />
                   Editar 26 Preguntas
@@ -507,83 +507,57 @@ export function EvaluacionSocioeconomicaVista() {
       {es_admin_o_supervisor && (
         <>
           {/* 4 Tarjetas KPI Superiores */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* KPI 1: Becarios Evaluados */}
-            <Card className="border-[#E3DCCB] bg-white rounded-xl shadow-xs">
+            <Card className="border-[#E5E7EB] bg-white rounded-xl shadow-xs">
               <CardContent className="p-5 flex items-center justify-between">
                 <div className="space-y-1">
                   <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold">
                     Becarios Evaluados
                   </p>
-                  <h3 className="text-2xl sm:text-3xl font-display font-bold text-[#063A6B]">
+                  <h3 className="text-2xl sm:text-3xl font-display font-bold text-[#035683]">
                     21 / 23
                   </h3>
                   <p className="text-xs text-emerald-700 font-semibold">
                     Semestre II · 100% digitalizado
                   </p>
                 </div>
-                <div className="p-3 bg-[#063A6B]/10 rounded-xl">
-                  <Users className="w-7 h-7 text-[#063A6B]" />
+                <div className="p-3 bg-[#035683]/10 rounded-xl">
+                  <Users className="w-7 h-7 text-[#035683]" />
                 </div>
               </CardContent>
             </Card>
 
-            {/* KPI 2: Semáforo de Vulnerabilidad */}
-            <Card className="border-[#E3DCCB] bg-white rounded-xl shadow-xs">
-              <CardContent className="p-5 flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold">
-                    Semáforo de Vulnerabilidad
-                  </p>
-                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                    <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-mono text-xs font-bold">
-                      16 Verde
-                    </Badge>
-                    <Badge className="bg-amber-100 text-amber-800 border-amber-300 font-mono text-xs font-bold">
-                      4 Amarillo
-                    </Badge>
-                    <Badge className="bg-rose-100 text-rose-800 border-rose-300 font-mono text-xs font-bold">
-                      1 Rojo
-                    </Badge>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground pt-0.5">
-                    Monitoreo activo Trabajo Social
-                  </p>
-                </div>
-                <div className="p-3 bg-emerald-500/10 rounded-xl">
-                  <ShieldCheck className="w-7 h-7 text-emerald-600" />
-                </div>
-              </CardContent>
-            </Card>
+            
 
             {/* KPI 3: Promedio Socioeconómico */}
-            <Card className="border-[#E3DCCB] bg-white rounded-xl shadow-xs">
+            <Card className="border-[#E5E7EB] bg-white rounded-xl shadow-xs">
               <CardContent className="p-5 flex items-center justify-between">
                 <div className="space-y-1">
                   <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold">
                     Promedio Socioeconómico
                   </p>
-                  <h3 className="text-2xl sm:text-3xl font-display font-bold text-[#063A6B]">
+                  <h3 className="text-2xl sm:text-3xl font-display font-bold text-[#035683]">
                     17.9 <span className="text-sm font-normal text-muted-foreground">/ 20 pts</span>
                   </h3>
-                  <p className="text-xs text-[#17B4C4] font-semibold">
+                  <p className="text-xs text-[#00ABBD] font-semibold">
                     Base 20 puntos (Ponderación 20%)
                   </p>
                 </div>
-                <div className="p-3 bg-[#17B4C4]/10 rounded-xl">
-                  <HeartHandshake className="w-7 h-7 text-[#17B4C4]" />
+                <div className="p-3 bg-[#00ABBD]/10 rounded-xl">
+                  <HeartHandshake className="w-7 h-7 text-[#00ABBD]" />
                 </div>
               </CardContent>
             </Card>
 
             {/* KPI 4: Instrumento Institucional */}
-            <Card className="border-[#E3DCCB] bg-white rounded-xl shadow-xs">
+            <Card className="border-[#E5E7EB] bg-white rounded-xl shadow-xs">
               <CardContent className="p-5 flex items-center justify-between">
                 <div className="space-y-1">
                   <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold">
                     Instrumento Institucional
                   </p>
-                  <h3 className="text-2xl sm:text-3xl font-display font-bold text-[#063A6B]">
+                  <h3 className="text-2xl sm:text-3xl font-display font-bold text-[#035683]">
                     {preguntas.length} <span className="text-sm font-normal text-muted-foreground">Preguntas Activas</span>
                   </h3>
                   <p className="text-xs text-amber-700 font-semibold">
@@ -599,15 +573,15 @@ export function EvaluacionSocioeconomicaVista() {
 
           {/* 3 Pestañas dentro de la página */}
           <Tabs value={pestaña_activa} onValueChange={set_pestaña_activa} className="space-y-6">
-            <div className="bg-white p-2 rounded-2xl border border-[#E3DCCB] shadow-2xs overflow-x-auto">
+            <div className="bg-white p-2 rounded-2xl border border-[#E5E7EB] shadow-2xs overflow-x-auto">
               <TabsList className="bg-slate-100 p-1 rounded-xl w-full sm:w-auto inline-flex">
                 <TabsTrigger value="cuestionario" className="text-xs font-bold rounded-lg px-4 py-2">
-                  <FileText className="w-3.5 h-3.5 mr-1.5 text-[#17B4C4]" />
+                  <FileText className="w-3.5 h-3.5 mr-1.5 text-[#00ABBD]" />
                   Cuestionario de Bienestar ({preguntas.length} Preguntas)
                 </TabsTrigger>
                 <TabsTrigger value="nomina" className="text-xs font-bold rounded-lg px-4 py-2">
-                  <Users className="w-3.5 h-3.5 mr-1.5 text-[#063A6B]" />
-                  Nómina y Semáforo por Becario (21/23 Becarios)
+                  <Users className="w-3.5 h-3.5 mr-1.5 text-[#035683]" />
+                  Nómina Oficial de Becarios (21/23 Becarios)
                 </TabsTrigger>
                 <TabsTrigger value="configuracion" className="text-xs font-bold rounded-lg px-4 py-2">
                   <Settings className="w-3.5 h-3.5 mr-1.5 text-amber-600" />
@@ -619,18 +593,18 @@ export function EvaluacionSocioeconomicaVista() {
             {/* PESTAÑA 1: CUESTIONARIO DE BIENESTAR (26 PREGUNTAS) */}
             <TabsContent value="cuestionario" className="space-y-6">
               {/* Barra de Control del Becario Evaluado, Progreso y Semáforo */}
-              <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
+              <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs">
                 <CardContent className="p-5 space-y-4">
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     {/* Selector de Becario */}
                     <div className="space-y-1.5 flex-1 max-w-xl">
-                      <Label className="text-xs font-mono uppercase font-bold text-[#063A6B]">
+                      <Label className="text-xs font-mono uppercase font-bold text-[#035683]">
                         Seleccionar Becario Evaluado (21/23 Becarios Activos)
                       </Label>
                       <select
                         value={becario_seleccionado_id}
                         onChange={(e) => seleccionarBecario(Number(e.target.value))}
-                        className="w-full h-10 px-3 rounded-xl border border-[#E3DCCB] bg-[#F8F9FA] text-xs font-bold text-[#063A6B] focus:outline-none focus:ring-2 focus:ring-[#17B4C4]"
+                        className="w-full h-10 px-3 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] text-xs font-bold text-[#035683] focus:outline-none focus:ring-2 focus:ring-[#00ABBD]"
                       >
                         {nomina_becarios.map((b) => (
                           <option key={b.id} value={b.id}>
@@ -642,34 +616,25 @@ export function EvaluacionSocioeconomicaVista() {
 
                     {/* Indicadores en Vivo de Puntaje y Semáforo */}
                     <div className="flex flex-wrap items-center gap-3">
-                      <div className="px-4 py-2 rounded-xl bg-slate-50 border border-[#E3DCCB]">
+                      <div className="px-4 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB]">
                         <span className="text-[10px] font-mono uppercase text-muted-foreground block">
                           Respondidas
                         </span>
-                        <span className="text-sm font-mono font-bold text-[#063A6B]">
+                        <span className="text-sm font-mono font-bold text-[#035683]">
                           {total_respondidas} de {total_preguntas}
                         </span>
                       </div>
 
-                      <Badge
-                        className={`font-mono text-xs font-bold px-3.5 py-2 rounded-xl ${
-                          semaforo_tiempo_real === "verde"
-                            ? "bg-emerald-600 text-white"
-                            : semaforo_tiempo_real === "amarillo"
-                            ? "bg-amber-500 text-white"
-                            : "bg-rose-600 text-white"
-                        }`}
-                      >
-                        Puntaje Calculado: {puntaje_calculado_20.toFixed(1)} / 20 pts · Semáforo:{" "}
-                        {semaforo_tiempo_real.toUpperCase()}
+                      <Badge className="bg-[#035683] text-white font-mono text-xs font-bold px-3.5 py-2 rounded-xl shadow-xs">
+                        Puntaje Calculado: {puntaje_calculado_20.toFixed(1)} / 20 pts
                       </Badge>
 
                       <Button
                         onClick={manejarGuardarEvaluacionSocioeconomica}
                         disabled={guardando_evaluacion}
-                        className="h-10 px-5 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs flex items-center gap-2 shadow-xs"
+                        className="h-10 px-5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs flex items-center gap-2 shadow-xs"
                       >
-                        <Save className="w-4 h-4 text-[#F8C766]" />
+                        <Save className="w-4 h-4 text-[#FFB600]" />
                         {guardando_evaluacion
                           ? "Guardando..."
                           : "Guardar Evaluación Socioeconómica (/20 pts)"}
@@ -678,12 +643,12 @@ export function EvaluacionSocioeconomicaVista() {
                   </div>
 
                   {/* Barra de Progreso y Filtros por Bloque */}
-                  <div className="pt-2 border-t border-[#E3DCCB]/60 space-y-3">
+                  <div className="pt-2 border-t border-[#E5E7EB]/60 space-y-3">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-[#063A6B]">
+                      <span className="font-semibold text-[#035683]">
                         Progreso de llenado del instrumento ({total_respondidas}/{total_preguntas} preguntas)
                       </span>
-                      <span className="font-mono font-bold text-[#17B4C4]">{porcentaje_progreso}%</span>
+                      <span className="font-mono font-bold text-[#00ABBD]">{porcentaje_progreso}%</span>
                     </div>
                     <Progress value={porcentaje_progreso} className="h-2" />
 
@@ -699,11 +664,11 @@ export function EvaluacionSocioeconomicaVista() {
                             onClick={() => set_categoria_activa(cat.id)}
                             className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
                               activo
-                                ? "bg-[#063A6B] text-white border-[#063A6B] shadow-2xs"
-                                : "bg-white text-slate-700 border-[#E3DCCB] hover:bg-slate-50"
+                                ? "bg-[#035683] text-white border-[#035683] shadow-2xs"
+                                : "bg-white text-slate-700 border-[#E5E7EB] hover:bg-slate-50"
                             }`}
                           >
-                            <IconoCat className={`w-3.5 h-3.5 ${activo ? "text-[#F8C766]" : "text-[#17B4C4]"}`} />
+                            <IconoCat className={`w-3.5 h-3.5 ${activo ? "text-[#FFB600]" : "text-[#00ABBD]"}`} />
                             <span>{cat.etiqueta}</span>
                           </button>
                         );
@@ -721,28 +686,28 @@ export function EvaluacionSocioeconomicaVista() {
                   return (
                     <Card
                       key={p.id}
-                      className="border-[#E3DCCB] bg-white rounded-2xl shadow-2xs hover:border-[#17B4C4]/60 transition-colors"
+                      className="border-[#E5E7EB] bg-white rounded-2xl shadow-2xs hover:border-[#00ABBD]/60 transition-colors"
                     >
                       <CardContent className="p-5 space-y-3.5">
                         <div className="flex items-start justify-between gap-2">
                           <div className="space-y-1">
                             <div className="flex flex-wrap items-center gap-1.5">
-                              <span className="font-mono text-xs font-bold text-[#17B4C4]">
+                              <span className="font-mono text-xs font-bold text-[#00ABBD]">
                                 Pregunta #{p.numero} · {p.titulo}
                               </span>
                               <Badge
                                 variant="outline"
-                                className="text-[10px] font-mono border-[#E3DCCB] text-slate-600"
+                                className="text-[10px] font-mono border-[#E5E7EB] text-slate-600"
                               >
                                 {cat_nombre}
                               </Badge>
                             </div>
-                            <h4 className="text-sm font-bold text-[#063A6B] leading-snug">
+                            <h4 className="text-sm font-bold text-[#035683] leading-snug">
                               {p.enunciado}
                             </h4>
                           </div>
                           {seleccion && (
-                            <Badge className="bg-[#063A6B]/10 text-[#063A6B] border border-[#063A6B]/20 font-mono text-xs font-bold shrink-0">
+                            <Badge className="bg-[#035683]/10 text-[#035683] border border-[#035683]/20 font-mono text-xs font-bold shrink-0">
                               Inciso {seleccion}
                             </Badge>
                           )}
@@ -758,16 +723,16 @@ export function EvaluacionSocioeconomicaVista() {
                                 onClick={() => seleccionarInciso(p.numero, op.inciso)}
                                 className={`p-3 rounded-xl border text-xs text-left transition-all flex items-start justify-between gap-2 cursor-pointer ${
                                   esta_seleccionada
-                                    ? "bg-[#063A6B] text-white border-[#063A6B] shadow-xs font-medium"
-                                    : "bg-slate-50/70 text-slate-700 border-[#E3DCCB] hover:bg-slate-100/80"
+                                    ? "bg-[#035683] text-white border-[#035683] shadow-xs font-medium"
+                                    : "bg-slate-50/70 text-slate-700 border-[#E5E7EB] hover:bg-slate-100/80"
                                 }`}
                               >
                                 <div className="flex items-start gap-2.5">
                                   <span
                                     className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${
                                       esta_seleccionada
-                                        ? "bg-[#F8C766] text-[#063A6B]"
-                                        : "bg-white text-slate-600 border border-[#E3DCCB]"
+                                        ? "bg-[#FFB600] text-[#035683]"
+                                        : "bg-white text-slate-600 border border-[#E5E7EB]"
                                     }`}
                                   >
                                     {op.inciso}
@@ -777,7 +742,7 @@ export function EvaluacionSocioeconomicaVista() {
                                 <span
                                   className={`font-mono text-[10px] px-1.5 py-0.5 rounded shrink-0 ${
                                     esta_seleccionada
-                                      ? "bg-white/15 text-[#7FE0E6]"
+                                      ? "bg-white/15 text-[#00ABBD]"
                                       : "text-slate-400"
                                   }`}
                                 >
@@ -794,20 +759,20 @@ export function EvaluacionSocioeconomicaVista() {
               </div>
 
               {/* Pie de Guardado */}
-              <div className="p-4 rounded-2xl bg-white border border-[#E3DCCB] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+              <div className="p-4 rounded-2xl bg-white border border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
                 <div className="flex items-center gap-3 text-xs">
-                  <Sparkles className="w-4 h-4 text-[#17B4C4] shrink-0" />
+                  <Sparkles className="w-4 h-4 text-[#00ABBD] shrink-0" />
                   <span>
-                    Becario en evaluación: <strong className="text-[#063A6B]">{becario_actual.nombre_completo}</strong> · Nota calculada:{" "}
-                    <strong className="font-mono text-[#063A6B]">{puntaje_calculado_20.toFixed(1)} / 20 pts</strong>
+                    Becario en evaluación: <strong className="text-[#035683]">{becario_actual.nombre_completo}</strong> · Nota calculada:{" "}
+                    <strong className="font-mono text-[#035683]">{puntaje_calculado_20.toFixed(1)} / 20 pts</strong>
                   </span>
                 </div>
                 <Button
                   onClick={manejarGuardarEvaluacionSocioeconomica}
                   disabled={guardando_evaluacion}
-                  className="h-10 px-6 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs flex items-center gap-2"
+                  className="h-10 px-6 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs flex items-center gap-2"
                 >
-                  <CheckCircle className="w-4 h-4 text-[#17B4C4]" />
+                  <CheckCircle className="w-4 h-4 text-[#00ABBD]" />
                   {guardando_evaluacion
                     ? "Guardando..."
                     : "Guardar Evaluación Socioeconómica (/20 pts)"}
@@ -817,11 +782,11 @@ export function EvaluacionSocioeconomicaVista() {
 
             {/* PESTAÑA 2: NÓMINA Y SEMÁFORO POR BECARIO */}
             <TabsContent value="nomina" className="space-y-4">
-              <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs overflow-hidden">
-                <CardHeader className="p-5 border-b border-[#E3DCCB] bg-[#F8F9FA] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs overflow-hidden">
+                <CardHeader className="p-5 border-b border-[#E5E7EB] bg-[#F8F9FA] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <CardTitle className="font-display text-base font-bold text-[#063A6B]">
-                      Nómina Oficial y Semáforo Socioeconómico por Becario (Semestre II)
+                    <CardTitle className="font-display text-base font-bold text-[#035683]">
+                      Nómina Oficial Socioeconómica por Becario (Semestre II)
                     </CardTitle>
                     <CardDescription className="text-xs text-muted-foreground">
                       Resultados consolidados sobre 20 puntos del Cuestionario de Bienestar Universitario (26 Preguntas).
@@ -833,14 +798,14 @@ export function EvaluacionSocioeconomicaVista() {
                       value={busqueda_nomina}
                       onChange={(e) => set_busqueda_nomina(e.target.value)}
                       placeholder="Buscar por nombre, C.I. o carrera..."
-                      className="h-9 pl-9 text-xs border-[#E3DCCB] bg-white rounded-xl"
+                      className="h-9 pl-9 text-xs border-[#E5E7EB] bg-white rounded-xl"
                     />
                   </div>
                 </CardHeader>
 
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
-                    <thead className="bg-slate-100 border-b border-[#E3DCCB] text-[#063A6B] font-bold">
+                    <thead className="bg-slate-100 border-b border-[#E5E7EB] text-[#035683] font-bold">
                       <tr>
                         <th className="py-3 px-4 text-left">#</th>
                         <th className="py-3 px-4 text-left">Becario Universitario</th>
@@ -852,11 +817,11 @@ export function EvaluacionSocioeconomicaVista() {
                         <th className="py-3 px-4 text-right">Acciones</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#E3DCCB]/60">
+                    <tbody className="divide-y divide-[#E5E7EB]/60">
                       {nomina_filtrada.map((becario, idx) => (
                         <tr key={becario.id} className="hover:bg-slate-50/80 transition-colors">
                           <td className="py-3 px-4 font-mono text-muted-foreground">{idx + 1}</td>
-                          <td className="py-3 px-4 font-bold text-[#063A6B]">
+                          <td className="py-3 px-4 font-bold text-[#035683]">
                             {becario.nombre_completo}
                           </td>
                           <td className="py-3 px-4 font-mono text-slate-600">{becario.ci}</td>
@@ -864,25 +829,13 @@ export function EvaluacionSocioeconomicaVista() {
                             <span className="font-medium text-slate-800 block">{becario.universidad}</span>
                             <span className="text-[11px] text-muted-foreground">{becario.carrera}</span>
                           </td>
-                          <td className="py-3 px-4 text-center font-mono font-bold text-[#063A6B]">
+                          <td className="py-3 px-4 text-center font-mono font-bold text-[#035683]">
                             {becario.respuestas_completadas}/{becario.total_preguntas}
                           </td>
-                          <td className="py-3 px-4 text-center font-mono font-bold text-sm text-[#063A6B]">
+                          <td className="py-3 px-4 text-center font-mono font-bold text-sm text-[#035683]">
                             {becario.puntaje_20.toFixed(1)} / 20
                           </td>
-                          <td className="py-3 px-4 text-center">
-                            <Badge
-                              className={`font-mono text-[10px] font-bold px-2.5 py-0.5 ${
-                                becario.semaforo === "verde"
-                                  ? "bg-emerald-100 text-emerald-800 border-emerald-300"
-                                  : becario.semaforo === "amarillo"
-                                  ? "bg-amber-100 text-amber-800 border-amber-300"
-                                  : "bg-rose-100 text-rose-800 border-rose-300"
-                              }`}
-                            >
-                              {becario.semaforo.toUpperCase()}
-                            </Badge>
-                          </td>
+                          
                           <td className="py-3 px-4 text-right">
                             <Button
                               size="sm"
@@ -891,7 +844,7 @@ export function EvaluacionSocioeconomicaVista() {
                                 seleccionarBecario(becario.id);
                                 set_pestaña_activa("cuestionario");
                               }}
-                              className="h-8 px-3 border-[#17B4C4] text-[#063A6B] hover:bg-[#17B4C4]/10 rounded-lg text-xs font-bold"
+                              className="h-8 px-3 border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg text-xs font-bold"
                             >
                               Ver / Editar Cuestionario
                             </Button>
@@ -906,12 +859,12 @@ export function EvaluacionSocioeconomicaVista() {
 
             {/* PESTAÑA 3: CONFIGURAR / EDITAR CUESTIONARIO (INSTITUCIÓN) */}
             <TabsContent value="configuracion" className="space-y-6">
-              <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
+              <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs">
                 <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <Settings className="w-4 h-4 text-amber-600" />
-                      <h3 className="font-display text-base font-bold text-[#063A6B]">
+                      <h3 className="font-display text-base font-bold text-[#035683]">
                         Editor Institucional del Cuestionario de Bienestar Universitario
                       </h3>
                     </div>
@@ -925,17 +878,17 @@ export function EvaluacionSocioeconomicaVista() {
                       size="sm"
                       variant="outline"
                       onClick={manejarAnadirPregunta}
-                      className="h-9 px-3.5 border-[#063A6B] text-[#063A6B] hover:bg-[#063A6B]/5 rounded-xl text-xs font-bold flex items-center gap-1.5"
+                      className="h-9 px-3.5 border-[#035683] text-[#035683] hover:bg-[#035683]/5 rounded-xl text-xs font-bold flex items-center gap-1.5"
                     >
-                      <PlusCircle className="w-3.5 h-3.5 text-[#17B4C4]" />
+                      <PlusCircle className="w-3.5 h-3.5 text-[#00ABBD]" />
                       Añadir Pregunta
                     </Button>
                     <Button
                       size="sm"
                       onClick={manejarGuardarCatalogoInstitucional}
-                      className="h-9 px-4 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs flex items-center gap-1.5"
+                      className="h-9 px-4 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs flex items-center gap-1.5"
                     >
-                      <Save className="w-3.5 h-3.5 text-[#F8C766]" />
+                      <Save className="w-3.5 h-3.5 text-[#FFB600]" />
                       Guardar Catálogo Institucional
                     </Button>
                   </div>
@@ -944,10 +897,10 @@ export function EvaluacionSocioeconomicaVista() {
 
               {/* Panel de Edición Activa de una Pregunta */}
               {pregunta_editando_id !== null && (
-                <Card className="border-2 border-[#17B4C4] bg-white rounded-2xl shadow-md">
-                  <CardHeader className="p-5 pb-3 border-b border-[#E3DCCB] bg-[#17B4C4]/5">
-                    <CardTitle className="text-sm font-bold text-[#063A6B] flex items-center gap-2 uppercase tracking-wider">
-                      <Edit3 className="w-4 h-4 text-[#17B4C4]" />
+                <Card className="border-2 border-[#00ABBD] bg-white rounded-2xl shadow-md">
+                  <CardHeader className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#00ABBD]/5">
+                    <CardTitle className="text-sm font-bold text-[#035683] flex items-center gap-2 uppercase tracking-wider">
+                      <Edit3 className="w-4 h-4 text-[#00ABBD]" />
                       Editando Pregunta del Instrumento Socioeconómico
                     </CardTitle>
                   </CardHeader>
@@ -958,7 +911,7 @@ export function EvaluacionSocioeconomicaVista() {
                         <Input
                           value={form_titulo}
                           onChange={(e) => set_form_titulo(e.target.value)}
-                          className="h-9 text-xs border-[#E3DCCB]"
+                          className="h-9 text-xs border-[#E5E7EB]"
                         />
                       </div>
                       <div className="space-y-1">
@@ -968,7 +921,7 @@ export function EvaluacionSocioeconomicaVista() {
                           onChange={(e) =>
                             set_form_categoria(e.target.value as Exclude<CategoriaBienestar, "todas">)
                           }
-                          className="w-full h-9 px-3 rounded-md border border-[#E3DCCB] bg-white text-xs font-medium text-[#063A6B]"
+                          className="w-full h-9 px-3 rounded-md border border-[#E5E7EB] bg-white text-xs font-medium text-[#035683]"
                         >
                           <option value="Hogar e Ingresos">Hogar e Ingresos</option>
                           <option value="Salud y Servicios Básicos">Salud y Servicios Básicos</option>
@@ -982,24 +935,24 @@ export function EvaluacionSocioeconomicaVista() {
                           rows={2}
                           value={form_enunciado}
                           onChange={(e) => set_form_enunciado(e.target.value)}
-                          className="text-xs border-[#E3DCCB]"
+                          className="text-xs border-[#E5E7EB]"
                         />
                       </div>
                     </div>
 
                     {/* Edición de los Incisos A, B, C, D */}
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold text-[#063A6B]">
+                      <Label className="text-xs font-bold text-[#035683]">
                         Configuración de Incisos y Puntajes Internos
                       </Label>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {form_opciones.map((op, idx) => (
                           <div
                             key={op.inciso}
-                            className="p-3 rounded-xl border border-[#E3DCCB] bg-slate-50 space-y-2"
+                            className="p-3 rounded-xl border border-[#E5E7EB] bg-slate-50 space-y-2"
                           >
                             <div className="flex items-center justify-between">
-                              <Badge className="bg-[#063A6B] text-white font-mono text-xs">
+                              <Badge className="bg-[#035683] text-white font-mono text-xs">
                                 Inciso {op.inciso}
                               </Badge>
                               <div className="flex items-center gap-1.5">
@@ -1017,14 +970,14 @@ export function EvaluacionSocioeconomicaVista() {
                                       parseFloat(e.target.value) || 0
                                     )
                                   }
-                                  className="w-20 h-7 text-xs font-mono text-center border-[#E3DCCB] bg-white"
+                                  className="w-20 h-7 text-xs font-mono text-center border-[#E5E7EB] bg-white"
                                 />
                               </div>
                             </div>
                             <Input
                               value={op.texto}
                               onChange={(e) => actualizarOpcionEnEdicion(idx, "texto", e.target.value)}
-                              className="h-8 text-xs border-[#E3DCCB] bg-white"
+                              className="h-8 text-xs border-[#E5E7EB] bg-white"
                             />
                           </div>
                         ))}
@@ -1036,14 +989,14 @@ export function EvaluacionSocioeconomicaVista() {
                         size="sm"
                         variant="outline"
                         onClick={() => set_pregunta_editando_id(null)}
-                        className="h-9 text-xs rounded-xl border-[#E3DCCB]"
+                        className="h-9 text-xs rounded-xl border-[#E5E7EB]"
                       >
                         Cancelar
                       </Button>
                       <Button
                         size="sm"
                         onClick={aplicarEdicionPregunta}
-                        className="h-9 px-4 bg-[#17B4C4] hover:bg-[#17B4C4]/90 text-[#063A6B] font-bold rounded-xl text-xs"
+                        className="h-9 px-4 bg-[#00ABBD] hover:bg-[#00ABBD]/90 text-[#035683] font-bold rounded-xl text-xs"
                       >
                         Aplicar Cambios en la Pregunta
                       </Button>
@@ -1057,23 +1010,23 @@ export function EvaluacionSocioeconomicaVista() {
                 {preguntas.map((p) => (
                   <div
                     key={p.id}
-                    className="p-4 rounded-2xl border border-[#E3DCCB] bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs"
+                    className="p-4 rounded-2xl border border-[#E5E7EB] bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs"
                   >
                     <div className="space-y-1 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-[#17B4C4]">
+                        <span className="font-mono text-xs font-bold text-[#00ABBD]">
                           Pregunta #{p.numero} · {p.titulo}
                         </span>
-                        <Badge variant="outline" className="text-[10px] font-mono border-[#E3DCCB]">
+                        <Badge variant="outline" className="text-[10px] font-mono border-[#E5E7EB]">
                           {p.categoria || obtenerCategoriaPorNumero(p.numero)}
                         </Badge>
                       </div>
-                      <p className="text-sm font-bold text-[#063A6B]">{p.enunciado}</p>
+                      <p className="text-sm font-bold text-[#035683]">{p.enunciado}</p>
                       <div className="flex flex-wrap gap-2 pt-1">
                         {p.opciones.map((o) => (
                           <span
                             key={o.inciso}
-                            className="text-[11px] bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-lg border border-[#E3DCCB]/60"
+                            className="text-[11px] bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-lg border border-[#E5E7EB]/60"
                           >
                             <strong>{o.inciso}:</strong> {o.texto}
                           </span>
@@ -1086,7 +1039,7 @@ export function EvaluacionSocioeconomicaVista() {
                         size="sm"
                         variant="outline"
                         onClick={() => iniciarEdicionPregunta(p)}
-                        className="h-8 px-3 border-[#17B4C4] text-[#063A6B] rounded-lg text-xs font-bold"
+                        className="h-8 px-3 border-[#00ABBD] text-[#035683] rounded-lg text-xs font-bold"
                       >
                         <Edit3 className="w-3.5 h-3.5 mr-1" />
                         Editar
@@ -1123,12 +1076,12 @@ export function EvaluacionSocioeconomicaVista() {
       {es_becario && (
         <div className="space-y-6">
           {/* Barra de Progreso y Filtros por Bloque para el Becario */}
-          <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
+          <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs">
             <CardContent className="p-5 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-base font-bold text-[#063A6B] flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-[#17B4C4]" />
+                  <h2 className="text-base font-bold text-[#035683] flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-[#00ABBD]" />
                     Autollenado del Cuestionario de Bienestar Universitario
                   </h2>
                   <p className="text-xs text-muted-foreground">
@@ -1136,7 +1089,7 @@ export function EvaluacionSocioeconomicaVista() {
                   </p>
                 </div>
 
-                <Badge className="bg-[#063A6B] text-white font-mono text-xs px-3.5 py-1.5 rounded-xl self-start sm:self-center">
+                <Badge className="bg-[#035683] text-white font-mono text-xs px-3.5 py-1.5 rounded-xl self-start sm:self-center">
                   Respondidas: {total_respondidas} de {total_preguntas}
                 </Badge>
               </div>
@@ -1155,11 +1108,11 @@ export function EvaluacionSocioeconomicaVista() {
                       onClick={() => set_categoria_activa(cat.id)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
                         activo
-                          ? "bg-[#063A6B] text-white border-[#063A6B] shadow-2xs"
-                          : "bg-white text-slate-700 border-[#E3DCCB] hover:bg-slate-50"
+                          ? "bg-[#035683] text-white border-[#035683] shadow-2xs"
+                          : "bg-white text-slate-700 border-[#E5E7EB] hover:bg-slate-50"
                       }`}
                     >
-                      <IconoCat className={`w-3.5 h-3.5 ${activo ? "text-[#F8C766]" : "text-[#17B4C4]"}`} />
+                      <IconoCat className={`w-3.5 h-3.5 ${activo ? "text-[#FFB600]" : "text-[#00ABBD]"}`} />
                       <span>{cat.etiqueta}</span>
                     </button>
                   );
@@ -1176,23 +1129,23 @@ export function EvaluacionSocioeconomicaVista() {
               return (
                 <Card
                   key={p.id}
-                  className="border-[#E3DCCB] bg-white rounded-2xl shadow-2xs hover:border-[#17B4C4]/60 transition-colors"
+                  className="border-[#E5E7EB] bg-white rounded-2xl shadow-2xs hover:border-[#00ABBD]/60 transition-colors"
                 >
                   <CardContent className="p-5 space-y-3.5">
                     <div className="flex items-start justify-between gap-2">
                       <div className="space-y-1">
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="font-mono text-xs font-bold text-[#17B4C4]">
+                          <span className="font-mono text-xs font-bold text-[#00ABBD]">
                             Pregunta #{p.numero} · {p.titulo}
                           </span>
                           <Badge
                             variant="outline"
-                            className="text-[10px] font-mono border-[#E3DCCB] text-slate-600"
+                            className="text-[10px] font-mono border-[#E5E7EB] text-slate-600"
                           >
                             {cat_nombre}
                           </Badge>
                         </div>
-                        <h4 className="text-sm font-bold text-[#063A6B] leading-snug">
+                        <h4 className="text-sm font-bold text-[#035683] leading-snug">
                           {p.enunciado}
                         </h4>
                       </div>
@@ -1213,15 +1166,15 @@ export function EvaluacionSocioeconomicaVista() {
                             onClick={() => seleccionarInciso(p.numero, op.inciso)}
                             className={`p-3 rounded-xl border text-xs text-left transition-all flex items-start gap-2.5 cursor-pointer ${
                               esta_seleccionada
-                                ? "bg-[#063A6B] text-white border-[#063A6B] shadow-xs font-medium"
-                                : "bg-slate-50/70 text-slate-700 border-[#E3DCCB] hover:bg-slate-100/80"
+                                ? "bg-[#035683] text-white border-[#035683] shadow-xs font-medium"
+                                : "bg-slate-50/70 text-slate-700 border-[#E5E7EB] hover:bg-slate-100/80"
                             }`}
                           >
                             <span
                               className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${
                                 esta_seleccionada
-                                  ? "bg-[#F8C766] text-[#063A6B]"
-                                  : "bg-white text-slate-600 border border-[#E3DCCB]"
+                                  ? "bg-[#FFB600] text-[#035683]"
+                                  : "bg-white text-slate-600 border border-[#E5E7EB]"
                               }`}
                             >
                               {op.inciso}
@@ -1238,10 +1191,10 @@ export function EvaluacionSocioeconomicaVista() {
           </div>
 
           {/* Botón de Envío del Becario */}
-          <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
+          <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs">
             <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-0.5">
-                <p className="text-sm font-bold text-[#063A6B]">
+                <p className="text-sm font-bold text-[#035683]">
                   Declaración de Bienestar Personal, Social y Universitario
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -1250,9 +1203,9 @@ export function EvaluacionSocioeconomicaVista() {
               </div>
               <Button
                 onClick={manejarEnviarAutollenadoBecario}
-                className="h-11 px-6 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs flex items-center gap-2 shrink-0 shadow-sm"
+                className="h-11 px-6 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs flex items-center gap-2 shrink-0 shadow-sm"
               >
-                <CheckCircle2 className="w-4 h-4 text-[#F8C766]" />
+                <CheckCircle2 className="w-4 h-4 text-[#FFB600]" />
                 Enviar Mi Evaluación Socioeconómica (26 Preguntas)
               </Button>
             </CardContent>

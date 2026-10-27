@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import * as React from "react"
 import { format } from "date-fns"
@@ -37,12 +37,12 @@ export function SeleccionadorFecha({
         <Button
           variant={"outline"}
           className={cn(
-            "w-full justify-start text-left font-normal border-[#E3DCCB] h-11 rounded-xl",
+            "w-full justify-start text-left font-normal border-[#E5E7EB] h-11 rounded-xl",
             !fecha && "text-muted-foreground",
             className
           )}
         >
-          <CalendarIcon className="mr-2 h-4 w-4 text-[#17B4C4]" />
+          <CalendarIcon className="mr-2 h-4 w-4 text-[#00ABBD]" />
           {fecha ? format(fecha, formato, { locale: es }) : <span>{etiqueta_boton}</span>}
         </Button>
       </PopoverTrigger>
@@ -73,11 +73,11 @@ export function SeleccionadorFechaHora({ fecha, alCambiar, hora, alCambiarHora, 
             <Button
               variant={"outline"}
               className={cn(
-                "w-full justify-start text-left font-normal border-[#E3DCCB] h-11 rounded-xl",
+                "w-full justify-start text-left font-normal border-[#E5E7EB] h-11 rounded-xl",
                 !fecha && "text-muted-foreground"
               )}
             >
-              <CalendarIcon className="mr-2 h-4 w-4 text-[#17B4C4]" />
+              <CalendarIcon className="mr-2 h-4 w-4 text-[#00ABBD]" />
               {fecha ? format(fecha, "PPP", { locale: es }) : <span>{etiqueta_boton}</span>}
             </Button>
           </PopoverTrigger>
@@ -94,12 +94,12 @@ export function SeleccionadorFechaHora({ fecha, alCambiar, hora, alCambiarHora, 
       </div>
       {alCambiarHora && (
         <div className="w-[130px] relative">
-          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#17B4C4]" />
+          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#00ABBD]" />
           <Input 
             type="time" 
             value={hora || ""} 
             onChange={(e) => alCambiarHora(e.target.value)} 
-            className="pl-9 h-11 rounded-xl border-[#E3DCCB] focus-visible:ring-[#17B4C4]"
+            className="pl-9 h-11 rounded-xl border-[#E5E7EB] focus-visible:ring-[#00ABBD]"
           />
         </div>
       )}
@@ -116,13 +116,13 @@ interface TimePickerProps {
 export function SeleccionadorHora({ hora, alCambiar, etiqueta_placeholder = "Seleccionar hora" }: TimePickerProps) {
   return (
     <div className="relative w-full">
-      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#17B4C4]" />
+      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#00ABBD]" />
       <Input 
         type="time" 
         value={hora || ""} 
         onChange={(e) => alCambiar(e.target.value)} 
         placeholder={etiqueta_placeholder}
-        className="pl-9 h-11 rounded-xl border-[#E3DCCB] focus-visible:ring-[#17B4C4] w-full"
+        className="pl-9 h-11 rounded-xl border-[#E5E7EB] focus-visible:ring-[#00ABBD] w-full"
       />
     </div>
   )

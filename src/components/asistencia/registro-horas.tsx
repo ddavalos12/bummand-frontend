@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -144,17 +144,17 @@ export function RegistroHoras() {
 
   if (registrado) {
     return (
-      <Card className="border-[#E3DCCB] shadow-sm bg-white overflow-hidden text-center py-10">
+      <Card className="border-[#E5E7EB] shadow-sm bg-white overflow-hidden text-center py-10">
         <div className="flex flex-col items-center justify-center space-y-4">
-          <CheckCircle2 className="w-16 h-16 text-[#17B4C4]" />
-          <h3 className="font-display font-bold text-2xl text-[#063A6B]">¡Asistencia Registrada!</h3>
+          <CheckCircle2 className="w-16 h-16 text-[#00ABBD]" />
+          <h3 className="font-display font-bold text-2xl text-[#035683]">¡Asistencia Registrada!</h3>
           <p className="text-muted-foreground max-w-sm mx-auto">
             {mensaje_estado || "Tus horas de práctica han sido procesadas correctamente."}
           </p>
           <Button
             variant="outline"
             onClick={() => set_registrado(false)}
-            className="mt-4 rounded-xl border-[#E3DCCB] font-bold"
+            className="mt-4 rounded-xl border-[#E5E7EB] font-bold"
           >
             Registrar Otro Día
           </Button>
@@ -164,17 +164,17 @@ export function RegistroHoras() {
   }
 
   return (
-    <Card className="border-[#E3DCCB] shadow-sm bg-white overflow-hidden relative">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-[#F8C766]/10 rounded-bl-[100px] pointer-events-none" />
+    <Card className="border-[#E5E7EB] shadow-sm bg-white overflow-hidden relative">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-[#FFB600]/10 rounded-bl-[100px] pointer-events-none" />
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="font-display text-[#063A6B] flex items-center gap-2">
+          <CardTitle className="font-display text-[#035683] flex items-center gap-2">
             <Clock className="w-5 h-5 text-[#E2694B]" />
             Registro de Horas
           </CardTitle>
           <div className="flex items-center gap-1.5 text-xs font-mono font-medium text-muted-foreground">
             {conectado ? (
-              <span className="flex items-center gap-1 text-[#17B4C4]">
+              <span className="flex items-center gap-1 text-[#00ABBD]">
                 <Wifi className="w-3.5 h-3.5" /> En tiempo real
               </span>
             ) : (
@@ -227,9 +227,9 @@ export function RegistroHoras() {
           {formulario.renderizarMensajeError("hora_salida")}
         </div>
 
-        <div className="bg-[#E3F9FA] p-4 rounded-xl border border-[#17B4C4]/20 flex items-start gap-3">
-          <MapPin className="w-5 h-5 text-[#17B4C4] shrink-0 mt-0.5" />
-          <div className="text-sm text-[#063A6B]">
+        <div className="bg-[#E3F9FA] p-4 rounded-xl border border-[#00ABBD]/20 flex items-start gap-3">
+          <MapPin className="w-5 h-5 text-[#00ABBD] shrink-0 mt-0.5" />
+          <div className="text-sm text-[#035683]">
             <span className="font-bold block mb-1">Geolocalización Activa</span>
             Ubicación: {coordenadas.lat.toFixed(4)}, {coordenadas.lng.toFixed(4)}. Se adjuntará al registro como comprobante institucional.
           </div>

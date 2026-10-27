@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -145,14 +146,14 @@ export function DialogoNuevoCasoPastoral({
 
   return (
     <Dialog open={abierto} onOpenChange={enCerrar}>
-      <DialogContent className="sm:max-w-xl max-h-[92vh] overflow-y-auto border-[#E3DCCB] p-6 rounded-2xl bg-white shadow-2xl">
-        <DialogHeader className="border-b border-[#E3DCCB]/60 pb-3">
+      <DialogContent className="sm:max-w-xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-[#E5E7EB] rounded-2xl bg-white shadow-2xl">
+        <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-amber-100/70 text-amber-800 rounded-xl">
               <HeartHandshake className="w-5 h-5 text-amber-700" />
             </div>
             <div>
-              <DialogTitle className="font-display text-base text-[#063A6B]">
+              <DialogTitle className="font-display text-base text-[#035683]">
                 Derivar Caso de Seguimiento Pastoral y de Mentoría
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
@@ -162,16 +163,16 @@ export function DialogoNuevoCasoPastoral({
           </div>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
+        <DialogBody className="space-y-4 text-xs">
           {/* Selección del Becario */}
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold text-[#063A6B]">
+            <Label className="text-xs font-bold text-[#035683]">
               Seleccionar Becario / Estudiante:
             </Label>
             <select
               value={becario_id_seleccionado}
               onChange={(e) => set_becario_id_seleccionado(Number(e.target.value))}
-              className="w-full text-xs p-2 rounded-lg border border-[#E3DCCB] bg-white text-[#063A6B] font-medium focus:outline-none focus:ring-2 focus:ring-[#063A6B]"
+              className="w-full text-xs p-2 rounded-lg border border-[#E5E7EB] bg-white text-[#035683] font-medium focus:outline-none focus:ring-2 focus:ring-[#035683]"
             >
               {becariosDisponibles.map((b) => (
                 <option key={b.id} value={b.id}>
@@ -183,7 +184,7 @@ export function DialogoNuevoCasoPastoral({
 
           {/* Origen del Caso */}
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold text-[#063A6B]">
+            <Label className="text-xs font-bold text-[#035683]">
               Origen de la Derivación:
             </Label>
             <div className="space-y-1.5">
@@ -192,8 +193,8 @@ export function DialogoNuevoCasoPastoral({
                   key={o.key}
                   className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs cursor-pointer transition-all ${
                     origen === o.label
-                      ? "bg-amber-50/70 border-amber-300 text-[#063A6B] font-bold"
-                      : "bg-white border-[#E3DCCB] text-muted-foreground hover:bg-slate-50"
+                      ? "bg-amber-50/70 border-amber-300 text-[#035683] font-bold"
+                      : "bg-white border-[#E5E7EB] text-muted-foreground hover:bg-slate-50"
                   }`}
                 >
                   <input
@@ -212,7 +213,7 @@ export function DialogoNuevoCasoPastoral({
           {/* Prioridad y Tutor Asignado */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-[#063A6B]">
+              <Label className="text-xs font-bold text-[#035683]">
                 Nivel de Prioridad:
               </Label>
               <div className="flex items-center gap-1.5">
@@ -230,7 +231,7 @@ export function DialogoNuevoCasoPastoral({
                           : p === "MEDIA"
                           ? "bg-blue-600 text-white border-blue-700"
                           : "bg-slate-600 text-white border-slate-700"
-                        : "bg-white text-muted-foreground border-[#E3DCCB] hover:bg-slate-50"
+                        : "bg-white text-muted-foreground border-[#E5E7EB] hover:bg-slate-50"
                     }`}
                   >
                     {p}
@@ -240,7 +241,7 @@ export function DialogoNuevoCasoPastoral({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-[#063A6B]">
+              <Label className="text-xs font-bold text-[#035683]">
                 Tutor / Responsable Asignado:
               </Label>
               <Input
@@ -248,14 +249,14 @@ export function DialogoNuevoCasoPastoral({
                 value={tutor_asignado}
                 onChange={(e) => set_tutor_asignado(e.target.value)}
                 placeholder="Nombre del pastor o mentor..."
-                className="text-xs font-medium border-[#E3DCCB]"
+                className="text-xs font-medium border-[#E5E7EB]"
               />
             </div>
           </div>
 
           {/* Observaciones y Motivo */}
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold text-[#063A6B]">
+            <Label className="text-xs font-bold text-[#035683]">
               Observación Pastoral y Motivo del Seguimiento:
             </Label>
             <Textarea
@@ -263,7 +264,7 @@ export function DialogoNuevoCasoPastoral({
               value={observaciones}
               onChange={(e) => set_observaciones(e.target.value)}
               placeholder="Describa la situación reportada por el pastor o detectada en la iglesia local (ej. ausencia en cultos, crisis familiar, dificultad en liderazgo, acompañamiento espiritual requerido)..."
-              className="text-xs border-[#E3DCCB] focus-visible:ring-[#063A6B]"
+              className="text-xs border-[#E5E7EB] focus-visible:ring-[#035683]"
             />
           </div>
 
@@ -274,16 +275,16 @@ export function DialogoNuevoCasoPastoral({
               <strong>Confidencialidad Pastoral:</strong> Este expediente sólo es accesible por la Administración y el Tutor asignado. No se expone en la interfaz del becario para resguardar su integridad y proceso de maduración.
             </span>
           </div>
-        </div>
+        </DialogBody>
 
-        <DialogFooter className="border-t border-[#E3DCCB]/60 pt-3 gap-2">
+        <DialogFooter>
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={enCerrar}
             disabled={guardando}
-            className="text-xs border-[#E3DCCB]"
+            className="text-xs border-[#E5E7EB]"
           >
             Cancelar
           </Button>
@@ -292,7 +293,7 @@ export function DialogoNuevoCasoPastoral({
             size="sm"
             onClick={manejarCreacion}
             disabled={guardando}
-            className="text-xs bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold cursor-pointer"
+            className="text-xs bg-[#035683] hover:bg-[#035683]/90 text-white font-bold cursor-pointer"
           >
             {guardando ? "Registrando..." : "Registrar Expediente Pastoral"}
           </Button>

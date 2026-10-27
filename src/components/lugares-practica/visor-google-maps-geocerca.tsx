@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useGoogleMaps } from "@/hooks/use-google-maps";
@@ -141,9 +141,9 @@ export function VisorGoogleMapsGeocerca({
           map: mapa,
           center: centro,
           radius: radio_tolerancia_m,
-          fillColor: "#17B4C4",
+          fillColor: "#00ABBD",
           fillOpacity: 0.22,
-          strokeColor: "#063A6B",
+          strokeColor: "#035683",
           strokeOpacity: 0.9,
           strokeWeight: 2.5,
         });
@@ -204,7 +204,7 @@ export function VisorGoogleMapsGeocerca({
           },
           icon: {
             path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z",
-            fillColor: es_activo ? "#063A6B" : "#17B4C4",
+            fillColor: es_activo ? "#035683" : "#00ABBD",
             fillOpacity: 1,
             strokeColor: "#FFFFFF",
             strokeWeight: 2,
@@ -220,7 +220,7 @@ export function VisorGoogleMapsGeocerca({
           if (ventana_info_ref.current) {
             ventana_info_ref.current.setContent(`
               <div style="padding: 6px; font-family: sans-serif; font-size: 12px; color: #1E293B; max-width: 220px;">
-                <strong style="color: #063A6B; font-size: 13px; display: block; margin-bottom: 2px;">
+                <strong style="color: #035683; font-size: 13px; display: block; margin-bottom: 2px;">
                   ${bloque.nombre}
                 </strong>
                 <span style="font-size: 11px; color: #64748B; display: block; margin-bottom: 4px;">
@@ -323,15 +323,15 @@ export function VisorGoogleMapsGeocerca({
   };
 
   return (
-    <div className="relative w-full rounded-2xl overflow-hidden border border-[#E3DCCB] shadow-sm bg-slate-900 flex flex-col min-h-[360px]">
+    <div className="relative w-full rounded-2xl overflow-hidden border border-[#E5E7EB] shadow-sm bg-slate-900 flex flex-col min-h-[360px]">
       {/* Barra superior de controles del visor geodésico */}
       <div className="absolute top-3 left-3 right-3 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
-        <div className="flex items-center gap-1.5 pointer-events-auto bg-white/95 backdrop-blur-sm px-2.5 py-1.5 rounded-xl border border-[#E3DCCB] shadow-xs">
+        <div className="flex items-center gap-1.5 pointer-events-auto bg-white/95 backdrop-blur-sm px-2.5 py-1.5 rounded-xl border border-[#E5E7EB] shadow-xs">
           <Badge
             variant="outline"
-            className="text-[11px] font-bold border-[#063A6B] text-[#063A6B] flex items-center gap-1"
+            className="text-[11px] font-bold border-[#035683] text-[#035683] flex items-center gap-1"
           >
-            <MapPin className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <MapPin className="w-3.5 h-3.5 text-[#00ABBD]" />
             <span>{bloque_activo.nombre}</span>
           </Badge>
           <span className="text-[11px] text-muted-foreground font-mono">
@@ -342,14 +342,14 @@ export function VisorGoogleMapsGeocerca({
         <div className="flex items-center gap-1.5 pointer-events-auto">
           {/* Alternador Roadmap / Satélite */}
           {!modo_radar && esta_cargado && (
-            <div className="flex items-center p-0.5 bg-white/95 backdrop-blur-sm rounded-xl border border-[#E3DCCB] shadow-xs">
+            <div className="flex items-center p-0.5 bg-white/95 backdrop-blur-sm rounded-xl border border-[#E5E7EB] shadow-xs">
               <Button
                 type="button"
                 size="sm"
                 variant={tipo_mapa === "roadmap" ? "default" : "ghost"}
                 onClick={() => alternarTipoMapa("roadmap")}
                 className={`h-7 px-2.5 text-[11px] rounded-lg flex items-center gap-1 font-semibold ${
-                  tipo_mapa === "roadmap" ? "bg-[#063A6B] text-white" : "text-[#063A6B]"
+                  tipo_mapa === "roadmap" ? "bg-[#035683] text-white" : "text-[#035683]"
                 }`}
                 title="Vista de calles y avenidas"
               >
@@ -362,7 +362,7 @@ export function VisorGoogleMapsGeocerca({
                 variant={tipo_mapa === "hybrid" ? "default" : "ghost"}
                 onClick={() => alternarTipoMapa("hybrid")}
                 className={`h-7 px-2.5 text-[11px] rounded-lg flex items-center gap-1 font-semibold ${
-                  tipo_mapa === "hybrid" ? "bg-[#063A6B] text-white" : "text-[#063A6B]"
+                  tipo_mapa === "hybrid" ? "bg-[#035683] text-white" : "text-[#035683]"
                 }`}
                 title="Vista satelital híbrida"
               >
@@ -378,7 +378,7 @@ export function VisorGoogleMapsGeocerca({
               type="button"
               size="sm"
               onClick={recentrarEnBloque}
-              className="h-8 w-8 p-0 bg-white/95 hover:bg-slate-100 text-[#063A6B] rounded-xl border border-[#E3DCCB] shadow-xs pointer-events-auto"
+              className="h-8 w-8 p-0 bg-white/95 hover:bg-slate-100 text-[#035683] rounded-xl border border-[#E5E7EB] shadow-xs pointer-events-auto"
               title="Recentrar en Bloque Activo"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -390,10 +390,10 @@ export function VisorGoogleMapsGeocerca({
             type="button"
             size="sm"
             onClick={() => set_modo_radar(!modo_radar)}
-            className="h-8 px-2.5 bg-white/95 hover:bg-slate-100 text-[#063A6B] rounded-xl border border-[#E3DCCB] shadow-xs text-[11px] font-bold flex items-center gap-1 pointer-events-auto"
+            className="h-8 px-2.5 bg-white/95 hover:bg-slate-100 text-[#035683] rounded-xl border border-[#E5E7EB] shadow-xs text-[11px] font-bold flex items-center gap-1 pointer-events-auto"
             title="Alternar entre Google Maps y visualizador Radar"
           >
-            <Radio className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <Radio className="w-3.5 h-3.5 text-[#00ABBD]" />
             <span>{modo_radar ? "Ver Google Maps" : "Ver Radar"}</span>
           </Button>
         </div>
@@ -402,24 +402,24 @@ export function VisorGoogleMapsGeocerca({
       {/* VISTA 1: RADAR CLÁSICO (Si el usuario lo selecciona o en modo offline) */}
       {modo_radar ? (
         <div className="relative w-full h-80 bg-slate-900 flex items-center justify-center">
-          <div className="absolute inset-0 bg-[radial-gradient(#17B4C4_1px,transparent_1px)] [background-size:24px_24px] opacity-20" />
+          <div className="absolute inset-0 bg-[radial-gradient(#00ABBD_1px,transparent_1px)] [background-size:24px_24px] opacity-20" />
           <div
-            className="absolute rounded-full border-2 border-[#17B4C4] bg-[#17B4C4]/15 transition-all duration-300 animate-pulse"
+            className="absolute rounded-full border-2 border-[#00ABBD] bg-[#00ABBD]/15 transition-all duration-300 animate-pulse"
             style={{
               width: `${Math.min(radio_tolerancia_m * 2.2, 250)}px`,
               height: `${Math.min(radio_tolerancia_m * 2.2, 250)}px`,
             }}
           />
           <div
-            className="absolute rounded-full border border-dashed border-[#F8C766]/60"
+            className="absolute rounded-full border border-dashed border-[#FFB600]/60"
             style={{
               width: `${Math.min(radio_tolerancia_m * 1.4, 160)}px`,
               height: `${Math.min(radio_tolerancia_m * 1.4, 160)}px`,
             }}
           />
           <div className="relative z-10 flex flex-col items-center">
-            <div className="w-10 h-10 rounded-full bg-[#063A6B] border-2 border-white shadow-lg flex items-center justify-center text-white">
-              <MapPin className="w-5 h-5 text-[#F8C766]" />
+            <div className="w-10 h-10 rounded-full bg-[#035683] border-2 border-white shadow-lg flex items-center justify-center text-white">
+              <MapPin className="w-5 h-5 text-[#FFB600]" />
             </div>
             <span className="mt-1 px-2 py-0.5 bg-black/75 text-white text-[10px] font-mono rounded backdrop-blur-sm">
               {bloque_activo.nombre}: {bloque_activo.latitud.toFixed(6)}, {bloque_activo.longitud.toFixed(6)}
@@ -437,7 +437,7 @@ export function VisorGoogleMapsGeocerca({
         <div className="relative w-full h-80 flex-1">
           {cargando && (
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-900/90 text-white gap-2">
-              <Compass className="w-8 h-8 text-[#17B4C4] animate-spin" />
+              <Compass className="w-8 h-8 text-[#00ABBD] animate-spin" />
               <p className="font-semibold text-sm">Inicializando Google Maps API...</p>
               <span className="text-xs text-white/70">Cargando geocerca satelital de {sede.nombre}</span>
             </div>
@@ -445,7 +445,7 @@ export function VisorGoogleMapsGeocerca({
 
           {error_carga && (
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-900/95 p-6 text-center text-white gap-3">
-              <AlertTriangle className="w-8 h-8 text-[#F8C766]" />
+              <AlertTriangle className="w-8 h-8 text-[#FFB600]" />
               <p className="font-bold text-sm">Aviso de Conexión de Google Maps</p>
               <p className="text-xs text-white/80 max-w-md">
                 {error_carga}. Puede alternar a la "Vista Radar" en la esquina superior o configurar su clave de API de Google Maps.
@@ -454,7 +454,7 @@ export function VisorGoogleMapsGeocerca({
                 <Button
                   size="sm"
                   onClick={() => set_modo_radar(true)}
-                  className="h-8 px-3 bg-[#17B4C4] hover:bg-[#17B4C4]/90 text-[#063A6B] font-bold text-xs rounded-xl"
+                  className="h-8 px-3 bg-[#00ABBD] hover:bg-[#00ABBD]/90 text-[#035683] font-bold text-xs rounded-xl"
                 >
                   <Radio className="w-3.5 h-3.5 mr-1" />
                   Activar Vista Radar
@@ -479,7 +479,7 @@ export function VisorGoogleMapsGeocerca({
       )}
 
       {/* Barra de estado inferior geodésica */}
-      <div className="p-3 bg-white border-t border-[#E3DCCB] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+      <div className="p-3 bg-white border-t border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
         <div className="flex items-center gap-2">
           {becario_en_rango ? (
             <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white font-mono text-[11px] font-bold flex items-center gap-1.5 shadow-2xs">
@@ -504,10 +504,10 @@ export function VisorGoogleMapsGeocerca({
             size="sm"
             variant="outline"
             onClick={simularAlternarRango}
-            className="h-7 px-2.5 text-[11px] border-[#E3DCCB] hover:border-[#17B4C4] text-[#063A6B] rounded-lg font-medium flex items-center gap-1"
+            className="h-7 px-2.5 text-[11px] border-[#E5E7EB] hover:border-[#00ABBD] text-[#035683] rounded-lg font-medium flex items-center gap-1"
             title="Simular desplazamiento del estudiante dentro o fuera del radio"
           >
-            <Sparkles className="w-3 h-3 text-[#17B4C4]" />
+            <Sparkles className="w-3 h-3 text-[#00ABBD]" />
             <span>Simular {becario_en_rango ? "Salida" : "Entrada"}</span>
           </Button>
 
@@ -517,7 +517,7 @@ export function VisorGoogleMapsGeocerca({
               size="sm"
               variant="ghost"
               onClick={alAbrirAjusteClave}
-              className="h-7 px-2 text-[11px] text-muted-foreground hover:text-[#063A6B] rounded-lg flex items-center gap-1"
+              className="h-7 px-2 text-[11px] text-muted-foreground hover:text-[#035683] rounded-lg flex items-center gap-1"
               title="Ajustes de Google Maps API"
             >
               <KeyRound className="w-3 h-3" />

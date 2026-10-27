@@ -110,10 +110,10 @@ export function BotonSolicitudVerificacion({
                 disabled
                 variant="outline"
                 className={cn(
-                  "h-10 px-3.5 border-amber-300/80 bg-amber-50/60 text-amber-800 text-xs font-semibold rounded-xl flex items-center gap-2 pointer-events-none opacity-90 shadow-2xs"
+                  "h-10 px-3.5 border-[#FFB600]/80 bg-[#FFB600]/10 text-[#035683] text-xs font-semibold rounded-xl flex items-center gap-2 pointer-events-none opacity-90 shadow-2xs"
                 )}
               >
-                <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <Clock className="w-3.5 h-3.5 text-[#035683] shrink-0" />
                 <span>Solicitado ({texto_reactivacion})</span>
               </Button>
             </span>
@@ -142,12 +142,12 @@ export function BotonSolicitudVerificacion({
             type="button"
             onClick={manejarClic}
             disabled={esta_cargando}
-            className="h-10 px-4 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow-2xs transition-all cursor-pointer"
+            className="h-10 px-4 bg-[#035683] hover:bg-[#035683]/90 text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow-2xs transition-all cursor-pointer"
           >
             {esta_cargando ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
             ) : (
-              <Send className="w-3.5 h-3.5 text-[#17B4C4]" />
+              <Send className="w-3.5 h-3.5 text-[#00ABBD]" />
             )}
             <span>Solicitar Verificación Mensual</span>
           </Button>

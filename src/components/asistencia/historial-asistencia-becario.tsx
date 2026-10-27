@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import {
@@ -250,11 +250,11 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
   return (
     <div className="space-y-6">
       {/* Cabecera Principal con Botón de Marcación Destacado */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E3DCCB] shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Clock className="w-5 h-5 text-[#063A6B]" />
-            <h2 className="text-xl font-bold text-[#063A6B]">Mis Horas de Práctica y Asistencia</h2>
+            <Clock className="w-5 h-5 text-[#035683]" />
+            <h2 className="text-xl font-bold text-[#035683]">Mis Horas de Práctica y Asistencia</h2>
           </div>
           <p className="text-xs text-muted-foreground">
             Control de jornada diaria con geocercas satelitales WGS84 y registro mensual de horas.
@@ -263,10 +263,10 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
 
         <div className="flex flex-wrap items-center gap-2.5">
           <Select value={mes_seleccionado} onValueChange={(val) => val && set_mes_seleccionado(val)}>
-            <SelectTrigger className="text-xs h-10 px-3 rounded-xl border-[#E3DCCB] bg-slate-50 font-bold min-w-[170px]">
+            <SelectTrigger className="text-xs h-10 px-3 rounded-xl border-[#E5E7EB] bg-slate-50 font-bold min-w-[170px]">
               <SelectValue placeholder="Seleccionar mes" />
             </SelectTrigger>
-            <SelectContent className="bg-white border-[#E3DCCB]">
+            <SelectContent className="bg-white border-[#E5E7EB]">
               <SelectItem value="2026-10">Octubre 2026 (Actual)</SelectItem>
               <SelectItem value="2026-09">Septiembre 2026</SelectItem>
               <SelectItem value="2026-08">Agosto 2026</SelectItem>
@@ -277,13 +277,13 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
             variant="outline"
             onClick={descargarAsistenciaMensualPdf}
             disabled={descargando_pdf}
-            className="h-10 text-xs font-bold px-3.5 gap-2 border-[#063A6B] text-[#063A6B] hover:bg-slate-100 rounded-xl shadow-2xs shrink-0"
+            className="h-10 text-xs font-bold px-3.5 gap-2 border-[#035683] text-[#035683] hover:bg-slate-100 rounded-xl shadow-2xs shrink-0"
             title="Exportar kárdex de asistencia mensual a PDF mediante Puppeteer"
           >
             {descargando_pdf ? (
-              <Loader2 className="w-4 h-4 animate-spin text-[#17B4C4]" />
+              <Loader2 className="w-4 h-4 animate-spin text-[#00ABBD]" />
             ) : (
-              <Printer className="w-4 h-4 text-[#17B4C4]" />
+              <Printer className="w-4 h-4 text-[#00ABBD]" />
             )}
             <span>Exportar Asistencia PDF</span>
           </Button>
@@ -323,12 +323,12 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
               onClick={() => set_mes_seleccionado(h.clave)}
               className={`p-4 rounded-xl border transition-all cursor-pointer ${
                 es_seleccionado
-                  ? "bg-[#063A6B]/5 border-[#063A6B] ring-1 ring-[#063A6B]/20"
-                  : "bg-white border-[#E3DCCB] hover:border-slate-300"
+                  ? "bg-[#035683]/5 border-[#035683] ring-1 ring-[#035683]/20"
+                  : "bg-white border-[#E5E7EB] hover:border-slate-300"
               }`}
             >
               <div className="flex items-center justify-between mb-1.5">
-                <span className="font-bold text-xs text-[#063A6B]">{h.mes}</span>
+                <span className="font-bold text-xs text-[#035683]">{h.mes}</span>
                 <Badge
                   variant="outline"
                   className={`text-[10px] font-mono font-bold ${
@@ -341,7 +341,7 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
                 </Badge>
               </div>
               <div className="flex items-baseline justify-between text-xs font-mono">
-                <span className="font-bold text-sm text-[#063A6B]">{h.horas.toFixed(1)} hrs</span>
+                <span className="font-bold text-sm text-[#035683]">{h.horas.toFixed(1)} hrs</span>
                 <span className="text-muted-foreground text-[11px]">Meta: {h.meta.toFixed(1)} hrs</span>
               </div>
               <Progress value={avance} className="h-1.5 mt-2 bg-slate-100" />
@@ -355,18 +355,18 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
         {/* KPI 1: Horas Acumuladas */}
         <TarjetaSpotlight
           color_luz="rgba(6, 58, 107, 0.15)"
-          className="bg-white border border-[#E3DCCB] rounded-2xl p-5 shadow-xs space-y-3"
+          className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-3"
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono font-bold uppercase text-muted-foreground">
               Horas Acumuladas
             </span>
-            <Badge className="bg-[#063A6B]/10 text-[#063A6B] border-[#063A6B]/20 text-[10px] font-bold">
+            <Badge className="bg-[#035683]/10 text-[#035683] border-[#035683]/20 text-[10px] font-bold">
               {porcentaje_meta}%
             </Badge>
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-3xl font-bold font-display text-[#063A6B]">
+            <span className="text-3xl font-bold font-display text-[#035683]">
               <ContadorRodilloAnimado valor={horas_acumuladas} sufijo=" hrs" decimales={1} />
             </span>
             <span className="text-xs text-muted-foreground font-mono">/ {horas_meta} hrs</span>
@@ -377,15 +377,15 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
         {/* KPI 2: Jornadas Registradas */}
         <TarjetaSpotlight
           color_luz="rgba(23, 180, 196, 0.15)"
-          className="bg-white border border-[#E3DCCB] rounded-2xl p-5 shadow-xs space-y-3"
+          className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-3"
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono font-bold uppercase text-muted-foreground">
               Jornadas Acreditadas
             </span>
-            <Calendar className="w-4 h-4 text-[#17B4C4]" />
+            <Calendar className="w-4 h-4 text-[#00ABBD]" />
           </div>
-          <div className="text-3xl font-bold font-display text-[#063A6B]">
+          <div className="text-3xl font-bold font-display text-[#035683]">
             <ContadorRodilloAnimado valor={16} sufijo=" días" />
           </div>
           <p className="text-[11px] text-muted-foreground">Mes de Octubre 2026</p>
@@ -394,7 +394,7 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
         {/* KPI 3: Tasa de Puntualidad */}
         <TarjetaSpotlight
           color_luz="rgba(16, 185, 129, 0.15)"
-          className="bg-white border border-[#E3DCCB] rounded-2xl p-5 shadow-xs space-y-3"
+          className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-3"
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono font-bold uppercase text-muted-foreground">
@@ -411,7 +411,7 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
         {/* KPI 4: Sede Asignada */}
         <TarjetaSpotlight
           color_luz="rgba(248, 199, 102, 0.2)"
-          className="bg-white border border-[#E3DCCB] rounded-2xl p-5 shadow-xs space-y-2"
+          className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-2"
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono font-bold uppercase text-muted-foreground">
@@ -419,35 +419,35 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
             </span>
             <MapPin className="w-4 h-4 text-[#E2694B]" />
           </div>
-          <div className="text-sm font-bold text-[#063A6B] leading-tight">
+          <div className="text-sm font-bold text-[#035683] leading-tight">
             Oficina Central - Bloque A
           </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-[#17B4C4] font-semibold pt-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#17B4C4] animate-pulse" />
+          <div className="flex items-center gap-1.5 text-[11px] text-[#00ABBD] font-semibold pt-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00ABBD] animate-pulse" />
             <span>Radio Geodésico: 120m</span>
           </div>
         </TarjetaSpotlight>
       </div>
 
       {/* Listado de Jornadas Registradas */}
-      <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-2xl overflow-hidden">
-        <CardHeader className="bg-slate-50/60 p-5 border-b border-[#E3DCCB]/60">
+      <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-2xl overflow-hidden">
+        <CardHeader className="bg-slate-50/60 p-5 border-b border-[#E5E7EB]/60">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-base font-bold text-[#063A6B]">
+              <CardTitle className="text-base font-bold text-[#035683]">
                 Historial de Marcaciones
               </CardTitle>
               <CardDescription className="text-xs">
                 Registros de ingreso y salida con coordenadas auditadas
               </CardDescription>
             </div>
-            <Badge variant="outline" className="border-[#E3DCCB] text-[#063A6B] font-mono text-xs">
+            <Badge variant="outline" className="border-[#E5E7EB] text-[#035683] font-mono text-xs">
               {jornadas.length} Registros recientes
             </Badge>
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="divide-y divide-[#E3DCCB]/50">
+          <div className="divide-y divide-[#E5E7EB]/50">
             {jornadas.map((j) => (
               <div
                 key={j.id}
@@ -458,18 +458,18 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
                     className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
                       j.estado === "en_curso"
                         ? "bg-amber-100 text-amber-700"
-                        : "bg-[#063A6B]/10 text-[#063A6B]"
+                        : "bg-[#035683]/10 text-[#035683]"
                     }`}
                   >
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-[#063A6B]">{j.fecha}</span>
+                      <span className="font-bold text-sm text-[#035683]">{j.fecha}</span>
                       <span className="text-xs text-muted-foreground">({j.dia_semana})</span>
                       <Badge
                         variant="outline"
-                        className="text-[10px] uppercase font-mono px-1.5 py-0 border-[#E3DCCB]"
+                        className="text-[10px] uppercase font-mono px-1.5 py-0 border-[#E5E7EB]"
                       >
                         {j.tipo === "acciones_servicio"
                           ? "Acciones Servicio"
@@ -491,7 +491,7 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
                 <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 pt-3 md:pt-0 border-gray-100">
                   {/* Horario */}
                   <div className="text-left md:text-right">
-                    <div className="text-xs font-mono font-bold text-[#063A6B]">
+                    <div className="text-xs font-mono font-bold text-[#035683]">
                       {j.hora_ingreso} &rarr; {j.hora_salida || "En curso..."}
                     </div>
                     <div className="text-[11px] text-muted-foreground font-mono">

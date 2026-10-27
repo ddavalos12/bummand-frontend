@@ -115,7 +115,7 @@ export default function LoadingGlobal() {
       </div>
 
       <div className="pt-4 flex items-center justify-center text-xs text-muted-foreground gap-2">
-        <span className="size-2 rounded-full bg-teal-500 animate-ping inline-block" />
+        <span className="size-2 rounded-full bg-[#00ABBD] animate-ping inline-block" />
         <span>Sincronizando información con el ecosistema BUMAND...</span>
       </div>
     </div>

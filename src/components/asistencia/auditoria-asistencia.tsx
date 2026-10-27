@@ -15,10 +15,7 @@ import {
   User,
   Calendar,
   Sparkles,
-  Wifi,
-  WifiOff,
   Navigation,
-  RefreshCw,
   X,
   ExternalLink,
   Coins,
@@ -714,7 +711,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
   const registros =
     registros_servidor && registros_servidor.length > 0 ? registros_servidor : registros_locales;
 
-  const { conectado } = useTiempoReal({
+  useTiempoReal({
     eventos: {
       asistencia_actualizada: () => invalidar(),
     },
@@ -785,77 +782,15 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
 
   return (
     <div className="space-y-6">
-      {/* Cabecera del Módulo */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E3DCCB] shadow-sm">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Clock className="w-5 h-5 text-[#063A6B]" />
-            <h2 className="text-xl font-bold text-[#063A6B]">
-              Control de Asistencia
-            </h2>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Monitoreo en tiempo real de ingresos y salidas con geocercas satelitales WGS84 y consolidado mensual de horas.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {es_admin_o_supervisor && (
-            <Button
-              size="sm"
-              onClick={() => set_modal_manual_abierto(true)}
-              className="h-9 px-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition-all"
-              title="Registrar Asistencia Manual (Contingencia sin megas u olvido)"
-            >
-              <Plus className="w-4 h-4 text-[#F8C766]" />
-              Añadir Asistencia Manual
-            </Button>
-          )}
-
-          <Button
-            size="sm"
-            onClick={() => set_modal_lista_vivo_abierto(true)}
-            className="h-9 px-3 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm"
-          >
-            <ListChecks className="w-4 h-4 text-[#F8C766]" />
-            Llamada de Lista en Vivo (Viernes)
-          </Button>
-
-          <Badge
-            variant="outline"
-            className="border-[#E3DCCB] bg-slate-50 text-[#063A6B] text-xs font-mono py-1 px-3"
-          >
-            {conectado ? (
-              <span className="flex items-center gap-1.5 text-emerald-600 font-semibold">
-                <Wifi className="w-3.5 h-3.5" /> Sincronización en Vivo
-              </span>
-            ) : (
-              <span className="flex items-center gap-1.5 text-amber-600 font-semibold">
-                <WifiOff className="w-3.5 h-3.5" /> Modo Local
-              </span>
-            )}
-          </Badge>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => invalidar()}
-            className="rounded-xl border-[#E3DCCB] text-[#063A6B] h-9"
-            title="Refrescar marcaciones"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Selector de Vista: Marcaciones Diarias vs Registro Mensual de Horas */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-[#E3DCCB] shadow-2xs">
-        <div className="flex items-center gap-2 p-1 bg-slate-100 rounded-xl border border-slate-200">
+      {/* Barra Unificada de Vistas y Acciones Operativas */}
+      <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 bg-white p-3 rounded-2xl border border-[#E5E7EB] shadow-2xs">
+        <div className="flex items-center gap-2 p-1 bg-slate-100 rounded-xl border border-slate-200 shrink-0">
           <button
             type="button"
             onClick={() => set_vista_activa("en_vivo")}
-            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
+            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
               vista_activa === "en_vivo"
-                ? "bg-[#063A6B] text-white shadow-xs"
+                ? "bg-[#035683] text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
@@ -864,32 +799,55 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
           <button
             type="button"
             onClick={() => set_vista_activa("mensual")}
-            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
               vista_activa === "mensual"
-                ? "bg-[#063A6B] text-white shadow-xs"
+                ? "bg-[#035683] text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            <Calendar className="w-3.5 h-3.5 text-[#F8C766]" />
+            <Calendar className="w-3.5 h-3.5 text-[#FFB600]" />
             Registro Mensual de Horas por Becario
           </button>
         </div>
 
-        {vista_activa === "mensual" && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-[#063A6B]">Periodo Mensual:</span>
-            <Select value={mes_seleccionado} onValueChange={(val) => val && set_mes_seleccionado(val)}>
-              <SelectTrigger className="text-xs h-9 px-3 rounded-xl border-[#E3DCCB] bg-slate-50 font-bold min-w-[180px]">
-                <SelectValue placeholder="Seleccionar mes" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border-[#E3DCCB]">
-                <SelectItem value="2026-10">Octubre 2026 (Actual)</SelectItem>
-                <SelectItem value="2026-09">Septiembre 2026</SelectItem>
-                <SelectItem value="2026-08">Agosto 2026</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {vista_activa === "mensual" && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-[#035683]">Periodo:</span>
+              <Select value={mes_seleccionado} onValueChange={(val) => val && set_mes_seleccionado(val)}>
+                <SelectTrigger className="text-xs h-9 px-3 rounded-xl border-[#E5E7EB] bg-slate-50 font-bold min-w-[170px]">
+                  <SelectValue placeholder="Seleccionar mes" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-[#E5E7EB]">
+                  <SelectItem value="2026-10">Octubre 2026 (Actual)</SelectItem>
+                  <SelectItem value="2026-09">Septiembre 2026</SelectItem>
+                  <SelectItem value="2026-08">Agosto 2026</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {es_admin_o_supervisor && (
+            <Button
+              size="sm"
+              onClick={() => set_modal_manual_abierto(true)}
+              className="h-9 px-3.5 bg-[#007BBE] hover:bg-[#035683] text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
+              title="Registrar Asistencia Manual (Contingencia sin megas u olvido)"
+            >
+              <Plus className="w-4 h-4 text-[#FFB600]" />
+              <span>Añadir Asistencia Manual</span>
+            </Button>
+          )}
+
+          <Button
+            size="sm"
+            onClick={() => set_modal_lista_vivo_abierto(true)}
+            className="h-9 px-3 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-xs cursor-pointer"
+          >
+            <ListChecks className="w-4 h-4 text-[#FFB600]" />
+            <span>Llamada de Lista en Vivo (Viernes)</span>
+          </Button>
+        </div>
       </div>
 
       {vista_activa === "en_vivo" ? (
@@ -899,12 +857,12 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             {/* KPI 1: Marcaciones Registradas */}
             <TarjetaSpotlight
               color_luz="rgba(6, 58, 107, 0.12)"
-              className="bg-white border border-[#E3DCCB] rounded-2xl p-5 shadow-xs space-y-2"
+              className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-2"
             >
               <span className="text-[11px] font-mono font-bold uppercase text-muted-foreground block">
                 Marcaciones Hoy
               </span>
-              <div className="text-3xl font-bold font-display text-[#063A6B]">
+              <div className="text-3xl font-bold font-display text-[#035683]">
                 <ContadorRodilloAnimado valor={total_registros} sufijo=" registros" />
               </div>
               <p className="text-[11px] text-muted-foreground">Todas las sedes institucionales</p>
@@ -913,7 +871,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             {/* KPI 2: Cumplimiento de Geocerca */}
             <TarjetaSpotlight
               color_luz="rgba(16, 185, 129, 0.15)"
-              className="bg-white border border-[#E3DCCB] rounded-2xl p-5 shadow-xs space-y-2"
+              className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-2"
             >
               <span className="text-[11px] font-mono font-bold uppercase text-muted-foreground block">
                 Cumplimiento Geocerca
@@ -927,7 +885,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             {/* KPI 3: Alertas / Fuera de Rango */}
             <TarjetaSpotlight
               color_luz="rgba(226, 105, 75, 0.15)"
-              className="bg-white border border-[#E3DCCB] rounded-2xl p-5 shadow-xs space-y-2"
+              className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-2"
             >
               <span className="text-[11px] font-mono font-bold uppercase text-muted-foreground block">
                 Alertas Geodésicas
@@ -941,12 +899,12 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             {/* KPI 4: Jornadas Activas */}
             <TarjetaSpotlight
               color_luz="rgba(248, 199, 102, 0.2)"
-              className="bg-white border border-[#E3DCCB] rounded-2xl p-5 shadow-xs space-y-2"
+              className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-2"
             >
               <span className="text-[11px] font-mono font-bold uppercase text-muted-foreground block">
                 Jornadas en Curso
               </span>
-              <div className="text-3xl font-bold font-display text-[#063A6B]">
+              <div className="text-3xl font-bold font-display text-[#035683]">
                 <ContadorRodilloAnimado valor={jornadas_activas} sufijo=" activas" />
               </div>
               <p className="text-[11px] text-muted-foreground">Becarios presentes en sede</p>
@@ -954,24 +912,24 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
           </div>
 
           {/* Barra de Filtros y Búsqueda */}
-          <div className="p-4 bg-white rounded-2xl border border-[#E3DCCB] shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="p-4 bg-white rounded-2xl border border-[#E5E7EB] shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
             <div className="relative w-full md:w-80">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Buscar por becario, carrera o sede..."
                 value={termino_busqueda}
                 onChange={(e) => set_termino_busqueda(e.target.value)}
-                className="pl-9 text-xs rounded-xl border-[#E3DCCB] h-10 bg-slate-50/50"
+                className="pl-9 text-xs rounded-xl border-[#E5E7EB] h-10 bg-slate-50/50"
               />
             </div>
 
             <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto">
               {/* Filtro Estado */}
               <Select value={filtro_estado} onValueChange={(val: any) => val && set_filtro_estado(val)}>
-                <SelectTrigger className="text-xs h-10 px-3 rounded-xl border border-[#E3DCCB] bg-white text-[#063A6B] font-medium min-w-[160px]">
+                <SelectTrigger className="text-xs h-10 px-3 rounded-xl border border-[#E5E7EB] bg-white text-[#035683] font-medium min-w-[160px]">
                   <SelectValue placeholder="Todos los Estados" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-[#E3DCCB] z-[100]">
+                <SelectContent className="bg-white border-[#E5E7EB] z-[100]">
                   <SelectItem value="todos">Todos los Estados</SelectItem>
                   <SelectItem value="conforme">Conforme WGS84</SelectItem>
                   <SelectItem value="en_curso">En Jornada</SelectItem>
@@ -984,10 +942,10 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
 
               {/* Filtro Sede */}
               <Select value={filtro_sede} onValueChange={(val: any) => val && set_filtro_sede(val)}>
-                <SelectTrigger className="text-xs h-10 px-3 rounded-xl border border-[#E3DCCB] bg-white text-[#063A6B] font-medium min-w-[180px]">
+                <SelectTrigger className="text-xs h-10 px-3 rounded-xl border border-[#E5E7EB] bg-white text-[#035683] font-medium min-w-[180px]">
                   <SelectValue placeholder="Todas las Sedes" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-[#E3DCCB] z-[100]">
+                <SelectContent className="bg-white border-[#E5E7EB] z-[100]">
                   <SelectItem value="todas">Todas las Sedes</SelectItem>
                   <SelectItem value="Oficina Central Bloque A">Oficina Central Bloque A</SelectItem>
                   <SelectItem value="Centro Infantil Sagrada Familia">Centro Infantil Sagrada Familia</SelectItem>
@@ -1000,13 +958,13 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
           </div>
 
           {/* Lista de Registros Auditables */}
-          <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-2xl overflow-hidden">
-            <CardHeader className="bg-slate-50/60 p-5 border-b border-[#E3DCCB]/60">
+          <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-2xl overflow-hidden">
+            <CardHeader className="bg-slate-50/60 p-5 border-b border-[#E5E7EB]/60">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-bold text-[#063A6B]">
+                <CardTitle className="text-base font-bold text-[#035683]">
                   Registros de Asistencia Georreferenciados
                 </CardTitle>
-                <Badge variant="outline" className="border-[#E3DCCB] text-[#063A6B] font-mono text-xs">
+                <Badge variant="outline" className="border-[#E5E7EB] text-[#035683] font-mono text-xs">
                   {registros_filtrados.length} Resultados
                 </Badge>
               </div>
@@ -1017,7 +975,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   No se encontraron marcaciones que coincidan con los filtros seleccionados.
                 </div>
               ) : (
-                <div className="divide-y divide-[#E3DCCB]/50">
+                <div className="divide-y divide-[#E5E7EB]/50">
                   {registros_filtrados.map((item) => (
                     <div
                       key={item.id}
@@ -1025,24 +983,24 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                     >
                       {/* Datos del Becario y Sede */}
                       <div className="flex items-start gap-3.5">
-                        <div className="w-10 h-10 rounded-xl bg-[#063A6B]/10 text-[#063A6B] flex items-center justify-center font-bold text-sm shrink-0">
+                        <div className="w-10 h-10 rounded-xl bg-[#035683]/10 text-[#035683] flex items-center justify-center font-bold text-sm shrink-0">
                           {item.becario_nombre.substring(0, 2).toUpperCase()}
                         </div>
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-sm text-[#063A6B]">
+                            <span className="font-bold text-sm text-[#035683]">
                               {item.becario_nombre}
                             </span>
                             <Badge
                               variant="outline"
-                              className="border-[#E3DCCB] text-[10px] font-mono text-muted-foreground"
+                              className="border-[#E5E7EB] text-[10px] font-mono text-muted-foreground"
                             >
                               {item.carrera}
                             </Badge>
                           </div>
                           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                             <span className="flex items-center gap-1 font-medium text-[#1E293B]">
-                              <Building className="w-3.5 h-3.5 text-[#063A6B]" />
+                              <Building className="w-3.5 h-3.5 text-[#035683]" />
                               {item.sede_nombre}
                             </span>
                             <span>·</span>
@@ -1056,7 +1014,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                       {/* Estado Geodésico y Horario */}
                       <div className="flex flex-wrap sm:flex-nowrap items-center justify-between lg:justify-end gap-4 border-t lg:border-t-0 pt-3 lg:pt-0 border-gray-100">
                         <div className="text-left sm:text-right space-y-0.5">
-                          <div className="font-mono text-xs font-bold text-[#063A6B]">
+                          <div className="font-mono text-xs font-bold text-[#035683]">
                             {item.hora_ingreso} &rarr; {item.hora_salida || "En Jornada"}
                           </div>
                           <div className="text-[11px] text-muted-foreground font-mono">
@@ -1065,7 +1023,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                               : "Jornada no cerrada"}
                           </div>
                           <div className="text-[10px] font-mono flex items-center sm:justify-end gap-1">
-                            <Navigation className="w-3 h-3 text-[#17B4C4]" />
+                            <Navigation className="w-3 h-3 text-[#00ABBD]" />
                             <span>Distancia: </span>
                             <strong
                               className={
@@ -1155,7 +1113,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                             size="sm"
                             variant="ghost"
                             onClick={() => set_registro_detalle(item)}
-                            className="h-8 px-2 text-[#063A6B] hover:bg-slate-100 rounded-lg text-xs"
+                            className="h-8 px-2 text-[#035683] hover:bg-slate-100 rounded-lg text-xs"
                             title="Ver detalle satelital"
                           >
                             <Eye className="w-3.5 h-3.5" />
@@ -1171,7 +1129,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                                   set_registro_convalidador(item);
                                   set_motivo_convalidacion("");
                                 }}
-                                className="h-8 px-2.5 text-xs font-bold border-[#063A6B] text-[#063A6B] hover:bg-[#063A6B]/5 rounded-lg"
+                                className="h-8 px-2.5 text-xs font-bold border-[#035683] text-[#035683] hover:bg-[#035683]/5 rounded-lg"
                               >
                                 Convalidar
                               </Button>
@@ -1180,10 +1138,10 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => abrirJustificacionParaRegistro(item)}
-                                className="h-8 px-2 text-xs font-bold border-amber-300 text-amber-800 bg-amber-50 hover:bg-amber-100 rounded-lg gap-1"
+                                className="h-8 px-2.5 text-xs font-bold border-[#FFB600] text-[#035683] bg-[#FFB600]/10 hover:bg-[#FFB600]/20 rounded-xl gap-1"
                                 title="Subir o radicar justificación con comprobante en PDF/imagen"
                               >
-                                <ClipboardCheck className="w-3.5 h-3.5 text-amber-700" />
+                                <ClipboardCheck className="w-3.5 h-3.5 text-[#035683]" />
                                 <span className="hidden sm:inline">Justificar</span>
                               </Button>
                             </>
@@ -1249,7 +1207,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             <div className="flex items-start gap-2.5">
               <Coins className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
               <div>
-                <p className="font-bold text-[#063A6B]">
+                <p className="font-bold text-[#035683]">
                   Reglamento Oficial de Multas — Viernes de Escuela de Líderes
                 </p>
                 <p className="text-amber-800 text-[11px] mt-0.5">
@@ -1269,12 +1227,12 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <TarjetaSpotlight
               color_luz="rgba(6, 58, 107, 0.12)"
-              className="bg-white border border-[#E3DCCB] rounded-2xl p-5 shadow-xs space-y-2"
+              className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-2"
             >
               <span className="text-[11px] font-mono font-bold uppercase text-muted-foreground block">
                 Nómina Oficial
               </span>
-              <div className="text-3xl font-bold font-display text-[#063A6B]">
+              <div className="text-3xl font-bold font-display text-[#035683]">
                 <ContadorRodilloAnimado valor={lista_horas_mensuales.length} sufijo=" becarios" />
               </div>
               <p className="text-[11px] text-muted-foreground">Estudiantes activos registrados</p>
@@ -1282,7 +1240,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
 
             <TarjetaSpotlight
               color_luz="rgba(16, 185, 129, 0.15)"
-              className="bg-white border border-[#E3DCCB] rounded-2xl p-5 shadow-xs space-y-2"
+              className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-2"
             >
               <span className="text-[11px] font-mono font-bold uppercase text-muted-foreground block">
                 Promedio Horas / Becario
@@ -1307,12 +1265,12 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
 
             <TarjetaSpotlight
               color_luz="rgba(23, 180, 196, 0.15)"
-              className="bg-white border border-[#E3DCCB] rounded-2xl p-5 shadow-xs space-y-2"
+              className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-2"
             >
               <span className="text-[11px] font-mono font-bold uppercase text-muted-foreground block">
                 Cumplimiento de Meta
               </span>
-              <div className="text-3xl font-bold font-display text-[#063A6B]">
+              <div className="text-3xl font-bold font-display text-[#035683]">
                 <ContadorRodilloAnimado
                   valor={
                     lista_horas_mensuales.length > 0
@@ -1331,7 +1289,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
 
             <TarjetaSpotlight
               color_luz="rgba(226, 105, 75, 0.15)"
-              className="bg-white border border-[#E3DCCB] rounded-2xl p-5 shadow-xs space-y-2"
+              className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-2"
             >
               <span className="text-[11px] font-mono font-bold uppercase text-muted-foreground block">
                 Multas Viernes (Total)
@@ -1348,14 +1306,14 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
           </div>
 
           {/* Barra de Filtros y Búsqueda Mensual */}
-          <div className="p-4 bg-white rounded-2xl border border-[#E3DCCB] shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="p-4 bg-white rounded-2xl border border-[#E5E7EB] shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
             <div className="relative w-full md:w-80">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Buscar por becario, CI, carrera o sede..."
                 value={termino_busqueda}
                 onChange={(e) => set_termino_busqueda(e.target.value)}
-                className="pl-9 text-xs rounded-xl border-[#E3DCCB] h-10 bg-slate-50/50"
+                className="pl-9 text-xs rounded-xl border-[#E5E7EB] h-10 bg-slate-50/50"
               />
             </div>
 
@@ -1364,10 +1322,10 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                 value={filtro_estado_mensual}
                 onValueChange={(val) => val && set_filtro_estado_mensual(val)}
               >
-                <SelectTrigger className="text-xs h-10 px-3 rounded-xl border border-[#E3DCCB] bg-white text-[#063A6B] font-medium min-w-[200px]">
+                <SelectTrigger className="text-xs h-10 px-3 rounded-xl border border-[#E5E7EB] bg-white text-[#035683] font-medium min-w-[200px]">
                   <SelectValue placeholder="Estado de Meta Mensual" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-[#E3DCCB] z-[100]">
+                <SelectContent className="bg-white border-[#E5E7EB] z-[100]">
                   <SelectItem value="todos">Todos los Estados</SelectItem>
                   <SelectItem value="cumplido">Meta Cumplida (≥40 hrs)</SelectItem>
                   <SelectItem value="en_progreso">En Progreso (80% a 99%)</SelectItem>
@@ -1378,18 +1336,18 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
           </div>
 
           {/* Tabla Consolidada de Horas Mensuales por Becario */}
-          <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-2xl overflow-hidden">
-            <CardHeader className="bg-slate-50/60 p-5 border-b border-[#E3DCCB]/60">
+          <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-2xl overflow-hidden">
+            <CardHeader className="bg-slate-50/60 p-5 border-b border-[#E5E7EB]/60">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-base font-bold text-[#063A6B]">
+                  <CardTitle className="text-base font-bold text-[#035683]">
                     Registro Mensual de Horas por Becario — {mes_seleccionado}
                   </CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
                     Cómputo acumulado de horas efectivas frente a la meta mensual y seguimiento de puntualidad.
                   </CardDescription>
                 </div>
-                <Badge variant="outline" className="border-[#E3DCCB] text-[#063A6B] font-mono text-xs">
+                <Badge variant="outline" className="border-[#E5E7EB] text-[#035683] font-mono text-xs">
                   {lista_horas_mensuales.filter((b) => {
                     const texto = termino_busqueda.toLowerCase().trim();
                     const coincide = !texto || (b.nombre || "").toLowerCase().includes(texto) || (b.carrera || "").toLowerCase().includes(texto) || String(b.ci || "").includes(texto);
@@ -1403,7 +1361,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-slate-50/80 border-b border-[#E3DCCB] text-[#063A6B] font-mono text-[11px] uppercase">
+                    <tr className="bg-slate-50/80 border-b border-[#E5E7EB] text-[#035683] font-mono text-[11px] uppercase">
                       <th className="py-3 px-4 font-bold">Becario</th>
                       <th className="py-3 px-3 font-bold">C.I.</th>
                       <th className="py-3 px-4 font-bold">Carrera / Sede</th>
@@ -1414,7 +1372,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                       <th className="py-3 px-4 text-right font-bold">Acción</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#E3DCCB]/50">
+                  <tbody className="divide-y divide-[#E5E7EB]/50">
                     {lista_horas_mensuales
                       .filter((b) => {
                         const texto = termino_busqueda.toLowerCase().trim();
@@ -1436,10 +1394,10 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                           <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                             <td className="py-3.5 px-4">
                               <div className="flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-full bg-[#063A6B]/10 text-[#063A6B] font-bold text-xs flex items-center justify-center shrink-0">
+                                <div className="w-8 h-8 rounded-full bg-[#035683]/10 text-[#035683] font-bold text-xs flex items-center justify-center shrink-0">
                                   {item.nombre.charAt(0)}
                                 </div>
-                                <span className="font-bold text-[#063A6B] leading-tight">
+                                <span className="font-bold text-[#035683] leading-tight">
                                   {item.nombre}
                                 </span>
                               </div>
@@ -1451,7 +1409,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                               <div className="space-y-0.5">
                                 <p className="font-medium text-[#1E293B]">{item.carrera}</p>
                                 <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                                  <Building className="w-3 h-3 text-[#17B4C4]" />
+                                  <Building className="w-3 h-3 text-[#00ABBD]" />
                                   {item.sede}
                                 </p>
                               </div>
@@ -1459,7 +1417,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                             <td className="py-3.5 px-4">
                               <div className="space-y-1.5">
                                 <div className="flex items-center justify-between text-[11px] font-mono">
-                                  <span className="font-bold text-[#063A6B]">
+                                  <span className="font-bold text-[#035683]">
                                     {item.horas_realizadas.toFixed(1)} hrs
                                   </span>
                                   <span className="text-muted-foreground">
@@ -1469,7 +1427,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                                 <Progress value={porcentaje} className="h-2 bg-slate-100" />
                               </div>
                             </td>
-                            <td className="py-3.5 px-3 font-mono font-bold text-center text-[#063A6B]">
+                            <td className="py-3.5 px-3 font-mono font-bold text-center text-[#035683]">
                               {item.dias_asistidos}
                             </td>
                             <td className="py-3.5 px-4">
@@ -1507,7 +1465,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => set_becario_detalle_mensual(item)}
-                                className="h-8 px-2.5 text-xs font-bold border-[#063A6B] text-[#063A6B] hover:bg-[#063A6B]/5 rounded-lg flex items-center gap-1"
+                                className="h-8 px-2.5 text-xs font-bold border-[#035683] text-[#035683] hover:bg-[#035683]/5 rounded-lg flex items-center gap-1"
                               >
                                 <Eye className="w-3.5 h-3.5" />
                                 <span>Ver Jornadas</span>
@@ -1531,11 +1489,11 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
       >
         <DialogContent
           showCloseButton={false}
-          className="sm:max-w-lg max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white rounded-2xl border-[#E3DCCB] shadow-2xl"
+          className="sm:max-w-lg max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white rounded-2xl border-[#E5E7EB] shadow-2xl"
         >
-          <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-[#F8F9FA]">
-            <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-[#17B4C4]" />
+          <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] shrink-0 bg-[#F8F9FA]">
+            <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-[#00ABBD]" />
               Detalle Mensual de Horas · {becario_detalle_mensual?.nombre}
             </DialogTitle>
           </DialogHeader>
@@ -1543,25 +1501,25 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
           <DialogBody className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
             {becario_detalle_mensual && (
               <>
-                <div className="p-3.5 bg-slate-50 border border-[#E3DCCB] rounded-xl text-xs space-y-2">
+                <div className="p-3.5 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-bold text-[#063A6B] text-sm">
+                      <p className="font-bold text-[#035683] text-sm">
                         {becario_detalle_mensual.nombre}
                       </p>
                       <p className="text-muted-foreground text-xs">
                         C.I. {becario_detalle_mensual.ci} · {becario_detalle_mensual.carrera}
                       </p>
                     </div>
-                    <Badge variant="outline" className="border-[#063A6B] text-[#063A6B] font-mono text-xs">
+                    <Badge variant="outline" className="border-[#035683] text-[#035683] font-mono text-xs">
                       {becario_detalle_mensual.sede}
                     </Badge>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-dashed border-[#E3DCCB] text-[11px] font-mono">
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-dashed border-[#E5E7EB] text-[11px] font-mono">
                     <div>
                       <span className="text-muted-foreground block">Horas Realizadas:</span>
-                      <strong className="text-[#063A6B] text-sm">
+                      <strong className="text-[#035683] text-sm">
                         {becario_detalle_mensual.horas_realizadas.toFixed(1)} hrs
                       </strong>
                     </div>
@@ -1581,7 +1539,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold text-[#063A6B]">
+                  <Label className="text-xs font-bold text-[#035683]">
                     Jornadas Acreditadas en {becario_detalle_mensual.mes}:
                   </Label>
                   <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
@@ -1595,17 +1553,17 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                     ].map((j, i) => (
                       <div
                         key={i}
-                        className="p-2.5 rounded-lg border border-[#E3DCCB] bg-white flex items-center justify-between text-xs"
+                        className="p-2.5 rounded-lg border border-[#E5E7EB] bg-white flex items-center justify-between text-xs"
                       >
                         <div className="flex items-center gap-2">
-                          <Clock className="w-3.5 h-3.5 text-[#17B4C4]" />
+                          <Clock className="w-3.5 h-3.5 text-[#00ABBD]" />
                           <span className="font-semibold text-slate-800">{j.dia}</span>
                           <span className="text-muted-foreground font-mono text-[11px]">
                             ({j.tipo})
                           </span>
                         </div>
                         <div className="flex items-center gap-2 font-mono font-bold">
-                          <span className="text-[#063A6B]">{j.horas}</span>
+                          <span className="text-[#035683]">{j.horas}</span>
                           <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-300 text-[10px]">
                             {j.estado}
                           </Badge>
@@ -1618,12 +1576,12 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             )}
           </DialogBody>
 
-          <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end">
+          <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end">
             <Button
               type="button"
               variant="outline"
               onClick={() => set_becario_detalle_mensual(null)}
-              className="h-9 px-4 border-[#E3DCCB] rounded-xl text-xs font-bold text-[#063A6B] hover:bg-slate-100"
+              className="h-9 px-4 border-[#E5E7EB] rounded-xl text-xs font-bold text-[#035683] hover:bg-slate-100"
             >
               Cerrar Expediente
             </Button>
@@ -1638,10 +1596,10 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
       >
         <DialogContent
           showCloseButton={false}
-          className="max-w-md rounded-2xl flex flex-col p-0 overflow-hidden bg-white border border-[#E3DCCB]"
+          className="max-w-md rounded-2xl flex flex-col p-0 overflow-hidden bg-white border border-[#E5E7EB]"
         >
-          <DialogHeader className="p-5 pb-3 border-b border-[#E3DCCB] shrink-0 bg-[#F8F9FA]">
-            <DialogTitle className="flex items-center gap-2 text-[#063A6B] text-base">
+          <DialogHeader className="p-5 pb-3 border-b border-[#E5E7EB] shrink-0 bg-[#F8F9FA]">
+            <DialogTitle className="flex items-center gap-2 text-[#035683] text-base">
               <ShieldCheck className="w-5 h-5 text-emerald-600" />
               Convalidación Institucional de Asistencia
             </DialogTitle>
@@ -1649,11 +1607,11 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
           <DialogBody className="space-y-3 p-5 text-xs overflow-y-auto flex-1 min-h-0">
             <p className="text-muted-foreground">
               Estás por convalidar formalmente la marcación de{" "}
-              <strong className="text-[#063A6B]">{registro_convalidador?.becario_nombre}</strong>{" "}
+              <strong className="text-[#035683]">{registro_convalidador?.becario_nombre}</strong>{" "}
               correspondiente al día <strong>{registro_convalidador?.fecha}</strong>.
             </p>
 
-            <div className="p-3 bg-slate-50 rounded-xl border border-[#E3DCCB] space-y-1 font-mono text-[11px]">
+            <div className="p-3 bg-slate-50 rounded-xl border border-[#E5E7EB] space-y-1 font-mono text-[11px]">
               <div>
                 Hora Registrada: <strong>{registro_convalidador?.hora_ingreso}</strong>
               </div>
@@ -1679,7 +1637,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
               />
             </div>
           </DialogBody>
-          <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-[#F8F9FA] shrink-0 mt-auto flex sm:justify-end gap-2">
+          <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] shrink-0 mt-auto flex sm:justify-end gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -1691,7 +1649,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             <Button
               size="sm"
               onClick={manejarConvalidar}
-              className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white rounded-xl font-bold text-xs shadow-sm"
+              className="bg-[#035683] hover:bg-[#035683]/90 text-white rounded-xl font-bold text-xs shadow-sm"
             >
               Firmar Convalidación
             </Button>
@@ -1706,21 +1664,21 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
       >
         <DialogContent
           showCloseButton={false}
-          className="max-w-xl rounded-2xl p-0 overflow-hidden bg-white border border-[#E3DCCB]"
+          className="max-w-xl rounded-2xl p-0 overflow-hidden bg-white border border-[#E5E7EB]"
         >
-          <DialogHeader className="p-5 pb-3 border-b border-[#E3DCCB] bg-[#F8F9FA]">
-            <DialogTitle className="flex items-center gap-2 text-[#063A6B] text-base">
-              <MapPin className="w-5 h-5 text-[#17B4C4]" />
+          <DialogHeader className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA]">
+            <DialogTitle className="flex items-center gap-2 text-[#035683] text-base">
+              <MapPin className="w-5 h-5 text-[#00ABBD]" />
               Auditoría Georreferenciada con Google Maps (WGS84)
             </DialogTitle>
           </DialogHeader>
 
           {registro_detalle && (
             <div className="p-5 space-y-4 text-xs max-h-[80vh] overflow-y-auto">
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-[#E3DCCB] space-y-2">
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-[#E5E7EB] space-y-2">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-bold text-[#063A6B] text-sm">
+                    <div className="font-bold text-[#035683] text-sm">
                       {registro_detalle.becario_nombre}
                     </div>
                     <div className="text-muted-foreground">{registro_detalle.carrera}</div>
@@ -1762,8 +1720,8 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
               {/* Visor con Google Maps Embebido */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-[#063A6B] flex items-center gap-1.5">
-                    <Map className="w-4 h-4 text-[#17B4C4]" />
+                  <span className="font-bold text-[#035683] flex items-center gap-1.5">
+                    <Map className="w-4 h-4 text-[#00ABBD]" />
                     Punto de Marcación y Perímetro Geodésico
                   </span>
                   <Button
@@ -1774,14 +1732,14 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                       const lng = registro_detalle.lng_ingreso || -68.173455;
                       window.open(`https://www.google.com/maps?q=${lat},${lng}`, "_blank");
                     }}
-                    className="h-7 px-2.5 text-[11px] border-[#17B4C4] text-[#063A6B] rounded-lg flex items-center gap-1"
+                    className="h-7 px-2.5 text-[11px] border-[#00ABBD] text-[#035683] rounded-lg flex items-center gap-1"
                   >
-                    <ExternalLink className="w-3 h-3 text-[#17B4C4]" />
+                    <ExternalLink className="w-3 h-3 text-[#00ABBD]" />
                     Abrir en Google Maps
                   </Button>
                 </div>
 
-                <div className="relative w-full h-48 bg-slate-100 rounded-xl overflow-hidden border border-[#E3DCCB]">
+                <div className="relative w-full h-48 bg-slate-100 rounded-xl overflow-hidden border border-[#E5E7EB]">
                   <iframe
                     title="Vista Satelital Google Maps"
                     width="100%"
@@ -1794,10 +1752,10 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
               </div>
 
               {/* Desglose de Cálculo Haversine y Multa */}
-              <div className="p-3 bg-[#E3F9FA] rounded-xl border border-[#17B4C4]/30 space-y-1.5 text-xs text-[#063A6B]">
+              <div className="p-3 bg-[#E3F9FA] rounded-xl border border-[#00ABBD]/30 space-y-1.5 text-xs text-[#035683]">
                 <div className="font-bold flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
-                    <Navigation className="w-4 h-4 text-[#17B4C4]" />
+                    <Navigation className="w-4 h-4 text-[#00ABBD]" />
                     Validación Haversine & Multa
                   </span>
                   <span className="font-mono text-[11px]">
@@ -1809,11 +1767,11 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   Tolerancia máxima permitida: 120 metros.
                 </p>
                 {registro_detalle.monto_multa_bs && registro_detalle.monto_multa_bs > 0 ? (
-                  <p className="text-[11px] text-rose-700 font-medium pt-1 border-t border-[#17B4C4]/20">
+                  <p className="text-[11px] text-rose-700 font-medium pt-1 border-t border-[#00ABBD]/20">
                     ⚠ Retraso detectado en Escuela de Líderes: {registro_detalle.minutos_retraso} minutos. Multa reglamentaria BUMAND aplicada: <strong>Bs {registro_detalle.monto_multa_bs?.toFixed(2)}</strong>.
                   </p>
                 ) : registro_detalle.minutos_retraso && registro_detalle.minutos_retraso > 0 ? (
-                  <p className="text-[11px] text-amber-700 font-medium pt-1 border-t border-[#17B4C4]/20">
+                  <p className="text-[11px] text-amber-700 font-medium pt-1 border-t border-[#00ABBD]/20">
                     ℹ Retraso registrado: {registro_detalle.minutos_retraso} minutos. Las prácticas formativas no contemplan sanciones económicas.
                   </p>
                 ) : null}
@@ -1831,7 +1789,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             </div>
           )}
 
-          <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-[#F8F9FA] flex flex-col sm:flex-row gap-2">
+          <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] flex flex-col sm:flex-row gap-2">
             {registro_detalle &&
               (registro_detalle.estado === "fuera_geocerca" ||
                 registro_detalle.estado === "tardanza") && (
@@ -1845,9 +1803,9 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                       abrirJustificacionParaRegistro(reg);
                     }
                   }}
-                  className="rounded-xl text-xs font-bold border-amber-300 text-amber-800 bg-amber-50 hover:bg-amber-100 gap-1.5 w-full sm:w-auto"
+                  className="rounded-xl text-xs font-bold border-[#FFB600] text-[#035683] bg-[#FFB600]/10 hover:bg-[#FFB600]/20 gap-1.5 w-full sm:w-auto"
                 >
-                  <ClipboardCheck className="w-3.5 h-3.5 text-amber-700" />
+                  <ClipboardCheck className="w-3.5 h-3.5 text-[#035683]" />
                   <span>Justificar con Comprobante (PDF/Foto)</span>
                 </Button>
               )}
@@ -1867,13 +1825,13 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
       <Dialog open={modal_lista_vivo_abierto} onOpenChange={set_modal_lista_vivo_abierto}>
         <DialogContent
           showCloseButton={false}
-          className="max-w-2xl rounded-2xl p-0 overflow-hidden bg-white border border-[#E3DCCB] shadow-2xl"
+          className="max-w-2xl rounded-2xl p-0 overflow-hidden bg-white border border-[#E5E7EB] shadow-2xl"
         >
-          <DialogHeader className="p-5 pb-3 border-b border-[#E3DCCB] bg-[#F8F9FA]">
+          <DialogHeader className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA]">
             <div className="flex items-center justify-between">
               <div>
-                <DialogTitle className="flex items-center gap-2 text-[#063A6B] text-base">
-                  <ListChecks className="w-5 h-5 text-[#17B4C4]" />
+                <DialogTitle className="flex items-center gap-2 text-[#035683] text-base">
+                  <ListChecks className="w-5 h-5 text-[#00ABBD]" />
                   Llamada de Lista en Vivo (Viernes de Formación / Práctica)
                 </DialogTitle>
                 <CardDescription className="text-xs text-muted-foreground">
@@ -1884,7 +1842,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                 size="sm"
                 variant="outline"
                 onClick={confirmarTodosPresencial}
-                className="h-8 px-2.5 text-xs border-[#17B4C4] text-[#063A6B] rounded-lg font-bold"
+                className="h-8 px-2.5 text-xs border-[#00ABBD] text-[#035683] rounded-lg font-bold"
               >
                 Confirmar Todos
               </Button>
@@ -1895,12 +1853,12 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             {lista_llamada_vivo.map((becario) => (
               <div
                 key={becario.id}
-                className="p-3.5 rounded-xl border border-[#E3DCCB] bg-slate-50/60 flex items-center justify-between gap-4 hover:bg-slate-100/70 transition-colors"
+                className="p-3.5 rounded-xl border border-[#E5E7EB] bg-slate-50/60 flex items-center justify-between gap-4 hover:bg-slate-100/70 transition-colors"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-xs text-[#063A6B]">{becario.nombre}</span>
-                    <Badge variant="outline" className="text-[10px] font-mono border-[#E3DCCB]">
+                    <span className="font-bold text-xs text-[#035683]">{becario.nombre}</span>
+                    <Badge variant="outline" className="text-[10px] font-mono border-[#E5E7EB]">
                       {becario.carrera}
                     </Badge>
                   </div>
@@ -1940,7 +1898,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             ))}
           </div>
 
-          <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-[#F8F9FA] flex justify-end gap-2">
+          <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] flex justify-end gap-2">
             <Button
               type="button"
               variant="outline"
@@ -1954,7 +1912,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
               type="button"
               size="sm"
               onClick={guardarLlamadaListaVivo}
-              className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white rounded-xl text-xs font-bold shadow-sm"
+              className="bg-[#035683] hover:bg-[#035683]/90 text-white rounded-xl text-xs font-bold shadow-sm"
             >
               Guardar Llamada de Lista
             </Button>
@@ -1971,16 +1929,16 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
         }}
       >
         <DialogContent
-          showCloseButton={true}
-          className="max-w-xl rounded-2xl p-0 overflow-hidden bg-white border border-[#E3DCCB] shadow-2xl"
+          showCloseButton={false}
+          className="max-w-xl max-h-[90vh] flex flex-col rounded-2xl p-0 overflow-hidden bg-white border border-[#E5E7EB] shadow-2xl"
         >
-          <DialogHeader className="p-5 pb-3 border-b border-[#E3DCCB] bg-[#F8F9FA]">
+          <DialogHeader className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA]">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
                 <Plus className="w-5 h-5 text-emerald-700" />
               </div>
               <div>
-                <DialogTitle className="text-base font-bold text-[#063A6B]">
+                <DialogTitle className="text-base font-bold text-[#035683]">
                   Registrar Asistencia Manual — Contingencia sin Megas / Olvido
                 </DialogTitle>
                 <CardDescription className="text-xs text-muted-foreground">
@@ -1990,7 +1948,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             </div>
           </DialogHeader>
 
-          <div className="p-5 space-y-4 max-h-[72vh] overflow-y-auto text-xs">
+          <DialogBody className="space-y-4 text-xs">
             {/* Aviso institucional */}
             <div className="p-3 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-900 flex items-start gap-2.5">
               <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
@@ -2004,7 +1962,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
 
             {/* 1. Selector de Becario (23 oficiales) */}
             <div className="space-y-1.5">
-              <Label htmlFor="manual-becario" className="font-bold text-[#063A6B] text-xs flex items-center justify-between">
+              <Label htmlFor="manual-becario" className="font-bold text-[#035683] text-xs flex items-center justify-between">
                 <span>Becario Asignado (23 Oficiales BUMAND)</span>
                 <span className="text-[10px] font-mono font-normal text-muted-foreground">
                   C.I. y Unidad institucional
@@ -2014,12 +1972,12 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                 value={String(manual_becario_id)}
                 onValueChange={(val) => set_manual_becario_id(Number(val))}
               >
-                <SelectTrigger id="manual-becario" className="h-10 text-xs rounded-xl border-[#E3DCCB] bg-white">
+                <SelectTrigger id="manual-becario" className="h-10 text-xs rounded-xl border-[#E5E7EB] bg-white">
                   <SelectValue placeholder="Seleccione un becario" />
                 </SelectTrigger>
-                <SelectContent className="max-h-60 bg-white border-[#E3DCCB]">
+                <SelectContent className="max-h-60 bg-white border-[#E5E7EB]">
                   {LISTA_23_BECARIOS_OFICIALES.map((b) => (
-                    <SelectItem key={b.id} value={String(b.id)} className="text-xs py-2">
+                    <SelectItem key={b.id} value={String(b.id)} etiqueta={`${b.nombre} (${b.unidad})`} className="text-xs py-2">
                       <div className="flex flex-col text-left">
                         <span className="font-bold text-slate-800">{b.nombre}</span>
                         <span className="text-[10px] font-mono text-muted-foreground">
@@ -2034,7 +1992,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
 
             {/* 2. Tipo de Actividad (3 Obligatorias) */}
             <div className="space-y-1.5">
-              <Label className="font-bold text-[#063A6B] text-xs">
+              <Label className="font-bold text-[#035683] text-xs">
                 Tipo de Actividad Obligatoria
               </Label>
               <div className="grid grid-cols-3 gap-2">
@@ -2046,7 +2004,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   }}
                   className={`p-2.5 rounded-xl border text-xs font-semibold text-center transition-all ${
                     manual_tipo_actividad === "practicas"
-                      ? "bg-[#063A6B] text-white border-[#063A6B] shadow-xs"
+                      ? "bg-[#035683] text-white border-[#035683] shadow-xs"
                       : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                   }`}
                 >
@@ -2090,7 +2048,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
 
             {/* 3. Sede / Lugar / Evento / Iglesia (Contextual) */}
             <div className="space-y-1.5">
-              <Label htmlFor="manual-sede" className="font-bold text-[#063A6B] text-xs">
+              <Label htmlFor="manual-sede" className="font-bold text-[#035683] text-xs">
                 {manual_tipo_actividad === "practicas"
                   ? "Agencia Diaconía para Prácticas"
                   : manual_tipo_actividad === "escuela_lideres"
@@ -2103,10 +2061,10 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   if (val) set_manual_sede(val);
                 }}
               >
-                <SelectTrigger id="manual-sede" className="h-10 text-xs rounded-xl border-[#E3DCCB] bg-white">
+                <SelectTrigger id="manual-sede" className="h-10 text-xs rounded-xl border-[#E5E7EB] bg-white">
                   <SelectValue placeholder="Seleccione lugar / sede" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-[#E3DCCB]">
+                <SelectContent className="bg-white border-[#E5E7EB]">
                   {SEDES_POR_ACTIVIDAD[manual_tipo_actividad].map((sede) => (
                     <SelectItem key={sede} value={sede} className="text-xs">
                       {sede}
@@ -2119,7 +2077,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             {/* 4. Fecha y Horarios (Ingreso / Salida) con cálculo en vivo */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="manual-fecha" className="font-bold text-[#063A6B] text-xs">
+                <Label htmlFor="manual-fecha" className="font-bold text-[#035683] text-xs">
                   Fecha
                 </Label>
                 <Input
@@ -2127,12 +2085,12 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   type="date"
                   value={manual_fecha}
                   onChange={(e) => set_manual_fecha(e.target.value)}
-                  className="h-10 text-xs rounded-xl border-[#E3DCCB]"
+                  className="h-10 text-xs rounded-xl border-[#E5E7EB]"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="manual-ingreso" className="font-bold text-[#063A6B] text-xs">
+                <Label htmlFor="manual-ingreso" className="font-bold text-[#035683] text-xs">
                   Hora Ingreso
                 </Label>
                 <Input
@@ -2140,12 +2098,12 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   type="time"
                   value={manual_hora_ingreso}
                   onChange={(e) => set_manual_hora_ingreso(e.target.value)}
-                  className="h-10 text-xs rounded-xl border-[#E3DCCB] font-mono"
+                  className="h-10 text-xs rounded-xl border-[#E5E7EB] font-mono"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="manual-salida" className="font-bold text-[#063A6B] text-xs">
+                <Label htmlFor="manual-salida" className="font-bold text-[#035683] text-xs">
                   Hora Salida
                 </Label>
                 <Input
@@ -2153,7 +2111,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   type="time"
                   value={manual_hora_salida}
                   onChange={(e) => set_manual_hora_salida(e.target.value)}
-                  className="h-10 text-xs rounded-xl border-[#E3DCCB] font-mono"
+                  className="h-10 text-xs rounded-xl border-[#E5E7EB] font-mono"
                 />
               </div>
             </div>
@@ -2161,17 +2119,17 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             {/* Cómputo de horas en vivo */}
             <div className="p-3 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-between">
               <span className="text-xs text-slate-600 font-medium flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-[#063A6B]" />
+                <Clock className="w-4 h-4 text-[#035683]" />
                 Tiempo computado en vivo:
               </span>
-              <span className="font-mono font-bold text-sm text-[#063A6B]">
+              <span className="font-mono font-bold text-sm text-[#035683]">
                 {calcularHorasTranscurridas(manual_hora_ingreso, manual_hora_salida).toFixed(2)} horas
               </span>
             </div>
 
             {/* 5. Motivo de Contingencia */}
             <div className="space-y-1.5">
-              <Label htmlFor="manual-motivo" className="font-bold text-[#063A6B] text-xs">
+              <Label htmlFor="manual-motivo" className="font-bold text-[#035683] text-xs">
                 Motivo de Contingencia
               </Label>
               <Select
@@ -2180,10 +2138,10 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   if (val) set_manual_motivo(val);
                 }}
               >
-                <SelectTrigger id="manual-motivo" className="h-10 text-xs rounded-xl border-[#E3DCCB] bg-white">
+                <SelectTrigger id="manual-motivo" className="h-10 text-xs rounded-xl border-[#E5E7EB] bg-white">
                   <SelectValue placeholder="Seleccione motivo de contingencia" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-[#E3DCCB]">
+                <SelectContent className="bg-white border-[#E5E7EB]">
                   {MOTIVOS_CONTINGENCIA.map((motivo) => (
                     <SelectItem key={motivo} value={motivo} className="text-xs">
                       {motivo}
@@ -2200,13 +2158,13 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   placeholder="Especifique la causa justificada de contingencia..."
                   value={manual_motivo_personalizado}
                   onChange={(e) => set_manual_motivo_personalizado(e.target.value)}
-                  className="h-9 text-xs rounded-xl border-[#E3DCCB] mt-2"
+                  className="h-9 text-xs rounded-xl border-[#E5E7EB] mt-2"
                 />
               )}
             </div>
-          </div>
+          </DialogBody>
 
-          <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-[#F8F9FA] flex justify-end gap-2">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -2222,7 +2180,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
               size="sm"
               disabled={manual_guardando}
               onClick={manejarGuardarAsistenciaManual}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5"
+              className="bg-[#007BBE] hover:bg-[#035683] text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5"
             >
               <Check className="w-4 h-4" />
               {manual_guardando ? "Registrando..." : "Guardar Asistencia Manual"}

@@ -39,7 +39,6 @@ interface PropiedadesModalVersiculo {
 export function ModalVersiculoDiario({
   abierto,
   alCambiarAbierto,
-  alIrADevocionales,
 }: PropiedadesModalVersiculo) {
   const [versiculo, set_versiculo] = useState<VersiculoBiblicoWeb>(VERSICULO_RESPALDO);
   const [cargando, set_cargando] = useState(false);
@@ -68,22 +67,15 @@ export function ModalVersiculoDiario({
     cargarVersiculo();
   }, [abierto]);
 
-  const cerrarYGuardar = () => {
+  const cerrarModal = () => {
     alCambiarAbierto(false);
-  };
-
-  const irADevocionalesYEnviar = () => {
-    alCambiarAbierto(false);
-    if (alIrADevocionales) {
-      alIrADevocionales(versiculo.cita, versiculo.texto);
-    }
   };
 
   return (
     <Dialog open={abierto} onOpenChange={alCambiarAbierto}>
-      <DialogContent showCloseButton={false} className="max-w-lg p-0 overflow-hidden border border-[#E3DCCB] bg-white shadow-2xl rounded-2xl">
+      <DialogContent className="max-w-lg p-0 overflow-hidden border border-[#E5E7EB] bg-white shadow-2xl rounded-2xl">
         {/* Cabecera institucional Diaconía */}
-        <div className="bg-gradient-to-r from-[#17B4C4] to-[#122029] p-6 text-white text-center relative overflow-hidden">
+        <DialogHeader className="bg-gradient-to-r from-[#00ABBD] to-[#122029] p-6 text-white text-center relative overflow-hidden border-b-0">
           <div className="w-12 h-12 mx-auto bg-white/20 rounded-full flex items-center justify-center mb-3 shadow-inner">
             <BookOpen className="w-6 h-6 text-white" />
           </div>
@@ -94,17 +86,17 @@ export function ModalVersiculoDiario({
             <Badge className="bg-white/20 hover:bg-white/30 text-white text-[11px] font-medium border-none px-2.5 py-0.5">
               {versiculo.version}
             </Badge>
-            <Badge className="bg-[#F8C766]/30 text-[#FFF9E6] text-[11px] font-semibold border-none px-2.5 py-0.5 flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-[#F8C766]" />
+            <Badge className="bg-[#FFB600]/30 text-[#FFF9E6] text-[11px] font-semibold border-none px-2.5 py-0.5 flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-[#FFB600]" />
               {versiculo.tema}
             </Badge>
           </div>
-        </div>
+        </DialogHeader>
 
         {/* Contenido del versículo y reflexión */}
         <div className="p-6 space-y-4">
           <div className="text-center space-y-2">
-            <div className="inline-block bg-[#17B4C4]/10 text-[#0E7A85] text-xs font-bold px-3 py-1 rounded-full border border-[#17B4C4]/20">
+            <div className="inline-block bg-[#00ABBD]/10 text-[#00808E] text-xs font-bold px-3 py-1 rounded-full border border-[#00ABBD]/20">
               {versiculo.cita}
             </div>
             <p className="text-base font-serif italic text-[#122029] leading-relaxed px-3 font-medium">
@@ -113,7 +105,7 @@ export function ModalVersiculoDiario({
           </div>
 
           <div className="bg-[#F8F9FA] rounded-xl p-4 border border-[#E9ECEF] space-y-1.5">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-[#0E7A85]">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-[#00808E]">
               <HeartHandshake className="w-4 h-4" />
               <span>Reflexión Diaconal Institucional</span>
             </div>
@@ -123,19 +115,12 @@ export function ModalVersiculoDiario({
           </div>
         </div>
 
-        <DialogFooter className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex sm:flex-row justify-end gap-2.5">
+        <DialogFooter className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex sm:flex-row justify-end">
           <Button
-            variant="outline"
-            onClick={cerrarYGuardar}
-            className="border-slate-200 text-slate-700 hover:bg-slate-100 text-xs h-9 px-4 rounded-xl"
+            onClick={cerrarModal}
+            className="bg-[#00ABBD] hover:bg-[#128E9B] text-white text-xs h-9 px-5 rounded-xl font-semibold shadow-xs"
           >
-            Comenzar Jornada
-          </Button>
-          <Button
-            onClick={irADevocionalesYEnviar}
-            className="bg-[#17B4C4] hover:bg-[#128E9B] text-white text-xs h-9 px-4 rounded-xl font-semibold"
-          >
-            Ir a mis Devocionales
+            Entendido
           </Button>
         </DialogFooter>
       </DialogContent>

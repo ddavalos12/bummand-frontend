@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
@@ -100,16 +100,16 @@ export function CentroNotificaciones({
   };
 
   return (
-    <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-2xl overflow-hidden">
-      <CardHeader className="pb-3 border-b border-[#E3DCCB]/60 bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20">
+    <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-2xl overflow-hidden">
+      <CardHeader className="pb-3 border-b border-[#E5E7EB]/60 bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-[#063A6B]/5 rounded-2xl text-[#063A6B] border border-[#063A6B]/10">
+            <div className="p-2.5 bg-[#035683]/5 rounded-2xl text-[#035683] border border-[#035683]/10">
               <Bell className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <CardTitle className="text-lg font-bold font-display text-[#063A6B]">
+                <CardTitle className="text-lg font-bold font-display text-[#035683]">
                   Centro de Notificaciones y Alertas Push
                 </CardTitle>
                 {no_leidas > 0 && (
@@ -162,10 +162,10 @@ export function CentroNotificaciones({
                 <TarjetaSpotlight
                   color_luz={n.leido ? "rgba(23, 180, 196, 0.08)" : "rgba(23, 180, 196, 0.22)"}
                   onClick={() => manejarClicTarjeta(n)}
-                  className={`p-4 rounded-xl border transition-all flex items-start justify-between gap-3 cursor-pointer group hover:border-[#17B4C4] ${
+                  className={`p-4 rounded-xl border transition-all flex items-start justify-between gap-3 cursor-pointer group hover:border-[#00ABBD] ${
                     n.leido
-                      ? "bg-slate-50/40 border-[#E3DCCB]/40 opacity-75"
-                      : "bg-white border-[#17B4C4]/50 shadow-xs"
+                      ? "bg-slate-50/40 border-[#E5E7EB]/40 opacity-75"
+                      : "bg-white border-[#00ABBD]/50 shadow-xs"
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -178,7 +178,7 @@ export function CentroNotificaciones({
                           : n.tipo === "evaluacion"
                           ? "bg-emerald-50 text-emerald-600"
                           : n.tipo === "evento"
-                          ? "bg-cyan-50 text-[#17B4C4]"
+                          ? "bg-cyan-50 text-[#00ABBD]"
                           : "bg-slate-100 text-slate-600"
                       }`}
                     >
@@ -197,11 +197,11 @@ export function CentroNotificaciones({
 
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <h4 className="text-sm font-bold text-[#063A6B] group-hover:text-[#17B4C4] transition-colors">
+                        <h4 className="text-sm font-bold text-[#035683] group-hover:text-[#00ABBD] transition-colors">
                           {n.titulo}
                         </h4>
                         {!n.leido && (
-                          <span className="w-2 h-2 rounded-full bg-[#17B4C4] animate-pulse" />
+                          <span className="w-2 h-2 rounded-full bg-[#00ABBD] animate-pulse" />
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground leading-relaxed">{n.mensaje}</p>
@@ -220,9 +220,9 @@ export function CentroNotificaciones({
                         e.stopPropagation();
                         marcarComoLeida(n.id);
                       }}
-                      className="h-8 px-3 text-xs font-semibold text-[#063A6B] hover:bg-[#17B4C4]/15 rounded-xl border border-[#17B4C4]/30 shrink-0 flex items-center gap-1 transition-colors"
+                      className="h-8 px-3 text-xs font-semibold text-[#035683] hover:bg-[#00ABBD]/15 rounded-xl border border-[#00ABBD]/30 shrink-0 flex items-center gap-1 transition-colors"
                     >
-                      <Check className="w-3.5 h-3.5 text-[#17B4C4]" />
+                      <Check className="w-3.5 h-3.5 text-[#00ABBD]" />
                       <span>Leído</span>
                     </motion.button>
                   )}

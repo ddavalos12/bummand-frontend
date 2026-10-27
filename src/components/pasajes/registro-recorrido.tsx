@@ -432,13 +432,13 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
   };
 
   return (
-    <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-2xl overflow-hidden max-h-[90vh] flex flex-col">
+    <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-2xl overflow-hidden max-h-[90vh] flex flex-col">
       <CardContent className="p-6 pt-5 space-y-4 overflow-y-auto flex-1">
         {/* Encabezado con Indicador de Paso (Ida / Vuelta) */}
-        <div className="flex items-center justify-between pb-3 border-b border-[#E3DCCB]/60 sticky top-0 bg-white z-10">
+        <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB]/60 sticky top-0 bg-white z-10">
           <div className="flex items-center gap-2">
-            <div className={`w-2.5 h-2.5 rounded-full ${paso === "ida" ? "bg-[#17B4C4]" : "bg-[#F8C766]"}`} />
-            <span className="font-mono text-xs font-bold tracking-wider text-[#063A6B]">
+            <div className={`w-2.5 h-2.5 rounded-full ${paso === "ida" ? "bg-[#00ABBD]" : "bg-[#FFB600]"}`} />
+            <span className="font-mono text-xs font-bold tracking-wider text-[#035683]">
               DECLARACIÓN DE RECORRIDO ({paso.toUpperCase()})
             </span>
           </div>
@@ -447,7 +447,7 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
               <button
                 type="button"
                 onClick={() => set_paso("ida")}
-                className="text-xs text-[#0A5CA0] font-mono hover:underline font-semibold"
+                className="text-xs text-[#007BBE] font-mono hover:underline font-semibold"
               >
                 ← Modificar Ida
               </button>
@@ -469,7 +469,7 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
 
         {/* Selector de Tipo de Actividad */}
         <div>
-          <Label className="font-mono text-[10px] font-bold tracking-wider text-[#0A5CA0] uppercase mb-1.5 block">
+          <Label className="font-mono text-[10px] font-bold tracking-wider text-[#007BBE] uppercase mb-1.5 block">
             Tipo de Actividad
           </Label>
           <Select
@@ -478,17 +478,17 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
               if (val) set_tipo_actividad(val as "Prácticas" | "Escuela de Líderes" | "Acciones de Servicio");
             }}
           >
-            <SelectTrigger className="w-full bg-white border-[#E3DCCB] h-10 text-xs rounded-xl focus:ring-[#17B4C4]">
+            <SelectTrigger className="w-full bg-white border-[#E5E7EB] h-10 text-xs rounded-xl focus:ring-[#00ABBD]">
               <SelectValue placeholder="Seleccionar tipo de actividad" />
             </SelectTrigger>
-            <SelectContent className="bg-white border-[#E3DCCB]">
-              <SelectItem value="Prácticas">
-                <span className="font-semibold text-[#063A6B]">Prácticas</span> — Desplazamiento a sede asignada
+            <SelectContent className="bg-white border-[#E5E7EB]">
+              <SelectItem value="Prácticas" etiqueta="Prácticas">
+                <span className="font-semibold text-[#035683]">Prácticas</span> — Desplazamiento a sede asignada
               </SelectItem>
-              <SelectItem value="Escuela de Líderes">
+              <SelectItem value="Escuela de Líderes" etiqueta="Escuela de Líderes">
                 <span className="font-semibold text-amber-700">Escuela de Líderes</span> — Asistencia presencial viernes
               </SelectItem>
-              <SelectItem value="Acciones de Servicio">
+              <SelectItem value="Acciones de Servicio" etiqueta="Acciones de Servicio">
                 <span className="font-semibold text-emerald-700">Acciones de Servicio</span> — Voluntariado y apoyo comunitario
               </SelectItem>
             </SelectContent>
@@ -497,7 +497,7 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
 
         {/* Selector de Fecha */}
         <div>
-          <Label className="font-mono text-[10px] font-bold tracking-wider text-[#0A5CA0] uppercase mb-1.5 block">
+          <Label className="font-mono text-[10px] font-bold tracking-wider text-[#007BBE] uppercase mb-1.5 block">
             Fecha del Desplazamiento
           </Label>
           <div className={formulario.obtenerClaseInput("fecha", "rounded-xl")}>
@@ -514,10 +514,10 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
         </div>
 
         {/* Rutas Frecuentes Preajustadas (La Paz - El Alto) */}
-        <div className="bg-[#F8F9FA] p-3 rounded-xl border border-[#E3DCCB] space-y-2">
+        <div className="bg-[#F8F9FA] p-3 rounded-xl border border-[#E5E7EB] space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#063A6B] flex items-center gap-1.5">
-              <Route className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <span className="text-xs font-bold text-[#035683] flex items-center gap-1.5">
+              <Route className="w-3.5 h-3.5 text-[#00ABBD]" />
               Rutas Troncales Rápidas (La Paz ↔ El Alto)
             </span>
             <span className="text-[10px] text-muted-foreground font-mono">Autocompletar</span>
@@ -529,14 +529,14 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
                 key={r.etiqueta}
                 type="button"
                 onClick={() => aplicarRutaFrecuente(r)}
-                className="text-left p-2 rounded-lg border border-[#E3DCCB] bg-white hover:border-[#17B4C4] hover:bg-[#E3F9FA]/40 transition-colors group"
+                className="text-left p-2 rounded-lg border border-[#E5E7EB] bg-white hover:border-[#00ABBD] hover:bg-[#E3F9FA]/40 transition-colors group"
               >
-                <div className="text-[11px] font-bold text-[#063A6B] truncate group-hover:text-[#0A5CA0]">
+                <div className="text-[11px] font-bold text-[#035683] truncate group-hover:text-[#007BBE]">
                   {r.etiqueta}
                 </div>
                 <div className="text-[10px] text-muted-foreground flex items-center justify-between mt-0.5">
                   <span className="truncate">{r.medio}</span>
-                  <span className="font-bold text-[#063A6B]">Bs {r.tarifa}</span>
+                  <span className="font-bold text-[#035683]">Bs {r.tarifa}</span>
                 </div>
               </button>
             ))}
@@ -546,13 +546,13 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
         {/* Campos Origen y Destino con Combobox / Autocomplete */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#063A6B]">
+            <span className="text-xs font-semibold text-[#035683]">
               Tramos de Transporte (Búsqueda y Autocompletado)
             </span>
             <button
               type="button"
               onClick={intercambiarParadas}
-              className="text-[11px] text-[#0A5CA0] hover:underline flex items-center gap-1 font-medium"
+              className="text-[11px] text-[#007BBE] hover:underline flex items-center gap-1 font-medium"
             >
               <ArrowRightLeft className="w-3 h-3" />
               Invertir Origen / Destino
@@ -571,8 +571,8 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
                 formulario.esCampoInvalido("origen")
                   ? "border-[#E2694B] bg-[#E2694B]/5 ring-2 ring-[#E2694B]/20"
                   : modo_seleccion === "origen"
-                  ? "border-[#17B4C4] ring-2 ring-[#17B4C4]/20"
-                  : "border-[#E3DCCB] hover:border-slate-400"
+                  ? "border-[#00ABBD] ring-2 ring-[#00ABBD]/20"
+                  : "border-[#E5E7EB] hover:border-slate-400"
               }`}
             >
               <MapPin className="w-4 h-4 text-[#E2694B] shrink-0" />
@@ -604,7 +604,7 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
 
             {/* Menú Flotante Autocomplete de Origen */}
             {mostrar_dropdown_origen && paradas_filtradas_origen.length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-1.5 z-30 bg-white border border-[#E3DCCB] rounded-xl shadow-xl max-h-48 overflow-y-auto p-1.5 space-y-0.5">
+              <div className="absolute left-0 right-0 top-full mt-1.5 z-30 bg-white border border-[#E5E7EB] rounded-xl shadow-xl max-h-48 overflow-y-auto p-1.5 space-y-0.5">
                 <div className="px-2 py-1 text-[10px] font-mono text-muted-foreground font-bold uppercase border-b border-slate-100 mb-1">
                   Paradas Sugeridas para Origen
                 </div>
@@ -616,17 +616,17 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
                       e.preventDefault();
                       aplicarParada(parada.nombre, parada.tarifa_sugerida);
                     }}
-                    className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#17B4C4]/10 transition-colors flex items-center justify-between text-xs group"
+                    className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#00ABBD]/10 transition-colors flex items-center justify-between text-xs group"
                   >
                     <div>
-                      <span className="font-semibold text-[#1E293B] group-hover:text-[#063A6B]">
+                      <span className="font-semibold text-[#1E293B] group-hover:text-[#035683]">
                         {parada.nombre}
                       </span>
                       <span className="ml-2 text-[10px] text-muted-foreground font-mono">
                         ({parada.zona})
                       </span>
                     </div>
-                    <span className="text-[11px] font-mono font-bold text-[#063A6B] bg-slate-100 px-1.5 py-0.5 rounded">
+                    <span className="text-[11px] font-mono font-bold text-[#035683] bg-slate-100 px-1.5 py-0.5 rounded">
                       Bs {parada.tarifa_sugerida}
                     </span>
                   </button>
@@ -648,11 +648,11 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
                 formulario.esCampoInvalido("destino")
                   ? "border-[#E2694B] bg-[#E2694B]/5 ring-2 ring-[#E2694B]/20"
                   : modo_seleccion === "destino"
-                  ? "border-[#17B4C4] ring-2 ring-[#17B4C4]/20"
-                  : "border-[#E3DCCB] hover:border-slate-400"
+                  ? "border-[#00ABBD] ring-2 ring-[#00ABBD]/20"
+                  : "border-[#E5E7EB] hover:border-slate-400"
               }`}
             >
-              <MapPin className="w-4 h-4 text-[#0A5CA0] shrink-0" />
+              <MapPin className="w-4 h-4 text-[#007BBE] shrink-0" />
               <div className="flex-1">
                 <span className="text-[10px] font-mono text-muted-foreground uppercase block leading-none mb-1">
                   Punto de Destino (Escriba o seleccione parada)
@@ -681,7 +681,7 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
 
             {/* Menú Flotante Autocomplete de Destino */}
             {mostrar_dropdown_destino && paradas_filtradas_destino.length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-1.5 z-30 bg-white border border-[#E3DCCB] rounded-xl shadow-xl max-h-48 overflow-y-auto p-1.5 space-y-0.5">
+              <div className="absolute left-0 right-0 top-full mt-1.5 z-30 bg-white border border-[#E5E7EB] rounded-xl shadow-xl max-h-48 overflow-y-auto p-1.5 space-y-0.5">
                 <div className="px-2 py-1 text-[10px] font-mono text-muted-foreground font-bold uppercase border-b border-slate-100 mb-1">
                   Paradas Sugeridas para Destino
                 </div>
@@ -693,17 +693,17 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
                       e.preventDefault();
                       aplicarParada(parada.nombre, parada.tarifa_sugerida);
                     }}
-                    className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#17B4C4]/10 transition-colors flex items-center justify-between text-xs group"
+                    className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#00ABBD]/10 transition-colors flex items-center justify-between text-xs group"
                   >
                     <div>
-                      <span className="font-semibold text-[#1E293B] group-hover:text-[#063A6B]">
+                      <span className="font-semibold text-[#1E293B] group-hover:text-[#035683]">
                         {parada.nombre}
                       </span>
                       <span className="ml-2 text-[10px] text-muted-foreground font-mono">
                         ({parada.zona})
                       </span>
                     </div>
-                    <span className="text-[11px] font-mono font-bold text-[#063A6B] bg-slate-100 px-1.5 py-0.5 rounded">
+                    <span className="text-[11px] font-mono font-bold text-[#035683] bg-slate-100 px-1.5 py-0.5 rounded">
                       Bs {parada.tarifa_sugerida}
                     </span>
                   </button>
@@ -716,9 +716,9 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
 
         {/* Trazado de Calles Declaradas (Opcional / Autocompletado) */}
         <div>
-          <Label className="font-mono text-[10px] font-bold tracking-wider text-[#0A5CA0] uppercase mb-1.5 flex items-center justify-between">
+          <Label className="font-mono text-[10px] font-bold tracking-wider text-[#007BBE] uppercase mb-1.5 flex items-center justify-between">
             <span className="flex items-center gap-1">
-              <Navigation className="w-3 h-3 text-[#17B4C4]" />
+              <Navigation className="w-3 h-3 text-[#00ABBD]" />
               Calles y Paradas Intermedias Declaradas
             </span>
             <span className="text-muted-foreground font-normal lowercase text-[10px]">(opcional)</span>
@@ -727,7 +727,7 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
             placeholder="Ej: Ceja El Alto → Av. Naciones Unidas → Estación Central"
             value={calles_declaradas}
             onChange={(e) => set_calles_declaradas(e.target.value)}
-            className="bg-white border-[#E3DCCB] h-9 text-xs rounded-xl focus:ring-[#17B4C4]"
+            className="bg-white border-[#E5E7EB] h-9 text-xs rounded-xl focus:ring-[#00ABBD]"
           />
           <p className="text-[10px] text-muted-foreground mt-1">
             Indique las avenidas, líneas de teleférico o transbordos para auditoría de pasajes.
@@ -737,11 +737,11 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
         {/* Tarifa Oficial Regulada */}
         <div className="bg-[#E3F9FA] rounded-xl p-3.5 space-y-2">
           <div className="flex items-center justify-between">
-            <p className="font-mono text-[10px] font-bold tracking-wider text-[#0A5CA0] uppercase">
+            <p className="font-mono text-[10px] font-bold tracking-wider text-[#007BBE] uppercase">
               Tarifa Oficial Regulada
             </p>
             {medio_transporte && (
-              <span className="text-[10.5px] font-mono font-semibold text-[#063A6B] bg-white/80 px-2 py-0.5 rounded border border-[#C9E5E4]">
+              <span className="text-[10.5px] font-mono font-semibold text-[#035683] bg-white/80 px-2 py-0.5 rounded border border-[#C9E5E4]">
                 {medio_transporte}
               </span>
             )}
@@ -764,12 +764,12 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
               <SelectTrigger className="flex-1 bg-white border-[#C9E5E4] h-9 text-xs">
                 <SelectValue placeholder="Seleccionar tarifa institucional" />
               </SelectTrigger>
-              <SelectContent className="bg-white border-[#E3DCCB]">
-                <SelectItem value="3.50">Minibús Interciudad / El Alto (Bs 3.50)</SelectItem>
-                <SelectItem value="2.60">Minibús Tramo Directo La Paz (Bs 2.60)</SelectItem>
-                <SelectItem value="2.00">Micro / Colectivo Urbano (Bs 2.00)</SelectItem>
-                <SelectItem value="3.00">Mi Teleférico (Bs 3.00)</SelectItem>
-                <SelectItem value="4.00">Trufi Troncal (Bs 4.00)</SelectItem>
+              <SelectContent className="bg-white border-[#E5E7EB]">
+                <SelectItem value="3.50" etiqueta="Minibús Interciudad (Bs 3.50)">Minibús Interciudad / El Alto (Bs 3.50)</SelectItem>
+                <SelectItem value="2.60" etiqueta="Minibús Directo LP (Bs 2.60)">Minibús Tramo Directo La Paz (Bs 2.60)</SelectItem>
+                <SelectItem value="2.00" etiqueta="Micro / Colectivo (Bs 2.00)">Micro / Colectivo Urbano (Bs 2.00)</SelectItem>
+                <SelectItem value="3.00" etiqueta="Mi Teleférico (Bs 3.00)">Mi Teleférico (Bs 3.00)</SelectItem>
+                <SelectItem value="4.00" etiqueta="Trufi Troncal (Bs 4.00)">Trufi Troncal (Bs 4.00)</SelectItem>
               </SelectContent>
             </Select>
 
@@ -806,8 +806,8 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
                 }}
                 className={`text-[10.5px] px-2 py-0.5 rounded-md border font-medium transition-colors ${
                   String(formulario.valores.monto) === t.valor
-                    ? "bg-[#063A6B] text-white border-[#063A6B]"
-                    : "bg-white text-gray-700 border-[#E3DCCB] hover:bg-gray-50"
+                    ? "bg-[#035683] text-white border-[#035683]"
+                    : "bg-white text-gray-700 border-[#E5E7EB] hover:bg-gray-50"
                 }`}
               >
                 {t.etiqueta}
@@ -817,15 +817,15 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
         </div>
 
         {/* Desglose y Cálculo de Devolución del 80% */}
-        <div className="p-4 border border-[#E3DCCB] rounded-xl bg-white space-y-2">
+        <div className="p-4 border border-[#E5E7EB] rounded-xl bg-white space-y-2">
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>Monto del viaje {paso === "vuelta" ? "(Ida + Vuelta)" : "(Solo Ida)"}</span>
             <span className="font-bold text-[#122029]">Bs {total.toFixed(2)}</span>
           </div>
-          <div className="h-px bg-[#E3DCCB]/60 w-full" />
-          <div className="flex justify-between text-xs font-bold text-[#063A6B]">
+          <div className="h-px bg-[#E5E7EB]/60 w-full" />
+          <div className="flex justify-between text-xs font-bold text-[#035683]">
             <span>Reembolso Oficial BUMAND (80%)</span>
-            <span className="text-[#F5A623] text-sm">Bs {devolucion.toFixed(2)}</span>
+            <span className="text-[#FFB600] text-sm">Bs {devolucion.toFixed(2)}</span>
           </div>
         </div>
 
@@ -835,7 +835,7 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
             type="button"
             variant="outline"
             onClick={manejarCancelarOdescartar}
-            className="h-11 px-4 text-xs font-semibold border-[#E3DCCB] text-[#5B6D77] rounded-xl hover:bg-slate-50"
+            className="h-11 px-4 text-xs font-semibold border-[#E5E7EB] text-[#5B6D77] rounded-xl hover:bg-slate-50"
           >
             Cancelar
           </Button>

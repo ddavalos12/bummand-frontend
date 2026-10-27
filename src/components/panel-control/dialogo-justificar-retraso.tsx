@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -152,17 +153,17 @@ export function DialogoJustificarRetraso({
 
   return (
     <Dialog open={abierto} onOpenChange={enCerrar}>
-      <DialogContent className="sm:max-w-xl max-h-[92vh] overflow-y-auto border-[#E3DCCB] p-6 rounded-2xl bg-white shadow-2xl">
-        <DialogHeader className="border-b border-[#E3DCCB]/60 pb-3">
+      <DialogContent className="sm:max-w-xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-[#E5E7EB] rounded-2xl bg-white shadow-2xl">
+        <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-amber-100/70 text-amber-800 rounded-xl">
               <ShieldCheck className="w-5 h-5 text-amber-700" />
             </div>
             <div>
-              <DialogTitle className="font-display text-base text-[#063A6B] flex items-center gap-2">
+              <DialogTitle className="font-display text-base text-[#035683] flex items-center gap-2">
                 Auditoría y Justificación de Retraso
                 {es_admin && (
-                  <Badge className="bg-[#063A6B] text-[#F8C766] border-none text-[10px] font-mono">
+                  <Badge className="bg-[#035683] text-[#FFB600] border-none text-[10px] font-mono">
                     Rol Administrador
                   </Badge>
                 )}
@@ -174,22 +175,22 @@ export function DialogoJustificarRetraso({
           </div>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
+        <DialogBody className="space-y-4 text-xs">
           {/* Tarjeta del becario e incidente */}
-          <div className="p-3.5 bg-slate-50 border border-[#E3DCCB] rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="p-3.5 bg-slate-50 border border-[#E5E7EB] rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <Avatar className="w-10 h-10 border border-[#E3DCCB]">
-                <AvatarFallback className="bg-[#063A6B] text-[#F8C766] font-bold text-xs">
+              <Avatar className="w-10 h-10 border border-[#E5E7EB]">
+                <AvatarFallback className="bg-[#035683] text-[#FFB600] font-bold text-xs">
                   {becario.avatar}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h4 className="font-bold text-xs text-[#063A6B]">{becario.nombre}</h4>
+                <h4 className="font-bold text-xs text-[#035683]">{becario.nombre}</h4>
                 <p className="text-[11px] text-muted-foreground">
                   {becario.carrera} · <span className="font-semibold">{becario.sede}</span>
                 </p>
                 <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="outline" className="text-[10px] bg-white border-[#E3DCCB]">
+                  <Badge variant="outline" className="text-[10px] bg-white border-[#E5E7EB]">
                     {becario.tipo_asistencia}
                   </Badge>
                   <span className="text-[10px] text-muted-foreground font-mono flex items-center gap-1">
@@ -200,7 +201,7 @@ export function DialogoJustificarRetraso({
             </div>
 
             {/* Comparativa de Horario */}
-            <div className="flex flex-col items-end border-t sm:border-t-0 sm:border-l border-[#E3DCCB] pt-2 sm:pt-0 sm:pl-3">
+            <div className="flex flex-col items-end border-t sm:border-t-0 sm:border-l border-[#E5E7EB] pt-2 sm:pt-0 sm:pl-3">
               <div className="text-[11px] font-mono text-muted-foreground flex items-center gap-1.5">
                 <span>Previsto: {becario.hora_prevista}</span>
                 <ArrowRight className="w-3 h-3 text-muted-foreground/60" />
@@ -216,7 +217,7 @@ export function DialogoJustificarRetraso({
           {es_admin ? (
             <div className="p-3.5 bg-amber-50/50 border border-amber-200 rounded-xl space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-xs font-bold text-[#063A6B] flex items-center gap-1.5">
+                <Label className="text-xs font-bold text-[#035683] flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-amber-700" />
                   Rectificación de Hora de Ingreso (Facultad Administrativa)
                 </Label>
@@ -243,12 +244,12 @@ export function DialogoJustificarRetraso({
                 </div>
 
                 <div className="pt-2 sm:pt-4">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs text-[#063A6B] select-none">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs text-[#035683] select-none">
                     <input
                       type="checkbox"
                       checked={anular_multa}
                       onChange={(e) => set_anular_multa(e.target.checked)}
-                      className="rounded border-[#E3DCCB] text-[#063A6B] focus:ring-[#063A6B]"
+                      className="rounded border-[#E5E7EB] text-[#035683] focus:ring-[#035683]"
                     />
                     <span className="font-medium text-[11px]">
                       Anular minutos de retraso y condonar multa institucional
@@ -271,7 +272,7 @@ export function DialogoJustificarRetraso({
 
           {/* Selección de tipo de motivo */}
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold text-[#063A6B]">
+            <Label className="text-xs font-bold text-[#035683]">
               Causal Justificada:
             </Label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
@@ -288,8 +289,8 @@ export function DialogoJustificarRetraso({
                   onClick={() => aplicarMotivoRapido(m.key)}
                   className={`text-[11px] py-1.5 px-2 rounded-lg border text-left font-medium transition-all cursor-pointer ${
                     motivo_seleccionado === m.key
-                      ? "bg-[#063A6B] text-white border-[#063A6B] shadow-2xs"
-                      : "bg-white text-muted-foreground border-[#E3DCCB] hover:bg-slate-50"
+                      ? "bg-[#035683] text-white border-[#035683] shadow-2xs"
+                      : "bg-white text-muted-foreground border-[#E5E7EB] hover:bg-slate-50"
                   }`}
                 >
                   {m.label}
@@ -300,7 +301,7 @@ export function DialogoJustificarRetraso({
 
           {/* Textarea de Fundamentación */}
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold text-[#063A6B]">
+            <Label className="text-xs font-bold text-[#035683]">
               Fundamentación de la Resolución / Dictamen:
             </Label>
             <Textarea
@@ -308,7 +309,7 @@ export function DialogoJustificarRetraso({
               value={descripcion_motivo}
               onChange={(e) => set_descripcion_motivo(e.target.value)}
               placeholder="Describa el motivo que originó el retraso y el criterio administrativo de justificación..."
-              className="text-xs border-[#E3DCCB] focus-visible:ring-[#063A6B]"
+              className="text-xs border-[#E5E7EB] focus-visible:ring-[#035683]"
             />
           </div>
 
@@ -322,16 +323,16 @@ export function DialogoJustificarRetraso({
               </p>
             </div>
           </div>
-        </div>
+        </DialogBody>
 
-        <DialogFooter className="border-t border-[#E3DCCB]/60 pt-3 gap-2">
+        <DialogFooter>
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={enCerrar}
             disabled={guardando}
-            className="text-xs border-[#E3DCCB]"
+            className="text-xs border-[#E5E7EB]"
           >
             Cancelar
           </Button>
@@ -340,7 +341,7 @@ export function DialogoJustificarRetraso({
             size="sm"
             onClick={manejarEnvio}
             disabled={guardando}
-            className="text-xs bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold cursor-pointer"
+            className="text-xs bg-[#035683] hover:bg-[#035683]/90 text-white font-bold cursor-pointer"
           >
             {guardando ? (
               "Procesando..."

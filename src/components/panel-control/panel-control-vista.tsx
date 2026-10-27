@@ -23,6 +23,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -371,24 +372,24 @@ export const CASOS_SEGUIMIENTO: CasoPastoralCompleto[] = [
 ];
 
 export const DISTRIBUCION_UNIVERSIDADES = [
-  { nombre: "Universidad Mayor de San Andrés (UMSA)", cantidad: 11, porcentaje: 100, color: "#063A6B" },
-  { nombre: "Universidad Pública de El Alto (UPEA)", cantidad: 7, porcentaje: 64, color: "#17B4C4" },
-  { nombre: "Universidad de Aquino Bolivia (UDABOL)", cantidad: 1, porcentaje: 9, color: "#F8C766" },
-  { nombre: "Escuela Militar de Ingeniería (EMI)", cantidad: 1, porcentaje: 9, color: "#F8C766" },
-  { nombre: "Universidad Central Sede La Paz", cantidad: 1, porcentaje: 9, color: "#F8C766" },
+  { nombre: "Universidad Mayor de San Andrés (UMSA)", cantidad: 11, porcentaje: 100, color: "#035683" },
+  { nombre: "Universidad Pública de El Alto (UPEA)", cantidad: 7, porcentaje: 64, color: "#00ABBD" },
+  { nombre: "Universidad de Aquino Bolivia (UDABOL)", cantidad: 1, porcentaje: 9, color: "#FFB600" },
+  { nombre: "Escuela Militar de Ingeniería (EMI)", cantidad: 1, porcentaje: 9, color: "#FFB600" },
+  { nombre: "Universidad Central Sede La Paz", cantidad: 1, porcentaje: 9, color: "#FFB600" },
 ];
 
 export const DISTRIBUCION_MODALIDADES = [
-  { modalidad: "Semestral", cantidad: 13, porcentaje: 100, color: "#063A6B" },
-  { modalidad: "Anual", cantidad: 7, porcentaje: 54, color: "#17B4C4" },
-  { modalidad: "Mixta", cantidad: 1, porcentaje: 8, color: "#F8C766" },
+  { modalidad: "Semestral", cantidad: 13, porcentaje: 100, color: "#035683" },
+  { modalidad: "Anual", cantidad: 7, porcentaje: 54, color: "#00ABBD" },
+  { modalidad: "Mixta", cantidad: 1, porcentaje: 8, color: "#FFB600" },
 ];
 
 export const DISTRIBUCION_AUTOEVALUACION = [
-  { nota: "Nota 7", cantidad: 6, porcentaje: 67, color: "#7FE0E6" },
-  { nota: "Nota 8", cantidad: 9, porcentaje: 100, color: "#17B4C4" },
-  { nota: "Nota 9", cantidad: 4, porcentaje: 44, color: "#063A6B" },
-  { nota: "Nota 10", cantidad: 2, porcentaje: 22, color: "#F8C766" },
+  { nota: "Nota 7", cantidad: 6, porcentaje: 67, color: "#00ABBD" },
+  { nota: "Nota 8", cantidad: 9, porcentaje: 100, color: "#00ABBD" },
+  { nota: "Nota 9", cantidad: 4, porcentaje: 44, color: "#035683" },
+  { nota: "Nota 10", cantidad: 2, porcentaje: 22, color: "#FFB600" },
 ];
 
 export const RANKING_KARDEX_S2: FilaKardex[] = [
@@ -561,11 +562,11 @@ export const DATOS_DESPLIEGUE_AGENCIAS: DespliegueAgencia[] = [
 const CONFIGURACION_GRAFICO = {
   horas: {
     label: "Horas Reales",
-    color: "#17B4C4",
+    color: "#00ABBD",
   },
   meta: {
     label: "Meta Planificada",
-    color: "#063A6B",
+    color: "#035683",
   },
 };
 
@@ -1057,19 +1058,19 @@ export function PanelControlVista() {
         className="w-full space-y-6"
       >
         {/* Barra de Tabs ocupando el 100% del ancho con Grid Responsivo */}
-        <TabsList className="w-full grid grid-cols-2 lg:grid-cols-4 p-1.5 bg-slate-100/90 border border-[#E3DCCB] rounded-2xl shadow-xs gap-2 group-data-horizontal/tabs:h-auto h-auto">
+        <TabsList className="w-full grid grid-cols-2 lg:grid-cols-4 p-1.5 bg-slate-100/90 border border-[#E5E7EB] rounded-2xl shadow-xs gap-2 group-data-horizontal/tabs:h-auto h-auto">
           <TabsTrigger
             value="resumen"
-            className="w-full h-11 py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#063A6B] hover:text-[#063A6B] hover:bg-white/90 data-active:bg-[#063A6B] data-active:text-white data-active:hover:bg-[#063A6B] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
+            className="w-full h-11 py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#035683] hover:text-[#035683] hover:bg-white/90 data-active:bg-[#007BBE] data-active:text-white data-active:hover:bg-[#007BBE] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
           >
-            <BarChart3 className="w-4 h-4 text-[#17B4C4]" />
+            <BarChart3 className="w-4 h-4 text-[#00ABBD]" />
             <span>Resumen Ejecutivo</span>
           </TabsTrigger>
           <TabsTrigger
             value="seguimiento"
-            className="w-full h-11 py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#063A6B] hover:text-[#063A6B] hover:bg-white/90 data-active:bg-[#063A6B] data-active:text-white data-active:hover:bg-[#063A6B] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
+            className="w-full h-11 py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#035683] hover:text-[#035683] hover:bg-white/90 data-active:bg-[#007BBE] data-active:text-white data-active:hover:bg-[#007BBE] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
           >
-            <Clock className="w-4 h-4 text-[#17B4C4]" />
+            <Clock className="w-4 h-4 text-[#00ABBD]" />
             <span>Seguimiento Semanal</span>
             <span className="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-md font-mono font-bold">
               {lista_retrasos.filter((r) => !r.justificado).length} retrasos
@@ -1077,21 +1078,21 @@ export function PanelControlVista() {
           </TabsTrigger>
           <TabsTrigger
             value="horarios"
-            className="w-full h-11 py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#063A6B] hover:text-[#063A6B] hover:bg-white/90 data-active:bg-[#063A6B] data-active:text-white data-active:hover:bg-[#063A6B] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
+            className="w-full h-11 py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#035683] hover:text-[#035683] hover:bg-white/90 data-active:bg-[#007BBE] data-active:text-white data-active:hover:bg-[#007BBE] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
           >
-            <CalendarDays className="w-4 h-4 text-[#17B4C4]" />
+            <CalendarDays className="w-4 h-4 text-[#00ABBD]" />
             <span>Matriz de Horarios</span>
-            <span className="bg-slate-200 text-[#063A6B] text-[10px] px-2 py-0.5 rounded-md font-mono font-bold">
+            <span className="bg-slate-200 text-[#035683] text-[10px] px-2 py-0.5 rounded-md font-mono font-bold">
               {HORARIOS_APOYO_2026.length} becarios
             </span>
           </TabsTrigger>
           <TabsTrigger
             value="analitica"
-            className="w-full h-11 py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#063A6B] hover:text-[#063A6B] hover:bg-white/90 data-active:bg-[#063A6B] data-active:text-white data-active:hover:bg-[#063A6B] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
+            className="w-full h-11 py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#035683] hover:text-[#035683] hover:bg-white/90 data-active:bg-[#007BBE] data-active:text-white data-active:hover:bg-[#007BBE] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
           >
-            <GraduationCap className="w-4 h-4 text-[#17B4C4]" />
+            <GraduationCap className="w-4 h-4 text-[#00ABBD]" />
             <span>Kardex y Pastoral</span>
-            <span className="bg-[#17B4C4]/15 text-[#0E7A85] text-[10px] px-2 py-0.5 rounded-md font-mono font-bold">
+            <span className="bg-[#00ABBD]/15 text-[#00808E] text-[10px] px-2 py-0.5 rounded-md font-mono font-bold">
               {CASOS_SEGUIMIENTO.length} casos
             </span>
           </TabsTrigger>
@@ -1105,20 +1106,20 @@ export function PanelControlVista() {
           <ContenedorEscalonado className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Métrica 1: Becarios */}
             <ElementoEscalonado>
-              <Card className="h-full bg-white border border-[#E3DCCB] shadow-xs relative overflow-hidden py-0 gap-0">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-[#F8C766]/20 rounded-bl-full pointer-events-none" />
+              <Card className="h-full bg-white border border-[#E5E7EB] shadow-xs relative overflow-hidden py-0 gap-0">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-[#FFB600]/20 rounded-bl-full pointer-events-none" />
                 <CardContent className="p-5">
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
                       <p className="text-xs font-semibold text-muted-foreground uppercase font-mono">
                         Becarios Activos
                       </p>
-                      <p className="text-3xl font-display font-bold text-[#063A6B]">
+                      <p className="text-3xl font-display font-bold text-[#035683]">
                         <ContadorAnimado valor={21} />
                       </p>
                     </div>
-                    <div className="p-2.5 bg-[#063A6B]/5 rounded-xl">
-                      <Users className="w-5 h-5 text-[#063A6B]" />
+                    <div className="p-2.5 bg-[#035683]/5 rounded-xl">
+                      <Users className="w-5 h-5 text-[#035683]" />
                     </div>
                   </div>
                   <div className="mt-3 flex items-center text-xs">
@@ -1133,20 +1134,20 @@ export function PanelControlVista() {
 
             {/* Métrica 2: Puntualidad y Retrasos */}
             <ElementoEscalonado>
-              <Card className="h-full bg-white border border-[#E3DCCB] shadow-xs relative overflow-hidden py-0 gap-0">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-[#17B4C4]/20 rounded-bl-full pointer-events-none" />
+              <Card className="h-full bg-white border border-[#E5E7EB] shadow-xs relative overflow-hidden py-0 gap-0">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-[#00ABBD]/20 rounded-bl-full pointer-events-none" />
                 <CardContent className="p-5">
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
                       <p className="text-xs font-semibold text-muted-foreground uppercase font-mono">
                         Asistencia Semanal
                       </p>
-                      <p className="text-3xl font-display font-bold text-[#063A6B]">
+                      <p className="text-3xl font-display font-bold text-[#035683]">
                         <ContadorAnimado valor={87} sufijo="%" />
                       </p>
                     </div>
-                    <div className="p-2.5 bg-[#17B4C4]/10 rounded-xl">
-                      <Clock className="w-5 h-5 text-[#17B4C4]" />
+                    <div className="p-2.5 bg-[#00ABBD]/10 rounded-xl">
+                      <Clock className="w-5 h-5 text-[#00ABBD]" />
                     </div>
                   </div>
                   <div className="mt-3 flex items-center text-xs">
@@ -1160,7 +1161,7 @@ export function PanelControlVista() {
 
             {/* Métrica 3: Evaluaciones y Kardex */}
             <ElementoEscalonado>
-              <Card className="h-full bg-white border border-[#E3DCCB] shadow-xs relative overflow-hidden py-0 gap-0">
+              <Card className="h-full bg-white border border-[#E5E7EB] shadow-xs relative overflow-hidden py-0 gap-0">
                 <div className="absolute top-0 right-0 w-20 h-20 bg-[#E2694B]/20 rounded-bl-full pointer-events-none" />
                 <CardContent className="p-5">
                   <div className="flex justify-between items-start">
@@ -1168,7 +1169,7 @@ export function PanelControlVista() {
                       <p className="text-xs font-semibold text-muted-foreground uppercase font-mono">
                         Matriz de Evaluación
                       </p>
-                      <p className="text-3xl font-display font-bold text-[#063A6B]">21 / 21</p>
+                      <p className="text-3xl font-display font-bold text-[#035683]">21 / 21</p>
                     </div>
                     <div className="p-2.5 bg-[#E2694B]/10 rounded-xl">
                       <FileCheck className="w-5 h-5 text-[#E2694B]" />
@@ -1185,26 +1186,26 @@ export function PanelControlVista() {
 
             {/* Métrica 4: Presupuesto 80% */}
             <ElementoEscalonado>
-              <Card className="h-full bg-[#063A6B] text-white border border-[#063A6B] shadow-xs relative overflow-hidden py-0 gap-0">
+              <Card className="h-full bg-[#035683] text-white border border-[#035683] rounded-2xl shadow-xs relative overflow-hidden py-0 gap-0">
                 <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-bl-full pointer-events-none" />
                 <CardContent className="p-5">
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
-                      <p className="text-xs font-semibold text-[#7FE0E6] uppercase font-mono">
+                      <p className="text-xs font-semibold text-[#00ABBD] uppercase font-mono">
                         Presupuesto 80% Pasajes
                       </p>
-                      <p className="text-3xl font-display font-bold text-[#F8C766]">
+                      <p className="text-3xl font-poppins font-bold text-[#FFB600]">
                         <ContadorAnimado valor={5240} prefijo="Bs " />
                       </p>
                     </div>
                     <div className="p-2.5 bg-white/10 rounded-xl">
-                      <DollarSign className="w-5 h-5 text-[#F8C766]" />
+                      <DollarSign className="w-5 h-5 text-[#FFB600]" />
                     </div>
                   </div>
                   <div className="mt-3 flex items-center text-xs text-white/80">
                     <span>Bs 10,000.00 límite institucional</span>
                   </div>
-                  <Progress value={52.4} className="h-1.5 mt-2 bg-white/20" />
+                  <Progress value={52.4} className="h-1.5 mt-2 bg-white/20 [&>div]:bg-[#00ABBD]" />
                 </CardContent>
               </Card>
             </ElementoEscalonado>
@@ -1212,41 +1213,41 @@ export function PanelControlVista() {
             {/* Métrica 5: Tarjeta KPI Spotlight para Multas Institucionales Recaudadas */}
             <ElementoEscalonado className="col-span-1 md:col-span-2 lg:col-span-4">
               <TarjetaSpotlight
-                color_luz="rgba(248, 199, 102, 0.25)"
-                className="bg-gradient-to-r from-[#063A6B] via-[#084882] to-[#04284d] text-white border border-[#17B4C4]/50 shadow-md p-5 rounded-2xl relative overflow-hidden"
+                color_luz="rgba(255, 182, 0, 0.25)"
+                className="bg-gradient-to-r from-[#007BBE] via-[#02699e] to-[#035683] text-white border border-[#00ABBD]/30 shadow-md p-5 rounded-2xl relative overflow-hidden"
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-[#F8C766] text-[#063A6B] font-bold text-xs uppercase px-2.5 py-0.5 shadow-xs">
+                      <Badge className="bg-[#FFB600] text-[#035683] font-bold text-xs uppercase px-2.5 py-0.5 shadow-xs rounded-full">
                         KPI Spotlight · Reglamento BUMAND
                       </Badge>
-                      <span className="text-xs text-[#7FE0E6] font-mono">
+                      <span className="text-xs text-[#00ABBD] font-mono">
                         Período: {fecha_inicio} al {fecha_fin}
                       </span>
                     </div>
                     <h4 className="text-lg font-display font-bold text-white flex items-center gap-2">
-                      <Coins className="w-5 h-5 text-[#F8C766]" />
+                      <Coins className="w-5 h-5 text-[#FFB600]" />
                       Multas Institucionales Recaudadas (Escuela de Líderes)
                     </h4>
-                    <p className="text-xs text-white/75 max-w-2xl leading-relaxed">
+                    <p className="text-xs text-white/80 max-w-2xl leading-relaxed">
                       Recaudación acumulada por infracciones reglamentarias y retrasos no justificados en el período seleccionado.
                       Los fondos se reinvierten íntegramente en las raciones de refrigerios y actividades de confraternización diaconal.
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-6 bg-white/10 p-4 px-6 rounded-xl backdrop-blur-sm border border-white/15 shrink-0">
+                  <div className="flex items-center gap-6 bg-white/10 p-4 px-6 rounded-2xl backdrop-blur-sm border border-white/15 shrink-0">
                     <div>
-                      <p className="text-[11px] uppercase font-mono text-[#7FE0E6] font-bold">Total Recaudado</p>
-                      <p className="text-3xl font-display font-bold text-[#F8C766]">
+                      <p className="text-[11px] uppercase font-mono text-[#00ABBD] font-bold">Total Recaudado</p>
+                      <p className="text-3xl font-poppins font-bold text-[#FFB600]">
                         Bs {multas_recaudadas.toFixed(2)}
                       </p>
                     </div>
                     <div className="h-10 w-px bg-white/20" />
                     <div>
-                      <p className="text-[11px] uppercase font-mono text-white/70 font-bold">Incidencias</p>
-                      <p className="text-2xl font-display font-bold text-white">
-                        {incidencias_multas} <span className="text-xs font-normal text-white/70">casos</span>
+                      <p className="text-[11px] uppercase font-mono text-white/80 font-bold">Incidencias</p>
+                      <p className="text-2xl font-poppins font-bold text-white">
+                        {incidencias_multas} <span className="text-xs font-normal text-white/80">casos</span>
                       </p>
                     </div>
                   </div>
@@ -1257,17 +1258,17 @@ export function PanelControlVista() {
 
           {/* Tendencia de Horas y Ejecución Presupuestaria Integradas */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl lg:col-span-2 flex flex-col">
-              <CardHeader className="pb-3 border-b border-[#E3DCCB]/60">
+            <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl lg:col-span-2 flex flex-col">
+              <CardHeader className="pb-3 border-b border-[#E5E7EB]/60">
                 <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
                   <div>
-                    <CardTitle className="font-display text-base text-[#063A6B] flex items-center gap-2">
-                      <BarChart3 className="w-5 h-5 text-[#17B4C4]" />
+                    <CardTitle className="font-display text-base text-[#035683] flex items-center gap-2">
+                      <BarChart3 className="w-5 h-5 text-[#00ABBD]" />
                       Tendencia de Horas de Práctica y Cumplimiento
                     </CardTitle>
                     <CardDescription className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
                       <span>Horas efectivas registradas con geolocalización frente a la meta académica programada.</span>
-                      <span className="font-mono font-bold text-[#063A6B] bg-slate-100 px-2 py-0.5 rounded-md text-[11px]">
+                      <span className="font-mono font-bold text-[#035683] bg-slate-100 px-2 py-0.5 rounded-md text-[11px]">
                         Total: {total_horas_periodo.toLocaleString()} hrs ({pct_cumplimiento_periodo}% cumplimiento)
                       </span>
                     </CardDescription>
@@ -1275,14 +1276,14 @@ export function PanelControlVista() {
 
                   {/* Filtro de Fechas y Rango Temporal integrado en el Gráfico */}
                   <div className="flex flex-wrap items-center gap-2">
-                    <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-[#E3DCCB]/60">
+                    <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-[#E5E7EB]/60">
                       <button
                         type="button"
                         onClick={() => aplicarRangoRapido("este_mes")}
                         className={`px-2 py-1 text-[11px] font-bold rounded-md transition-colors cursor-pointer ${
                           tipo_rango === "este_mes"
-                            ? "bg-[#063A6B] text-white shadow-xs"
-                            : "text-[#5B6D77] hover:text-[#063A6B]"
+                            ? "bg-[#035683] text-white shadow-xs"
+                            : "text-[#5B6D77] hover:text-[#035683]"
                         }`}
                       >
                         Mes
@@ -1292,8 +1293,8 @@ export function PanelControlVista() {
                         onClick={() => aplicarRangoRapido("ultimo_trimestre")}
                         className={`px-2 py-1 text-[11px] font-bold rounded-md transition-colors cursor-pointer ${
                           tipo_rango === "ultimo_trimestre"
-                            ? "bg-[#063A6B] text-white shadow-xs"
-                            : "text-[#5B6D77] hover:text-[#063A6B]"
+                            ? "bg-[#035683] text-white shadow-xs"
+                            : "text-[#5B6D77] hover:text-[#035683]"
                         }`}
                       >
                         Trimestre
@@ -1303,15 +1304,15 @@ export function PanelControlVista() {
                         onClick={() => aplicarRangoRapido("semestre_actual")}
                         className={`px-2 py-1 text-[11px] font-bold rounded-md transition-colors cursor-pointer ${
                           tipo_rango === "semestre_actual"
-                            ? "bg-[#063A6B] text-white shadow-xs"
-                            : "text-[#5B6D77] hover:text-[#063A6B]"
+                            ? "bg-[#035683] text-white shadow-xs"
+                            : "text-[#5B6D77] hover:text-[#035683]"
                         }`}
                       >
                         Semestre
                       </button>
                     </div>
 
-                    <div className="flex items-center gap-1 bg-slate-50 p-0.5 rounded-lg border border-[#E3DCCB]">
+                    <div className="flex items-center gap-1 bg-slate-50 p-0.5 rounded-lg border border-[#E5E7EB]">
                       <SeleccionadorFecha
                         fecha={parsearFechaCadena(fecha_inicio)}
                         alCambiar={(d) => {
@@ -1341,8 +1342,8 @@ export function PanelControlVista() {
                       />
                     </div>
 
-                    <div className="flex items-center gap-1.5 pl-1.5 border-l border-[#E3DCCB] text-[11px]">
-                      <span className={`font-mono text-[11px] ${!vista_anual ? "font-bold text-[#063A6B]" : "text-muted-foreground"}`}>
+                    <div className="flex items-center gap-1.5 pl-1.5 border-l border-[#E5E7EB] text-[11px]">
+                      <span className={`font-mono text-[11px] ${!vista_anual ? "font-bold text-[#035683]" : "text-muted-foreground"}`}>
                         Semestral
                       </span>
                       <Switch
@@ -1357,9 +1358,9 @@ export function PanelControlVista() {
                             aplicarRangoRapido("semestre_actual");
                           }
                         }}
-                        className="data-[state=checked]:bg-[#17B4C4] scale-75 cursor-pointer"
+                        className="data-[state=checked]:bg-[#00ABBD] scale-75 cursor-pointer"
                       />
-                      <span className={`font-mono text-[11px] ${vista_anual ? "font-bold text-[#063A6B]" : "text-muted-foreground"}`}>
+                      <span className={`font-mono text-[11px] ${vista_anual ? "font-bold text-[#035683]" : "text-muted-foreground"}`}>
                         Anual
                       </span>
                     </div>
@@ -1373,11 +1374,11 @@ export function PanelControlVista() {
                     <AreaChart data={datos_grafico_horas} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <defs>
                         <linearGradient id="degradadoHorasVista" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#17B4C4" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="#17B4C4" stopOpacity={0.0} />
+                          <stop offset="5%" stopColor="#00ABBD" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#00ABBD" stopOpacity={0.0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid vertical={false} stroke="#E3DCCB" strokeDasharray="3 3" />
+                      <CartesianGrid vertical={false} stroke="#E5E7EB" strokeDasharray="3 3" />
                       <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fill: "#64748B", fontSize: 12 }} />
                       <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748B", fontSize: 12 }} />
                       <ChartTooltip content={<ChartTooltipContent />} />
@@ -1385,7 +1386,7 @@ export function PanelControlVista() {
                         type="monotone"
                         dataKey="horas"
                         name="Horas Reales"
-                        stroke="#17B4C4"
+                        stroke="#00ABBD"
                         strokeWidth={3}
                         fillOpacity={1}
                         fill="url(#degradadoHorasVista)"
@@ -1394,7 +1395,7 @@ export function PanelControlVista() {
                         type="monotone"
                         dataKey="meta"
                         name="Meta Planificada"
-                        stroke="#063A6B"
+                        stroke="#035683"
                         strokeWidth={2}
                         strokeDasharray="4 4"
                         fillOpacity={0}
@@ -1406,19 +1407,19 @@ export function PanelControlVista() {
             </Card>
 
             {/* DISTRIBUCIÓN OPERATIVA EN LAS 11 AGENCIAS DE DIACONÍA IFD */}
-            <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl flex flex-col overflow-hidden">
-              <CardHeader className="py-3 px-4 border-b border-[#E3DCCB]/60 bg-gradient-to-r from-slate-50 to-white">
+            <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl flex flex-col overflow-hidden">
+              <CardHeader className="py-3 px-4 border-b border-[#E5E7EB]/60 bg-gradient-to-r from-slate-50 to-white">
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <CardTitle className="font-display text-sm text-[#063A6B] flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-[#17B4C4]" />
+                    <CardTitle className="font-display text-sm text-[#035683] flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-[#00ABBD]" />
                       Despliegue Operativo en Agencias
                     </CardTitle>
                     <CardDescription className="text-[11px] text-muted-foreground">
                       Distribución en las 11 agencias de Diaconía IFD
                     </CardDescription>
                   </div>
-                  <Badge variant="outline" className="font-mono text-[10px] bg-[#17B4C4]/10 text-[#063A6B] border-[#17B4C4]/40 shrink-0">
+                  <Badge variant="outline" className="font-mono text-[10px] bg-[#00ABBD]/10 text-[#035683] border-[#00ABBD]/40 shrink-0">
                     11 Agencias Activas
                   </Badge>
                 </div>
@@ -1426,14 +1427,14 @@ export function PanelControlVista() {
 
               <CardContent className="p-3.5 flex-1 flex flex-col justify-between space-y-3">
                 {/* Métricas consolidadas de la red */}
-                <div className="grid grid-cols-3 gap-2 p-2 bg-slate-50 rounded-lg border border-[#E3DCCB]/70 text-center">
+                <div className="grid grid-cols-3 gap-2 p-2 bg-slate-50 rounded-lg border border-[#E5E7EB]/70 text-center">
                   <div>
                     <span className="text-[10px] uppercase font-mono text-muted-foreground block">Becarios</span>
-                    <span className="font-bold text-sm text-[#063A6B] font-mono">21</span>
+                    <span className="font-bold text-sm text-[#035683] font-mono">21</span>
                   </div>
-                  <div className="border-x border-[#E3DCCB]/70">
+                  <div className="border-x border-[#E5E7EB]/70">
                     <span className="text-[10px] uppercase font-mono text-muted-foreground block">Horas / Mes</span>
-                    <span className="font-bold text-sm text-[#17B4C4] font-mono">3,180</span>
+                    <span className="font-bold text-sm text-[#00ABBD] font-mono">3,180</span>
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-mono text-muted-foreground block">Cumplimiento</span>
@@ -1454,12 +1455,12 @@ export function PanelControlVista() {
                         </div>
                         <div className="flex items-center gap-2 font-mono text-[11px] shrink-0">
                           <span className="text-muted-foreground">{item.becarios} {item.becarios === 1 ? "bec." : "bec."}</span>
-                          <span className="font-bold text-[#063A6B]">{item.horas_mes}h</span>
+                          <span className="font-bold text-[#035683]">{item.horas_mes}h</span>
                         </div>
                       </div>
                       <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                         <div
-                          className="h-full rounded-full transition-all duration-500 bg-[#17B4C4]"
+                          className="h-full rounded-full transition-all duration-500 bg-[#00ABBD]"
                           style={{ width: `${item.porcentaje_cumplimiento}%` }}
                         />
                       </div>
@@ -1468,7 +1469,7 @@ export function PanelControlVista() {
                 </div>
 
                 {/* Resumen Regional Inferior */}
-                <div className="pt-2 border-t border-[#E3DCCB]/60 flex items-center justify-between text-[11px] text-muted-foreground font-mono">
+                <div className="pt-2 border-t border-[#E5E7EB]/60 flex items-center justify-between text-[11px] text-muted-foreground font-mono">
                   <span>Cobertura: El Alto (7) · La Paz (3) · Viacha (1)</span>
                   <span className="text-emerald-700 font-bold flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
@@ -1484,19 +1485,19 @@ export function PanelControlVista() {
         {/* TAB 2: SEGUIMIENTO SEMANAL CON DOS TABS INTERNOS DE AUDITORÍA */}
         {/* ============================================================== */}
         <TabsContent value="seguimiento" className="space-y-4">
-          <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-2xl overflow-hidden">
+          <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-2xl overflow-hidden">
             {/* Cabecera unificada con dos tabs internos para filtrar correctamente */}
-            <CardHeader className="pb-3 border-b border-[#E3DCCB]/60 bg-gradient-to-r from-slate-50 via-white to-slate-50">
+            <CardHeader className="pb-3 border-b border-[#E5E7EB]/60 bg-gradient-to-r from-slate-50 via-white to-slate-50">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 {/* Selector de los dos tabs internos */}
-                <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-[#E3DCCB]/70">
+                <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-[#E5E7EB]/70">
                   <button
                     type="button"
                     onClick={() => set_subpestaña_seguimiento("retrasos")}
                     className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                       subpestaña_seguimiento === "retrasos"
-                        ? "bg-[#063A6B] text-white shadow-xs"
-                        : "text-[#5B6D77] hover:text-[#063A6B] hover:bg-white/60"
+                        ? "bg-[#035683] text-white shadow-xs"
+                        : "text-[#5B6D77] hover:text-[#035683] hover:bg-white/60"
                     }`}
                   >
                     <AlertTriangle className={`w-3.5 h-3.5 ${subpestaña_seguimiento === "retrasos" ? "text-amber-300" : "text-amber-500"}`} />
@@ -1511,13 +1512,13 @@ export function PanelControlVista() {
                     onClick={() => set_subpestaña_seguimiento("asistencia")}
                     className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                       subpestaña_seguimiento === "asistencia"
-                        ? "bg-[#063A6B] text-white shadow-xs"
-                        : "text-[#5B6D77] hover:text-[#063A6B] hover:bg-white/60"
+                        ? "bg-[#035683] text-white shadow-xs"
+                        : "text-[#5B6D77] hover:text-[#035683] hover:bg-white/60"
                     }`}
                   >
-                    <CheckCircle2 className={`w-3.5 h-3.5 ${subpestaña_seguimiento === "asistencia" ? "text-[#17B4C4]" : "text-emerald-600"}`} />
+                    <CheckCircle2 className={`w-3.5 h-3.5 ${subpestaña_seguimiento === "asistencia" ? "text-[#00ABBD]" : "text-emerald-600"}`} />
                     <span>Nómina General de Asistencia</span>
-                    <span className="bg-slate-200 text-[#063A6B] text-[10px] px-1.5 py-0.2 rounded-md font-mono font-bold">
+                    <span className="bg-slate-200 text-[#035683] text-[10px] px-1.5 py-0.2 rounded-md font-mono font-bold">
                       {total_registros}
                     </span>
                   </button>
@@ -1525,24 +1526,24 @@ export function PanelControlVista() {
 
                 {/* Navegación temporal de corte y acción oficial de exportación PDF Puppeteer */}
                 <div className="flex flex-wrap items-center gap-2">
-                  <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-[#E3DCCB]/60">
+                  <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-[#E5E7EB]/60">
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={() => set_semana_offset((prev) => prev - 1)}
-                      className="h-7 w-7 p-0 text-[#063A6B] hover:bg-white"
+                      className="h-7 w-7 p-0 text-[#035683] hover:bg-white"
                       title="Semana anterior"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </Button>
-                    <Badge variant="outline" className="border-[#17B4C4]/50 bg-white text-[#063A6B] font-mono text-[11px] px-2.5 py-1 font-bold">
+                    <Badge variant="outline" className="border-[#00ABBD]/50 bg-white text-[#035683] font-mono text-[11px] px-2.5 py-1 font-bold">
                       {info_semana.etiqueta}
                     </Badge>
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={() => set_semana_offset((prev) => prev + 1)}
-                      className="h-7 w-7 p-0 text-[#063A6B] hover:bg-white"
+                      className="h-7 w-7 p-0 text-[#035683] hover:bg-white"
                       title="Semana posterior"
                     >
                       <ChevronRight className="w-4 h-4" />
@@ -1554,7 +1555,7 @@ export function PanelControlVista() {
                       size="sm"
                       variant="ghost"
                       onClick={() => set_semana_offset(0)}
-                      className="h-8 px-2 text-[10px] text-[#0E7A85] hover:bg-slate-50 font-bold"
+                      className="h-8 px-2 text-[10px] text-[#00808E] hover:bg-slate-50 font-bold"
                     >
                       Semana Actual
                     </Button>
@@ -1565,12 +1566,12 @@ export function PanelControlVista() {
                     variant="outline"
                     onClick={descargarCortePdf}
                     disabled={exportando_pdf_corte}
-                    className="h-8 text-xs border-[#063A6B] bg-white text-[#063A6B] hover:bg-[#063A6B] hover:text-white gap-2 font-bold cursor-pointer shadow-2xs transition-all"
+                    className="h-8 text-xs border-[#035683] bg-white text-[#035683] hover:bg-[#035683] hover:text-white gap-2 font-bold cursor-pointer shadow-2xs transition-all"
                   >
                     {exportando_pdf_corte ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#17B4C4]" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#00ABBD]" />
                     ) : (
-                      <Download className="w-3.5 h-3.5 text-[#17B4C4]" />
+                      <Download className="w-3.5 h-3.5 text-[#00ABBD]" />
                     )}
                     <span>{exportando_pdf_corte ? "Generando PDF..." : "Exportar Corte"}</span>
                   </Button>
@@ -1578,7 +1579,7 @@ export function PanelControlVista() {
               </div>
 
               {/* Barra de Filtros Canónicos por Tipo de Actividad Institucional */}
-              <div className="pt-2 flex flex-wrap items-center gap-1.5 border-t border-[#E3DCCB]/50">
+              <div className="pt-2 flex flex-wrap items-center gap-1.5 border-t border-[#E5E7EB]/50">
                 <span className="text-[11px] font-bold text-[#5B6D77] font-mono mr-1">Actividad:</span>
                 {[
                   { key: "todas", etiqueta: "Todas las Actividades", icono: "🌐" },
@@ -1592,8 +1593,8 @@ export function PanelControlVista() {
                     onClick={() => set_filtro_tipo_actividad(act.key as any)}
                     className={`text-xs py-1 px-3 rounded-lg border font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
                       filtro_tipo_actividad === act.key
-                        ? "bg-[#063A6B] text-white border-[#063A6B] font-bold shadow-xs"
-                        : "bg-white text-slate-600 border-[#E3DCCB] hover:bg-slate-50"
+                        ? "bg-[#035683] text-white border-[#035683] font-bold shadow-xs"
+                        : "bg-white text-slate-600 border-[#E5E7EB] hover:bg-slate-50"
                     }`}
                   >
                     <span>{act.icono}</span>
@@ -1611,20 +1612,20 @@ export function PanelControlVista() {
                     <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 flex items-center justify-between">
                       <div>
                         <p className="text-[11px] font-mono font-bold uppercase text-amber-800">Incidencias de Retraso</p>
-                        <p className="text-xl font-display font-bold text-[#063A6B]">{becarios_retraso_filtrados.length} becarios</p>
+                        <p className="text-xl font-display font-bold text-[#035683]">{becarios_retraso_filtrados.length} becarios</p>
                       </div>
                       <AlertTriangle className="w-6 h-6 text-amber-500 opacity-80" />
                     </div>
-                    <div className="p-3 rounded-xl bg-slate-50 border border-[#E3DCCB] flex items-center justify-between">
+                    <div className="p-3 rounded-xl bg-slate-50 border border-[#E5E7EB] flex items-center justify-between">
                       <div>
                         <p className="text-[11px] font-mono font-bold uppercase text-[#5B6D77]">Promedio de Demora</p>
-                        <p className="text-xl font-display font-bold text-[#063A6B]">
+                        <p className="text-xl font-display font-bold text-[#035683]">
                           {becarios_retraso_filtrados.length > 0
                             ? (becarios_retraso_filtrados.reduce((acc, b) => acc + b.minutos_retraso, 0) / becarios_retraso_filtrados.length).toFixed(0)
                             : 0} min
                         </p>
                       </div>
-                      <Clock className="w-6 h-6 text-[#17B4C4] opacity-80" />
+                      <Clock className="w-6 h-6 text-[#00ABBD] opacity-80" />
                     </div>
                     <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200/80 flex items-center justify-between">
                       <div>
@@ -1640,10 +1641,10 @@ export function PanelControlVista() {
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto rounded-xl border border-[#E3DCCB]">
+                  <div className="overflow-x-auto rounded-xl border border-[#E5E7EB]">
                     <table className="w-full text-xs text-left border-collapse">
                       <thead>
-                        <tr className="bg-[#F8F9FA] border-b border-[#E3DCCB] text-[#063A6B] font-mono text-[11px] uppercase tracking-wider">
+                        <tr className="bg-[#F8F9FA] border-b border-[#E5E7EB] text-[#035683] font-mono text-[11px] uppercase tracking-wider">
                           <th className="py-2.5 px-3">Becario</th>
                           <th className="py-2.5 px-3">Carrera y Sede</th>
                           <th className="py-2.5 px-3">Actividad</th>
@@ -1653,12 +1654,12 @@ export function PanelControlVista() {
                           <th className="py-2.5 px-3 text-center">Acción</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#E3DCCB]/60">
+                      <tbody className="divide-y divide-[#E5E7EB]/60">
                         {becarios_retraso_filtrados.length === 0 ? (
                           <tr>
                             <td colSpan={7} className="py-8 text-center text-muted-foreground">
                               <CheckCircle2 className="w-6 h-6 text-emerald-600 mx-auto mb-1 opacity-70" />
-                              <p className="font-semibold text-xs text-[#063A6B]">Sin incidencias de retraso</p>
+                              <p className="font-semibold text-xs text-[#035683]">Sin incidencias de retraso</p>
                               <p className="text-[11px]">Todos los becarios registrados cumplieron puntualidad en {filtro_tipo_actividad === 'todas' ? 'todas las actividades' : filtro_tipo_actividad}.</p>
                             </td>
                           </tr>
@@ -1667,16 +1668,16 @@ export function PanelControlVista() {
                           <tr key={b.id} className="hover:bg-amber-50/30 transition-colors">
                             <td className="py-3 px-3">
                               <div className="flex items-center gap-2.5">
-                                <Avatar className="w-8 h-8 border border-[#E3DCCB]">
-                                  <AvatarFallback className="bg-[#063A6B] text-[#F8C766] font-bold text-xs">
+                                <Avatar className="w-8 h-8 border border-[#E5E7EB]">
+                                  <AvatarFallback className="bg-[#035683] text-[#FFB600] font-bold text-xs">
                                     {b.avatar}
                                   </AvatarFallback>
                                 </Avatar>
-                                <span className="font-bold text-[#063A6B]">{b.nombre}</span>
+                                <span className="font-bold text-[#035683]">{b.nombre}</span>
                               </div>
                             </td>
                             <td className="py-3 px-3 text-muted-foreground">
-                              {b.carrera} · <strong className="text-[#063A6B]">{b.sede}</strong>
+                              {b.carrera} · <strong className="text-[#035683]">{b.sede}</strong>
                             </td>
                             <td className="py-3 px-3">
                               <Badge
@@ -1709,7 +1710,7 @@ export function PanelControlVista() {
                                   set_becario_a_justificar(b);
                                   set_dialogo_justificar_abierto(true);
                                 }}
-                                className="h-7 px-2 text-[11px] text-[#063A6B] hover:bg-[#17B4C4]/15 hover:text-[#063A6B] font-bold cursor-pointer"
+                                className="h-7 px-2 text-[11px] text-[#035683] hover:bg-[#00ABBD]/15 hover:text-[#035683] font-bold cursor-pointer"
                               >
                                 Justificar
                               </Button>
@@ -1725,12 +1726,12 @@ export function PanelControlVista() {
                 <div className="space-y-3">
                   {/* Filtros rápidos: Todos, Asistieron, No asistieron */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
-                    <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg border border-[#E3DCCB]/60">
+                    <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg border border-[#E5E7EB]/60">
                       <button
                         type="button"
                         onClick={() => set_filtro_asistencia("todos")}
                         className={`text-xs py-1 px-3 font-bold rounded-md transition-colors cursor-pointer ${
-                          filtro_asistencia === "todos" ? "bg-white text-[#063A6B] shadow-2xs" : "text-[#5B6D77] hover:text-[#063A6B]"
+                          filtro_asistencia === "todos" ? "bg-white text-[#035683] shadow-2xs" : "text-[#5B6D77] hover:text-[#035683]"
                         }`}
                       >
                         Todos ({total_registros})
@@ -1760,27 +1761,27 @@ export function PanelControlVista() {
                     </span>
                   </div>
 
-                  <div className="overflow-x-auto rounded-xl border border-[#E3DCCB]">
+                  <div className="overflow-x-auto rounded-xl border border-[#E5E7EB]">
                     <table className="w-full text-xs text-left border-collapse">
                       <thead>
-                        <tr className="bg-[#F8F9FA] border-b border-[#E3DCCB] text-[#063A6B] font-mono text-[11px] uppercase tracking-wider">
+                        <tr className="bg-[#F8F9FA] border-b border-[#E5E7EB] text-[#035683] font-mono text-[11px] uppercase tracking-wider">
                           <th className="py-2.5 px-3">Becario</th>
                           <th className="py-2.5 px-3">Carrera Universitaria</th>
                           <th className="py-2.5 px-3">Horario de Apoyo Asignado</th>
                           <th className="py-2.5 px-3 text-center">Estado de Asistencia</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#E3DCCB]/60">
+                      <tbody className="divide-y divide-[#E5E7EB]/60">
                         {registros_filtrados.map((item) => (
                           <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                             <td className="py-2.5 px-3">
                               <div className="flex items-center gap-2.5">
-                                <Avatar className="w-7 h-7 border border-[#E3DCCB]">
-                                  <AvatarFallback className="bg-slate-100 text-[#063A6B] font-bold text-[10px]">
+                                <Avatar className="w-7 h-7 border border-[#E5E7EB]">
+                                  <AvatarFallback className="bg-slate-100 text-[#035683] font-bold text-[10px]">
                                     {item.avatar}
                                   </AvatarFallback>
                                 </Avatar>
-                                <span className="font-bold text-[#063A6B]">{item.nombre}</span>
+                                <span className="font-bold text-[#035683]">{item.nombre}</span>
                               </div>
                             </td>
                             <td className="py-2.5 px-3 text-muted-foreground">{item.carrera}</td>
@@ -1814,8 +1815,8 @@ export function PanelControlVista() {
               )}
 
               {/* Leyenda de corte semanal compacta */}
-              <div className="pt-2 flex items-center gap-2 text-[11px] text-muted-foreground border-t border-[#E3DCCB]/60">
-                <HelpCircle className="w-3.5 h-3.5 text-[#17B4C4] shrink-0" />
+              <div className="pt-2 flex items-center gap-2 text-[11px] text-muted-foreground border-t border-[#E5E7EB]/60">
+                <HelpCircle className="w-3.5 h-3.5 text-[#00ABBD] shrink-0" />
                 <span>
                   <strong>Corte Semanal Automático:</strong> Se procesa los viernes a las 18:00. Las inasistencias no justificadas dentro de las 48h hábiles computan en el cálculo de devolución del 80% de pasajes.
                 </span>
@@ -1829,14 +1830,14 @@ export function PanelControlVista() {
         {/* ============================================================== */}
         <TabsContent value="horarios" className="space-y-4">
           {/* Barra de Búsqueda, Filtros y Acciones Operativas de Horario */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-[#E3DCCB] shadow-2xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-[#E5E7EB] shadow-2xs">
             <div className="relative flex-1 max-w-md">
               <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
               <Input
                 placeholder="Buscar becario por nombre o carnet..."
                 value={busqueda_horario}
                 onChange={(e) => set_busqueda_horario(e.target.value)}
-                className="pl-9 h-9 text-xs border-[#E3DCCB] rounded-xl bg-slate-50/50"
+                className="pl-9 h-9 text-xs border-[#E5E7EB] rounded-xl bg-slate-50/50"
               />
             </div>
 
@@ -1850,7 +1851,7 @@ export function PanelControlVista() {
                     onClick={() => set_filtro_dia_horario(dia)}
                     className={`text-xs px-2.5 py-1 rounded-lg font-bold capitalize transition-all cursor-pointer ${
                       filtro_dia_horario === dia
-                        ? "bg-[#063A6B] text-white shadow-xs"
+                        ? "bg-[#035683] text-white shadow-xs"
                         : "bg-slate-100 text-[#5B6D77] hover:bg-slate-200"
                     }`}
                   >
@@ -1859,14 +1860,14 @@ export function PanelControlVista() {
                 ))}
               </div>
 
-              <div className="flex items-center gap-1.5 pl-2 border-l border-[#E3DCCB]">
+              <div className="flex items-center gap-1.5 pl-2 border-l border-[#E5E7EB]">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => toast.info("Generando reporte de matriz semanal en formato Excel...")}
-                  className="h-8 text-xs border-[#E3DCCB] text-[#063A6B] hover:bg-slate-50 gap-1 font-bold cursor-pointer"
+                  className="h-8 text-xs border-[#E5E7EB] text-[#035683] hover:bg-slate-50 gap-1 font-bold cursor-pointer"
                 >
-                  <Download className="w-3.5 h-3.5 text-[#17B4C4]" />
+                  <Download className="w-3.5 h-3.5 text-[#00ABBD]" />
                   Exportar
                 </Button>
               </div>
@@ -1874,12 +1875,12 @@ export function PanelControlVista() {
           </div>
 
           {/* Tabla Interactiva de Matriz de Horarios */}
-          <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl overflow-hidden">
-            <CardHeader className="pb-3 border-b border-[#E3DCCB]/60 bg-gradient-to-r from-slate-50 to-white">
+          <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl overflow-hidden">
+            <CardHeader className="pb-3 border-b border-[#E5E7EB]/60 bg-gradient-to-r from-slate-50 to-white">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <CardTitle className="font-display text-base text-[#063A6B] flex items-center gap-2">
-                    <CalendarDays className="w-5 h-5 text-[#063A6B]" />
+                  <CardTitle className="font-display text-base text-[#035683] flex items-center gap-2">
+                    <CalendarDays className="w-5 h-5 text-[#035683]" />
                     Matriz Semanal de Asignación por Becario
                   </CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
@@ -1887,7 +1888,7 @@ export function PanelControlVista() {
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2 self-start sm:self-center">
-                  <Badge variant="outline" className="border-[#17B4C4] text-[#063A6B] font-mono text-xs px-2.5 py-0.5 bg-white">
+                  <Badge variant="outline" className="border-[#00ABBD] text-[#035683] font-mono text-xs px-2.5 py-0.5 bg-white">
                     {horarios_filtrados.length} de {horarios_lista.length} Becarios
                   </Badge>
                 </div>
@@ -1897,7 +1898,7 @@ export function PanelControlVista() {
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left border-collapse">
                   <thead>
-                    <tr className="bg-[#F8F9FA] border-b border-[#E3DCCB] text-[#063A6B] font-mono text-[11px] uppercase tracking-wider">
+                    <tr className="bg-[#F8F9FA] border-b border-[#E5E7EB] text-[#035683] font-mono text-[11px] uppercase tracking-wider">
                       <th className="py-3 px-3 text-center">N°</th>
                       <th className="py-3 px-4">Nombres y Apellidos</th>
                       <th className="py-3 px-3 font-mono">C.I.</th>
@@ -1911,7 +1912,7 @@ export function PanelControlVista() {
                       <th className="py-3 px-3 text-center">Gestión</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#E3DCCB]/60">
+                  <tbody className="divide-y divide-[#E5E7EB]/60">
                     {horarios_filtrados.length === 0 ? (
                       <tr>
                         <td colSpan={11} className="py-8 text-center text-muted-foreground text-xs">
@@ -1924,17 +1925,17 @@ export function PanelControlVista() {
                           key={fila.numero}
                           className={`transition-colors ${
                             fila.destacada
-                              ? "bg-[#F8C766]/15 hover:bg-[#F8C766]/25 font-medium"
+                              ? "bg-[#FFB600]/15 hover:bg-[#FFB600]/25 font-medium"
                               : "hover:bg-slate-50/80"
                           }`}
                         >
                           <td className="py-2.5 px-3 text-center font-mono font-bold text-muted-foreground">
                             {fila.numero}
                           </td>
-                          <td className="py-2.5 px-4 font-semibold text-[#063A6B]">
+                          <td className="py-2.5 px-4 font-semibold text-[#035683]">
                             {fila.nombre}
                             {fila.destacada && (
-                              <span className="ml-2 inline-block px-1.5 py-0.2 bg-[#F8C766] text-[#3A2400] text-[9.5px] rounded font-bold uppercase">
+                              <span className="ml-2 inline-block px-1.5 py-0.2 bg-[#FFB600] text-[#3A2400] text-[9.5px] rounded font-bold uppercase">
                                 Referente
                               </span>
                             )}
@@ -1949,9 +1950,9 @@ export function PanelControlVista() {
                             <span
                               className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                                 fila.periodo === "Semestral"
-                                  ? "bg-[#17B4C4]/15 text-[#0E7A85]"
+                                  ? "bg-[#00ABBD]/15 text-[#00808E]"
                                   : fila.periodo === "Anual"
-                                  ? "bg-[#063A6B]/10 text-[#063A6B]"
+                                  ? "bg-[#035683]/10 text-[#035683]"
                                   : "bg-slate-100 text-slate-600"
                               }`}
                             >
@@ -1962,7 +1963,7 @@ export function PanelControlVista() {
                             {fila.lunes === "—" ? (
                               <span className="text-muted-foreground/40">—</span>
                             ) : (
-                              <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#063A6B]">
+                              <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#035683]">
                                 {fila.lunes}
                               </span>
                             )}
@@ -1971,7 +1972,7 @@ export function PanelControlVista() {
                             {fila.martes === "—" ? (
                               <span className="text-muted-foreground/40">—</span>
                             ) : (
-                              <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#063A6B]">
+                              <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#035683]">
                                 {fila.martes}
                               </span>
                             )}
@@ -1980,7 +1981,7 @@ export function PanelControlVista() {
                             {fila.miercoles === "—" ? (
                               <span className="text-muted-foreground/40">—</span>
                             ) : (
-                              <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#063A6B]">
+                              <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#035683]">
                                 {fila.miercoles}
                               </span>
                             )}
@@ -1989,7 +1990,7 @@ export function PanelControlVista() {
                             {fila.jueves === "—" ? (
                               <span className="text-muted-foreground/40">—</span>
                             ) : (
-                              <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#063A6B]">
+                              <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#035683]">
                                 {fila.jueves}
                               </span>
                             )}
@@ -1998,7 +1999,7 @@ export function PanelControlVista() {
                             {fila.viernes === "—" ? (
                               <span className="text-muted-foreground/40">—</span>
                             ) : (
-                              <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#063A6B]">
+                              <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#035683]">
                                 {fila.viernes}
                               </span>
                             )}
@@ -2008,9 +2009,9 @@ export function PanelControlVista() {
                               size="sm"
                               variant="outline"
                               onClick={() => abrirEditorHorario(fila)}
-                              className="h-7 px-2.5 text-[11px] border-[#17B4C4]/50 text-[#063A6B] hover:bg-[#17B4C4]/15 hover:border-[#17B4C4] font-bold gap-1 cursor-pointer"
+                              className="h-7 px-2.5 text-[11px] border-[#00ABBD]/50 text-[#035683] hover:bg-[#00ABBD]/15 hover:border-[#00ABBD] font-bold gap-1 cursor-pointer"
                             >
-                              <Edit3 className="w-3 h-3 text-[#17B4C4]" />
+                              <Edit3 className="w-3 h-3 text-[#00ABBD]" />
                               Editar
                             </Button>
                           </td>
@@ -2029,11 +2030,11 @@ export function PanelControlVista() {
         {/* ============================================================== */}
         <TabsContent value="analitica" className="space-y-5">
           {/* Header de Kardex con Selector Dinámico de Periodos Históricos y Acta Oficial */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 rounded-xl border border-[#E3DCCB] bg-gradient-to-r from-slate-50 via-white to-slate-50 shadow-xs">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 rounded-xl border border-[#E5E7EB] bg-gradient-to-r from-slate-50 via-white to-slate-50 shadow-xs">
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <BarChart3 className="w-5 h-5 text-[#17B4C4]" />
-                <h3 className="text-base font-bold font-display text-[#063A6B]">
+                <BarChart3 className="w-5 h-5 text-[#00ABBD]" />
+                <h3 className="text-base font-bold font-display text-[#035683]">
                   Kardex Integral y Analítica Institucional
                 </h3>
                 <Badge
@@ -2049,19 +2050,19 @@ export function PanelControlVista() {
               </div>
               <p className="text-xs text-muted-foreground">
                 Consolidación de {periodo_seleccionado_obj.total_becarios} becarios · Promedio cohorte:{" "}
-                <strong className="text-[#063A6B]">{periodo_seleccionado_obj.promedio_general}</strong> ·
+                <strong className="text-[#035683]">{periodo_seleccionado_obj.promedio_general}</strong> ·
                 Evaluación integral (Liderazgo, Académico, Tutoría, Escuela de Líderes y Socioeconómica).
               </p>
             </div>
 
             <div className="flex items-center gap-2 flex-wrap shrink-0">
-              <div className="flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-[#E3DCCB] shadow-xs">
+              <div className="flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] shadow-xs">
                 <History className="w-4 h-4 text-muted-foreground" />
-                <span className="text-xs font-medium text-[#063A6B]">Periodo:</span>
+                <span className="text-xs font-medium text-[#035683]">Periodo:</span>
                 <select
                   value={periodo_academico}
                   onChange={(e) => set_periodo_academico(e.target.value)}
-                  className="text-xs font-semibold bg-transparent text-[#063A6B] border-none focus:outline-hidden cursor-pointer pr-1"
+                  className="text-xs font-semibold bg-transparent text-[#035683] border-none focus:outline-hidden cursor-pointer pr-1"
                 >
                   {PERIODOS_ACADEMICOS.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -2079,9 +2080,9 @@ export function PanelControlVista() {
                     `Generando acta oficial consolidada en PDF para ${periodo_seleccionado_obj.etiqueta}...`
                   )
                 }
-                className="h-8 text-xs font-bold border-[#063A6B]/30 text-[#063A6B] hover:bg-[#063A6B]/10 gap-1.5 cursor-pointer shadow-xs"
+                className="h-8 text-xs font-bold border-[#035683]/30 text-[#035683] hover:bg-[#035683]/10 gap-1.5 cursor-pointer shadow-xs"
               >
-                <Download className="w-3.5 h-3.5 text-[#17B4C4]" />
+                <Download className="w-3.5 h-3.5 text-[#00ABBD]" />
                 Acta PDF
               </Button>
             </div>
@@ -2105,10 +2106,10 @@ export function PanelControlVista() {
           {/* DISTRIBUCIÓN POR UNIVERSIDAD, MODALIDAD Y AUTOEVALUACIÓN (COMPACTADA) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Tarjeta: Distribución por Universidad */}
-            <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl">
-              <CardHeader className="p-3.5 pb-2.5 border-b border-[#E3DCCB]/60">
-                <CardTitle className="font-display text-sm text-[#063A6B] flex items-center gap-2">
-                  <GraduationCap className="w-4 h-4 text-[#063A6B]" />
+            <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl">
+              <CardHeader className="p-3.5 pb-2.5 border-b border-[#E5E7EB]/60">
+                <CardTitle className="font-display text-sm text-[#035683] flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4 text-[#035683]" />
                   Distribución por Universidad
                 </CardTitle>
                 <CardDescription className="text-[11px] text-muted-foreground">
@@ -2122,7 +2123,7 @@ export function PanelControlVista() {
                       <span className="text-[#1E293B] truncate pr-2" title={u.nombre}>
                         {u.nombre}
                       </span>
-                      <span className="font-mono font-bold text-[#063A6B]">{u.cantidad}</span>
+                      <span className="font-mono font-bold text-[#035683]">{u.cantidad}</span>
                     </div>
                     <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                       <div
@@ -2139,10 +2140,10 @@ export function PanelControlVista() {
             </Card>
 
             {/* Tarjeta: Modalidad de la Beca */}
-            <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl">
-              <CardHeader className="p-3.5 pb-2.5 border-b border-[#E3DCCB]/60">
-                <CardTitle className="font-display text-sm text-[#063A6B] flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-[#17B4C4]" />
+            <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl">
+              <CardHeader className="p-3.5 pb-2.5 border-b border-[#E5E7EB]/60">
+                <CardTitle className="font-display text-sm text-[#035683] flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-[#00ABBD]" />
                   Modalidad de la Beca
                 </CardTitle>
                 <CardDescription className="text-[11px] text-muted-foreground">
@@ -2154,7 +2155,7 @@ export function PanelControlVista() {
                   <div key={m.modalidad} className="space-y-1">
                     <div className="flex justify-between text-xs font-medium">
                       <span className="text-[#1E293B]">{m.modalidad}</span>
-                      <span className="font-mono font-bold text-[#063A6B]">{m.cantidad}</span>
+                      <span className="font-mono font-bold text-[#035683]">{m.cantidad}</span>
                     </div>
                     <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                       <div
@@ -2174,10 +2175,10 @@ export function PanelControlVista() {
             </Card>
 
             {/* Tarjeta: Autoevaluación de Desempeño General (1–10) */}
-            <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl">
-              <CardHeader className="p-3.5 pb-2.5 border-b border-[#E3DCCB]/60">
-                <CardTitle className="font-display text-sm text-[#063A6B] flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#F8C766]" />
+            <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl">
+              <CardHeader className="p-3.5 pb-2.5 border-b border-[#E5E7EB]/60">
+                <CardTitle className="font-display text-sm text-[#035683] flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#FFB600]" />
                   Autoevaluación de Desempeño (1–10)
                 </CardTitle>
                 <CardDescription className="text-[11px] text-muted-foreground">
@@ -2189,7 +2190,7 @@ export function PanelControlVista() {
                   <div key={a.nota} className="space-y-1">
                     <div className="flex justify-between text-xs font-medium">
                       <span className="text-[#1E293B]">{a.nota}</span>
-                      <span className="font-mono font-bold text-[#063A6B]">{a.cantidad} becarios</span>
+                      <span className="font-mono font-bold text-[#035683]">{a.cantidad} becarios</span>
                     </div>
                     <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                       <div
@@ -2207,11 +2208,11 @@ export function PanelControlVista() {
           </div>
 
           {/* CASOS QUE REQUIEREN SEGUIMIENTO PASTORAL Y DE MENTORÍA */}
-          <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl overflow-hidden">
-            <CardHeader className="py-3 px-4 border-b border-[#E3DCCB]/60 bg-gradient-to-r from-amber-50/50 to-white">
+          <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl overflow-hidden">
+            <CardHeader className="py-3 px-4 border-b border-[#E5E7EB]/60 bg-gradient-to-r from-amber-50/50 to-white">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <CardTitle className="font-display text-sm text-[#063A6B] flex items-center gap-2">
+                  <CardTitle className="font-display text-sm text-[#035683] flex items-center gap-2">
                     <HeartHandshake className="w-4 h-4 text-amber-600" />
                     Casos que Requieren Seguimiento Pastoral y de Mentoría
                   </CardTitle>
@@ -2225,15 +2226,15 @@ export function PanelControlVista() {
                     <Button
                       size="sm"
                       onClick={() => set_dialogo_nuevo_caso_abierto(true)}
-                      className="h-8 px-3 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer rounded-lg shadow-2xs"
+                      className="h-8 px-3 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer rounded-lg shadow-2xs"
                     >
-                      <HeartHandshake className="w-3.5 h-3.5 text-[#F8C766]" />
+                      <HeartHandshake className="w-3.5 h-3.5 text-[#FFB600]" />
                       <span>Derivar Caso Pastoral</span>
                     </Button>
                   )}
 
                   {/* Filtro por estado de caso */}
-                  <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg border border-[#E3DCCB]/70">
+                  <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg border border-[#E5E7EB]/70">
                     {[
                       { key: "todos", etiqueta: "Todos", count: casos_pastorales.length },
                       { key: "PENDIENTE", etiqueta: "Pendientes", count: casos_pastorales.filter((c) => c.estado === "PENDIENTE").length },
@@ -2246,8 +2247,8 @@ export function PanelControlVista() {
                         onClick={() => set_filtro_estado_casos(f.key as any)}
                         className={`text-[11px] py-1 px-2.5 font-bold rounded-md transition-all cursor-pointer ${
                           filtro_estado_casos === f.key
-                            ? "bg-[#063A6B] text-white shadow-2xs"
-                            : "text-[#5B6D77] hover:text-[#063A6B]"
+                            ? "bg-[#035683] text-white shadow-2xs"
+                            : "text-[#5B6D77] hover:text-[#035683]"
                         }`}
                       >
                         {f.etiqueta} ({f.count})
@@ -2261,7 +2262,7 @@ export function PanelControlVista() {
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left border-collapse">
                   <thead>
-                    <tr className="bg-[#F8F9FA] border-b border-[#E3DCCB] text-[#063A6B] font-mono text-[11px] uppercase">
+                    <tr className="bg-[#F8F9FA] border-b border-[#E5E7EB] text-[#035683] font-mono text-[11px] uppercase">
                       <th className="py-2.5 px-4">Becario</th>
                       <th className="py-2.5 px-3">Universidad / Carrera</th>
                       <th className="py-2.5 px-4">Observaciones Pastorales (F-03)</th>
@@ -2271,12 +2272,12 @@ export function PanelControlVista() {
                       <th className="py-2.5 px-3 text-center">Acción</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#E3DCCB]/60">
+                  <tbody className="divide-y divide-[#E5E7EB]/60">
                     {casos_pastorales_filtrados.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="py-8 text-center text-muted-foreground">
                           <CheckCircle2 className="w-6 h-6 text-emerald-600 mx-auto mb-1 opacity-70" />
-                          <p className="font-semibold text-xs text-[#063A6B]">Sin casos registrados en esta vista</p>
+                          <p className="font-semibold text-xs text-[#035683]">Sin casos registrados en esta vista</p>
                           <p className="text-[11px]">No se encontraron expedientes pastorales con el estado seleccionado.</p>
                         </td>
                       </tr>
@@ -2285,13 +2286,13 @@ export function PanelControlVista() {
                         <tr key={caso.id} className="hover:bg-amber-50/20 transition-colors">
                           <td className="py-2.5 px-4">
                             <div className="flex items-center gap-2.5">
-                              <Avatar className="w-7 h-7 border border-[#E3DCCB]">
-                                <AvatarFallback className="bg-[#063A6B] text-[#F8C766] font-bold text-xs">
+                              <Avatar className="w-7 h-7 border border-[#E5E7EB]">
+                                <AvatarFallback className="bg-[#035683] text-[#FFB600] font-bold text-xs">
                                   {caso.avatar}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <span className="font-bold text-[#063A6B] block">{caso.nombre}</span>
+                                <span className="font-bold text-[#035683] block">{caso.nombre}</span>
                                 <span className="text-[10px] text-muted-foreground font-mono">{caso.origen || "F-03"}</span>
                               </div>
                             </div>
@@ -2325,7 +2326,7 @@ export function PanelControlVista() {
                                 caso.estado === "RESUELTO"
                                   ? "bg-emerald-50 text-emerald-700 border-emerald-300"
                                   : caso.estado === "EN_TUTORIA"
-                                  ? "bg-cyan-50 text-[#0E7A85] border-[#17B4C4]/40"
+                                  ? "bg-cyan-50 text-[#00808E] border-[#00ABBD]/40"
                                   : "bg-amber-50 text-amber-700 border-amber-200"
                               }`}
                             >
@@ -2337,9 +2338,9 @@ export function PanelControlVista() {
                               size="sm"
                               variant="outline"
                               onClick={() => abrirGestionCaso(caso)}
-                              className="h-7 px-2.5 text-[11px] border-[#063A6B] text-[#063A6B] hover:bg-[#063A6B] hover:text-white font-bold gap-1 cursor-pointer transition-all"
+                              className="h-7 px-2.5 text-[11px] border-[#035683] text-[#035683] hover:bg-[#035683] hover:text-white font-bold gap-1 cursor-pointer transition-all"
                             >
-                              <HeartHandshake className="w-3.5 h-3.5 text-[#17B4C4]" />
+                              <HeartHandshake className="w-3.5 h-3.5 text-[#00ABBD]" />
                               Gestionar Caso
                             </Button>
                           </td>
@@ -2353,19 +2354,19 @@ export function PanelControlVista() {
           </Card>
 
           {/* RANKING KARDEX CONSOLIDADOR DINÁMICO POR PERIODO */}
-          <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl overflow-hidden">
-            <CardHeader className="py-3 px-4 border-b border-[#E3DCCB]/60">
+          <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl overflow-hidden">
+            <CardHeader className="py-3 px-4 border-b border-[#E5E7EB]/60">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <CardTitle className="font-display text-sm text-[#063A6B] flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-[#17B4C4]" />
+                  <CardTitle className="font-display text-sm text-[#035683] flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-[#00ABBD]" />
                     Kardex — Ranking de Becarios · {periodo_seleccionado_obj.etiqueta}
                   </CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
                     Consolidación de las 5 evaluaciones del periodo y cálculo del promedio general de acreditación.
                   </CardDescription>
                 </div>
-                <Badge variant="outline" className="font-mono text-xs border-[#E3DCCB] text-[#063A6B] self-start sm:self-center">
+                <Badge variant="outline" className="font-mono text-xs border-[#E5E7EB] text-[#035683] self-start sm:self-center">
                   {periodo_seleccionado_obj.estado_texto}
                 </Badge>
               </div>
@@ -2374,7 +2375,7 @@ export function PanelControlVista() {
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left border-collapse">
                   <thead>
-                    <tr className="bg-[#F8F9FA] border-b border-[#E3DCCB] text-[#063A6B] font-mono text-[11px] uppercase">
+                    <tr className="bg-[#F8F9FA] border-b border-[#E5E7EB] text-[#035683] font-mono text-[11px] uppercase">
                       <th className="py-2.5 px-3 text-center">Pos.</th>
                       <th className="py-2.5 px-4">Becario</th>
                       <th className="py-2.5 px-3 text-center font-mono">Liderazgo Iglesia</th>
@@ -2385,20 +2386,20 @@ export function PanelControlVista() {
                       <th className="py-2.5 px-3 text-center font-mono font-bold">Promedio</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#E3DCCB]/60">
+                  <tbody className="divide-y divide-[#E5E7EB]/60">
                     {obtenerDatosKardex().map((k) => (
                       <tr key={k.posicion} className="hover:bg-slate-50 transition-colors">
-                        <td className="py-2.5 px-3 text-center font-mono font-bold text-[#F8C766]">
+                        <td className="py-2.5 px-3 text-center font-mono font-bold text-[#FFB600]">
                           {k.posicion}
                         </td>
                         <td className="py-2.5 px-4">
                           <div className="flex items-center gap-2">
-                            <Avatar className="w-7 h-7 border border-[#E3DCCB]">
-                              <AvatarFallback className="bg-[#063A6B] text-[#F8C766] font-bold text-[10px]">
+                            <Avatar className="w-7 h-7 border border-[#E5E7EB]">
+                              <AvatarFallback className="bg-[#035683] text-[#FFB600] font-bold text-[10px]">
                                 {k.avatar}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="font-bold text-[#063A6B]">{k.nombre}</span>
+                            <span className="font-bold text-[#035683]">{k.nombre}</span>
                           </div>
                         </td>
                         <td className="py-2.5 px-3 text-center font-mono">{k.liderazgo_iglesia}</td>
@@ -2429,14 +2430,14 @@ export function PanelControlVista() {
       {/* DIÁLOGO MODAL: GESTIÓN Y ASIGNACIÓN DE HORARIO DE PRÁCTICA      */}
       {/* ============================================================== */}
       <Dialog open={dialogo_edicion_abierto} onOpenChange={set_dialogo_edicion_abierto}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto border-[#E3DCCB] p-6 rounded-2xl bg-white shadow-xl">
-          <DialogHeader className="border-b border-[#E3DCCB]/60 pb-3">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-[#E5E7EB] bg-white rounded-2xl shadow-xl">
+          <DialogHeader>
             <div className="flex items-center gap-2.5">
-              <div className="p-2.5 bg-[#063A6B]/10 rounded-xl text-[#063A6B]">
-                <Clock className="w-5 h-5 text-[#17B4C4]" />
+              <div className="p-2.5 bg-[#035683]/10 rounded-xl text-[#035683]">
+                <Clock className="w-5 h-5 text-[#00ABBD]" />
               </div>
               <div>
-                <DialogTitle className="text-base font-bold text-[#063A6B] font-display">
+                <DialogTitle className="text-base font-bold text-[#035683] font-display">
                   Asignación y Gobernanza de Horario de Práctica
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
@@ -2447,44 +2448,44 @@ export function PanelControlVista() {
           </DialogHeader>
 
           {becario_a_editar && (
-            <div className="space-y-5 py-2 text-xs">
+            <DialogBody className="space-y-5 text-xs">
               {/* PASO 1: DIAGNÓSTICO ACADÉMICO Y DISPONIBILIDAD DECLARADA */}
-              <div className="p-3.5 bg-slate-50 border border-[#E3DCCB] rounded-xl space-y-2.5">
+              <div className="p-3.5 bg-slate-50 border border-[#E5E7EB] rounded-xl space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm text-[#063A6B]">{becario_a_editar.nombre}</span>
-                    <Badge variant="outline" className="font-mono text-[10px] border-[#063A6B]/30 text-[#063A6B] bg-white">
+                    <span className="font-bold text-sm text-[#035683]">{becario_a_editar.nombre}</span>
+                    <Badge variant="outline" className="font-mono text-[10px] border-[#035683]/30 text-[#035683] bg-white">
                       CI: {becario_a_editar.ci}
                     </Badge>
                   </div>
-                  <Badge className="bg-[#17B4C4]/15 text-[#0E7A85] border-[#17B4C4]/30 font-mono text-[10px]">
+                  <Badge className="bg-[#00ABBD]/15 text-[#00808E] border-[#00ABBD]/30 font-mono text-[10px]">
                     Régimen: {becario_a_editar.periodo}
                   </Badge>
                 </div>
 
-                <div className="p-2.5 bg-white border border-[#E3DCCB]/80 rounded-lg space-y-1">
-                  <span className="text-[10px] uppercase font-mono font-bold text-[#063A6B] block">
+                <div className="p-2.5 bg-white border border-[#E5E7EB]/80 rounded-lg space-y-1">
+                  <span className="text-[10px] uppercase font-mono font-bold text-[#035683] block">
                     Carga Académica y Disponibilidad Declarada:
                   </span>
                   <p className="text-xs text-slate-700 font-medium">
                     {materias_declaradas_edit}
                   </p>
                   <p className="text-[11px] text-slate-500 pt-0.5 leading-snug">
-                    <strong className="text-[#063A6B]">Regla de Gobernanza:</strong> La coordinación asigna un bloque de 4 horas diarias respetando las materias declaradas por el estudiante para evitar solapamientos con cátedras universitarias.
+                    <strong className="text-[#035683]">Regla de Gobernanza:</strong> La coordinación asigna un bloque de 4 horas diarias respetando las materias declaradas por el estudiante para evitar solapamientos con cátedras universitarias.
                   </p>
                 </div>
               </div>
 
               {/* PASO 2: ASIGNACIÓN INSTITUCIONAL DE SEDE DIACONÍA IFD */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-[#063A6B] flex items-center justify-between">
+                <Label className="text-xs font-semibold text-[#035683] flex items-center justify-between">
                   <span>Sede / Agencia de Práctica Institucional</span>
                   <span className="text-[10px] text-muted-foreground font-mono">11 agencias habilitadas con geocerca WGS84</span>
                 </Label>
                 <select
                   value={sede_edit}
                   onChange={(e) => set_sede_edit(e.target.value)}
-                  className="w-full h-9 px-3 rounded-lg border border-[#E3DCCB] bg-white text-xs font-medium text-[#1E293B] focus:border-[#17B4C4] focus:outline-hidden"
+                  className="w-full h-9 px-3 rounded-lg border border-[#E5E7EB] bg-white text-xs font-medium text-[#1E293B] focus:border-[#00ABBD] focus:outline-hidden"
                 >
                   {AGENCIAS_DIACONIA_IFD.map((agencia) => (
                     <option key={agencia} value={agencia}>
@@ -2498,7 +2499,7 @@ export function PanelControlVista() {
               <div className="space-y-2.5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                   <div>
-                    <Label className="text-xs font-semibold text-[#063A6B]">Grilla Semanal Flexible (Lun a Vie)</Label>
+                    <Label className="text-xs font-semibold text-[#035683]">Grilla Semanal Flexible (Lun a Vie)</Label>
                     <p className="text-[11px] text-muted-foreground">Configura los días activos y ajusta el horario de entrada y salida independiente por día.</p>
                   </div>
                   {/* Presets Rápidos */}
@@ -2519,7 +2520,7 @@ export function PanelControlVista() {
                         });
                         toast.info("Horario 08:00–12:00 aplicado a los días activos.");
                       }}
-                      className="h-7 px-2 text-[10px] border-[#E3DCCB] text-[#063A6B] hover:bg-slate-50"
+                      className="h-7 px-2 text-[10px] border-[#E5E7EB] text-[#035683] hover:bg-slate-50"
                     >
                       Mañana (08:00–12:00)
                     </Button>
@@ -2539,7 +2540,7 @@ export function PanelControlVista() {
                         });
                         toast.info("Horario 13:00–17:00 aplicado a los días activos.");
                       }}
-                      className="h-7 px-2 text-[10px] border-[#E3DCCB] text-[#063A6B] hover:bg-slate-50"
+                      className="h-7 px-2 text-[10px] border-[#E5E7EB] text-[#035683] hover:bg-slate-50"
                     >
                       Tarde (13:00–17:00)
                     </Button>
@@ -2547,7 +2548,7 @@ export function PanelControlVista() {
                 </div>
 
                 {/* Listado de 5 días con horario diferenciado */}
-                <div className="space-y-2 border border-[#E3DCCB] rounded-xl p-3 bg-slate-50/50">
+                <div className="space-y-2 border border-[#E5E7EB] rounded-xl p-3 bg-slate-50/50">
                   {[
                     { key: "lunes", etiqueta: "Lunes" },
                     { key: "martes", etiqueta: "Martes" },
@@ -2561,7 +2562,7 @@ export function PanelControlVista() {
                         key={dia.key}
                         className={`p-2.5 rounded-lg border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
                           info_dia.activo
-                            ? "bg-white border-[#17B4C4]/50 shadow-2xs"
+                            ? "bg-white border-[#00ABBD]/50 shadow-2xs"
                             : "bg-slate-100/70 border-slate-200 opacity-60"
                         }`}
                       >
@@ -2579,14 +2580,14 @@ export function PanelControlVista() {
                             }
                             className={`w-5 h-5 rounded-md flex items-center justify-center border transition-colors cursor-pointer ${
                               info_dia.activo
-                                ? "bg-[#063A6B] border-[#063A6B] text-white"
-                                : "bg-white border-[#E3DCCB] text-transparent"
+                                ? "bg-[#035683] border-[#035683] text-white"
+                                : "bg-white border-[#E5E7EB] text-transparent"
                             }`}
                           >
                             <Check className="w-3.5 h-3.5" />
                           </button>
                           <div>
-                            <span className="font-bold text-xs text-[#063A6B] block">{dia.etiqueta}</span>
+                            <span className="font-bold text-xs text-[#035683] block">{dia.etiqueta}</span>
                             <span className="text-[10px] font-mono text-muted-foreground">
                               {info_dia.activo ? "Asignado" : "Libre"}
                             </span>
@@ -2636,12 +2637,12 @@ export function PanelControlVista() {
                 </div>
 
                 {/* Resumen en tiempo real de carga horaria */}
-                <div className="flex items-center justify-between p-3 bg-white border border-[#E3DCCB] rounded-xl">
+                <div className="flex items-center justify-between p-3 bg-white border border-[#E5E7EB] rounded-xl">
                   <div>
                     <span className="text-[10px] font-mono uppercase font-bold text-muted-foreground block">
                       Total Carga Asignada:
                     </span>
-                    <span className="font-display font-bold text-base text-[#063A6B]">
+                    <span className="font-display font-bold text-base text-[#035683]">
                       {horas_semanales_asignadas_calculadas} hrs / semana
                     </span>
                   </div>
@@ -2674,10 +2675,10 @@ export function PanelControlVista() {
                   </div>
                 )}
               </div>
-            </div>
+            </DialogBody>
           )}
 
-          <DialogFooter className="border-t border-[#E3DCCB]/60 pt-3 gap-2">
+          <DialogFooter>
             <Button
               variant="outline"
               size="sm"
@@ -2689,9 +2690,9 @@ export function PanelControlVista() {
             <Button
               size="sm"
               onClick={guardarEdicionHorario}
-              className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold text-xs gap-1.5"
+              className="bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs gap-1.5"
             >
-              <Check className="w-3.5 h-3.5 text-[#F8C766]" />
+              <Check className="w-3.5 h-3.5 text-[#FFB600]" />
               Guardar Horario Asignado
             </Button>
           </DialogFooter>

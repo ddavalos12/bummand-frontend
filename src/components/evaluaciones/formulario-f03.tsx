@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -138,18 +138,18 @@ export function FormularioF03({
   };
 
   return (
-    <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-2xl overflow-hidden max-h-[90vh] flex flex-col">
-      <CardHeader className="border-b border-[#E3DCCB] p-5 pb-4 shrink-0 bg-[#F8F9FA]">
+    <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <CardHeader className="border-b border-[#E5E7EB] p-5 pb-4 shrink-0 bg-[#F8F9FA]">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="font-display font-bold text-base text-[#063A6B]">
+            <CardTitle className="font-display font-bold text-base text-[#035683]">
               Formulario F-03 · Evaluación Ministerial del Becario
             </CardTitle>
             <CardDescription className="text-xs text-muted-foreground mt-0.5">
               Escuela de Líderes BUMAN-D — a llenar por el Pastor de la iglesia local.
             </CardDescription>
           </div>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#17B4C4]/15 text-[#0E7A85] font-bold">
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#00ABBD]/15 text-[#00808E] font-bold">
             Módulo 01
           </span>
         </div>
@@ -158,10 +158,10 @@ export function FormularioF03({
       <CardContent className="overflow-y-auto p-5 flex-1 space-y-6">
         {/* SECCIÓN I: Datos Pastor e Iglesia con Combobox Institucional */}
         <div className="space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1 border-b border-[#E3DCCB]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1 border-b border-[#E5E7EB]">
             <div className="flex items-center gap-2">
-              <UserCheck className="w-4 h-4 text-[#063A6B]" />
-              <h4 className="font-display text-xs font-bold text-[#063A6B] uppercase">
+              <UserCheck className="w-4 h-4 text-[#035683]" />
+              <h4 className="font-display text-xs font-bold text-[#035683] uppercase">
                 I. Datos del pastor y de la iglesia local
               </h4>
             </div>
@@ -172,7 +172,7 @@ export function FormularioF03({
                 onClick={() => set_origen_datos_iglesia("catalogo")}
                 className={`px-2 py-0.5 text-[11px] font-bold rounded-md transition-all ${
                   origen_datos_iglesia === "catalogo"
-                    ? "bg-[#063A6B] text-white shadow-2xs"
+                    ? "bg-[#035683] text-white shadow-2xs"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
@@ -183,7 +183,7 @@ export function FormularioF03({
                 onClick={() => set_origen_datos_iglesia("manual")}
                 className={`px-2 py-0.5 text-[11px] font-bold rounded-md transition-all ${
                   origen_datos_iglesia === "manual"
-                    ? "bg-[#063A6B] text-white shadow-2xs"
+                    ? "bg-[#035683] text-white shadow-2xs"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
@@ -193,20 +193,20 @@ export function FormularioF03({
           </div>
 
           {origen_datos_iglesia === "catalogo" && (
-            <div className="p-3 bg-[#063A6B]/5 border border-[#17B4C4]/30 rounded-xl space-y-1.5">
+            <div className="p-3 bg-[#035683]/5 border border-[#00ABBD]/30 rounded-xl space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label className="text-xs font-bold text-[#063A6B] flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-[#17B4C4]" />
+                <Label className="text-xs font-bold text-[#035683] flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-[#00ABBD]" />
                   Seleccionar Congregación / Sede del Catálogo BUMAND:
                 </Label>
-                <Badge variant="outline" className="text-[10px] bg-white border-[#17B4C4] text-[#063A6B]">
+                <Badge variant="outline" className="text-[10px] bg-white border-[#00ABBD] text-[#035683]">
                   Autocompletado Activo
                 </Badge>
               </div>
               <select
                 value={iglesia_seleccionada_id}
                 onChange={(e) => manejarSeleccionIglesia(e.target.value)}
-                className="w-full h-8 text-xs font-medium rounded-lg border border-[#E3DCCB] bg-white px-2.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#17B4C4]"
+                className="w-full h-8 text-xs font-medium rounded-lg border border-[#E5E7EB] bg-white px-2.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#00ABBD]"
               >
                 {CATALOGO_IGLESIAS_INSTITUCIONALES.map((ig) => (
                   <option key={ig.id} value={ig.id}>
@@ -224,7 +224,7 @@ export function FormularioF03({
               <Input
                 value={pastor_nombre}
                 onChange={(e) => set_pastor_nombre(e.target.value)}
-                className="h-8 text-xs border-[#E3DCCB] mt-1"
+                className="h-8 text-xs border-[#E5E7EB] mt-1"
               />
             </div>
             <div>
@@ -233,7 +233,7 @@ export function FormularioF03({
                 type="email"
                 value={pastor_correo}
                 onChange={(e) => set_pastor_correo(e.target.value)}
-                className="h-8 text-xs border-[#E3DCCB] mt-1"
+                className="h-8 text-xs border-[#E5E7EB] mt-1"
               />
             </div>
             <div>
@@ -241,7 +241,7 @@ export function FormularioF03({
               <Input
                 value={pastor_celular}
                 onChange={(e) => set_pastor_celular(e.target.value)}
-                className="h-8 text-xs border-[#E3DCCB] mt-1"
+                className="h-8 text-xs border-[#E5E7EB] mt-1"
               />
             </div>
             <div>
@@ -249,7 +249,7 @@ export function FormularioF03({
               <Input
                 value={iglesia_nombre}
                 onChange={(e) => set_iglesia_nombre(e.target.value)}
-                className="h-8 text-xs border-[#E3DCCB] mt-1"
+                className="h-8 text-xs border-[#E5E7EB] mt-1"
               />
             </div>
             <div className="sm:col-span-2">
@@ -257,7 +257,7 @@ export function FormularioF03({
               <Input
                 value={iglesia_direccion}
                 onChange={(e) => set_iglesia_direccion(e.target.value)}
-                className="h-8 text-xs border-[#E3DCCB] mt-1"
+                className="h-8 text-xs border-[#E5E7EB] mt-1"
               />
             </div>
           </div>
@@ -265,9 +265,9 @@ export function FormularioF03({
 
         {/* SECCIÓN II */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2 pb-1 border-b border-[#E3DCCB]">
-            <FileText className="w-4 h-4 text-[#17B4C4]" />
-            <h4 className="font-display text-xs font-bold text-[#063A6B] uppercase">
+          <div className="flex items-center gap-2 pb-1 border-b border-[#E5E7EB]">
+            <FileText className="w-4 h-4 text-[#00ABBD]" />
+            <h4 className="font-display text-xs font-bold text-[#035683] uppercase">
               II. Referencias acerca del becario universitario
             </h4>
           </div>
@@ -277,7 +277,7 @@ export function FormularioF03({
             <Input
               value={becario_nombre}
               onChange={(e) => set_becario_nombre(e.target.value)}
-              className="h-8 text-xs border-[#E3DCCB] mt-1 font-semibold text-[#063A6B]"
+              className="h-8 text-xs border-[#E5E7EB] mt-1 font-semibold text-[#035683]"
             />
           </div>
 
@@ -296,8 +296,8 @@ export function FormularioF03({
                   onClick={() => set_frecuencia_asistencia(opc)}
                   className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-all ${
                     frecuencia_asistencia === opc
-                      ? "bg-[#17B4C4]/15 border-[#17B4C4] text-[#0E7A85] font-bold"
-                      : "border-[#E3DCCB] bg-white text-slate-700 hover:bg-slate-50"
+                      ? "bg-[#00ABBD]/15 border-[#00ABBD] text-[#00808E] font-bold"
+                      : "border-[#E5E7EB] bg-white text-slate-700 hover:bg-slate-50"
                   }`}
                 >
                   {opc}
@@ -316,8 +316,8 @@ export function FormularioF03({
                   onClick={() => set_demuestra_compromiso(opc)}
                   className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-all ${
                     demuestra_compromiso === opc
-                      ? "bg-[#063A6B] border-[#063A6B] text-white font-bold"
-                      : "border-[#E3DCCB] bg-white text-slate-700 hover:bg-slate-50"
+                      ? "bg-[#035683] border-[#035683] text-white font-bold"
+                      : "border-[#E5E7EB] bg-white text-slate-700 hover:bg-slate-50"
                   }`}
                 >
                   {opc}
@@ -336,8 +336,8 @@ export function FormularioF03({
                   onClick={() => set_ocupa_cargo(opc)}
                   className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-all ${
                     ocupa_cargo === opc
-                      ? "bg-[#063A6B] border-[#063A6B] text-white font-bold"
-                      : "border-[#E3DCCB] bg-white text-slate-700 hover:bg-slate-50"
+                      ? "bg-[#035683] border-[#035683] text-white font-bold"
+                      : "border-[#E5E7EB] bg-white text-slate-700 hover:bg-slate-50"
                   }`}
                 >
                   {opc}
@@ -349,7 +349,7 @@ export function FormularioF03({
                 value={cargo_actual}
                 onChange={(e) => set_cargo_actual(e.target.value)}
                 placeholder="Cargo que ocupa este año"
-                className="h-8 text-xs border-[#E3DCCB] mt-2"
+                className="h-8 text-xs border-[#E5E7EB] mt-2"
               />
             )}
           </div>
@@ -364,8 +364,8 @@ export function FormularioF03({
                   onClick={() => set_cumplimiento_cargos(opc)}
                   className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-all ${
                     cumplimiento_cargos === opc
-                      ? "bg-[#17B4C4]/15 border-[#17B4C4] text-[#0E7A85] font-bold"
-                      : "border-[#E3DCCB] bg-white text-slate-700 hover:bg-slate-50"
+                      ? "bg-[#00ABBD]/15 border-[#00ABBD] text-[#00808E] font-bold"
+                      : "border-[#E5E7EB] bg-white text-slate-700 hover:bg-slate-50"
                   }`}
                 >
                   {opc}
@@ -380,7 +380,7 @@ export function FormularioF03({
               rows={2}
               value={pregunta_conviccion}
               onChange={(e) => set_pregunta_conviccion(e.target.value)}
-              className="text-xs border-[#E3DCCB] mt-1"
+              className="text-xs border-[#E5E7EB] mt-1"
             />
           </div>
 
@@ -390,7 +390,7 @@ export function FormularioF03({
               rows={2}
               value={pregunta_ejemplo}
               onChange={(e) => set_pregunta_ejemplo(e.target.value)}
-              className="text-xs border-[#E3DCCB] mt-1"
+              className="text-xs border-[#E5E7EB] mt-1"
             />
           </div>
 
@@ -400,7 +400,7 @@ export function FormularioF03({
               rows={2}
               value={pregunta_capacitaciones}
               onChange={(e) => set_pregunta_capacitaciones(e.target.value)}
-              className="text-xs border-[#E3DCCB] mt-1"
+              className="text-xs border-[#E5E7EB] mt-1"
             />
           </div>
 
@@ -410,7 +410,7 @@ export function FormularioF03({
               rows={2}
               value={pregunta_testimonio}
               onChange={(e) => set_pregunta_testimonio(e.target.value)}
-              className="text-xs border-[#E3DCCB] mt-1"
+              className="text-xs border-[#E5E7EB] mt-1"
             />
           </div>
 
@@ -420,7 +420,7 @@ export function FormularioF03({
               rows={2}
               value={pregunta_relacion}
               onChange={(e) => set_pregunta_relacion(e.target.value)}
-              className="text-xs border-[#E3DCCB] mt-1"
+              className="text-xs border-[#E5E7EB] mt-1"
             />
           </div>
 
@@ -430,7 +430,7 @@ export function FormularioF03({
               rows={2}
               value={pregunta_nuevos_lideres}
               onChange={(e) => set_pregunta_nuevos_lideres(e.target.value)}
-              className="text-xs border-[#E3DCCB] mt-1"
+              className="text-xs border-[#E5E7EB] mt-1"
             />
           </div>
 
@@ -441,7 +441,7 @@ export function FormularioF03({
                 rows={2}
                 value={pregunta_fortalezas}
                 onChange={(e) => set_pregunta_fortalezas(e.target.value)}
-                className="text-xs border-[#E3DCCB] mt-1"
+                className="text-xs border-[#E5E7EB] mt-1"
               />
             </div>
             <div>
@@ -450,7 +450,7 @@ export function FormularioF03({
                 rows={2}
                 value={pregunta_debilidades}
                 onChange={(e) => set_pregunta_debilidades(e.target.value)}
-                className="text-xs border-[#E3DCCB] mt-1"
+                className="text-xs border-[#E5E7EB] mt-1"
               />
             </div>
           </div>
@@ -461,16 +461,16 @@ export function FormularioF03({
               rows={2}
               value={pregunta_opinion}
               onChange={(e) => set_pregunta_opinion(e.target.value)}
-              className="text-xs border-[#E3DCCB] mt-1"
+              className="text-xs border-[#E5E7EB] mt-1"
             />
           </div>
         </div>
 
         {/* SECCIÓN III */}
         <div className="space-y-3 pt-2">
-          <div className="flex items-center gap-2 pb-1 border-b border-[#E3DCCB]">
+          <div className="flex items-center gap-2 pb-1 border-b border-[#E5E7EB]">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <h4 className="font-display text-xs font-bold text-[#063A6B] uppercase">
+            <h4 className="font-display text-xs font-bold text-[#035683] uppercase">
               III. Declaración
             </h4>
           </div>
@@ -481,7 +481,7 @@ export function FormularioF03({
               <Input
                 value={declara_nombre}
                 onChange={(e) => set_declara_nombre(e.target.value)}
-                className="h-8 text-xs border-[#E3DCCB] mt-1"
+                className="h-8 text-xs border-[#E5E7EB] mt-1"
               />
             </div>
             <div>
@@ -489,12 +489,12 @@ export function FormularioF03({
               <Input
                 value={declara_ci}
                 onChange={(e) => set_declara_ci(e.target.value)}
-                className="h-8 text-xs border-[#E3DCCB] mt-1"
+                className="h-8 text-xs border-[#E5E7EB] mt-1"
               />
             </div>
           </div>
 
-          <div className="flex items-start gap-2 p-2.5 rounded-lg border border-[#E3DCCB] bg-slate-50 text-xs">
+          <div className="flex items-start gap-2 p-2.5 rounded-lg border border-[#E5E7EB] bg-slate-50 text-xs">
             <Checkbox
               id="f03-check"
               checked={declara_aceptada}
@@ -515,11 +515,11 @@ export function FormularioF03({
         </div>
       </CardContent>
 
-      <div className="p-4 border-t border-[#E3DCCB] bg-[#F8F9FA] shrink-0 flex justify-end">
+      <div className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] shrink-0 flex justify-end">
         <Button
           type="button"
           onClick={exportarPdfF03}
-          className="bg-[#F8C766] hover:bg-[#F5A623] text-[#3A2400] font-bold text-xs rounded-xl h-10 px-5 shadow-sm"
+          className="bg-[#FFB600] hover:bg-[#FFB600] text-[#3A2400] font-bold text-xs rounded-xl h-10 px-5 shadow-sm"
         >
           <Printer className="w-4 h-4 mr-2" />
           Exportar PDF (F-03 firmado)

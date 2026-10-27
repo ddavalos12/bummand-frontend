@@ -11,11 +11,11 @@ interface PropiedadesBotonJuicy extends Omit<HTMLMotionProps<"button">, "childre
 }
 
 const ESTILOS_VARIANTE = {
-  primario: "bg-[#063A6B] text-white hover:bg-[#084885] shadow-xs hover:shadow-md",
-  secundario: "bg-[#17B4C4] text-[#063A6B] font-bold hover:bg-[#15a4b3] shadow-xs hover:shadow-md",
-  dorado: "bg-[#F8C766] text-[#063A6B] font-bold hover:bg-[#f6bd48] shadow-xs hover:shadow-md",
+  primario: "bg-[#035683] text-white hover:bg-[#007BBE] shadow-xs hover:shadow-md",
+  secundario: "bg-[#00ABBD] text-white font-bold hover:bg-[#00808E] shadow-xs hover:shadow-md",
+  dorado: "bg-[#FFB600] text-[#035683] font-bold hover:bg-[#e5a400] shadow-xs hover:shadow-md",
   exito: "bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs hover:shadow-md",
-  fantasma: "bg-transparent text-[#063A6B] hover:bg-[#063A6B]/5 border border-transparent",
+  fantasma: "bg-transparent text-[#035683] hover:bg-[#035683]/5 border border-transparent",
 };
 
 const ESTILOS_TAMAÑO = {
@@ -49,7 +49,7 @@ export function BotonJuicy({
       disabled={disabled}
       className={cn(
         "relative inline-flex items-center justify-center font-medium select-none cursor-pointer transition-colors duration-150",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#17B4C4] focus-visible:ring-offset-2",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ABBD] focus-visible:ring-offset-2",
         "disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
         ESTILOS_VARIANTE[variante],
         ESTILOS_TAMAÑO[tamaño],

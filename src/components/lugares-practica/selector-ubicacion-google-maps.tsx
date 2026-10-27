@@ -103,9 +103,9 @@ export function SelectorUbicacionGoogleMaps({
           map: mapa,
           center: centro_inicial,
           radius: radio_tolerancia_m > 0 ? radio_tolerancia_m : 80,
-          fillColor: "#17B4C4",
+          fillColor: "#00ABBD",
           fillOpacity: 0.22,
-          strokeColor: "#063A6B",
+          strokeColor: "#035683",
           strokeOpacity: 0.85,
           strokeWeight: 2,
         });
@@ -195,20 +195,20 @@ export function SelectorUbicacionGoogleMaps({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-xs">
-        <span className="font-semibold text-[#063A6B] flex items-center gap-1.5">
-          <MapPin className="w-4 h-4 text-[#17B4C4]" />
+        <span className="font-semibold text-[#035683] flex items-center gap-1.5">
+          <MapPin className="w-4 h-4 text-[#00ABBD]" />
           Ubicación Geodésica en Google Maps
         </span>
-        <Badge variant="outline" className="text-[10px] text-muted-foreground border-[#E3DCCB]">
+        <Badge variant="outline" className="text-[10px] text-muted-foreground border-[#E5E7EB]">
           Arrastra el marcador o haz clic
         </Badge>
       </div>
 
       {/* Contenedor del Mapa Interactivo */}
-      <div className="relative w-full h-52 rounded-xl border border-[#E3DCCB] overflow-hidden bg-slate-100 shadow-2xs">
+      <div className="relative w-full h-52 rounded-xl border border-[#E5E7EB] overflow-hidden bg-slate-100 shadow-2xs">
         {cargando && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/90 text-xs text-[#063A6B] gap-2">
-            <Compass className="w-6 h-6 text-[#17B4C4] animate-spin" />
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/90 text-xs text-[#035683] gap-2">
+            <Compass className="w-6 h-6 text-[#00ABBD] animate-spin" />
             <span className="font-semibold">Cargando Google Maps API...</span>
           </div>
         )}
@@ -226,8 +226,8 @@ export function SelectorUbicacionGoogleMaps({
         <div ref={contenedor_mapa_ref} className="w-full h-full" />
 
         {/* Coordenadas superpuestas en el pie del mapa */}
-        <div className="absolute bottom-2 left-2 z-10 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-lg border border-[#E3DCCB] text-[11px] font-mono text-[#063A6B] shadow-xs flex items-center gap-2">
-          <Crosshair className="w-3.5 h-3.5 text-[#17B4C4]" />
+        <div className="absolute bottom-2 left-2 z-10 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-lg border border-[#E5E7EB] text-[11px] font-mono text-[#035683] shadow-xs flex items-center gap-2">
+          <Crosshair className="w-3.5 h-3.5 text-[#00ABBD]" />
           <span>
             {latitud.toFixed(6)}, {longitud.toFixed(6)} · Geocerca: {radio_tolerancia_m}m
           </span>
@@ -244,7 +244,7 @@ export function SelectorUbicacionGoogleMaps({
             variant="outline"
             size="sm"
             onClick={() => alCambiarUbicacion(pre.lat, pre.lng)}
-            className="h-6 px-2 text-[10px] border-[#E3DCCB] hover:border-[#17B4C4] hover:bg-[#17B4C4]/10 rounded-md font-medium text-[#063A6B]"
+            className="h-6 px-2 text-[10px] border-[#E5E7EB] hover:border-[#00ABBD] hover:bg-[#00ABBD]/10 rounded-md font-medium text-[#035683]"
           >
             {pre.nombre}
           </Button>
@@ -256,7 +256,7 @@ export function SelectorUbicacionGoogleMaps({
           size="sm"
           disabled={obteniendo_gps}
           onClick={manejarObtenerUbicacionActual}
-          className="h-6 px-2 text-[10px] border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 rounded-md font-medium flex items-center gap-1 ml-auto"
+          className="h-6 px-2 text-[10px] border-[#00ABBD] bg-[#00ABBD]/10 text-[#035683] hover:bg-[#00ABBD]/20 rounded-md font-medium flex items-center gap-1 ml-auto"
         >
           <Navigation className={`w-3 h-3 ${obteniendo_gps ? "animate-spin" : ""}`} />
           <span>{obteniendo_gps ? "Localizando..." : "Mi GPS Actual"}</span>

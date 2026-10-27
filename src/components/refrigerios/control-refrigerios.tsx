@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -348,13 +348,13 @@ export function ControlRefrigerios() {
         <title>Planilla Oficial de Reposición de Refrigerios - BUMAND</title>
         <style>
           body { font-family: Arial, sans-serif; margin: 40px; color: #1E293B; line-height: 1.5; }
-          .header { text-align: center; border-bottom: 2px solid #063A6B; padding-bottom: 16px; margin-bottom: 24px; }
-          .header h1 { margin: 0; color: #063A6B; font-size: 20px; text-transform: uppercase; }
+          .header { text-align: center; border-bottom: 2px solid #035683; padding-bottom: 16px; margin-bottom: 24px; }
+          .header h1 { margin: 0; color: #035683; font-size: 20px; text-transform: uppercase; }
           .header h2 { margin: 4px 0; color: #5B6D77; font-size: 13px; font-weight: normal; }
           .datos-tabla { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 12px; }
           .datos-tabla th, .datos-tabla td { border: 1px solid #CBD5E1; padding: 8px 12px; text-align: left; }
-          .datos-tabla th { background-color: #F8FAFC; color: #063A6B; }
-          .totales { margin-top: 20px; text-align: right; font-size: 14px; font-weight: bold; color: #063A6B; }
+          .datos-tabla th { background-color: #F8FAFC; color: #035683; }
+          .totales { margin-top: 20px; text-align: right; font-size: 14px; font-weight: bold; color: #035683; }
           .firmas { margin-top: 60px; display: flex; justify-content: space-around; text-align: center; font-size: 11px; }
           .firma-linea { border-top: 1px solid #64748B; width: 200px; padding-top: 6px; }
         </style>
@@ -435,11 +435,11 @@ export function ControlRefrigerios() {
   return (
     <div className="space-y-6">
       {/* Cabecera del Módulo */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E3DCCB] shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Utensils className="w-5 h-5 text-[#063A6B]" />
-            <h2 className="text-xl font-bold font-display text-[#063A6B]">
+            <Utensils className="w-5 h-5 text-[#035683]" />
+            <h2 className="text-xl font-bold font-display text-[#035683]">
               Control y Liquidación de Refrigerios Institucionales
             </h2>
           </div>
@@ -468,11 +468,11 @@ export function ControlRefrigerios() {
           </DialogTrigger>
           <DialogContent
             showCloseButton={false}
-            className="sm:max-w-[500px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E3DCCB] rounded-2xl shadow-2xl"
+            className="sm:max-w-[500px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E5E7EB] rounded-2xl shadow-2xl"
           >
-            <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] bg-[#F8F9FA]">
-              <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
-                <Utensils className="w-5 h-5 text-[#17B4C4]" />
+            <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] bg-[#F8F9FA]">
+              <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+                <Utensils className="w-5 h-5 text-[#00ABBD]" />
                 Registrar Raciones de Refrigerio
               </DialogTitle>
               <CardDescription className="text-xs text-muted-foreground">
@@ -490,7 +490,7 @@ export function ControlRefrigerios() {
                       value={nueva_fecha}
                       onChange={(e) => set_nueva_fecha(e.target.value)}
                       required
-                      className="h-9 text-xs border-[#E3DCCB]"
+                      className="h-9 text-xs border-[#E5E7EB]"
                     />
                   </div>
                   <div className="space-y-1">
@@ -499,7 +499,7 @@ export function ControlRefrigerios() {
                       value={nuevo_becario_encargado}
                       onValueChange={(val) => val && set_nuevo_becario_encargado(val)}
                     >
-                      <SelectTrigger className="h-9 text-xs border-[#E3DCCB] w-full">
+                      <SelectTrigger className="h-9 text-xs border-[#E5E7EB] w-full">
                         <SelectValue placeholder="Seleccione el becario encargado" />
                       </SelectTrigger>
                       <SelectContent className="max-h-56">
@@ -520,7 +520,7 @@ export function ControlRefrigerios() {
                     value={nuevo_evento}
                     onChange={(e) => set_nuevo_evento(e.target.value)}
                     required
-                    className="h-9 text-xs border-[#E3DCCB]"
+                    className="h-9 text-xs border-[#E5E7EB]"
                   />
                 </div>
 
@@ -533,7 +533,7 @@ export function ControlRefrigerios() {
                       value={nueva_cantidad}
                       onChange={(e) => manejarCambioCantidad(e.target.value)}
                       required
-                      className="h-9 text-xs font-mono border-[#E3DCCB]"
+                      className="h-9 text-xs font-mono border-[#E5E7EB]"
                     />
                   </div>
                   <div className="space-y-1">
@@ -545,7 +545,7 @@ export function ControlRefrigerios() {
                       value={nuevo_costo_total}
                       onChange={(e) => manejarCambioCostoTotal(e.target.value)}
                       required
-                      className="h-9 text-xs font-mono border-[#E3DCCB] font-bold text-[#063A6B]"
+                      className="h-9 text-xs font-mono border-[#E5E7EB] font-bold text-[#035683]"
                     />
                   </div>
                   <div className="space-y-1">
@@ -557,7 +557,7 @@ export function ControlRefrigerios() {
                       value={nuevo_costo_unitario}
                       onChange={(e) => manejarCambioCostoUnitario(e.target.value)}
                       required
-                      className="h-9 text-xs font-mono border-[#E3DCCB]"
+                      className="h-9 text-xs font-mono border-[#E5E7EB]"
                     />
                   </div>
                 </div>
@@ -566,7 +566,7 @@ export function ControlRefrigerios() {
                   <div className="space-y-1">
                     <Label className="text-xs font-semibold">Sede Institucional</Label>
                     <Select value={nueva_sede} onValueChange={(val) => val && set_nueva_sede(val)}>
-                      <SelectTrigger className="h-9 text-xs border-[#E3DCCB]">
+                      <SelectTrigger className="h-9 text-xs border-[#E5E7EB]">
                         <SelectValue placeholder="Sede" />
                       </SelectTrigger>
                       <SelectContent>
@@ -580,7 +580,7 @@ export function ControlRefrigerios() {
                   <div className="space-y-1">
                     <Label className="text-xs font-semibold">Bloque</Label>
                     <Select value={nuevo_bloque} onValueChange={(val) => val && set_nuevo_bloque(val)}>
-                      <SelectTrigger className="h-9 text-xs border-[#E3DCCB]">
+                      <SelectTrigger className="h-9 text-xs border-[#E5E7EB]">
                         <SelectValue placeholder="Bloque" />
                       </SelectTrigger>
                       <SelectContent>
@@ -598,7 +598,7 @@ export function ControlRefrigerios() {
                     value={nuevo_responsable}
                     onChange={(e) => set_nuevo_responsable(e.target.value)}
                     required
-                    className="h-9 text-xs border-[#E3DCCB]"
+                    className="h-9 text-xs border-[#E5E7EB]"
                   />
                 </div>
 
@@ -609,12 +609,12 @@ export function ControlRefrigerios() {
                     value={nuevas_observaciones}
                     onChange={(e) => set_nuevas_observaciones(e.target.value)}
                     rows={2}
-                    className="text-xs border-[#E3DCCB] rounded-xl"
+                    className="text-xs border-[#E5E7EB] rounded-xl"
                   />
                 </div>
               </DialogBody>
 
-              <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90 flex justify-end gap-2 shrink-0">
+              <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA]/90 flex justify-end gap-2 shrink-0">
                 <Button
                   type="button"
                   variant="outline"
@@ -625,7 +625,7 @@ export function ControlRefrigerios() {
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white rounded-xl text-xs h-9 font-bold shadow-sm"
+                  className="bg-[#035683] hover:bg-[#035683]/90 text-white rounded-xl text-xs h-9 font-bold shadow-sm"
                 >
                   Guardar Entrega
                 </Button>
@@ -639,12 +639,12 @@ export function ControlRefrigerios() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <TarjetaSpotlight
           color_luz="rgba(23, 180, 196, 0.15)"
-          className="bg-white border border-[#E3DCCB] rounded-2xl p-5 shadow-xs space-y-2"
+          className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-2"
         >
           <span className="text-[11px] font-mono font-bold uppercase text-muted-foreground block">
             Raciones Entregadas
           </span>
-          <div className="text-3xl font-bold font-display text-[#063A6B]">
+          <div className="text-3xl font-bold font-display text-[#035683]">
             <ContadorRodilloAnimado valor={total_raciones} sufijo=" raciones" />
           </div>
           <p className="text-[11px] text-emerald-600 font-medium">100% estudiantes beneficiarios</p>
@@ -652,12 +652,12 @@ export function ControlRefrigerios() {
 
         <TarjetaSpotlight
           color_luz="rgba(6, 58, 107, 0.15)"
-          className="bg-white border border-[#E3DCCB] rounded-2xl p-5 shadow-xs space-y-2"
+          className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-2"
         >
           <span className="text-[11px] font-mono font-bold uppercase text-muted-foreground block">
             Costo Total Devengado
           </span>
-          <div className="text-3xl font-bold font-display text-[#063A6B]">
+          <div className="text-3xl font-bold font-display text-[#035683]">
             Bs <ContadorRodilloAnimado valor={Math.round(costo_total_acumulado)} />
           </div>
           <p className="text-[11px] text-muted-foreground">Promedio: Bs 15.00 por ración</p>
@@ -665,13 +665,13 @@ export function ControlRefrigerios() {
 
         <TarjetaSpotlight
           color_luz="rgba(248, 199, 102, 0.2)"
-          className="bg-white border border-[#E3DCCB] rounded-2xl p-5 shadow-xs space-y-2"
+          className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-2"
         >
-          <span className="text-[11px] font-mono font-bold uppercase text-[#063A6B] flex items-center gap-1">
-            <Coins className="w-3.5 h-3.5 text-[#F8C766]" />
+          <span className="text-[11px] font-mono font-bold uppercase text-[#035683] flex items-center gap-1">
+            <Coins className="w-3.5 h-3.5 text-[#FFB600]" />
             Aporte de Fondo Multas
           </span>
-          <div className="text-3xl font-bold font-display text-[#F8C766]">
+          <div className="text-3xl font-bold font-display text-[#FFB600]">
             Bs {fondo_multas_aplicado.toFixed(2)}
           </div>
           <p className="text-[11px] text-muted-foreground">Recaudación de viernes reinvertida</p>
@@ -679,7 +679,7 @@ export function ControlRefrigerios() {
 
         <TarjetaSpotlight
           color_luz="rgba(226, 105, 75, 0.15)"
-          className="bg-white border border-[#E3DCCB] rounded-2xl p-5 shadow-xs space-y-2"
+          className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-2"
         >
           <span className="text-[11px] font-mono font-bold uppercase text-muted-foreground block">
             Planillas Pendientes
@@ -692,53 +692,53 @@ export function ControlRefrigerios() {
       </div>
 
       {/* Barra de Filtro y Búsqueda */}
-      <div className="p-4 bg-white rounded-2xl border border-[#E3DCCB] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="p-4 bg-white rounded-2xl border border-[#E5E7EB] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Buscar por jornada, sede o responsable..."
             value={busqueda}
             onChange={(e) => set_busqueda(e.target.value)}
-            className="pl-9 text-xs rounded-xl border-[#E3DCCB] h-10 bg-slate-50/50"
+            className="pl-9 text-xs rounded-xl border-[#E5E7EB] h-10 bg-slate-50/50"
           />
         </div>
-        <Badge variant="outline" className="text-xs font-mono border-[#17B4C4] text-[#063A6B]">
+        <Badge variant="outline" className="text-xs font-mono border-[#00ABBD] text-[#035683]">
           {registros_filtrados.length} Registros de Raciones
         </Badge>
       </div>
 
       {/* Tabla de Registros de Refrigerios */}
-      <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-2xl overflow-hidden">
-        <CardHeader className="bg-slate-50/60 p-5 border-b border-[#E3DCCB]/60">
+      <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-2xl overflow-hidden">
+        <CardHeader className="bg-slate-50/60 p-5 border-b border-[#E5E7EB]/60">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-bold text-[#063A6B]">
+            <CardTitle className="text-base font-bold text-[#035683]">
               Historial de Raciones Entregadas y Estado de Reposición
             </CardTitle>
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="divide-y divide-[#E3DCCB]/50">
+          <div className="divide-y divide-[#E5E7EB]/50">
             {registros_filtrados.map((item) => (
               <div
                 key={item.id}
                 className="p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors"
               >
                 <div className="flex items-start gap-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-[#063A6B]/10 text-[#063A6B] flex items-center justify-center font-bold text-sm shrink-0">
-                    <Coffee className="w-5 h-5 text-[#063A6B]" />
+                  <div className="w-10 h-10 rounded-xl bg-[#035683]/10 text-[#035683] flex items-center justify-center font-bold text-sm shrink-0">
+                    <Coffee className="w-5 h-5 text-[#035683]" />
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-[#063A6B]">
+                      <span className="font-bold text-sm text-[#035683]">
                         {item.evento_o_jornada}
                       </span>
-                      <Badge variant="outline" className="text-[10px] font-mono border-[#E3DCCB]">
+                      <Badge variant="outline" className="text-[10px] font-mono border-[#E5E7EB]">
                         {item.tipo_refrigerio ? item.tipo_refrigerio.replace("_", " ").toUpperCase() : "ESCUELA DE LÍDERES"}
                       </Badge>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1 font-medium text-[#1E293B]">
-                        <Building className="w-3.5 h-3.5 text-[#063A6B]" />
+                        <Building className="w-3.5 h-3.5 text-[#035683]" />
                         {item.sede_nombre} ({item.bloque})
                       </span>
                       <span>·</span>
@@ -746,8 +746,8 @@ export function ControlRefrigerios() {
                         <Calendar className="w-3 h-3" /> {item.fecha}
                       </span>
                       <span>·</span>
-                      <span className="flex items-center gap-1 font-semibold text-[#063A6B] bg-[#17B4C4]/10 px-2 py-0.5 rounded-md">
-                        <UserCheck className="w-3.5 h-3.5 text-[#17B4C4]" />
+                      <span className="flex items-center gap-1 font-semibold text-[#035683] bg-[#00ABBD]/10 px-2 py-0.5 rounded-md">
+                        <UserCheck className="w-3.5 h-3.5 text-[#00ABBD]" />
                         Encargado: {item.becario_encargado}
                       </span>
                       <span>·</span>
@@ -761,7 +761,7 @@ export function ControlRefrigerios() {
 
                 <div className="flex flex-wrap sm:flex-nowrap items-center justify-between lg:justify-end gap-4 border-t lg:border-t-0 pt-3 lg:pt-0 border-gray-100">
                   <div className="text-left sm:text-right space-y-0.5 font-mono">
-                    <div className="text-xs font-bold text-[#063A6B]">
+                    <div className="text-xs font-bold text-[#035683]">
                       {item.cantidad_raciones} raciones x Bs {item.costo_unitario_bs.toFixed(2)}
                     </div>
                     <div className="text-sm font-bold text-[#E2694B]">
@@ -794,7 +794,7 @@ export function ControlRefrigerios() {
                       size="sm"
                       variant="outline"
                       onClick={() => set_planilla_seleccionada(item)}
-                      className="h-8 px-2.5 text-xs border-[#17B4C4] text-[#063A6B] rounded-lg font-bold flex items-center gap-1"
+                      className="h-8 px-2.5 text-xs border-[#00ABBD] text-[#035683] rounded-lg font-bold flex items-center gap-1"
                       title="Ver Planilla Oficial"
                     >
                       <FileText className="w-3.5 h-3.5" />
@@ -804,7 +804,7 @@ export function ControlRefrigerios() {
                       size="sm"
                       variant="ghost"
                       onClick={() => manejarDescargarPlanillaHtml(item)}
-                      className="h-8 px-2 text-xs rounded-lg hover:bg-slate-100 text-[#063A6B]"
+                      className="h-8 px-2 text-xs rounded-lg hover:bg-slate-100 text-[#035683]"
                       title="Descargar Descargo HTML/PDF"
                     >
                       <Download className="w-3.5 h-3.5" />
@@ -832,9 +832,9 @@ export function ControlRefrigerios() {
           open={Boolean(planilla_seleccionada)}
           onOpenChange={(abierto) => !abierto && set_planilla_seleccionada(null)}
         >
-          <DialogContent className="max-w-xl rounded-2xl p-0 overflow-hidden bg-white border border-[#E3DCCB] shadow-2xl">
-            <DialogHeader className="p-5 pb-3 border-b border-[#E3DCCB] bg-[#F8F9FA]">
-              <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
+          <DialogContent className="max-w-xl rounded-2xl p-0 overflow-hidden bg-white border border-[#E5E7EB] shadow-2xl">
+            <DialogHeader className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA]">
+              <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-emerald-600" />
                 Planilla de Reposición Institucional de Refrigerios
               </DialogTitle>
@@ -844,12 +844,12 @@ export function ControlRefrigerios() {
             </DialogHeader>
 
             <div className="p-6 space-y-4 text-xs">
-              <div className="p-4 bg-slate-50 border border-[#E3DCCB] rounded-xl space-y-2">
+              <div className="p-4 bg-slate-50 border border-[#E5E7EB] rounded-xl space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-sm text-[#063A6B]">
+                  <span className="font-bold text-sm text-[#035683]">
                     {planilla_seleccionada.evento_o_jornada}
                   </span>
-                  <Badge className="font-mono text-[10px] bg-[#063A6B] text-white">
+                  <Badge className="font-mono text-[10px] bg-[#035683] text-white">
                     REP-{planilla_seleccionada.id.toString().padStart(4, "0")}
                   </Badge>
                 </div>
@@ -860,7 +860,7 @@ export function ControlRefrigerios() {
                   </div>
                   <div>
                     <span className="text-slate-500 block">Becario Encargado:</span>
-                    <strong className="text-[#063A6B]">{planilla_seleccionada.becario_encargado}</strong>
+                    <strong className="text-[#035683]">{planilla_seleccionada.becario_encargado}</strong>
                   </div>
                   <div>
                     <span className="text-slate-500 block">Sede y Bloque:</span>
@@ -883,12 +883,12 @@ export function ControlRefrigerios() {
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-gradient-to-r from-[#063A6B] to-[#0a4d8a] text-white flex items-center justify-between">
+              <div className="p-4 rounded-xl bg-gradient-to-r from-[#035683] to-[#0a4d8a] text-white flex items-center justify-between">
                 <div>
-                  <span className="text-[11px] uppercase font-mono text-[#7FE0E6] block font-bold">
+                  <span className="text-[11px] uppercase font-mono text-[#00ABBD] block font-bold">
                     Importe Total a Reponer
                   </span>
-                  <span className="text-2xl font-bold font-display text-[#F8C766]">
+                  <span className="text-2xl font-bold font-display text-[#FFB600]">
                     Bs {planilla_seleccionada.costo_total_bs.toFixed(2)}
                   </span>
                 </div>
@@ -906,7 +906,7 @@ export function ControlRefrigerios() {
               </div>
             </div>
 
-            <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-[#F8F9FA] flex justify-between gap-2">
+            <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] flex justify-between gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -920,7 +920,7 @@ export function ControlRefrigerios() {
                   size="sm"
                   variant="outline"
                   onClick={() => manejarDescargarPlanillaHtml(planilla_seleccionada)}
-                  className="rounded-xl text-xs border-[#17B4C4] text-[#063A6B] font-bold flex items-center gap-1.5"
+                  className="rounded-xl text-xs border-[#00ABBD] text-[#035683] font-bold flex items-center gap-1.5"
                 >
                   <Download className="w-3.5 h-3.5" />
                   Descargar Planilla
@@ -932,7 +932,7 @@ export function ControlRefrigerios() {
                       manejarSolicitarReposicion(planilla_seleccionada.id);
                       set_planilla_seleccionada(null);
                     }}
-                    className="rounded-xl text-xs bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold"
+                    className="rounded-xl text-xs bg-[#035683] hover:bg-[#035683]/90 text-white font-bold"
                   >
                     Solicitar Reposición
                   </Button>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -228,10 +228,10 @@ export function GestionCuestionarios() {
   return (
     <div className="space-y-6">
       {/* Cabecera y Barra de Acciones */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E3DCCB] shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-xs">
         <div>
-          <h2 className="text-base font-bold text-[#063A6B] flex items-center gap-2">
-            <Layers className="w-5 h-5 text-[#17B4C4]" />
+          <h2 className="text-base font-bold text-[#035683] flex items-center gap-2">
+            <Layers className="w-5 h-5 text-[#00ABBD]" />
             Catálogo Dinámico de Cuestionarios y Evaluaciones
           </h2>
           <p className="text-xs text-slate-500 mt-1">
@@ -244,18 +244,18 @@ export function GestionCuestionarios() {
             size="sm"
             variant="outline"
             onClick={sembrarCuestionariosBase}
-            className="h-9 px-3 border-[#E3DCCB] text-[#063A6B] hover:bg-slate-50 rounded-xl font-bold text-xs gap-1.5"
+            className="h-9 px-3 border-[#E5E7EB] text-[#035683] hover:bg-slate-50 rounded-xl font-bold text-xs gap-1.5"
           >
-            <RefreshCw className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <RefreshCw className="w-3.5 h-3.5 text-[#00ABBD]" />
             Sembrar Base
           </Button>
 
           <Button
             size="sm"
             onClick={abrirNuevoCuestionario}
-            className="h-9 px-3.5 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white rounded-xl font-bold text-xs gap-1.5 shadow-xs"
+            className="h-9 px-3.5 bg-[#035683] hover:bg-[#035683]/90 text-white rounded-xl font-bold text-xs gap-1.5 shadow-xs"
           >
-            <Plus className="w-3.5 h-3.5 text-[#F8C766]" />
+            <Plus className="w-3.5 h-3.5 text-[#FFB600]" />
             Nuevo Cuestionario
           </Button>
         </div>
@@ -263,13 +263,13 @@ export function GestionCuestionarios() {
 
       {/* Listado de Cuestionarios */}
       {cargando ? (
-        <Card className="border-[#E3DCCB] p-10 text-center text-slate-400">
+        <Card className="border-[#E5E7EB] p-10 text-center text-slate-400">
           <p className="text-sm">Cargando cuestionarios institucionales...</p>
         </Card>
       ) : cuestionarios.length === 0 ? (
-        <Card className="border-[#E3DCCB] p-12 text-center text-slate-500 bg-white rounded-2xl">
+        <Card className="border-[#E5E7EB] p-12 text-center text-slate-500 bg-white rounded-2xl">
           <HelpCircle className="w-10 h-10 mx-auto text-amber-500 mb-3" />
-          <p className="text-sm font-bold text-[#063A6B]">No existen cuestionarios configurados</p>
+          <p className="text-sm font-bold text-[#035683]">No existen cuestionarios configurados</p>
           <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
             Puedes crear un instrumento nuevo desde cero o utilizar el botón &quot;Sembrar Base&quot; para restaurar los cuestionarios normativos.
           </p>
@@ -283,12 +283,12 @@ export function GestionCuestionarios() {
             return (
               <Card
                 key={item.id}
-                className="border-[#E3DCCB] shadow-xs bg-white rounded-2xl overflow-hidden transition-all"
+                className="border-[#E5E7EB] shadow-xs bg-white rounded-2xl overflow-hidden transition-all"
               >
                 <CardHeader className="p-4 sm:p-5 bg-[#FBFBFA] border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-start sm:items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#063A6B]/10 text-[#063A6B] flex items-center justify-center font-bold text-sm shrink-0">
-                      <FileText className="w-5 h-5 text-[#063A6B]" />
+                    <div className="w-10 h-10 rounded-xl bg-[#035683]/10 text-[#035683] flex items-center justify-center font-bold text-sm shrink-0">
+                      <FileText className="w-5 h-5 text-[#035683]" />
                     </div>
 
                     <div>
@@ -296,7 +296,7 @@ export function GestionCuestionarios() {
                         <CardTitle className="text-sm font-bold text-[#0F172A]">
                           {item.titulo}
                         </CardTitle>
-                        <Badge variant="outline" className="font-mono text-[10px] uppercase font-bold text-[#0E7A85] border-[#17B4C4]/40 bg-[#17B4C4]/10">
+                        <Badge variant="outline" className="font-mono text-[10px] uppercase font-bold text-[#00808E] border-[#00ABBD]/40 bg-[#00ABBD]/10">
                           {item.codigo}
                         </Badge>
                         <Badge variant="outline" className="text-[10px] text-slate-600 bg-slate-100 border-slate-200">
@@ -317,7 +317,7 @@ export function GestionCuestionarios() {
                   </div>
 
                   <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                    <Badge className="bg-slate-200 text-[#063A6B] text-xs font-mono font-bold px-2 py-0.5">
+                    <Badge className="bg-slate-200 text-[#035683] text-xs font-mono font-bold px-2 py-0.5">
                       {lista_preguntas.length} preguntas
                     </Badge>
 
@@ -325,9 +325,9 @@ export function GestionCuestionarios() {
                       size="sm"
                       variant="outline"
                       onClick={() => abrirNuevaPregunta(item.id, lista_preguntas)}
-                      className="h-8 px-2.5 text-xs font-bold border-[#E3DCCB] text-[#063A6B] hover:bg-slate-100 rounded-xl gap-1"
+                      className="h-8 px-2.5 text-xs font-bold border-[#E5E7EB] text-[#035683] hover:bg-slate-100 rounded-xl gap-1"
                     >
-                      <Plus className="w-3.5 h-3.5 text-[#17B4C4]" />
+                      <Plus className="w-3.5 h-3.5 text-[#00ABBD]" />
                       <span className="hidden sm:inline">Agregar Pregunta</span>
                     </Button>
 
@@ -366,7 +366,7 @@ export function GestionCuestionarios() {
                           >
                             <div className="space-y-1">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-mono text-xs font-bold text-[#063A6B]">
+                                <span className="font-mono text-xs font-bold text-[#035683]">
                                   #{p.numero_orden}
                                 </span>
                                 <Badge variant="outline" className="text-[10px] bg-white text-slate-600 border-slate-200">
@@ -417,10 +417,10 @@ export function GestionCuestionarios() {
 
       {/* Modal: Crear / Editar Cuestionario */}
       <Dialog open={modal_cuestionario_abierto} onOpenChange={set_modal_cuestionario_abierto}>
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-2xl bg-white border border-[#E3DCCB]">
-          <DialogHeader className="p-5 pb-3 border-b border-[#E3DCCB] bg-[#F8F9FA]">
-            <DialogTitle className="font-display text-base text-[#063A6B] flex items-center gap-2">
-              <FileText className="w-4 h-4 text-[#17B4C4]" />
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-2xl bg-white border border-[#E5E7EB]">
+          <DialogHeader className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA]">
+            <DialogTitle className="font-display text-base text-[#035683] flex items-center gap-2">
+              <FileText className="w-4 h-4 text-[#00ABBD]" />
               {editando_cuestionario ? "Editar Cuestionario" : "Nuevo Cuestionario Institucional"}
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
@@ -504,7 +504,7 @@ export function GestionCuestionarios() {
               </Button>
               <Button
                 type="submit"
-                className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold text-xs rounded-xl"
+                className="bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl"
               >
                 Guardar Cuestionario
               </Button>
@@ -515,10 +515,10 @@ export function GestionCuestionarios() {
 
       {/* Modal: Agregar Pregunta */}
       <Dialog open={modal_pregunta_abierto} onOpenChange={set_modal_pregunta_abierto}>
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-2xl bg-white border border-[#E3DCCB]">
-          <DialogHeader className="p-5 pb-3 border-b border-[#E3DCCB] bg-[#F8F9FA]">
-            <DialogTitle className="font-display text-base text-[#063A6B] flex items-center gap-2">
-              <ListPlus className="w-4 h-4 text-[#17B4C4]" />
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-2xl bg-white border border-[#E5E7EB]">
+          <DialogHeader className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA]">
+            <DialogTitle className="font-display text-base text-[#035683] flex items-center gap-2">
+              <ListPlus className="w-4 h-4 text-[#00ABBD]" />
               Agregar Pregunta / Criterio al Cuestionario
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
@@ -584,7 +584,7 @@ export function GestionCuestionarios() {
               </Button>
               <Button
                 type="submit"
-                className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold text-xs rounded-xl"
+                className="bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl"
               >
                 Guardar Pregunta
               </Button>

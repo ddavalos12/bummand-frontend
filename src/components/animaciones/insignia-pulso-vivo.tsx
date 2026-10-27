@@ -14,11 +14,11 @@ interface PropiedadesInsigniaPulsoVivo {
 
 const MAPA_COLORES = {
   turquesa: {
-    fondo: "bg-[#17B4C4]/10",
-    borde: "border-[#17B4C4]/30",
-    texto: "text-[#063A6B] dark:text-[#7FE0E6]",
-    punto: "bg-[#17B4C4]",
-    onda: "bg-[#17B4C4]/40",
+    fondo: "bg-[#00ABBD]/10",
+    borde: "border-[#00ABBD]/30",
+    texto: "text-[#035683] dark:text-[#00ABBD]",
+    punto: "bg-[#00ABBD]",
+    onda: "bg-[#00ABBD]/40",
   },
   esmeralda: {
     fondo: "bg-emerald-500/10",
@@ -28,11 +28,11 @@ const MAPA_COLORES = {
     onda: "bg-emerald-500/40",
   },
   dorado: {
-    fondo: "bg-[#F8C766]/15",
-    borde: "border-[#F8C766]/40",
-    texto: "text-[#063A6B] dark:text-[#F8C766]",
-    punto: "bg-[#F8C766]",
-    onda: "bg-[#F8C766]/50",
+    fondo: "bg-[#FFB600]/15",
+    borde: "border-[#FFB600]/40",
+    texto: "text-[#035683] dark:text-[#FFB600]",
+    punto: "bg-[#FFB600]",
+    onda: "bg-[#FFB600]/50",
   },
   coral: {
     fondo: "bg-[#E2694B]/10",
@@ -42,11 +42,11 @@ const MAPA_COLORES = {
     onda: "bg-[#E2694B]/40",
   },
   marino: {
-    fondo: "bg-[#063A6B]/10",
-    borde: "border-[#063A6B]/30",
-    texto: "text-[#063A6B] dark:text-white",
-    punto: "bg-[#063A6B]",
-    onda: "bg-[#063A6B]/30",
+    fondo: "bg-[#007BBE]/10",
+    borde: "border-[#007BBE]/30",
+    texto: "text-[#035683] dark:text-white",
+    punto: "bg-[#007BBE]",
+    onda: "bg-[#007BBE]/30",
   },
 };
 

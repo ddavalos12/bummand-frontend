@@ -26,7 +26,6 @@ import { CentroNotificaciones } from "@/components/notificaciones/centro-notific
 import { RadarGeocerca } from "@/components/recorridos/radar-geocerca";
 import { RegistroRecorrido } from "@/components/recorridos/registro-recorrido";
 import { FormularioF03 } from "@/components/evaluaciones/formulario-f03";
-import { RegistroDevocionales } from "@/components/devocionales/registro-devocionales";
 import { GestionEventos } from "@/components/eventos/gestion-eventos";
 import { BandejaJustificaciones } from "@/components/justificaciones/bandeja-justificaciones";
 import { ControlRefrigerios } from "@/components/refrigerios/control-refrigerios";
@@ -37,17 +36,22 @@ import {
 } from "@/components/animaciones";
 import { GloboNotificaciones } from "@/components/notificaciones/globo-notificaciones";
 
+import { AcercaDeNosotros } from "@/components/institucional/acerca-de-nosotros";
 import { ModalVersiculoDiario } from "@/components/devocionales/modal-versiculo-diario";
+import { DialogoDocumentosBecario } from "@/components/becarios/dialogo-documentos-becario";
 import { 
   Bus, 
   FileText, 
-  ShieldCheck, 
+  ShieldCheck,
+  ShieldAlert,
+  FileCheck, 
   Menu, 
   ChevronRight,
   BookOpen,
   Clock,
   HeartHandshake,
-  Award
+  Award,
+  Building2
 } from "lucide-react";
 
 function obtenerDetallesSeccion(seccion: string, rol: string, subpestaña?: string) {
@@ -75,10 +79,6 @@ function obtenerDetallesSeccion(seccion: string, rol: string, subpestaña?: stri
     case "pasajes":
       return {
         titulo: rol === "becario" ? "Declaración Mensual de Pasajes (80%)" : "Supervisión y Aprobación de Pasajes",
-      };
-    case "devocionales":
-      return {
-        titulo: rol === "becario" ? "Mis Devocionales y Crecimiento Espiritual" : "Seguimiento y Retroalimentación",
       };
     case "evaluaciones":
     case "evaluacion_360":
@@ -112,6 +112,13 @@ function obtenerDetallesSeccion(seccion: string, rol: string, subpestaña?: stri
       return {
         titulo: "Control y Liquidación de Refrigerios Institucionales",
       };
+    case "acerca_de":
+    case "acerca-de":
+    case "acerca-de-nosotros":
+      return {
+        titulo: "Acerca de Nosotros · Diaconía BUMAND",
+        subtitulo: "Información institucional, principios diaconales, historia y balance corporativo al 24 de octubre de 2026",
+      };
     default:
       return {
         titulo: "Panel Institucional",
@@ -134,17 +141,8 @@ export default function PaginaInicio() {
   const [menu_movil_abierto, set_menu_movil_abierto] = useState<boolean>(false);
   const [modal_versiculo_abierto, set_modal_versiculo_abierto] = useState<boolean>(false);
   const [dialogo_asistencia_abierto, set_dialogo_asistencia_abierto] = useState<boolean>(false);
+  const [dialogo_documentos_abierto, set_dialogo_documentos_abierto] = useState<boolean>(false);
   const [subpestaña_evaluaciones, set_subpestaña_evaluaciones] = useState<"matriz" | "socioeconomica">("matriz");
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const debe_mostrar = sessionStorage.getItem("bumand_mostrar_versiculo_inicio");
-      if (debe_mostrar === "true") {
-        set_modal_versiculo_abierto(true);
-        sessionStorage.removeItem("bumand_mostrar_versiculo_inicio");
-      }
-    }
-  }, []);
 
   useEffect(() => {
     if (usuario) {
@@ -160,8 +158,8 @@ export default function PaginaInicio() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F8F9FA]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#063A6B] flex items-center justify-center text-white font-bold text-xl shadow-md animate-pulse">
-            <span className="text-[#F8C766] font-display">B</span>
+          <div className="w-12 h-12 rounded-2xl bg-[#035683] flex items-center justify-center text-white font-bold text-xl shadow-md animate-pulse">
+            <span className="text-[#FFB600] font-display">B</span>
           </div>
           <p className="text-xs text-[#5B6D77] font-semibold">Validando credenciales institucionales...</p>
         </div>
@@ -195,14 +193,14 @@ export default function PaginaInicio() {
       {/* Contenedor Principal Derecho */}
       <div className="flex-1 flex flex-col min-w-0 relative z-10">
         {/* Barra Superior con botón para móvil, breadcrumbs y perfil */}
-        <header className="bg-white/20 backdrop-blur-md border-b border-[#E3DCCB]/40 py-3.5 shadow-2xs sticky top-0 z-20">
+        <header className="bg-white/20 backdrop-blur-md border-b border-[#E5E7EB]/40 py-3.5 shadow-2xs sticky top-0 z-20">
           <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
               {/* Botón hamburguesa para móvil */}
               <button
                 type="button"
                 onClick={() => set_menu_movil_abierto(true)}
-                className="lg:hidden w-9 h-9 rounded-xl border border-[#E3DCCB] flex items-center justify-center text-[#063A6B] hover:bg-slate-50 transition-colors shrink-0"
+                className="lg:hidden w-9 h-9 rounded-xl border border-[#E5E7EB] flex items-center justify-center text-[#035683] hover:bg-slate-50 transition-colors shrink-0"
                 aria-label="Abrir menú lateral"
               >
                 <Menu className="w-4 h-4" />
@@ -219,13 +217,13 @@ export default function PaginaInicio() {
               <nav aria-label="Ruta de navegación" className="flex items-center gap-2.5 min-w-0">
                 <div className="flex items-center gap-1.5 shrink-0">
                   <img
-                    src="/logos/logo-diaconia.svg"
+                    src="/logos/ALTA1.svg"
                     alt="Diaconía IFD"
                     className="h-4 sm:h-5 w-auto object-contain opacity-85"
                   />
                 </div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground/60 shrink-0" />
-                <span className="text-base sm:text-lg font-bold text-[#063A6B] tracking-tight truncate">
+                <span className="text-base sm:text-lg font-bold text-[#035683] tracking-tight truncate">
                   {detalles_seccion.titulo}
                 </span>
               </nav>
@@ -233,19 +231,35 @@ export default function PaginaInicio() {
 
             {/* Espacio derecho con campana interactiva universal y estado en línea */}
             <div className="flex items-center gap-3 shrink-0">
-              <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#063A6B]/5 border border-[#063A6B]/10 text-[11px] font-mono font-medium text-[#063A6B]">
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#035683]/5 border border-[#035683]/10 text-[11px] font-mono font-medium text-[#035683]">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span>BUMAND · En Línea</span>
               </span>
+
+              {/* Botón rápido Acerca de Nosotros (Universal para todos los roles) */}
+              <button
+                type="button"
+                onClick={() => set_pestaña_activa("acerca_de")}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-[11px] font-medium transition-all cursor-pointer ${
+                  pestaña_activa === "acerca_de"
+                    ? "bg-[#035683] text-white border-[#035683] shadow-xs"
+                    : "bg-[#035683]/10 hover:bg-[#035683]/20 border-[#035683]/20 text-[#035683]"
+                }`}
+                title="Acerca de Nosotros · Diaconía BUMAND"
+                aria-label="Acerca de Nosotros"
+              >
+                <Building2 className={`w-3.5 h-3.5 ${pestaña_activa === "acerca_de" ? "text-[#FFB600]" : "text-[#007BBE]"}`} />
+                <span className="hidden md:inline">Acerca de Nosotros</span>
+              </button>
 
               {/* Botón rápido Versículo del Día RVR60 */}
               <button
                 type="button"
                 onClick={() => set_modal_versiculo_abierto(true)}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#17B4C4]/10 hover:bg-[#17B4C4]/20 border border-[#17B4C4]/20 text-[11px] font-medium text-[#0E7A85] transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00ABBD]/10 hover:bg-[#00ABBD]/20 border border-[#00ABBD]/20 text-[11px] font-medium text-[#00808E] transition-colors"
                 title="Ver Versículo del Día (RVR60)"
               >
-                <BookOpen className="w-3.5 h-3.5 text-[#17B4C4]" />
+                <BookOpen className="w-3.5 h-3.5 text-[#00ABBD]" />
                 <span className="hidden sm:inline">Versículo Diario</span>
               </button>
 
@@ -254,10 +268,10 @@ export default function PaginaInicio() {
                 <button
                   type="button"
                   onClick={() => set_dialogo_asistencia_abierto(true)}
-                  className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#063A6B] hover:bg-[#063A6B]/90 border border-[#063A6B] text-[11px] font-bold text-white shadow-xs transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#035683] hover:bg-[#035683]/90 border border-[#035683] text-[11px] font-bold text-white shadow-xs transition-colors cursor-pointer"
                   title="Marcar Asistencia GPS (Entrada / Salida)"
                 >
-                  <Clock className="w-3.5 h-3.5 text-[#F8C766]" />
+                  <Clock className="w-3.5 h-3.5 text-[#FFB600]" />
                   <span className="hidden sm:inline">Marcar Asistencia</span>
                 </button>
               )}
@@ -284,17 +298,40 @@ export default function PaginaInicio() {
             {/* SPRINT 1: Resumen y Acciones del Becario */}
             {es_becario && (
               <TabsContent value="resumen" className="space-y-6">
+                {/* Banner de Expediente y Documentación para el Becario */}
+                <div className="bg-gradient-to-r from-[#035683]/10 via-[#00ABBD]/10 to-transparent border border-[#00ABBD]/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#035683] text-[#00ABBD] flex items-center justify-center shrink-0 shadow-xs">
+                      <FileCheck className="w-5 h-5 text-[#00ABBD]" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-[#035683]">
+                        Expediente Oficial BUMAND (Cédula de Identidad y Kárdex)
+                      </h4>
+                      <p className="text-[11px] text-slate-600">
+                        Verifica que tu carnet SEGIP y certificado de matrícula universitaria estén actualizados para habilitación de beneficios.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => set_dialogo_documentos_abierto(true)}
+                    className="h-8 px-3 text-xs bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl shrink-0 cursor-pointer shadow-2xs"
+                  >
+                    Ver / Subir Documentos
+                  </Button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Tarjeta 1: Pasajes Liquidados */}
                   <div
-                    className="flex flex-col justify-between h-full bg-[#063A6B] text-white border border-[#063A6B] rounded-2xl shadow-xs p-5 min-h-[155px]"
+                    className="flex flex-col justify-between h-full bg-[#035683] text-white border border-[#035683] rounded-2xl shadow-xs p-5 min-h-[155px]"
                   >
                     <div>
-                      <span className="font-mono text-[11px] text-[#7FE0E6] uppercase font-bold tracking-wider block">
+                      <span className="font-mono text-[11px] text-[#00ABBD] uppercase font-bold tracking-wider block">
                         Pasajes Liquidados (Mes Actual)
                       </span>
-                      <div className="font-display text-3xl font-bold text-[#F8C766] mt-2 mb-1 flex items-baseline">
-                        <ContadorRodilloAnimado valor={276} prefijo="Bs " decimales={2} clase_personalizada="text-[#F8C766]" />
+                      <div className="font-display text-3xl font-bold text-[#FFB600] mt-2 mb-1 flex items-baseline">
+                        <ContadorRodilloAnimado valor={276} prefijo="Bs " decimales={2} clase_personalizada="text-[#FFB600]" />
                       </div>
                     </div>
                     <p className="font-mono text-[11px] text-white/70">
@@ -304,14 +341,14 @@ export default function PaginaInicio() {
 
                   {/* Tarjeta 2: Horas Acreditadas */}
                   <div
-                    className="flex flex-col justify-between h-full bg-white border border-[#E3DCCB] rounded-2xl shadow-xs p-5 min-h-[155px]"
+                    className="flex flex-col justify-between h-full bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-5 min-h-[155px]"
                   >
                     <div>
                       <span className="font-mono text-[11px] text-muted-foreground uppercase font-bold tracking-wider block">
                         Horas Acreditadas
                       </span>
-                      <div className="font-display text-3xl font-bold text-[#063A6B] mt-2 mb-1 flex items-baseline">
-                        <ContadorRodilloAnimado valor={64.5} sufijo=" hrs" decimales={1} clase_personalizada="text-[#063A6B]" />
+                      <div className="font-display text-3xl font-bold text-[#035683] mt-2 mb-1 flex items-baseline">
+                        <ContadorRodilloAnimado valor={64.5} sufijo=" hrs" decimales={1} clase_personalizada="text-[#035683]" />
                       </div>
                     </div>
                     <div>
@@ -323,19 +360,19 @@ export default function PaginaInicio() {
 
                   {/* Tarjeta 3: Sede Asignada */}
                   <div
-                    className="flex flex-col justify-between h-full bg-white border border-[#E3DCCB] rounded-2xl shadow-xs p-5 min-h-[155px]"
+                    className="flex flex-col justify-between h-full bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-5 min-h-[155px]"
                   >
                     <div>
                       <span className="font-mono text-[11px] text-muted-foreground uppercase font-bold tracking-wider block">
                         Sede Asignada
                       </span>
-                      <div className="font-bold text-sm text-[#063A6B] mt-2 mb-0.5 leading-snug">
+                      <div className="font-bold text-sm text-[#035683] mt-2 mb-0.5 leading-snug">
                         Oficina Central - Bloque A
                       </div>
                       <p className="text-xs text-muted-foreground">Av. Juan Pablo II #2540, El Alto</p>
                     </div>
-                    <div className="text-[11px] font-mono text-[#17B4C4] font-semibold flex items-center gap-1.5 pt-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#17B4C4] animate-pulse" />
+                    <div className="text-[11px] font-mono text-[#00ABBD] font-semibold flex items-center gap-1.5 pt-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#00ABBD] animate-pulse" />
                       <span>Radio Geodésico: 120m</span>
                     </div>
                   </div>
@@ -345,8 +382,8 @@ export default function PaginaInicio() {
                   <RadarGeocerca />
 
                   <div className="flex flex-col gap-3 justify-center">
-                    <div className="border border-[#E3DCCB] bg-white rounded-2xl p-6 shadow-xs space-y-4">
-                      <h3 className="font-bold text-[#063A6B] text-base">Acciones Operativas</h3>
+                    <div className="border border-[#E5E7EB] bg-white rounded-2xl p-6 shadow-xs space-y-4">
+                      <h3 className="font-bold text-[#035683] text-base">Acciones Operativas</h3>
                       <div className="space-y-2.5">
                         <BotonJuicy
                           onClick={() => set_dialogo_asistencia_abierto(true)}
@@ -376,7 +413,7 @@ export default function PaginaInicio() {
                           <DialogTrigger asChild>
                             <BotonJuicy
                               variante="fantasma"
-                              className="h-11 w-full border border-[#E3DCCB] text-[#063A6B] font-bold rounded-xl text-xs justify-center hover:bg-slate-50"
+                              className="h-11 w-full border border-[#E5E7EB] text-[#035683] font-bold rounded-xl text-xs justify-center hover:bg-slate-50"
                             >
                               <FileText className="w-4 h-4 mr-2 text-amber-600" />
                               Llenar Formulario Pastoral F-03
@@ -390,9 +427,9 @@ export default function PaginaInicio() {
                         <BotonJuicy
                           onClick={() => { set_pestaña_activa("evaluaciones"); set_subpestaña_evaluaciones("socioeconomica"); }}
                           variante="fantasma"
-                          className="h-11 w-full border border-[#17B4C4] bg-[#17B4C4]/10 text-[#063A6B] font-bold rounded-xl text-xs justify-center hover:bg-[#17B4C4]/20"
+                          className="h-11 w-full border border-[#00ABBD] bg-[#00ABBD]/10 text-[#035683] font-bold rounded-xl text-xs justify-center hover:bg-[#00ABBD]/20"
                         >
-                          <HeartHandshake className="w-4 h-4 mr-2 text-[#17B4C4]" />
+                          <HeartHandshake className="w-4 h-4 mr-2 text-[#00ABBD]" />
                           Responder Evaluación Socioeconómica (26 Preguntas)
                         </BotonJuicy>
                       </div>
@@ -430,11 +467,6 @@ export default function PaginaInicio() {
               ) : (
                 <AprobacionPasajes />
               )}
-            </TabsContent>
-
-            {/* Módulo de Devocionales y Crecimiento Espiritual */}
-            <TabsContent value="devocionales" className="space-y-6">
-              <RegistroDevocionales />
             </TabsContent>
 
             {/* SPRINT 5: Matriz de Evaluación Semestral, Módulos y Socioeconómica */}
@@ -477,21 +509,33 @@ export default function PaginaInicio() {
             <TabsContent value="refrigerios" className="space-y-6">
               <ControlRefrigerios />
             </TabsContent>
+
+            {/* Módulo Institucional: Acerca de Nosotros (Universal para todos los roles) */}
+            <TabsContent value="acerca_de" className="space-y-6">
+              <AcercaDeNosotros rol_usuario={rol} />
+            </TabsContent>
           </Tabs>
         </main>
 
         {/* Pie de página institucional traslúcido con fondo de aguas Three.js continuo */}
-        <footer className="w-full bg-white/20 backdrop-blur-md border-t border-[#E3DCCB]/40 py-3.5 px-4 sm:px-6 lg:px-8 xl:px-10 mt-auto">
+        <footer className="w-full bg-white/20 backdrop-blur-md border-t border-[#E5E7EB]/40 py-3.5 px-4 sm:px-6 lg:px-8 xl:px-10 mt-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
             <div className="flex items-center gap-2">
-              <img
-                src="/logos/logo-diaconia.svg"
-                alt="Diaconía IFD"
-                className="h-4 w-auto object-contain opacity-75"
-              />
-              <span className="font-semibold text-[#063A6B]">
-                BUMAND · Fundación Diaconía FRIF-IFD
-              </span>
+              <button
+                type="button"
+                onClick={() => set_pestaña_activa("acerca_de")}
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer text-left"
+                title="Ver acerca de nosotros e información institucional"
+              >
+                <img
+                  src="/logos/ALTA1.svg"
+                  alt="Diaconía IFD"
+                  className="h-4 w-auto object-contain opacity-75"
+                />
+                <span className="font-semibold text-[#035683] hover:underline">
+                  BUMAND · Fundación Diaconía FRIF-IFD
+                </span>
+              </button>
               <span className="hidden md:inline text-muted-foreground/40">•</span>
               <span className="hidden md:inline italic text-[11px] text-[#5B6D77]">
                 «Junto a aguas de reposo me pastoreará» (Salmo 23:2)
@@ -512,7 +556,6 @@ export default function PaginaInicio() {
       <ModalVersiculoDiario
         abierto={modal_versiculo_abierto}
         alCambiarAbierto={set_modal_versiculo_abierto}
-        alIrADevocionales={(_cita, _texto) => set_pestaña_activa("devocionales")}
       />
 
       {/* Diálogo Universal de Marcación de Asistencia para Becarios */}
@@ -520,6 +563,21 @@ export default function PaginaInicio() {
         abierto={dialogo_asistencia_abierto}
         alCambiarAbierto={set_dialogo_asistencia_abierto}
       />
+      {es_becario && (
+        <DialogoDocumentosBecario
+          abierto={dialogo_documentos_abierto}
+          alCerrar={() => set_dialogo_documentos_abierto(false)}
+          becario={{
+            id: usuario?.becario_id || 1,
+            nombre: usuario?.nombre || "Estudiante Becario",
+            ci: "13696496",
+            expedicion: "LP",
+            carrera: "Estadística",
+            universidad: "Universidad Mayor de San Andrés",
+            ceti: 3,
+          }}
+        />
+      )}
     </div>
   );
 }

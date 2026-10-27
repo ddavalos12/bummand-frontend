@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -106,13 +106,13 @@ export function CriteriosEvaluacionTabla() {
   const dictamen = obtenerDictamen(total_calculado);
 
   return (
-    <Card className="border-[#E3DCCB] shadow-md bg-white rounded-2xl overflow-hidden">
+    <Card className="border-[#E5E7EB] shadow-md bg-white rounded-2xl overflow-hidden">
       {/* Cabecera Institucional Oficial */}
-      <CardHeader className="bg-gradient-to-r from-[#063A6B] via-[#084b8a] to-[#063A6B] text-white p-6 pb-5">
+      <CardHeader className="bg-gradient-to-r from-[#035683] via-[#084b8a] to-[#035683] text-white p-6 pb-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
-              <Badge className="bg-[#F8C766] text-[#063A6B] font-bold text-xs uppercase px-2.5 py-0.5">
+              <Badge className="bg-[#FFB600] text-[#035683] font-bold text-xs uppercase px-2.5 py-0.5">
                 Instrumento Normativo Oficial
               </Badge>
               <Badge variant="outline" className="text-white border-white/30 text-xs font-mono">
@@ -130,7 +130,7 @@ export function CriteriosEvaluacionTabla() {
           <Button
             size="sm"
             onClick={() => set_panel_calculadora_abierto(!panel_calculadora_abierto)}
-            className="h-10 px-4 bg-[#17B4C4] hover:bg-[#17B4C4]/90 text-[#063A6B] font-bold rounded-xl text-xs flex items-center gap-2 shrink-0 shadow-sm"
+            className="h-10 px-4 bg-[#00ABBD] hover:bg-[#00ABBD]/90 text-[#035683] font-bold rounded-xl text-xs flex items-center gap-2 shrink-0 shadow-sm"
           >
             <Calculator className="w-4 h-4" />
             {panel_calculadora_abierto ? "Ocultar Simulador" : "Simulador de Criterios (23.jpeg)"}
@@ -142,11 +142,11 @@ export function CriteriosEvaluacionTabla() {
       <CardContent className="p-6 space-y-6">
         {/* Simulador Interactivo de Criterios */}
         {panel_calculadora_abierto && (
-          <div className="p-5 bg-slate-50 border-2 border-dashed border-[#17B4C4]/40 rounded-2xl space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#E3DCCB] gap-2">
+          <div className="p-5 bg-slate-50 border-2 border-dashed border-[#00ABBD]/40 rounded-2xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#E5E7EB] gap-2">
               <div>
-                <h4 className="text-sm font-bold text-[#063A6B] flex items-center gap-2">
-                  <Calculator className="w-4 h-4 text-[#17B4C4]" />
+                <h4 className="text-sm font-bold text-[#035683] flex items-center gap-2">
+                  <Calculator className="w-4 h-4 text-[#00ABBD]" />
                   Simulador en Vivo de Calificación (Reglas 23.jpeg)
                 </h4>
                 <p className="text-xs text-muted-foreground">
@@ -160,8 +160,8 @@ export function CriteriosEvaluacionTabla() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 text-xs">
               {/* Académico */}
-              <div className="p-3 bg-white border border-[#E3DCCB] rounded-xl space-y-2">
-                <span className="font-bold text-[#063A6B] block">1. Académico (/20 pts)</span>
+              <div className="p-3 bg-white border border-[#E5E7EB] rounded-xl space-y-2">
+                <span className="font-bold text-[#035683] block">1. Académico (/20 pts)</span>
                 <div>
                   <Label className="text-[11px] text-muted-foreground">Promedio General:</Label>
                   <Input
@@ -183,14 +183,14 @@ export function CriteriosEvaluacionTabla() {
                     className="w-full mt-1"
                   />
                 </div>
-                <div className="pt-1 text-right font-mono font-bold text-[#063A6B]">
+                <div className="pt-1 text-right font-mono font-bold text-[#035683]">
                   Puntaje: {pts_academico} / 20 pts
                 </div>
               </div>
 
               {/* Liderazgo Iglesia */}
-              <div className="p-3 bg-white border border-[#E3DCCB] rounded-xl space-y-2">
-                <span className="font-bold text-[#063A6B] block">2. Iglesia (/20 pts)</span>
+              <div className="p-3 bg-white border border-[#E5E7EB] rounded-xl space-y-2">
+                <span className="font-bold text-[#035683] block">2. Iglesia (/20 pts)</span>
                 <div>
                   <Label className="text-[11px] text-muted-foreground">Evaluación Pastoral:</Label>
                   <Combobox
@@ -204,14 +204,14 @@ export function CriteriosEvaluacionTabla() {
                 <p className="text-[10px] text-muted-foreground pt-1">
                   Certificado pastoral con firma y sello.
                 </p>
-                <div className="pt-2 text-right font-mono font-bold text-[#063A6B]">
+                <div className="pt-2 text-right font-mono font-bold text-[#035683]">
                   Puntaje: {pts_iglesia} / 20 pts
                 </div>
               </div>
 
               {/* PP2 Mentor */}
-              <div className="p-3 bg-white border border-[#E3DCCB] rounded-xl space-y-2">
-                <span className="font-bold text-[#063A6B] block">3. PP² Mentor (/20 pts)</span>
+              <div className="p-3 bg-white border border-[#E5E7EB] rounded-xl space-y-2">
+                <span className="font-bold text-[#035683] block">3. PP² Mentor (/20 pts)</span>
                 <div>
                   <Label className="text-[11px] text-muted-foreground">% Evaluación Tutor:</Label>
                   <Input
@@ -226,14 +226,14 @@ export function CriteriosEvaluacionTabla() {
                 <p className="text-[10px] text-muted-foreground">
                   Fórmula: 20 × (% / 100)
                 </p>
-                <div className="pt-1 text-right font-mono font-bold text-[#063A6B]">
+                <div className="pt-1 text-right font-mono font-bold text-[#035683]">
                   Puntaje: {pts_mentor.toFixed(1)} / 20 pts
                 </div>
               </div>
 
               {/* Escuela de Líderes */}
-              <div className="p-3 bg-white border border-[#E3DCCB] rounded-xl space-y-2">
-                <span className="font-bold text-[#063A6B] block">4. Esc. Líderes (/20 pts)</span>
+              <div className="p-3 bg-white border border-[#E5E7EB] rounded-xl space-y-2">
+                <span className="font-bold text-[#035683] block">4. Esc. Líderes (/20 pts)</span>
                 <div>
                   <Label className="text-[11px] text-muted-foreground">% Evaluación / CETI:</Label>
                   <Input
@@ -256,14 +256,14 @@ export function CriteriosEvaluacionTabla() {
                     className="h-8 text-xs font-mono"
                   />
                 </div>
-                <div className="pt-1 text-right font-mono font-bold text-[#063A6B]">
+                <div className="pt-1 text-right font-mono font-bold text-[#035683]">
                   Puntaje: {pts_lideres} / 20 pts
                 </div>
               </div>
 
               {/* Socioeconómico */}
-              <div className="p-3 bg-white border border-[#E3DCCB] rounded-xl space-y-2">
-                <span className="font-bold text-[#063A6B] block">5. Socioeconómico (/20)</span>
+              <div className="p-3 bg-white border border-[#E5E7EB] rounded-xl space-y-2">
+                <span className="font-bold text-[#035683] block">5. Socioeconómico (/20)</span>
                 <div>
                   <Label className="text-[11px] text-muted-foreground">Puntaje Bienestar / Familia:</Label>
                   <Input
@@ -278,7 +278,7 @@ export function CriteriosEvaluacionTabla() {
                 <p className="text-[10px] text-muted-foreground">
                   26 Preguntas Bienestar Universitario.
                 </p>
-                <div className="pt-1 text-right font-mono font-bold text-[#063A6B]">
+                <div className="pt-1 text-right font-mono font-bold text-[#035683]">
                   Puntaje: {pts_socio.toFixed(1)} / 20 pts
                 </div>
               </div>
@@ -289,11 +289,11 @@ export function CriteriosEvaluacionTabla() {
         {/* 1. TABLA OFICIAL DE LOS 5 MÓDULOS DE 20 PUNTOS */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-[#063A6B] flex items-center gap-2">
-              <Award className="w-5 h-5 text-[#17B4C4]" />
+            <h3 className="text-base font-bold text-[#035683] flex items-center gap-2">
+              <Award className="w-5 h-5 text-[#00ABBD]" />
               Estructura Oficial de Calificación Semestral (5 Módulos de 20 Puntos = 100 Puntos)
             </h3>
-            <Badge variant="outline" className="border-[#063A6B] text-[#063A6B] font-mono text-xs font-bold">
+            <Badge variant="outline" className="border-[#035683] text-[#035683] font-mono text-xs font-bold">
               Base: 20% Cada Eje
             </Badge>
           </div>
@@ -302,14 +302,14 @@ export function CriteriosEvaluacionTabla() {
             {CRITERIOS_EVALUACION_OFICIALES.map((c, idx) => (
               <div
                 key={idx}
-                className="rounded-xl border border-[#E3DCCB] bg-slate-50/70 p-4 flex flex-col justify-between space-y-3 shadow-xs hover:border-[#17B4C4] transition-colors"
+                className="rounded-xl border border-[#E5E7EB] bg-slate-50/70 p-4 flex flex-col justify-between space-y-3 shadow-xs hover:border-[#00ABBD] transition-colors"
               >
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between pb-2 border-b border-[#E3DCCB]">
-                    <span className="font-bold text-sm text-[#063A6B]">
+                  <div className="flex items-center justify-between pb-2 border-b border-[#E5E7EB]">
+                    <span className="font-bold text-sm text-[#035683]">
                       {idx + 1}. {c.modulo}
                     </span>
-                    <Badge className="bg-[#063A6B] text-white font-mono text-xs font-bold">
+                    <Badge className="bg-[#035683] text-white font-mono text-xs font-bold">
                       {c.puntaje_maximo} pts
                     </Badge>
                   </div>
@@ -318,10 +318,10 @@ export function CriteriosEvaluacionTabla() {
                     {c.reglas.map((r, r_idx) => (
                       <li
                         key={r_idx}
-                        className="p-1.5 rounded-lg bg-white border border-[#E3DCCB]/60 flex items-center justify-between gap-1"
+                        className="p-1.5 rounded-lg bg-white border border-[#E5E7EB]/60 flex items-center justify-between gap-1"
                       >
                         <span className="text-[11px] text-slate-700 leading-snug">{r.condicion}</span>
-                        <strong className="font-mono text-xs text-[#063A6B] shrink-0">
+                        <strong className="font-mono text-xs text-[#035683] shrink-0">
                           {r.puntos} pts
                         </strong>
                       </li>
@@ -329,8 +329,8 @@ export function CriteriosEvaluacionTabla() {
                   </ul>
                 </div>
 
-                <div className="pt-2 border-t border-[#E3DCCB]/60 text-[10px] text-muted-foreground flex items-start gap-1">
-                  <Info className="w-3 h-3 text-[#17B4C4] shrink-0 mt-0.5" />
+                <div className="pt-2 border-t border-[#E5E7EB]/60 text-[10px] text-muted-foreground flex items-start gap-1">
+                  <Info className="w-3 h-3 text-[#00ABBD] shrink-0 mt-0.5" />
                   <span>{c.nota}</span>
                 </div>
               </div>
@@ -340,7 +340,7 @@ export function CriteriosEvaluacionTabla() {
 
         {/* 2. TABLA OFICIAL DE RANGOS DE APROBACIÓN */}
         <div className="space-y-3 pt-2">
-          <h3 className="text-base font-bold text-[#063A6B] flex items-center gap-2">
+          <h3 className="text-base font-bold text-[#035683] flex items-center gap-2">
             <CheckCircle className="w-5 h-5 text-emerald-600" />
             Rangos Oficiales de Calificación y Aprobación
           </h3>

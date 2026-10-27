@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -172,15 +173,15 @@ export function DialogoGestionCasoPastoral({
 
   return (
     <Dialog open={abierto} onOpenChange={(open) => !open && alCerrar()}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto border-[#E3DCCB] bg-white p-6 rounded-2xl shadow-xl">
-        <DialogHeader className="border-b border-[#E3DCCB]/60 pb-4">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-[#E5E7EB] bg-white rounded-2xl shadow-xl">
+        <DialogHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-[#063A6B]/10 rounded-xl text-[#063A6B]">
-                <HeartHandshake className="w-5 h-5 text-[#17B4C4]" />
+              <div className="p-2.5 bg-[#035683]/10 rounded-xl text-[#035683]">
+                <HeartHandshake className="w-5 h-5 text-[#00ABBD]" />
               </div>
               <div>
-                <DialogTitle className="text-base font-bold text-[#063A6B] font-display">
+                <DialogTitle className="text-base font-bold text-[#035683] font-display">
                   Gestión y Mentoría de Caso Pastoral
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
@@ -194,7 +195,7 @@ export function DialogoGestionCasoPastoral({
                 estado === "RESUELTO"
                   ? "bg-emerald-50 text-emerald-700 border-emerald-300 font-bold"
                   : estado === "EN_TUTORIA"
-                  ? "bg-cyan-50 text-[#0E7A85] border-[#17B4C4]/40 font-bold"
+                  ? "bg-cyan-50 text-[#00808E] border-[#00ABBD]/40 font-bold"
                   : "bg-amber-50 text-amber-800 border-amber-300 font-bold"
               }
             >
@@ -203,18 +204,18 @@ export function DialogoGestionCasoPastoral({
           </div>
         </DialogHeader>
 
-        <div className="space-y-5 py-3 text-xs">
+        <DialogBody className="space-y-5 text-xs">
           {/* Tarjeta de Datos del Becario y Observación del Pastor */}
           <div className="p-4 bg-amber-50/50 border border-amber-200/80 rounded-xl space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <Avatar className="w-9 h-9 border border-[#E3DCCB]">
-                  <AvatarFallback className="bg-[#063A6B] text-[#F8C766] font-bold text-xs">
+                <Avatar className="w-9 h-9 border border-[#E5E7EB]">
+                  <AvatarFallback className="bg-[#035683] text-[#FFB600] font-bold text-xs">
                     {caso.avatar}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h4 className="font-bold text-sm text-[#063A6B]">{caso.nombre}</h4>
+                  <h4 className="font-bold text-sm text-[#035683]">{caso.nombre}</h4>
                   <p className="text-[11px] text-muted-foreground">
                     {caso.universidad} · {caso.carrera}
                   </p>
@@ -239,20 +240,20 @@ export function DialogoGestionCasoPastoral({
           {/* Formulario de Asignación de Tutor y Plan de Acción */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-[#063A6B]">Tutor / Pastor Asignado</Label>
+              <Label className="text-xs font-semibold text-[#035683]">Tutor / Pastor Asignado</Label>
               <Input
                 value={responsable}
                 onChange={(e) => set_responsable(e.target.value)}
                 placeholder="Nombre del pastor o mentor responsable"
-                className="h-8 text-xs bg-slate-50 border-[#E3DCCB]"
+                className="h-8 text-xs bg-slate-50 border-[#E5E7EB]"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-[#063A6B]">Nivel de Prioridad Pastoral</Label>
+              <Label className="text-xs font-semibold text-[#035683]">Nivel de Prioridad Pastoral</Label>
               <select
                 value={prioridad}
                 onChange={(e) => set_prioridad(e.target.value as any)}
-                className="w-full h-8 px-2.5 rounded-lg border border-[#E3DCCB] bg-slate-50 text-xs text-[#1E293B]"
+                className="w-full h-8 px-2.5 rounded-lg border border-[#E5E7EB] bg-slate-50 text-xs text-[#1E293B]"
               >
                 <option value="ALTA">Alta (Intervención Inmediata)</option>
                 <option value="MEDIA">Media (Acompañamiento Regular)</option>
@@ -263,7 +264,7 @@ export function DialogoGestionCasoPastoral({
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label className="text-xs font-semibold text-[#063A6B]">
+              <Label className="text-xs font-semibold text-[#035683]">
                 Plan de Acción y Acuerdos de Compromiso
               </Label>
               <span className="text-[10px] text-muted-foreground font-mono">
@@ -275,7 +276,7 @@ export function DialogoGestionCasoPastoral({
               onChange={(e) => set_plan_accion(e.target.value)}
               placeholder="Describe los pasos acordados: e.g. '3 sesiones de mentoría de discipulado, integración al grupo juvenil, asignación de rol en ministerio de mayordomía'..."
               rows={3}
-              className="text-xs bg-white border-[#E3DCCB] resize-none"
+              className="text-xs bg-white border-[#E5E7EB] resize-none"
             />
           </div>
 
@@ -310,7 +311,7 @@ export function DialogoGestionCasoPastoral({
                 <Button
                   size="sm"
                   onClick={darPorResuelto}
-                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs gap-1.5"
+                  className="bg-[#007BBE] hover:bg-[#035683] text-white font-bold text-xs gap-1.5 rounded-xl"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   Confirmar Caso Superado
@@ -319,9 +320,9 @@ export function DialogoGestionCasoPastoral({
             </div>
           ) : (
             estado !== "RESUELTO" && (
-              <div className="flex items-center justify-between p-3 bg-slate-50 border border-[#E3DCCB] rounded-xl">
+              <div className="flex items-center justify-between p-3 bg-slate-50 border border-[#E5E7EB] rounded-xl">
                 <div>
-                  <p className="font-semibold text-xs text-[#063A6B]">¿El becario ha superado la observación?</p>
+                  <p className="font-semibold text-xs text-[#035683]">¿El becario ha superado la observación?</p>
                   <p className="text-[11px] text-muted-foreground">
                     Da por concluido el acompañamiento con visto bueno de la coordinación.
                   </p>
@@ -340,10 +341,10 @@ export function DialogoGestionCasoPastoral({
           )}
 
           {/* Sección de Bitácora y Notas Fechadas de Seguimiento */}
-          <div className="space-y-3 pt-2 border-t border-[#E3DCCB]/60">
+          <div className="space-y-3 pt-2 border-t border-[#E5E7EB]/60">
             <div className="flex items-center justify-between">
-              <h5 className="font-bold text-xs text-[#063A6B] flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-[#17B4C4]" />
+              <h5 className="font-bold text-xs text-[#035683] flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-[#00ABBD]" />
                 Bitácora de Sesiones y Notas de Acompañamiento
               </h5>
               <Badge variant="outline" className="text-[10px] font-mono">
@@ -352,8 +353,8 @@ export function DialogoGestionCasoPastoral({
             </div>
 
             {/* Formulario rápido para añadir nota */}
-            <div className="p-3 bg-slate-50 border border-[#E3DCCB] rounded-xl space-y-2">
-              <Label className="text-[11px] font-semibold text-[#063A6B]">
+            <div className="p-3 bg-slate-50 border border-[#E5E7EB] rounded-xl space-y-2">
+              <Label className="text-[11px] font-semibold text-[#035683]">
                 Registrar Nueva Sesión / Entrevista Pastoral
               </Label>
               <Textarea
@@ -361,21 +362,21 @@ export function DialogoGestionCasoPastoral({
                 onChange={(e) => set_nueva_nota_texto(e.target.value)}
                 placeholder="Observaciones de la reunión con el becario..."
                 rows={2}
-                className="text-xs bg-white border-[#E3DCCB] resize-none"
+                className="text-xs bg-white border-[#E5E7EB] resize-none"
               />
               <Input
                 value={nuevos_acuerdos}
                 onChange={(e) => set_nuevos_acuerdos(e.target.value)}
                 placeholder="Compromisos o tareas acordadas para la próxima fecha..."
-                className="h-7 text-xs bg-white border-[#E3DCCB]"
+                className="h-7 text-xs bg-white border-[#E5E7EB]"
               />
               <div className="flex justify-end pt-1">
                 <Button
                   size="sm"
                   onClick={agregarNota}
-                  className="h-7 px-3 text-xs bg-[#063A6B] text-white hover:bg-[#063A6B]/90 font-bold gap-1.5 cursor-pointer"
+                  className="h-7 px-3 text-xs bg-[#035683] text-white hover:bg-[#035683]/90 font-bold gap-1.5 cursor-pointer"
                 >
-                  <Plus className="w-3.5 h-3.5 text-[#F8C766]" />
+                  <Plus className="w-3.5 h-3.5 text-[#FFB600]" />
                   Añadir a Bitácora
                 </Button>
               </div>
@@ -394,12 +395,12 @@ export function DialogoGestionCasoPastoral({
                     className="p-2.5 rounded-lg border border-slate-200 bg-white text-xs space-y-1"
                   >
                     <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                      <span className="font-bold text-[#063A6B]">{nota.autor} ({nota.rol_autor})</span>
+                      <span className="font-bold text-[#035683]">{nota.autor} ({nota.rol_autor})</span>
                       <span className="font-mono">{nota.fecha}</span>
                     </div>
                     <p className="text-slate-700 leading-snug">{nota.contenido}</p>
                     {nota.acuerdos && (
-                      <p className="text-[11px] text-[#0E7A85] font-medium pt-0.5">
+                      <p className="text-[11px] text-[#00808E] font-medium pt-0.5">
                         <span className="font-bold">Compromiso:</span> {nota.acuerdos}
                       </p>
                     )}
@@ -408,9 +409,9 @@ export function DialogoGestionCasoPastoral({
               )}
             </div>
           </div>
-        </div>
+        </DialogBody>
 
-        <DialogFooter className="border-t border-[#E3DCCB]/60 pt-3 gap-2">
+        <DialogFooter>
           <Button
             variant="outline"
             size="sm"
@@ -423,9 +424,9 @@ export function DialogoGestionCasoPastoral({
             size="sm"
             onClick={guardarCambios}
             disabled={guardando}
-            className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold text-xs gap-1.5"
+            className="bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs gap-1.5"
           >
-            <ShieldCheck className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <ShieldCheck className="w-3.5 h-3.5 text-[#00ABBD]" />
             Guardar Plan y Expediente
           </Button>
         </DialogFooter>

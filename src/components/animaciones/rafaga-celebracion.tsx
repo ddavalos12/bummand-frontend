@@ -23,12 +23,12 @@ interface Particula {
 }
 
 const COLORES_BUMAND = [
-  "#F8C766", // Dorado Diaconía
-  "#17B4C4", // Turquesa BUMAND
-  "#063A6B", // Azul Marino Institucional
+  "#FFB600", // Amarillo Radiante Diaconía
+  "#00ABBD", // Azul Cielo Claro
+  "#007BBE", // Azul Marino Profundo
+  "#035683", // Azul Marino Secundario
   "#10B981", // Esmeralda Aprobado
-  "#E2694B", // Coral Energético
-  "#7FE0E6", // Cian Suave
+  "#E2694B", // Coral Alerta
 ];
 
 /**

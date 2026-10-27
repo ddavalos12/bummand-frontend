@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -101,7 +101,7 @@ const MODULOS_INICIALES_BASE_20: ModuloPonderado[] = [
   {
     id: 5,
     clave: "socioeconomica",
-    nombre: "5. Socioeconómica (Cuestionario 26 Preguntas y Semáforo)",
+    nombre: "5. Socioeconómica (Cuestionario de Bienestar 26 Preguntas)",
     evaluador_rol: "Trabajo Social",
     ponderacion_porcentaje: 20,
     puntaje_obtenido: 85,
@@ -217,27 +217,27 @@ export function MatrizEvaluacion360() {
   return (
     <div className="space-y-6">
       {/* 1. CABECERA CON CITA BÍBLICA INSTITUCIONAL DESTACADA (Tarjeta Devocional Diaconal) */}
-      <Card className="border-[#E3DCCB] bg-gradient-to-r from-[#063A6B] via-[#09477e] to-[#063A6B] text-white rounded-2xl shadow-md overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-radial from-[#17B4C4]/20 via-transparent to-transparent pointer-events-none" />
+      <Card className="border-[#E5E7EB] bg-gradient-to-r from-[#035683] via-[#09477e] to-[#035683] text-white rounded-2xl shadow-md overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-radial from-[#00ABBD]/20 via-transparent to-transparent pointer-events-none" />
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-[#F8C766]/20 border border-[#F8C766]/30 flex items-center justify-center shrink-0 text-[#F8C766]">
+              <div className="w-12 h-12 rounded-2xl bg-[#FFB600]/20 border border-[#FFB600]/30 flex items-center justify-center shrink-0 text-[#FFB600]">
                 <BookOpen className="w-6 h-6" />
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-[#F8C766] text-[#063A6B] font-bold text-xs uppercase px-2.5 py-0.5">
+                  <Badge className="bg-[#FFB600] text-[#035683] font-bold text-xs uppercase px-2.5 py-0.5">
                     Cita Bíblica Institucional
                   </Badge>
-                  <span className="text-xs text-[#7FE0E6] font-mono font-semibold">
+                  <span className="text-xs text-[#00ABBD] font-mono font-semibold">
                     Colosenses 3:23-24 (RVR1960)
                   </span>
                 </div>
                 <blockquote className="text-sm md:text-base font-serif italic text-white/95 leading-relaxed pt-1">
                   &ldquo;Y todo lo que hagáis, hacedlo de corazón, como para el Señor y no para los hombres; sabiendo que del Señor recibiréis la recompensa de la herencia, porque a Cristo el Señor servís.&rdquo;
                 </blockquote>
-                <p className="text-xs text-[#7FE0E6] font-medium flex items-center gap-1.5 pt-0.5">
+                <p className="text-xs text-[#00ABBD] font-medium flex items-center gap-1.5 pt-0.5">
                   <HeartHandshake className="w-3.5 h-3.5" />
                   La evaluación integral en BUMAND mide el compromiso eclesial, excelencia académica (≥ 75 pts), acompañamiento de mentores y servicio diaconal.
                 </p>
@@ -253,7 +253,7 @@ export function MatrizEvaluacion360() {
                   onClick={() => set_panel_ponderacion_abierto(!panel_ponderacion_abierto)}
                   className="h-9 px-3 bg-white/10 hover:bg-white/20 text-white border-white/25 rounded-xl text-xs font-semibold flex items-center gap-1.5"
                 >
-                  <Settings className="w-3.5 h-3.5 text-[#F8C766]" />
+                  <Settings className="w-3.5 h-3.5 text-[#FFB600]" />
                   Matriz Ponderada
                 </Button>
 
@@ -261,7 +261,7 @@ export function MatrizEvaluacion360() {
                   <DialogTrigger asChild>
                     <Button
                       size="sm"
-                      className="h-9 px-3 bg-[#17B4C4] hover:bg-[#17B4C4]/90 text-[#063A6B] font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm"
+                      className="h-9 px-3 bg-[#00ABBD] hover:bg-[#00ABBD]/90 text-[#035683] font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm"
                     >
                       <CalendarPlus className="w-3.5 h-3.5" />
                       Habilitar Nuevo Semestre
@@ -269,11 +269,11 @@ export function MatrizEvaluacion360() {
                   </DialogTrigger>
                   <DialogContent
                     showCloseButton={false}
-                    className="sm:max-w-[480px] p-0 overflow-hidden bg-white rounded-2xl border-[#E3DCCB] shadow-2xl"
+                    className="sm:max-w-[480px] p-0 overflow-hidden bg-white rounded-2xl border-[#E5E7EB] shadow-2xl"
                   >
-                    <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] bg-[#F8F9FA]">
-                      <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
-                        <CalendarPlus className="w-5 h-5 text-[#17B4C4]" />
+                    <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] bg-[#F8F9FA]">
+                      <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+                        <CalendarPlus className="w-5 h-5 text-[#00ABBD]" />
                         Habilitar Nuevo Período Semestral
                       </DialogTitle>
                       <DialogDescription className="text-xs text-muted-foreground">
@@ -289,7 +289,7 @@ export function MatrizEvaluacion360() {
                             value={nombre_nuevo_semestre}
                             onChange={(e) => set_nuevo_semestre_nombre(e.target.value)}
                             required
-                            className="h-9 text-xs border-[#E3DCCB]"
+                            className="h-9 text-xs border-[#E5E7EB]"
                             placeholder="Ej. Semestre I · 2027"
                           />
                         </div>
@@ -302,7 +302,7 @@ export function MatrizEvaluacion360() {
                               value={fecha_inicio_semestre}
                               onChange={(e) => set_fecha_inicio_semestre(e.target.value)}
                               required
-                              className="h-9 text-xs border-[#E3DCCB]"
+                              className="h-9 text-xs border-[#E5E7EB]"
                             />
                           </div>
                           <div className="space-y-1">
@@ -312,20 +312,20 @@ export function MatrizEvaluacion360() {
                               value={fecha_fin_semestre}
                               onChange={(e) => set_fecha_fin_semestre(e.target.value)}
                               required
-                              className="h-9 text-xs border-[#E3DCCB]"
+                              className="h-9 text-xs border-[#E5E7EB]"
                             />
                           </div>
                         </div>
 
-                        <div className="p-3 bg-slate-50 border border-[#E3DCCB] rounded-xl text-xs space-y-1">
-                          <p className="font-bold text-[#063A6B]">Ponderación Base Configurada:</p>
+                        <div className="p-3 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs space-y-1">
+                          <p className="font-bold text-[#035683]">Ponderación Base Configurada:</p>
                           <p className="text-muted-foreground">
                             5 Áreas (1. Iglesia F-03, 2. Académica Meta ≥75, 3. Mentor QR, 4. Escuela de Líderes, 5. Socioeconómica) con base del 20% cada una (Total: 100%).
                           </p>
                         </div>
                       </DialogBody>
 
-                      <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-[#F8F9FA] flex justify-end gap-2">
+                      <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] flex justify-end gap-2">
                         <Button
                           type="button"
                           variant="outline"
@@ -336,7 +336,7 @@ export function MatrizEvaluacion360() {
                         </Button>
                         <Button
                           type="submit"
-                          className="h-9 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs"
+                          className="h-9 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs"
                         >
                           Confirmar y Habilitar
                         </Button>
@@ -352,12 +352,12 @@ export function MatrizEvaluacion360() {
 
       {/* 2. PANEL DE CONFIGURACIÓN DE MATRIZ PONDERADA (ADMINISTRADOR) */}
       {es_admin && panel_ponderacion_abierto && (
-        <Card className="border-[#17B4C4] bg-white rounded-2xl shadow-sm overflow-hidden">
-          <CardHeader className="bg-[#17B4C4]/10 pb-3 border-b border-[#17B4C4]/30">
+        <Card className="border-[#00ABBD] bg-white rounded-2xl shadow-sm overflow-hidden">
+          <CardHeader className="bg-[#00ABBD]/10 pb-3 border-b border-[#00ABBD]/30">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="space-y-0.5">
-                <CardTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
-                  <Settings className="w-4 h-4 text-[#17B4C4]" />
+                <CardTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+                  <Settings className="w-4 h-4 text-[#00ABBD]" />
                   Configuración de Matriz Ponderada (5 Ejes Flexibles)
                 </CardTitle>
                 <CardDescription className="text-xs text-muted-foreground">
@@ -390,10 +390,10 @@ export function MatrizEvaluacion360() {
                 { clave: "practicas", label: "4. Esc. Líderes", rol: "Coordinación" },
                 { clave: "socioeconomica", label: "5. Socioeconómica", rol: "Trabajo Social" },
               ].map((item) => (
-                <div key={item.clave} className="p-3 rounded-xl border border-[#E3DCCB] bg-slate-50 space-y-2">
+                <div key={item.clave} className="p-3 rounded-xl border border-[#E5E7EB] bg-slate-50 space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-bold text-[#063A6B]">{item.label}</Label>
-                    <span className="font-mono text-xs font-bold text-[#063A6B]">
+                    <Label className="text-xs font-bold text-[#035683]">{item.label}</Label>
+                    <span className="font-mono text-xs font-bold text-[#035683]">
                       {ponderacion_temporal[item.clave]}%
                     </span>
                   </div>
@@ -419,7 +419,7 @@ export function MatrizEvaluacion360() {
                         const num = parseInt(e.target.value, 10) || 0;
                         set_ponderacion_temporal((prev) => ({ ...prev, [item.clave]: num }));
                       }}
-                      className="w-14 h-7 text-xs text-center font-mono border-[#E3DCCB]"
+                      className="w-14 h-7 text-xs text-center font-mono border-[#E5E7EB]"
                     />
                   </div>
                 </div>
@@ -435,7 +435,7 @@ export function MatrizEvaluacion360() {
               </div>
             )}
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E3DCCB]/60">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E5E7EB]/60">
               <Button
                 variant="outline"
                 size="sm"
@@ -448,7 +448,7 @@ export function MatrizEvaluacion360() {
                     socioeconomica: 20,
                   })
                 }
-                className="h-9 text-xs rounded-xl border-[#E3DCCB]"
+                className="h-9 text-xs rounded-xl border-[#E5E7EB]"
               >
                 Restablecer Base 20%
               </Button>
@@ -456,7 +456,7 @@ export function MatrizEvaluacion360() {
                 size="sm"
                 disabled={!ponderaciones_validas}
                 onClick={manejarGuardarPonderaciones}
-                className="h-9 px-4 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+                className="h-9 px-4 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm disabled:opacity-50"
               >
                 <Check className="w-3.5 h-3.5" />
                 Guardar Ponderaciones
@@ -472,13 +472,13 @@ export function MatrizEvaluacion360() {
       {/* 3. RESUMEN SUPERIOR DE RENDIMIENTO Y META CONTRACTUAL (4 TARJETAS) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Tarjeta 1: Calificación Ponderada Total */}
-        <Card className="border-[#E3DCCB] bg-gradient-to-br from-[#063A6B] to-[#04284d] text-white rounded-xl shadow-sm">
+        <Card className="border-[#E5E7EB] bg-gradient-to-br from-[#035683] to-[#035683] text-white rounded-xl shadow-sm">
           <CardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
-              <p className="text-[11px] font-mono text-[#7FE0E6] uppercase font-bold">
+              <p className="text-[11px] font-mono text-[#00ABBD] uppercase font-bold">
                 Calificación Ponderada Final
               </p>
-              <h3 className="text-3xl font-display font-bold text-[#F8C766]">
+              <h3 className="text-3xl font-display font-bold text-[#FFB600]">
                 {calificacion_total.toFixed(1)} / 100
               </h3>
               <p className="text-xs text-white/90 font-medium">
@@ -490,19 +490,19 @@ export function MatrizEvaluacion360() {
               </p>
             </div>
             <div className="p-3 bg-white/10 rounded-xl">
-              <Award className="w-8 h-8 text-[#F8C766]" />
+              <Award className="w-8 h-8 text-[#FFB600]" />
             </div>
           </CardContent>
         </Card>
 
         {/* Tarjeta 2: Meta Contractual Académica (>= 75 Pts) */}
-        <Card className="border-[#E3DCCB] bg-white rounded-xl shadow-sm">
+        <Card className="border-[#E5E7EB] bg-white rounded-xl shadow-sm">
           <CardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold">
                 Meta Contractual (≥ 75 Pts)
               </p>
-              <h3 className="text-3xl font-display font-bold text-[#063A6B]">
+              <h3 className="text-3xl font-display font-bold text-[#035683]">
                 {puntaje_academico.toFixed(1)} <span className="text-sm font-normal text-muted-foreground">pts</span>
               </h3>
               <div className="pt-0.5">
@@ -527,27 +527,27 @@ export function MatrizEvaluacion360() {
         </Card>
 
         {/* Tarjeta 3: Módulos Evaluados */}
-        <Card className="border-[#E3DCCB] bg-white rounded-xl shadow-sm">
+        <Card className="border-[#E5E7EB] bg-white rounded-xl shadow-sm">
           <CardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold">
                 Módulos Evaluados
               </p>
-              <h3 className="text-3xl font-display font-bold text-[#063A6B]">
+              <h3 className="text-3xl font-display font-bold text-[#035683]">
                 {modulos.filter((m) => m.estado === "completado").length} / 5
               </h3>
               <p className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
                 <TrendingUp className="w-3.5 h-3.5" /> 100% de los 5 ejes completados
               </p>
             </div>
-            <div className="p-3 bg-[#17B4C4]/10 rounded-xl">
-              <Sparkles className="w-8 h-8 text-[#17B4C4]" />
+            <div className="p-3 bg-[#00ABBD]/10 rounded-xl">
+              <Sparkles className="w-8 h-8 text-[#00ABBD]" />
             </div>
           </CardContent>
         </Card>
 
         {/* Tarjeta 4: Firma de Conformidad */}
-        <Card className="border-[#E3DCCB] bg-white rounded-xl shadow-sm">
+        <Card className="border-[#E5E7EB] bg-white rounded-xl shadow-sm">
           <CardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold">
@@ -576,9 +576,9 @@ export function MatrizEvaluacion360() {
       </div>
 
       {/* 4. MATRIZ DETALLADA DE LOS 5 MÓDULOS PONDERADOS */}
-      <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl">
-        <CardHeader className="pb-3 border-b border-[#E3DCCB]/60">
-          <CardTitle className="text-lg font-bold font-display text-[#063A6B]">
+      <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl">
+        <CardHeader className="pb-3 border-b border-[#E5E7EB]/60">
+          <CardTitle className="text-lg font-bold font-display text-[#035683]">
             Matriz de Evaluación Integral por Competencias (5 Ejes Institucionales)
           </CardTitle>
           <CardDescription className="text-xs text-muted-foreground">
@@ -589,17 +589,17 @@ export function MatrizEvaluacion360() {
           {modulos.map((m) => (
             <div
               key={m.id}
-              className="p-4 rounded-xl border border-[#E3DCCB]/60 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4"
+              className="p-4 rounded-xl border border-[#E5E7EB]/60 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4"
             >
               <div className="space-y-1 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-[#063A6B]">{m.nombre}</span>
-                  <Badge variant="outline" className="font-mono text-[10px] border-[#17B4C4] text-[#063A6B]">
+                  <span className="font-bold text-sm text-[#035683]">{m.nombre}</span>
+                  <Badge variant="outline" className="font-mono text-[10px] border-[#00ABBD] text-[#035683]">
                     Peso: {m.ponderacion_porcentaje}%
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Users className="w-3.5 h-3.5 text-[#17B4C4]" />
+                  <Users className="w-3.5 h-3.5 text-[#00ABBD]" />
                   Evaluador: <strong className="text-[#1E293B]">{m.evaluador_rol}</strong>
                 </p>
               </div>
@@ -613,13 +613,13 @@ export function MatrizEvaluacion360() {
                     max={100}
                     value={m.puntaje_obtenido}
                     onChange={(e) => manejarPuntajeCambio(m.id, parseInt(e.target.value, 10))}
-                    className="w-20 h-9 text-center font-mono font-bold text-sm border-[#E3DCCB]"
+                    className="w-20 h-9 text-center font-mono font-bold text-sm border-[#E5E7EB]"
                   />
                 </div>
 
                 <div className="w-28 text-right font-mono text-xs">
                   <p className="text-muted-foreground text-[10px]">Aporte Final</p>
-                  <p className="font-bold text-[#063A6B]">
+                  <p className="font-bold text-[#035683]">
                     +{((m.puntaje_obtenido * m.ponderacion_porcentaje) / 100).toFixed(1)} pts
                   </p>
                 </div>
@@ -630,7 +630,7 @@ export function MatrizEvaluacion360() {
                     size="sm"
                     variant="outline"
                     onClick={() => set_modal_f03_abierto(true)}
-                    className="h-9 px-3 border-[#17B4C4] text-[#063A6B] hover:bg-[#17B4C4]/10 text-xs font-bold flex items-center gap-1.5"
+                    className="h-9 px-3 border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 text-xs font-bold flex items-center gap-1.5"
                   >
                     <FileText className="w-3.5 h-3.5" />
                     Ver F-03
@@ -642,7 +642,7 @@ export function MatrizEvaluacion360() {
                     size="sm"
                     variant="outline"
                     onClick={() => set_modal_academica_abierto(true)}
-                    className="h-9 px-3 border-[#17B4C4] text-[#063A6B] hover:bg-[#17B4C4]/10 text-xs font-bold flex items-center gap-1.5"
+                    className="h-9 px-3 border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 text-xs font-bold flex items-center gap-1.5"
                   >
                     <GraduationCap className="w-3.5 h-3.5" />
                     Récord (≥75)
@@ -654,7 +654,7 @@ export function MatrizEvaluacion360() {
                     size="sm"
                     variant="outline"
                     onClick={() => set_modal_qr_abierto(true)}
-                    className="h-9 px-3 border-[#17B4C4] text-[#063A6B] hover:bg-[#17B4C4]/10 text-xs font-bold flex items-center gap-1.5"
+                    className="h-9 px-3 border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 text-xs font-bold flex items-center gap-1.5"
                   >
                     <QrCode className="w-3.5 h-3.5" />
                     Código QR
@@ -666,7 +666,7 @@ export function MatrizEvaluacion360() {
                     size="sm"
                     variant="outline"
                     onClick={() => set_modal_lideres_abierto(true)}
-                    className="h-9 px-3 border-[#17B4C4] text-[#063A6B] hover:bg-[#17B4C4]/10 text-xs font-bold flex items-center gap-1.5"
+                    className="h-9 px-3 border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 text-xs font-bold flex items-center gap-1.5"
                   >
                     <CalendarCheck className="w-3.5 h-3.5" />
                     Viernes y Multas
@@ -678,7 +678,7 @@ export function MatrizEvaluacion360() {
                     size="sm"
                     variant="outline"
                     onClick={() => set_modal_socioeconomica_abierto(true)}
-                    className="h-9 px-3 border-[#17B4C4] text-[#063A6B] hover:bg-[#17B4C4]/10 text-xs font-bold flex items-center gap-1.5"
+                    className="h-9 px-3 border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 text-xs font-bold flex items-center gap-1.5"
                   >
                     <HeartHandshake className="w-3.5 h-3.5" />
                     Socioeconómica (26P)
@@ -689,9 +689,9 @@ export function MatrizEvaluacion360() {
           ))}
 
           {/* Sección de Firma Digital */}
-          <div className="mt-6 pt-4 border-t border-[#E3DCCB]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="mt-6 pt-4 border-t border-[#E5E7EB]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h4 className="text-sm font-bold text-[#063A6B]">Acreditación con Firma Digital</h4>
+              <h4 className="text-sm font-bold text-[#035683]">Acreditación con Firma Digital</h4>
               <p className="text-xs text-muted-foreground">
                 El tutor o supervisor responsable debe asentar su rúbrica para cerrar la evaluación semestral.
               </p>
@@ -699,8 +699,8 @@ export function MatrizEvaluacion360() {
 
             <Dialog>
               <DialogTrigger asChild>
-                <Button className="h-10 px-5 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl flex items-center gap-2">
-                  <PenTool className="w-4 h-4 text-[#F8C766]" />
+                <Button className="h-10 px-5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl flex items-center gap-2">
+                  <PenTool className="w-4 h-4 text-[#FFB600]" />
                   {firma_supervisor ? "Modificar Firma" : "Firmar Evaluación"}
                 </Button>
               </DialogTrigger>
@@ -725,10 +725,10 @@ export function MatrizEvaluacion360() {
       <Dialog open={modal_f03_abierto} onOpenChange={set_modal_f03_abierto}>
         <DialogContent
           showCloseButton={false}
-          className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl bg-white border border-[#E3DCCB] shadow-2xl"
+          className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl bg-white border border-[#E5E7EB] shadow-2xl"
         >
-          <DialogHeader className="p-5 pb-3 border-b border-[#E3DCCB] bg-[#F8F9FA] shrink-0">
-            <DialogTitle className="font-display text-lg text-[#063A6B]">
+          <DialogHeader className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA] shrink-0">
+            <DialogTitle className="font-display text-lg text-[#035683]">
               Módulo 1 · Formulario Pastoral F-03
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
@@ -742,12 +742,12 @@ export function MatrizEvaluacion360() {
               alEnviarExito={() => set_modal_f03_abierto(false)}
             />
           </DialogBody>
-          <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-[#F8F9FA] flex justify-end shrink-0">
+          <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] flex justify-end shrink-0">
             <Button
               type="button"
               variant="outline"
               onClick={() => set_modal_f03_abierto(false)}
-              className="text-xs border-[#E3DCCB] rounded-xl"
+              className="text-xs border-[#E5E7EB] rounded-xl"
             >
               Cerrar Formulario
             </Button>
@@ -761,10 +761,10 @@ export function MatrizEvaluacion360() {
       <Dialog open={modal_academica_abierto} onOpenChange={set_modal_academica_abierto}>
         <DialogContent
           showCloseButton={false}
-          className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl bg-white border border-[#E3DCCB] shadow-2xl"
+          className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl bg-white border border-[#E5E7EB] shadow-2xl"
         >
-          <DialogHeader className="p-5 pb-3 border-b border-[#E3DCCB] bg-[#F8F9FA] shrink-0">
-            <DialogTitle className="font-display text-lg text-[#063A6B]">
+          <DialogHeader className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA] shrink-0">
+            <DialogTitle className="font-display text-lg text-[#035683]">
               Módulo 2 · Autoevaluación Académica (Récord + Historial)
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
@@ -794,13 +794,13 @@ export function MatrizEvaluacion360() {
 
             {/* Ficha de Asignaturas Cursadas */}
             <div className="space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#063A6B] flex items-center gap-2">
-                <GraduationCap className="w-4 h-4 text-[#17B4C4]" />
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683] flex items-center gap-2">
+                <GraduationCap className="w-4 h-4 text-[#00ABBD]" />
                 Historial de Materias Cursadas · Semestre Actual
               </h4>
-              <div className="border border-[#E3DCCB] rounded-xl overflow-hidden bg-white">
+              <div className="border border-[#E5E7EB] rounded-xl overflow-hidden bg-white">
                 <table className="w-full text-xs">
-                  <thead className="bg-[#F8F9FA] border-b border-[#E3DCCB] text-[#063A6B] font-bold">
+                  <thead className="bg-[#F8F9FA] border-b border-[#E5E7EB] text-[#035683] font-bold">
                     <tr>
                       <th className="py-2.5 px-3 text-left">Código / Materia</th>
                       <th className="py-2.5 px-3 text-center">Docente</th>
@@ -808,11 +808,11 @@ export function MatrizEvaluacion360() {
                       <th className="py-2.5 px-3 text-center">Estado</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#E3DCCB]/60">
+                  <tbody className="divide-y divide-[#E5E7EB]/60">
                     <tr>
                       <td className="py-2.5 px-3 font-semibold text-slate-800">SIS-311 · Programación III</td>
                       <td className="py-2.5 px-3 text-center text-muted-foreground">Ing. Carlos Vargas</td>
-                      <td className="py-2.5 px-3 text-center font-mono font-bold text-[#063A6B]">85 pts</td>
+                      <td className="py-2.5 px-3 text-center font-mono font-bold text-[#035683]">85 pts</td>
                       <td className="py-2.5 px-3 text-center">
                         <Badge className="bg-emerald-100 text-emerald-800 text-[10px]">Aprobada</Badge>
                       </td>
@@ -820,7 +820,7 @@ export function MatrizEvaluacion360() {
                     <tr>
                       <td className="py-2.5 px-3 font-semibold text-slate-800">SIS-312 · Base de Datos II</td>
                       <td className="py-2.5 px-3 text-center text-muted-foreground">Lic. Marlene Quispe</td>
-                      <td className="py-2.5 px-3 text-center font-mono font-bold text-[#063A6B]">88 pts</td>
+                      <td className="py-2.5 px-3 text-center font-mono font-bold text-[#035683]">88 pts</td>
                       <td className="py-2.5 px-3 text-center">
                         <Badge className="bg-emerald-100 text-emerald-800 text-[10px]">Aprobada</Badge>
                       </td>
@@ -828,7 +828,7 @@ export function MatrizEvaluacion360() {
                     <tr>
                       <td className="py-2.5 px-3 font-semibold text-slate-800">MAT-313 · Cálculo Numérico</td>
                       <td className="py-2.5 px-3 text-center text-muted-foreground">Ing. Roberto Blanco</td>
-                      <td className="py-2.5 px-3 text-center font-mono font-bold text-[#063A6B]">82 pts</td>
+                      <td className="py-2.5 px-3 text-center font-mono font-bold text-[#035683]">82 pts</td>
                       <td className="py-2.5 px-3 text-center">
                         <Badge className="bg-emerald-100 text-emerald-800 text-[10px]">Aprobada</Badge>
                       </td>
@@ -836,7 +836,7 @@ export function MatrizEvaluacion360() {
                     <tr>
                       <td className="py-2.5 px-3 font-semibold text-slate-800">TEO-102 · Liderazgo y Ética Diaconal</td>
                       <td className="py-2.5 px-3 text-center text-muted-foreground">Pr. Juan Ramos</td>
-                      <td className="py-2.5 px-3 text-center font-mono font-bold text-[#063A6B]">95 pts</td>
+                      <td className="py-2.5 px-3 text-center font-mono font-bold text-[#035683]">95 pts</td>
                       <td className="py-2.5 px-3 text-center">
                         <Badge className="bg-emerald-100 text-emerald-800 text-[10px]">Sobresaliente</Badge>
                       </td>
@@ -847,13 +847,13 @@ export function MatrizEvaluacion360() {
             </div>
 
             {/* Documento de Respaldo */}
-            <div className="p-3.5 bg-slate-50 border border-[#E3DCCB] rounded-xl flex items-center justify-between">
+            <div className="p-3.5 bg-slate-50 border border-[#E5E7EB] rounded-xl flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#063A6B]/10 rounded-lg text-[#063A6B]">
+                <div className="p-2 bg-[#035683]/10 rounded-lg text-[#035683]">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-[#063A6B]">Record_Academico_S2_2026_Oficial.pdf</p>
+                  <p className="text-xs font-bold text-[#035683]">Record_Academico_S2_2026_Oficial.pdf</p>
                   <p className="text-[11px] text-muted-foreground">Sellado y legalizado por Kárdex Universitario · 1.4 MB</p>
                 </div>
               </div>
@@ -861,18 +861,18 @@ export function MatrizEvaluacion360() {
                 size="sm"
                 variant="outline"
                 onClick={() => toast.success("Descargando récord académico en formato PDF.")}
-                className="text-xs h-8 px-3 border-[#17B4C4] text-[#063A6B] rounded-lg"
+                className="text-xs h-8 px-3 border-[#00ABBD] text-[#035683] rounded-lg"
               >
                 <Download className="w-3.5 h-3.5 mr-1" /> Descargar
               </Button>
             </div>
           </DialogBody>
-          <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-[#F8F9FA] flex justify-end shrink-0">
+          <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] flex justify-end shrink-0">
             <Button
               type="button"
               variant="outline"
               onClick={() => set_modal_academica_abierto(false)}
-              className="text-xs border-[#E3DCCB] rounded-xl"
+              className="text-xs border-[#E5E7EB] rounded-xl"
             >
               Cerrar
             </Button>
@@ -898,10 +898,10 @@ export function MatrizEvaluacion360() {
       <Dialog open={modal_lideres_abierto} onOpenChange={set_modal_lideres_abierto}>
         <DialogContent
           showCloseButton={false}
-          className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl bg-white border border-[#E3DCCB] shadow-2xl"
+          className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl bg-white border border-[#E5E7EB] shadow-2xl"
         >
-          <DialogHeader className="p-5 pb-3 border-b border-[#E3DCCB] bg-[#F8F9FA] shrink-0">
-            <DialogTitle className="font-display text-lg text-[#063A6B]">
+          <DialogHeader className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA] shrink-0">
+            <DialogTitle className="font-display text-lg text-[#035683]">
               Módulo 4 · Escuela de Líderes (Viernes y Control de Multas)
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
@@ -911,8 +911,8 @@ export function MatrizEvaluacion360() {
           <DialogBody className="p-6 space-y-5 flex-1 overflow-y-auto">
             {/* Escala oficial de multas */}
             <div className="space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#063A6B] flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-[#17B4C4]" />
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683] flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-[#00ABBD]" />
                 Escala Institucional de Multas por Impuntualidad (Viernes)
               </h4>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
@@ -936,23 +936,23 @@ export function MatrizEvaluacion360() {
             </div>
 
             {/* Historial de la Estudiante */}
-            <div className="p-4 rounded-xl border border-[#E3DCCB] bg-slate-50 space-y-3 text-xs">
+            <div className="p-4 rounded-xl border border-[#E5E7EB] bg-slate-50 space-y-3 text-xs">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-[#063A6B]">Historial del Semestre Actual:</span>
+                <span className="font-bold text-[#035683]">Historial del Semestre Actual:</span>
                 <Badge className="bg-emerald-100 text-emerald-800 font-mono text-[10px]">
                   94% Asistencia Cumplida
                 </Badge>
               </div>
               <div className="space-y-1.5 text-muted-foreground">
-                <div className="flex justify-between py-1 border-b border-[#E3DCCB]/60">
+                <div className="flex justify-between py-1 border-b border-[#E5E7EB]/60">
                   <span>Sesiones realizadas en el semestre:</span>
                   <strong className="text-slate-800 font-mono">16 sesiones</strong>
                 </div>
-                <div className="flex justify-between py-1 border-b border-[#E3DCCB]/60">
+                <div className="flex justify-between py-1 border-b border-[#E5E7EB]/60">
                   <span>Asistencias puntuales:</span>
                   <strong className="text-emerald-700 font-mono">15 sesiones</strong>
                 </div>
-                <div className="flex justify-between py-1 border-b border-[#E3DCCB]/60">
+                <div className="flex justify-between py-1 border-b border-[#E5E7EB]/60">
                   <span>Retrasos registrados:</span>
                   <strong className="text-amber-700 font-mono">1 retraso (14 min el 08/08/2026)</strong>
                 </div>
@@ -963,12 +963,12 @@ export function MatrizEvaluacion360() {
               </div>
             </div>
           </DialogBody>
-          <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-[#F8F9FA] flex justify-end shrink-0">
+          <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] flex justify-end shrink-0">
             <Button
               type="button"
               variant="outline"
               onClick={() => set_modal_lideres_abierto(false)}
-              className="text-xs border-[#E3DCCB] rounded-xl"
+              className="text-xs border-[#E5E7EB] rounded-xl"
             >
               Cerrar
             </Button>

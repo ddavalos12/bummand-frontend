@@ -62,13 +62,13 @@ export default function ErrorGlobal({
   return (
     <main className="min-h-screen bg-background flex flex-col items-center justify-center p-4 md:p-8">
       <div className="w-full max-w-2xl bg-card border border-border rounded-2xl shadow-lg overflow-hidden transition-all">
-        <div className="bg-gradient-to-r from-navy-950 via-navy-900 to-navy-800 p-6 text-white flex items-center justify-between">
+        <div className="bg-gradient-to-r from-[#007BBE] via-[#02699e] to-[#035683] p-6 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="size-11 rounded-xl bg-destructive/20 border border-destructive/40 flex items-center justify-center text-rose-300">
               <AlertTriangle className="size-6 text-rose-400" />
             </div>
             <div>
-              <span className="text-xs font-semibold tracking-wider uppercase text-teal-300">
+              <span className="text-xs font-semibold tracking-wider uppercase text-[#00ABBD]">
                 Fundación Diaconía • BUMAND
               </span>
               <h1 className="text-lg md:text-xl font-bold font-display text-white">
@@ -175,7 +175,7 @@ export default function ErrorGlobal({
                   )}
                 </Button>
               </div>
-              <pre className="p-3.5 rounded-lg bg-navy-950 text-teal-100 text-xs font-mono overflow-x-auto max-h-56 leading-relaxed border border-navy-800">
+              <pre className="p-3.5 rounded-xl bg-[#035683] text-[#F8FAFC] text-xs font-mono overflow-x-auto max-h-56 leading-relaxed border border-[#007BBE]/40">
                 {JSON.stringify(
                   {
                     codigo: informacion.codigo_error,

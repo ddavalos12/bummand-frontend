@@ -204,7 +204,7 @@ export function useConfirmacionDialogo() {
         open={estado_dialogo.abierto}
         onOpenChange={manejarCambioAbierto}
       >
-        <AlertDialogContent className="sm:max-w-md p-6 bg-white border border-[#E3DCCB] rounded-2xl shadow-2xl">
+        <AlertDialogContent className="sm:max-w-md p-6 bg-white border border-[#E5E7EB] rounded-2xl shadow-2xl">
           <AlertDialogHeader className="space-y-2 text-left">
             <div className="flex items-center gap-3">
               <div
@@ -213,7 +213,7 @@ export function useConfirmacionDialogo() {
                     ? "bg-[#E2694B]/10 text-[#E2694B]"
                     : es_advertencia
                     ? "bg-amber-100 text-amber-700"
-                    : "bg-[#063A6B]/10 text-[#063A6B]"
+                    : "bg-[#035683]/10 text-[#035683]"
                 }`}
               >
                 {es_destructivo ? (
@@ -225,12 +225,12 @@ export function useConfirmacionDialogo() {
                 ) : es_advertencia ? (
                   <AlertTriangle className="w-5 h-5 text-amber-600" />
                 ) : (
-                  <ShieldAlert className="w-5 h-5 text-[#063A6B]" />
+                  <ShieldAlert className="w-5 h-5 text-[#035683]" />
                 )}
               </div>
               <AlertDialogTitle
                 className={`text-base font-bold font-display ${
-                  es_destructivo ? "text-[#E2694B]" : "text-[#063A6B]"
+                  es_destructivo ? "text-[#E2694B]" : "text-[#035683]"
                 }`}
               >
                 {estado_dialogo.titulo}
@@ -241,7 +241,7 @@ export function useConfirmacionDialogo() {
             </AlertDialogDescription>
           </AlertDialogHeader>
 
-          <AlertDialogFooter className="pt-4 mt-2 border-t border-[#E3DCCB]/60 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+          <AlertDialogFooter className="pt-4 mt-2 border-t border-[#E5E7EB]/60 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
             <AlertDialogCancel
               disabled={esta_ejecutando}
               onClick={cerrarDialogo}
@@ -250,7 +250,7 @@ export function useConfirmacionDialogo() {
                   type="button"
                   variant="outline"
                   disabled={esta_ejecutando}
-                  className="h-9 px-4 rounded-xl text-xs font-semibold border-[#E3DCCB] text-[#5B6D77] hover:bg-slate-50 transition-all"
+                  className="h-9 px-4 rounded-xl text-xs font-semibold border-[#E5E7EB] text-[#5B6D77] hover:bg-slate-50 transition-all"
                 >
                   {estado_dialogo.texto_cancelar}
                 </Button>
@@ -273,8 +273,8 @@ export function useConfirmacionDialogo() {
                     es_destructivo
                       ? "bg-[#E2694B] hover:bg-[#c9573b] focus-visible:ring-[#E2694B]"
                       : es_advertencia
-                      ? "bg-amber-600 hover:bg-amber-700 focus-visible:ring-amber-500"
-                      : "bg-[#063A6B] hover:bg-[#063A6B]/90 focus-visible:ring-[#063A6B]"
+                      ? "bg-[#FFB600] hover:bg-[#FFB600]/90 text-[#035683] focus-visible:ring-[#FFB600]"
+                      : "bg-[#007BBE] hover:bg-[#035683] focus-visible:ring-[#007BBE]"
                   }`}
                 >
                   {esta_ejecutando && (

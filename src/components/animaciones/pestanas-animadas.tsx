@@ -8,6 +8,8 @@ export interface ElementoPestana {
   id: string;
   etiqueta: string;
   contador?: number;
+  clase_contador?: string;
+  clase_contador_activo?: string;
 }
 
 interface PropiedadesPestanasAnimadas {
@@ -49,7 +51,7 @@ export const PestanasAnimadas: React.FC<PropiedadesPestanasAnimadas> = ({
             type="button"
             aria-selected={esta_activa}
             onClick={() => al_cambiar_pestana(_pestana.id)}
-            className={`relative px-4 py-2 text-sm font-semibold rounded-xl transition-colors duration-200 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#17B4C4] ${
+            className={`relative px-4 py-2 text-sm font-semibold rounded-xl transition-colors duration-200 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ABBD] ${
               esta_activa
                 ? "text-white"
                 : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
@@ -58,7 +60,7 @@ export const PestanasAnimadas: React.FC<PropiedadesPestanasAnimadas> = ({
             {esta_activa && (
               <motion.div
                 layoutId={identificador_diseno}
-                className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#063A6B] to-[#17B4C4] shadow-md shadow-[#17B4C4]/20"
+                className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#007BBE] to-[#00ABBD] shadow-md shadow-[#007BBE]/20"
                 transition={{
                   type: "spring",
                   stiffness: 400,
@@ -71,11 +73,12 @@ export const PestanasAnimadas: React.FC<PropiedadesPestanasAnimadas> = ({
               {_pestana.etiqueta}
               {_pestana.contador !== undefined && (
                 <span
-                  className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
+                  className={cn(
+                    "text-xs px-2 py-0.5 rounded-full font-bold transition-colors",
                     esta_activa
-                      ? "bg-white/20 text-white"
-                      : "bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300"
-                  }`}
+                      ? (_pestana.clase_contador_activo || "bg-white/20 text-white")
+                      : (_pestana.clase_contador || "bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300")
+                  )}
                 >
                   {_pestana.contador}
                 </span>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -57,13 +57,13 @@ const OPCIONES_FILTRO_BECA: OpcionCombobox[] = [
   {
     valor: "650",
     etiqueta: "Beca Bs 650",
-    colorPunto: "bg-[#063A6B]",
+    colorPunto: "bg-[#035683]",
     badge: "Bs 650",
   },
   {
     valor: "250",
     etiqueta: "Beca Bs 250",
-    colorPunto: "bg-[#17B4C4]",
+    colorPunto: "bg-[#00ABBD]",
     badge: "Bs 250",
   },
 ];
@@ -126,16 +126,16 @@ export function SabanaConsolidadoSemestral() {
   };
 
   return (
-    <Card className="border-[#E3DCCB] shadow-md bg-white rounded-2xl overflow-hidden">
+    <Card className="border-[#E5E7EB] shadow-md bg-white rounded-2xl overflow-hidden">
       {/* Cabecera de la Sábana Consolidada */}
-      <CardHeader className="bg-gradient-to-r from-[#063A6B] via-[#09477e] to-[#063A6B] text-white p-6 pb-5">
+      <CardHeader className="bg-gradient-to-r from-[#035683] via-[#09477e] to-[#035683] text-white p-6 pb-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Badge className="bg-[#F8C766] text-[#063A6B] font-bold text-xs uppercase px-2.5 py-0.5">
+              <Badge className="bg-[#FFB600] text-[#035683] font-bold text-xs uppercase px-2.5 py-0.5">
                 Consolidado Oficial Semestre II
               </Badge>
-              <span className="text-xs text-[#7FE0E6] font-mono">
+              <span className="text-xs text-[#00ABBD] font-mono">
                 Evaluacion Semestre II (2) · 21 Becarios Titulares
               </span>
             </div>
@@ -152,7 +152,7 @@ export function SabanaConsolidadoSemestral() {
               size="sm"
               disabled={descargando_pdf}
               onClick={descargarReportePuppeteerPdf}
-              className="h-10 px-4 bg-[#17B4C4] hover:bg-[#17B4C4]/90 text-[#063A6B] font-bold rounded-xl text-xs flex items-center gap-2 shadow-xs"
+              className="h-10 px-4 bg-[#00ABBD] hover:bg-[#00ABBD]/90 text-[#035683] font-bold rounded-xl text-xs flex items-center gap-2 shadow-xs"
             >
               <Download className="w-4 h-4" />
               <span>{descargando_pdf ? "Generando con Puppeteer..." : "Descargar PDF Oficial"}</span>
@@ -166,11 +166,11 @@ export function SabanaConsolidadoSemestral() {
         <Tabs value={pestaña_activa} onValueChange={set_pestaña_activa} className="space-y-5">
           <TabsList className="bg-slate-100 p-1 rounded-xl">
             <TabsTrigger value="consolidado" className="text-xs font-bold rounded-lg px-4">
-              <Award className="w-3.5 h-3.5 mr-1.5 text-[#17B4C4]" />
+              <Award className="w-3.5 h-3.5 mr-1.5 text-[#00ABBD]" />
               Matriz Maestra (14 Columnas)
             </TabsTrigger>
             <TabsTrigger value="comentarios" className="text-xs font-bold rounded-lg px-4">
-              <BookOpen className="w-3.5 h-3.5 mr-1.5 text-[#063A6B]" />
+              <BookOpen className="w-3.5 h-3.5 mr-1.5 text-[#035683]" />
               Comentarios y Rangos (Página 2)
             </TabsTrigger>
             <TabsTrigger value="ceti" className="text-xs font-bold rounded-lg px-4">
@@ -188,14 +188,14 @@ export function SabanaConsolidadoSemestral() {
           {/* ============================================================== */}
           <TabsContent value="consolidado" className="space-y-4">
             {/* Barra de Filtros y Búsqueda */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-slate-50 border border-[#E3DCCB] rounded-xl text-xs">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs">
               <div className="relative flex-1">
                 <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                 <Input
                   value={busqueda}
                   onChange={(e) => set_busqueda(e.target.value)}
                   placeholder="Buscar por nombre, CI, universidad o carrera..."
-                  className="pl-9 h-8 text-xs bg-white border-[#E3DCCB]"
+                  className="pl-9 h-8 text-xs bg-white border-[#E5E7EB]"
                 />
               </div>
 
@@ -225,10 +225,10 @@ export function SabanaConsolidadoSemestral() {
             </div>
 
             {/* Tabla con las 14 Columnas Exactas */}
-            <div className="border border-[#E3DCCB] rounded-xl overflow-x-auto bg-white shadow-xs">
+            <div className="border border-[#E5E7EB] rounded-xl overflow-x-auto bg-white shadow-xs">
               <Table className="text-[11px]">
-                <TableHeader className="bg-[#063A6B] text-white">
-                  <TableRow className="border-b border-[#04284d] hover:bg-[#063A6B]">
+                <TableHeader className="bg-[#035683] text-white">
+                  <TableRow className="border-b border-[#035683] hover:bg-[#035683]">
                     <TableHead className="text-white font-bold whitespace-nowrap">Nombre completo</TableHead>
                     <TableHead className="text-white font-bold text-center whitespace-nowrap">Número de CI</TableHead>
                     <TableHead className="text-white font-bold whitespace-nowrap">Universidad</TableHead>
@@ -240,7 +240,7 @@ export function SabanaConsolidadoSemestral() {
                     <TableHead className="text-white font-bold text-center whitespace-nowrap">Pract. Preprof.</TableHead>
                     <TableHead className="text-white font-bold text-center whitespace-nowrap">Esc. Líderes (/20)</TableHead>
                     <TableHead className="text-white font-bold text-center whitespace-nowrap">Socioeconómico (20)</TableHead>
-                    <TableHead className="text-white font-bold text-center whitespace-nowrap bg-[#04284d]">TOTAL</TableHead>
+                    <TableHead className="text-white font-bold text-center whitespace-nowrap bg-[#035683]">TOTAL</TableHead>
                     <TableHead className="text-white font-bold text-center whitespace-nowrap">Total Calificación</TableHead>
                     <TableHead className="text-white font-bold text-center whitespace-nowrap">Tipo Beca</TableHead>
                   </TableRow>
@@ -251,7 +251,7 @@ export function SabanaConsolidadoSemestral() {
                     const es_condicionada = b.total_calificacion.toLowerCase().includes("condicionada");
 
                     return (
-                      <TableRow key={b.id} className="hover:bg-slate-50 border-b border-[#E3DCCB]/60">
+                      <TableRow key={b.id} className="hover:bg-slate-50 border-b border-[#E5E7EB]/60">
                         <TableCell className="font-semibold text-slate-800 whitespace-nowrap">
                           {b.nombre_completo}
                         </TableCell>
@@ -264,12 +264,12 @@ export function SabanaConsolidadoSemestral() {
                         <TableCell className="font-mono font-bold text-center">
                           {b.promedio !== null ? b.promedio : "-"}
                         </TableCell>
-                        <TableCell className="font-mono text-center font-bold text-[#063A6B]">{b.academica}</TableCell>
-                        <TableCell className="font-mono text-center font-bold text-[#063A6B]">{b.liderazgo_iglesia}</TableCell>
-                        <TableCell className="font-mono text-center font-bold text-[#063A6B]">{b.practicas_preprofesionales}</TableCell>
-                        <TableCell className="font-mono text-center font-bold text-[#063A6B]">{b.escuela_lideres.toFixed(1)}</TableCell>
-                        <TableCell className="font-mono text-center font-bold text-[#063A6B]">{b.socioeconomico}</TableCell>
-                        <TableCell className="font-mono text-center font-bold text-sm bg-slate-100 text-[#063A6B]">
+                        <TableCell className="font-mono text-center font-bold text-[#035683]">{b.academica}</TableCell>
+                        <TableCell className="font-mono text-center font-bold text-[#035683]">{b.liderazgo_iglesia}</TableCell>
+                        <TableCell className="font-mono text-center font-bold text-[#035683]">{b.practicas_preprofesionales}</TableCell>
+                        <TableCell className="font-mono text-center font-bold text-[#035683]">{b.escuela_lideres.toFixed(1)}</TableCell>
+                        <TableCell className="font-mono text-center font-bold text-[#035683]">{b.socioeconomico}</TableCell>
+                        <TableCell className="font-mono text-center font-bold text-sm bg-slate-100 text-[#035683]">
                           {b.total}
                         </TableCell>
                         <TableCell className="text-center whitespace-nowrap">
@@ -285,7 +285,7 @@ export function SabanaConsolidadoSemestral() {
                             {b.total_calificacion}
                           </Badge>
                         </TableCell>
-                        <TableCell className="font-mono font-bold text-center text-[#063A6B]">
+                        <TableCell className="font-mono font-bold text-center text-[#035683]">
                           Bs {b.tipo_beca}
                         </TableCell>
                         <TableCell className="text-center whitespace-nowrap">
@@ -293,7 +293,7 @@ export function SabanaConsolidadoSemestral() {
                             size="sm"
                             variant="ghost"
                             onClick={() => set_becario_detalle(b)}
-                            className="h-7 px-2 text-[#063A6B] hover:text-[#17B4C4] hover:bg-[#063A6B]/5 font-bold text-xs gap-1"
+                            className="h-7 px-2 text-[#035683] hover:text-[#00ABBD] hover:bg-[#035683]/5 font-bold text-xs gap-1"
                             title="Auditar expediente individual"
                           >
                             <Eye className="w-3.5 h-3.5" />
@@ -312,10 +312,10 @@ export function SabanaConsolidadoSemestral() {
           {/* PESTAÑA 2: COMENTARIOS ACADÉMICOS Y DE IGLESIA (PÁGINA 2 PDF)   */}
           {/* ============================================================== */}
           <TabsContent value="comentarios" className="space-y-6">
-            <div className="border border-[#E3DCCB] rounded-xl overflow-hidden bg-white shadow-xs">
+            <div className="border border-[#E5E7EB] rounded-xl overflow-hidden bg-white shadow-xs">
               <Table className="text-xs">
-                <TableHeader className="bg-[#063A6B] text-white">
-                  <TableRow className="border-b border-[#04284d] hover:bg-[#063A6B]">
+                <TableHeader className="bg-[#035683] text-white">
+                  <TableRow className="border-b border-[#035683] hover:bg-[#035683]">
                     <TableHead className="text-white font-bold w-[25%]">Nombre completo</TableHead>
                     <TableHead className="text-white font-bold w-[35%]">Comentario Académico</TableHead>
                     <TableHead className="text-white font-bold w-[40%]">Comentario de la Iglesia</TableHead>
@@ -323,8 +323,8 @@ export function SabanaConsolidadoSemestral() {
                 </TableHeader>
                 <TableBody>
                   {BECARIOS_SEMESTRE_II.map((b) => (
-                    <TableRow key={b.id} className="hover:bg-slate-50 border-b border-[#E3DCCB]/60">
-                      <TableCell className="font-bold text-[#063A6B]">{b.nombre_completo}</TableCell>
+                    <TableRow key={b.id} className="hover:bg-slate-50 border-b border-[#E5E7EB]/60">
+                      <TableCell className="font-bold text-[#035683]">{b.nombre_completo}</TableCell>
                       <TableCell className="text-slate-700">{b.comentario_academico || "-"}</TableCell>
                       <TableCell className="text-slate-700">{b.comentario_iglesia || "-"}</TableCell>
                     </TableRow>
@@ -334,8 +334,8 @@ export function SabanaConsolidadoSemestral() {
             </div>
 
             {/* Rangos Oficiales de Aprobación */}
-            <div className="p-4 bg-slate-50 border border-[#E3DCCB] rounded-xl space-y-3">
-              <h4 className="text-xs font-bold text-[#063A6B] uppercase tracking-wider">
+            <div className="p-4 bg-slate-50 border border-[#E5E7EB] rounded-xl space-y-3">
+              <h4 className="text-xs font-bold text-[#035683] uppercase tracking-wider">
                 Rangos de Aprobación Oficiales (Pie de Página 2)
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -362,10 +362,10 @@ export function SabanaConsolidadoSemestral() {
           {/* PESTAÑA 3: NOTAS CETI (12 TAREAS CLASSROOM)                   */}
           {/* ============================================================== */}
           <TabsContent value="ceti" className="space-y-4">
-            <div className="border border-[#E3DCCB] rounded-xl overflow-x-auto bg-white shadow-xs">
+            <div className="border border-[#E5E7EB] rounded-xl overflow-x-auto bg-white shadow-xs">
               <Table className="text-[11px]">
-                <TableHeader className="bg-[#063A6B] text-white">
-                  <TableRow className="border-b border-[#04284d] hover:bg-[#063A6B]">
+                <TableHeader className="bg-[#035683] text-white">
+                  <TableRow className="border-b border-[#035683] hover:bg-[#035683]">
                     <TableHead className="text-white font-bold whitespace-nowrap">Nombre completo</TableHead>
                     <TableHead className="text-white font-bold text-center whitespace-nowrap">CI</TableHead>
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((t) => (
@@ -373,10 +373,10 @@ export function SabanaConsolidadoSemestral() {
                         T{t}
                       </TableHead>
                     ))}
-                    <TableHead className="text-white font-bold text-center whitespace-nowrap bg-[#04284d]">
+                    <TableHead className="text-white font-bold text-center whitespace-nowrap bg-[#035683]">
                       PROMEDIO
                     </TableHead>
-                    <TableHead className="text-white font-bold text-center whitespace-nowrap bg-[#17B4C4] text-[#063A6B]">
+                    <TableHead className="text-white font-bold text-center whitespace-nowrap bg-[#00ABBD] text-[#035683]">
                       Puntaje / 20
                     </TableHead>
                     <TableHead className="text-white font-bold whitespace-nowrap">Observaciones</TableHead>
@@ -384,7 +384,7 @@ export function SabanaConsolidadoSemestral() {
                 </TableHeader>
                 <TableBody>
                   {NOTAS_CETI_SEMESTRE_II.map((c) => (
-                    <TableRow key={c.id} className="hover:bg-slate-50 border-b border-[#E3DCCB]/60">
+                    <TableRow key={c.id} className="hover:bg-slate-50 border-b border-[#E5E7EB]/60">
                       <TableCell className="font-semibold text-slate-800 whitespace-nowrap">
                         {c.nombre_completo}
                       </TableCell>
@@ -396,7 +396,7 @@ export function SabanaConsolidadoSemestral() {
                           {nt}
                         </TableCell>
                       ))}
-                      <TableCell className="font-mono font-bold text-center bg-slate-100 text-[#063A6B]">
+                      <TableCell className="font-mono font-bold text-center bg-slate-100 text-[#035683]">
                         {c.promedio.toFixed(1)}%
                       </TableCell>
                       <TableCell className="font-mono font-bold text-center bg-emerald-50 text-emerald-800">
@@ -420,16 +420,16 @@ export function SabanaConsolidadoSemestral() {
               {EVALUACIONES_MENTORES_SEMESTRE_II.map((em) => (
                 <div
                   key={em.id}
-                  className="p-4 bg-slate-50 border border-[#E3DCCB] rounded-xl space-y-3 text-xs"
+                  className="p-4 bg-slate-50 border border-[#E5E7EB] rounded-xl space-y-3 text-xs"
                 >
-                  <div className="flex items-start justify-between pb-2 border-b border-[#E3DCCB]">
+                  <div className="flex items-start justify-between pb-2 border-b border-[#E5E7EB]">
                     <div>
-                      <span className="font-bold text-sm text-[#063A6B] block">{em.becario_nombre}</span>
+                      <span className="font-bold text-sm text-[#035683] block">{em.becario_nombre}</span>
                       <span className="text-[11px] text-muted-foreground">
                         Mentor: <strong>{em.mentor_nombre}</strong> · {em.unidad_agencia}
                       </span>
                     </div>
-                    <Badge className="bg-[#063A6B] text-white font-mono text-xs font-bold">
+                    <Badge className="bg-[#035683] text-white font-mono text-xs font-bold">
                       {em.puntaje_20.toFixed(1)} / 20 pts
                     </Badge>
                   </div>
@@ -446,7 +446,7 @@ export function SabanaConsolidadoSemestral() {
                     </p>
                   </div>
 
-                  <div className="pt-2 border-t border-[#E3DCCB]/60 flex justify-between items-center text-[10px] text-muted-foreground font-mono">
+                  <div className="pt-2 border-t border-[#E5E7EB]/60 flex justify-between items-center text-[10px] text-muted-foreground font-mono">
                     <span>Promedio Bloque 1 (1-18): {em.promedio_10} / 10 pts</span>
                     <span className="text-emerald-700 font-bold">Acreditado por Supervisor</span>
                   </div>

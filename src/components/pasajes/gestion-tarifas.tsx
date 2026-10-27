@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Plus, Edit2, Bus, Calendar, DollarSign, CheckCircle2, History, Clock } from "lucide-react";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -179,8 +180,8 @@ export function GestionTarifas() {
     <Card className="border border-border shadow-xs bg-card">
       <CardHeader className="flex flex-row items-center justify-between pb-3">
         <div>
-          <CardTitle className="text-xl font-bold flex items-center gap-2 text-[#063A6B]">
-            <Bus className="h-5 w-5 text-[#0A5CA0]" />
+          <CardTitle className="text-xl font-bold flex items-center gap-2 text-[#035683]">
+            <Bus className="h-5 w-5 text-[#007BBE]" />
             Tarifario Institucional Oficial (La Paz – El Alto)
           </CardTitle>
           <CardDescription>
@@ -190,7 +191,7 @@ export function GestionTarifas() {
         {es_admin && (
           <Button
             onClick={abrirCreacion}
-            className="bg-[#0A5CA0] hover:bg-[#063A6B] text-white flex items-center gap-2"
+            className="bg-[#007BBE] hover:bg-[#035683] text-white flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
             Nueva Tarifa Oficial
@@ -224,7 +225,7 @@ export function GestionTarifas() {
                       <div className="text-xs text-muted-foreground">{t.descripcion}</div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="font-bold font-mono text-base text-[#0A5CA0]">
+                      <span className="font-bold font-mono text-base text-[#007BBE]">
                         Bs {costo_formateado}
                       </span>
                     </td>
@@ -275,7 +276,7 @@ export function GestionTarifas() {
       <Dialog open={dialogo_abierto} onOpenChange={set_dialogo_abierto}>
         <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
-            <DialogTitle className="text-[#063A6B]">
+            <DialogTitle>
               {tarifa_editar ? "Modificar Tarifa Oficial" : "Promulgar Nueva Tarifa Oficial"}
             </DialogTitle>
             <DialogDescription>
@@ -285,7 +286,7 @@ export function GestionTarifas() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
+          <DialogBody className="space-y-4">
             <div>
               <Label className="text-xs font-semibold">Medio de Transporte</Label>
               <Input
@@ -363,16 +364,16 @@ export function GestionTarifas() {
                 </span>
               </div>
             </div>
-          </div>
+          </DialogBody>
 
-          <DialogFooter className="mt-4">
+          <DialogFooter>
             <Button variant="outline" onClick={() => set_dialogo_abierto(false)} disabled={guardando}>
               Cancelar
             </Button>
             <Button
               onClick={guardarTarifa}
               disabled={guardando}
-              className="bg-[#0A5CA0] hover:bg-[#063A6B] text-white"
+              className="bg-[#007BBE] hover:bg-[#035683] text-white"
             >
               {guardando ? "Guardando..." : tarifa_editar ? "Actualizar Tarifa" : "Promulgar Tarifa"}
             </Button>

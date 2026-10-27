@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -221,18 +221,18 @@ export function DialogoJustificarFalta({
     <Dialog open={abierto} onOpenChange={alCambiarAbierto}>
       <DialogContent
         showCloseButton={false}
-        className="max-w-lg max-h-[92vh] flex flex-col p-0 overflow-hidden bg-white border-[#E3DCCB] rounded-2xl shadow-2xl"
+        className="max-w-lg max-h-[92vh] flex flex-col p-0 overflow-hidden bg-white border-[#E5E7EB] rounded-2xl shadow-2xl"
       >
         {/* Cabecera Institucional */}
-        <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
+        <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] shrink-0 bg-white">
           <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-2 text-[#063A6B] text-base font-bold">
-              <ClipboardCheck className="w-5 h-5 text-[#17B4C4]" />
+            <DialogTitle className="flex items-center gap-2 text-[#035683] text-base font-bold">
+              <ClipboardCheck className="w-5 h-5 text-[#00ABBD]" />
               Justificar Falta o Incidencia
             </DialogTitle>
             <Badge
               variant="outline"
-              className="text-[10px] font-mono border-[#17B4C4]/40 bg-[#17B4C4]/10 text-[#0E7A85] font-bold"
+              className="text-[10px] font-mono border-[#00ABBD]/40 bg-[#00ABBD]/10 text-[#00808E] font-bold"
             >
               Reglamento BUMAND
             </Badge>
@@ -246,13 +246,13 @@ export function DialogoJustificarFalta({
         <DialogBody className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0 text-xs">
           {/* Banner de Datos de la Jornada Precargada */}
           {incidencia && (
-            <div className="p-3 bg-slate-50 border border-[#E3DCCB] rounded-xl flex items-center justify-between gap-3 text-xs">
+            <div className="p-3 bg-slate-50 border border-[#E5E7EB] rounded-xl flex items-center justify-between gap-3 text-xs">
               <div className="space-y-0.5">
                 <span className="text-[10px] font-mono text-muted-foreground uppercase font-bold block">
                   Jornada a Justificar
                 </span>
-                <div className="flex items-center gap-2 font-bold text-[#063A6B]">
-                  <Calendar className="w-3.5 h-3.5 text-[#17B4C4]" />
+                <div className="flex items-center gap-2 font-bold text-[#035683]">
+                  <Calendar className="w-3.5 h-3.5 text-[#00ABBD]" />
                   <span>{fecha_incidencia}</span>
                   {incidencia.hora && (
                     <>
@@ -280,14 +280,14 @@ export function DialogoJustificarFalta({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Tipo de Incidencia */}
             <div>
-              <Label className="text-xs font-semibold text-[#063A6B] block mb-1">
+              <Label className="text-xs font-semibold text-[#035683] block mb-1">
                 Tipo de Actividad
               </Label>
               <Select value={tipo_incidencia} onValueChange={(val) => val && set_tipo_incidencia(val)}>
-                <SelectTrigger className="w-full text-xs h-9 px-3 rounded-xl border border-[#E3DCCB] bg-white text-[#063A6B] font-medium">
+                <SelectTrigger className="w-full text-xs h-9 px-3 rounded-xl border border-[#E5E7EB] bg-white text-[#035683] font-medium">
                   <SelectValue placeholder="Seleccionar actividad" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-[#E3DCCB] z-[100]">
+                <SelectContent className="bg-white border-[#E5E7EB] z-[100]">
                   <SelectItem value="asistencia_practicas">Prácticas Preprofesionales</SelectItem>
                   <SelectItem value="escuela_lideres">Escuela de Líderes (Viernes)</SelectItem>
                   <SelectItem value="asistencia_evento">Acción de Servicio / Evento</SelectItem>
@@ -298,21 +298,21 @@ export function DialogoJustificarFalta({
 
             {/* Fecha de la Incidencia */}
             <div>
-              <Label className="text-xs font-semibold text-[#063A6B] block mb-1">
+              <Label className="text-xs font-semibold text-[#035683] block mb-1">
                 Fecha del Suceso
               </Label>
               <Input
                 type="date"
                 value={fecha_incidencia}
                 onChange={(e) => set_fecha_incidencia(e.target.value)}
-                className="text-xs h-9 rounded-xl border-[#E3DCCB] bg-white"
+                className="text-xs h-9 rounded-xl border-[#E5E7EB] bg-white"
               />
             </div>
           </div>
 
           {/* Causa Frecuente Sugerida */}
           <div>
-            <Label className="text-xs font-semibold text-[#063A6B] block mb-1">
+            <Label className="text-xs font-semibold text-[#035683] block mb-1">
               Motivos Rápidos Reglamentarios
             </Label>
             <div className="grid grid-cols-2 gap-1.5">
@@ -323,8 +323,8 @@ export function DialogoJustificarFalta({
                   onClick={() => seleccionarMotivoRapido(m)}
                   className={`p-2 text-left rounded-xl border text-[11px] transition-all ${
                     motivo_resumido === m.titulo
-                      ? "bg-[#063A6B]/10 border-[#063A6B] text-[#063A6B] font-bold"
-                      : "bg-slate-50/70 border-[#E3DCCB] hover:bg-slate-100 text-slate-700"
+                      ? "bg-[#035683]/10 border-[#035683] text-[#035683] font-bold"
+                      : "bg-slate-50/70 border-[#E5E7EB] hover:bg-slate-100 text-slate-700"
                   }`}
                 >
                   <p className="line-clamp-2 leading-tight">{m.titulo}</p>
@@ -335,20 +335,20 @@ export function DialogoJustificarFalta({
 
           {/* Motivo Resumido */}
           <div>
-            <Label className="text-xs font-semibold text-[#063A6B] block mb-1">
+            <Label className="text-xs font-semibold text-[#035683] block mb-1">
               Motivo Sintético *
             </Label>
             <Input
               placeholder="Ej. Extracción odontológica de urgencia en Seguro Social Universitario"
               value={motivo_resumido}
               onChange={(e) => set_motivo_resumido(e.target.value)}
-              className="text-xs h-9 rounded-xl border-[#E3DCCB]"
+              className="text-xs h-9 rounded-xl border-[#E5E7EB]"
             />
           </div>
 
           {/* Descripción Detallada */}
           <div>
-            <Label className="text-xs font-semibold text-[#063A6B] block mb-1">
+            <Label className="text-xs font-semibold text-[#035683] block mb-1">
               Descripción y Circunstancias *
             </Label>
             <Textarea
@@ -356,14 +356,14 @@ export function DialogoJustificarFalta({
               placeholder="Detalla los hechos, horarios y contingencias presentadas..."
               value={descripcion_detallada}
               onChange={(e) => set_descripcion_detallada(e.target.value)}
-              className="text-xs rounded-xl border-[#E3DCCB] resize-none"
+              className="text-xs rounded-xl border-[#E5E7EB] resize-none"
             />
           </div>
 
           {/* Carga de Comprobante en PDF o Imagen */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <Label className="text-xs font-semibold text-[#063A6B]">
+              <Label className="text-xs font-semibold text-[#035683]">
                 Comprobante Probatorio Obligatorio *
               </Label>
               <span className="text-[10px] text-muted-foreground font-mono">
@@ -371,7 +371,7 @@ export function DialogoJustificarFalta({
               </span>
             </div>
 
-            <div className="border-2 border-dashed border-[#E3DCCB] hover:border-[#17B4C4] rounded-xl p-4 bg-[#F8F9FA] transition-all text-center relative">
+            <div className="border-2 border-dashed border-[#E5E7EB] hover:border-[#00ABBD] rounded-xl p-4 bg-[#F8F9FA] transition-all text-center relative">
               <input
                 type="file"
                 accept="image/*,.pdf"
@@ -400,7 +400,7 @@ export function DialogoJustificarFalta({
                   )}
 
                   {archivo_prueba_url.startsWith("data:application/pdf") && (
-                    <div className="p-2.5 bg-white border border-[#E3DCCB] rounded-lg inline-flex items-center gap-2 text-xs font-semibold text-[#063A6B]">
+                    <div className="p-2.5 bg-white border border-[#E5E7EB] rounded-lg inline-flex items-center gap-2 text-xs font-semibold text-[#035683]">
                       <FileText className="w-4 h-4 text-rose-600" />
                       <span>Documento PDF listo para envío</span>
                     </div>
@@ -412,10 +412,10 @@ export function DialogoJustificarFalta({
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-1.5 py-1">
-                  <div className="w-10 h-10 rounded-full bg-[#17B4C4]/10 text-[#17B4C4] flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-[#00ABBD]/10 text-[#00ABBD] flex items-center justify-center">
                     <Upload className="w-5 h-5" />
                   </div>
-                  <span className="text-xs font-bold text-[#063A6B]">
+                  <span className="text-xs font-bold text-[#035683]">
                     Arrastra o haz clic para subir comprobante
                   </span>
                   <p className="text-[10px] text-muted-foreground max-w-xs">
@@ -428,7 +428,7 @@ export function DialogoJustificarFalta({
         </DialogBody>
 
         {/* Botones de Acción */}
-        <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
+        <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
           <Button
             type="button"
             variant="outline"
@@ -438,7 +438,7 @@ export function DialogoJustificarFalta({
               reiniciarFormulario();
               alCambiarAbierto(false);
             }}
-            className="rounded-xl border-[#E3DCCB] text-xs h-9"
+            className="rounded-xl border-[#E5E7EB] text-xs h-9"
           >
             Cancelar
           </Button>
@@ -448,7 +448,7 @@ export function DialogoJustificarFalta({
             size="sm"
             disabled={enviando}
             onClick={manejarEnvio}
-            className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white rounded-xl font-bold text-xs h-9 px-4 gap-1.5 shadow-sm"
+            className="bg-[#035683] hover:bg-[#035683]/90 text-white rounded-xl font-bold text-xs h-9 px-4 gap-1.5 shadow-sm"
           >
             {enviando ? (
               <>
@@ -457,7 +457,7 @@ export function DialogoJustificarFalta({
               </>
             ) : (
               <>
-                <ShieldCheck className="w-3.5 h-3.5 text-[#F8C766]" />
+                <ShieldCheck className="w-3.5 h-3.5 text-[#FFB600]" />
                 <span>Radicar Justificación</span>
               </>
             )}

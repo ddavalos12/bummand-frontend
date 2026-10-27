@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
@@ -96,33 +96,50 @@ export function GloboNotificaciones({
   useTiempoReal({
     eventos: {
       codigo_verificacion_tutor: (datos: unknown) => {
-        // El código sólo le llega a los administradores, ya no al supervisor
-        if (usuario && usuario.rol !== "administrador") {
+        // El código ahora se envía exclusivamente al supervisor específico asignado, ya no a los administradores ni a todos
+        if (!usuario || usuario.rol !== "supervisor") {
           return;
         }
 
         const carga = (datos || {}) as {
           codigo?: string;
           becario_nombre?: string;
+          supervisor_id?: number;
+          destinatario_usuario_id?: number;
           supervisor_nombre?: string;
+          supervisor_correo?: string;
           mensaje?: string;
         };
+
+        // Filtrar estrictamente para que solo lo reciba el supervisor específico destinatario
+        const destino_id = carga.destinatario_usuario_id || carga.supervisor_id;
+        if (destino_id && usuario.id && destino_id !== usuario.id) {
+          return;
+        }
+        if (
+          carga.supervisor_correo &&
+          usuario.correo &&
+          carga.supervisor_correo.toLowerCase() !== usuario.correo.toLowerCase()
+        ) {
+          return;
+        }
+
         const codigo_str = carga.codigo || "000000";
-        const becario_str = carga.becario_nombre || "Becario";
+        const becario_str = carga.becario_nombre || "Becario Asignado";
         const nueva: NotificacionItem = {
           id: Date.now(),
           tipo: "evaluacion",
-          titulo: `🔐 Código de Administrador: ${codigo_str}`,
+          titulo: `🔐 Código de Autorización: ${codigo_str}`,
           mensaje:
             carga.mensaje ||
-            `Código de 6 dígitos para autorizar evaluación de ${becario_str}: ${codigo_str} (válido por 10 min).`,
+            `Código de 6 dígitos para autorizar en celular la evaluación de su becario asignado (${becario_str}): ${codigo_str} (válido por 10 min).`,
           tiempo: "Ahora mismo",
           leido: false,
         };
         set_notificaciones((prev) => [nueva, ...prev]);
         set_abierto(true);
-        toast.info(`Código de Verificación (Administración): ${codigo_str}`, {
-          description: `Ingresa el código ${codigo_str} para autorizar la evaluación de ${becario_str}.`,
+        toast.info(`Código de Verificación (Supervisor): ${codigo_str}`, {
+          description: `Ingresa el código ${codigo_str} en el celular para autorizar la evaluación de ${becario_str}.`,
           duration: 15000,
         });
       },
@@ -150,7 +167,7 @@ export function GloboNotificaciones({
           return {
             id: r.id + 10000,
             tipo: tipo_item,
-            titulo: es_codigo ? "🔐 Código de Autorización de Administración" : "Notificación Institucional",
+            titulo: es_codigo ? "🔐 Código de Autorización de Supervisor" : "Notificación Institucional",
             mensaje: r.mensaje,
             tiempo: "Reciente",
             leido: Boolean(r.leido),
@@ -237,7 +254,7 @@ export function GloboNotificaciones({
       case "evaluacion":
         return <FileCheck className="w-3.5 h-3.5 text-emerald-600" />;
       case "evento":
-        return <Calendar className="w-3.5 h-3.5 text-[#17B4C4]" />;
+        return <Calendar className="w-3.5 h-3.5 text-[#00ABBD]" />;
       default:
         return <Send className="w-3.5 h-3.5 text-slate-600" />;
     }
@@ -257,8 +274,8 @@ export function GloboNotificaciones({
         className={cn(
           "relative w-9 h-9 rounded-xl border flex items-center justify-center transition-colors select-none",
           abierto
-            ? "bg-[#063A6B] text-white border-[#063A6B] shadow-sm"
-            : "border-[#E3DCCB] text-[#063A6B] bg-white hover:bg-[#F0F4F8] hover:border-[#17B4C4]/50"
+            ? "bg-[#035683] text-white border-[#035683] shadow-sm"
+            : "border-[#E5E7EB] text-[#035683] bg-white hover:bg-[#F0F4F8] hover:border-[#00ABBD]/50"
         )}
       >
         <Bell className="w-4 h-4" />
@@ -284,19 +301,19 @@ export function GloboNotificaciones({
               stiffness: 420,
               damping: 24,
             }}
-            className="absolute right-0 mt-2.5 w-80 sm:w-96 z-50 rounded-2xl bg-white border border-[#E3DCCB] shadow-2xl shadow-[#063A6B]/15 overflow-hidden"
+            className="absolute right-0 mt-2.5 w-80 sm:w-96 z-50 rounded-2xl bg-white border border-[#E5E7EB] shadow-2xl shadow-[#035683]/15 overflow-hidden"
           >
             {/* Puntero triangular que forma el "globo de idea/diálogo" */}
-            <div className="absolute -top-2 right-3 w-4 h-4 bg-white border-t border-l border-[#E3DCCB] rotate-45 z-10" />
+            <div className="absolute -top-2 right-3 w-4 h-4 bg-white border-t border-l border-[#E5E7EB] rotate-45 z-10" />
 
             {/* Cabecera del Globo */}
-            <div className="p-3.5 border-b border-[#E3DCCB]/70 bg-gradient-to-r from-slate-50 via-white to-blue-50/20 flex items-center justify-between gap-2">
+            <div className="p-3.5 border-b border-[#E5E7EB]/70 bg-gradient-to-r from-slate-50 via-white to-blue-50/20 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-7 h-7 rounded-lg bg-[#063A6B]/10 flex items-center justify-center text-[#063A6B] shrink-0">
+                <div className="w-7 h-7 rounded-lg bg-[#035683]/10 flex items-center justify-center text-[#035683] shrink-0">
                   <Bell className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-[#063A6B] leading-tight flex items-center gap-1.5">
+                  <h3 className="text-xs font-bold text-[#035683] leading-tight flex items-center gap-1.5">
                     <span>Notificaciones</span>
                     {conteo_no_leidas > 0 && (
                       <InsigniaPulsoVivo
@@ -329,14 +346,14 @@ export function GloboNotificaciones({
             </div>
 
             {/* Filtros Píldora: Todas / Pendientes */}
-            <div className="px-3 py-1.5 bg-slate-50/70 border-b border-[#E3DCCB]/50 flex items-center gap-1.5">
+            <div className="px-3 py-1.5 bg-slate-50/70 border-b border-[#E5E7EB]/50 flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => set_filtro("todas")}
                 className={cn(
                   "px-2.5 py-0.5 rounded-lg text-[10px] font-bold font-mono transition-all",
                   filtro === "todas"
-                    ? "bg-[#063A6B] text-white shadow-2xs"
+                    ? "bg-[#035683] text-white shadow-2xs"
                     : "text-slate-600 hover:bg-slate-200/60"
                 )}
               >
@@ -348,7 +365,7 @@ export function GloboNotificaciones({
                 className={cn(
                   "px-2.5 py-0.5 rounded-lg text-[10px] font-bold font-mono transition-all",
                   filtro === "pendientes"
-                    ? "bg-[#063A6B] text-white shadow-2xs"
+                    ? "bg-[#035683] text-white shadow-2xs"
                     : "text-slate-600 hover:bg-slate-200/60"
                 )}
               >
@@ -363,7 +380,7 @@ export function GloboNotificaciones({
                   <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center">
                     <Check className="w-4 h-4 stroke-[3]" />
                   </div>
-                  <p className="text-xs font-bold text-[#063A6B]">
+                  <p className="text-xs font-bold text-[#035683]">
                     ¡Estás al día!
                   </p>
                   <p className="text-[11px] text-muted-foreground">
@@ -384,18 +401,18 @@ export function GloboNotificaciones({
                       "p-2.5 rounded-xl cursor-pointer transition-all flex items-start gap-2.5 group pt-2",
                       item.leido
                         ? "hover:bg-slate-50 opacity-75"
-                        : "bg-blue-50/30 border border-[#17B4C4]/20 hover:bg-blue-50/50 shadow-2xs"
+                        : "bg-blue-50/30 border border-[#00ABBD]/20 hover:bg-blue-50/50 shadow-2xs"
                     )}
                   >
                     {/* Icono temático */}
-                    <div className="w-7 h-7 rounded-lg bg-white border border-[#E3DCCB]/60 shadow-2xs flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="w-7 h-7 rounded-lg bg-white border border-[#E5E7EB]/60 shadow-2xs flex items-center justify-center shrink-0 mt-0.5">
                       {obtenerIconoTipo(item.tipo)}
                     </div>
 
                     {/* Contenido textual */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1">
-                        <p className="text-xs font-bold text-[#063A6B] truncate">
+                        <p className="text-xs font-bold text-[#035683] truncate">
                           {item.titulo}
                         </p>
                         <span className="text-[9px] font-mono text-muted-foreground shrink-0">
@@ -411,7 +428,7 @@ export function GloboNotificaciones({
                     {!item.leido && (
                       <span
                         title="Marcar como leída"
-                        className="w-2 h-2 rounded-full bg-[#17B4C4] shrink-0 mt-1.5"
+                        className="w-2 h-2 rounded-full bg-[#00ABBD] shrink-0 mt-1.5"
                       />
                     )}
                   </motion.div>
@@ -421,14 +438,14 @@ export function GloboNotificaciones({
 
             {/* Pie del Globo: enlace opcional para ver historial o cerrar */}
             {alAbrirHistorialCompleto && (
-              <div className="p-2 border-t border-[#E3DCCB]/70 bg-slate-50/60 text-center">
+              <div className="p-2 border-t border-[#E5E7EB]/70 bg-slate-50/60 text-center">
                 <button
                   type="button"
                   onClick={() => {
                     set_abierto(false);
                     alAbrirHistorialCompleto();
                   }}
-                  className="text-[11px] font-bold text-[#063A6B] hover:text-[#17B4C4] transition-colors inline-flex items-center gap-1"
+                  className="text-[11px] font-bold text-[#035683] hover:text-[#00ABBD] transition-colors inline-flex items-center gap-1"
                 >
                   <span>Ver historial completo de alertas</span>
                   <ChevronRight className="w-3 h-3" />

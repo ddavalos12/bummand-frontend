@@ -41,12 +41,12 @@ export function IslaDinamica({
           onClick={alCerrar}
           className={cn(
             "fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2.5 rounded-full",
-            "bg-[#063A6B] text-white shadow-xl shadow-[#063A6B]/25 border border-[#17B4C4]/40 backdrop-blur-md cursor-pointer select-none",
+            "bg-[#035683] text-white shadow-xl shadow-[#035683]/25 border border-[#00ABBD]/40 backdrop-blur-md cursor-pointer select-none",
             className
           )}
         >
           {Icono && (
-            <div className="w-6 h-6 rounded-full bg-[#17B4C4]/20 flex items-center justify-center text-[#7FE0E6] shrink-0">
+            <div className="w-6 h-6 rounded-full bg-[#00ABBD]/20 flex items-center justify-center text-[#FFB600] shrink-0">
               <Icono className="w-3.5 h-3.5" />
             </div>
           )}

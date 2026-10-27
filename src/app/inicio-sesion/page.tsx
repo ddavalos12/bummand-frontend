@@ -49,12 +49,12 @@ export default function PaginaInicioSesion() {
 
       if (!usuario_autenticado) {
         const cuentas_semilla: Record<string, { pass: string; user: Usuario }> = {
-          "daniel234.davalos@gmail.com": {
-            pass: "Bumand2026!",
+          "admin@bumand.bo": {
+            pass: "Admin2026!",
             user: {
               id: 1,
-              nombre: "Daniel Davalos Quiñonez",
-              correo: "daniel234.davalos@gmail.com",
+              nombre: "Administrador Primario BUMAND",
+              correo: "admin@bumand.bo",
               rol: "administrador",
             },
           },
@@ -65,6 +65,16 @@ export default function PaginaInicioSesion() {
               nombre: "Coordinación General BUMAND",
               correo: "coordinacion@bumand.bo",
               rol: "administrador",
+            },
+          },
+          "daniel234.davalos@gmail.com": {
+            pass: "Bumand2026!",
+            user: {
+              id: 7,
+              nombre: "Daniel Davalos Quiñonez",
+              correo: "daniel234.davalos@gmail.com",
+              rol: "becario",
+              becario_id: 2,
             },
           },
           "angel.ali@bumand.bo": {
@@ -148,9 +158,6 @@ export default function PaginaInicioSesion() {
       }
 
       if (token_acceso && usuario_autenticado) {
-        if (typeof window !== "undefined") {
-          sessionStorage.setItem("bumand_mostrar_versiculo_inicio", "true");
-        }
         iniciarSesion(token_acceso, usuario_autenticado);
         enrutador.push("/");
       }
@@ -162,30 +169,30 @@ export default function PaginaInicioSesion() {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center p-4 overflow-hidden bg-[#F0F7FA]">
+    <div className="relative min-h-screen w-full flex items-center justify-center p-4 overflow-hidden bg-[#F8FAFC]">
       <div className="fixed inset-0 z-0 pointer-events-auto">
         <FondoOndasLiquidas
           color_fondo_centro="#FFFFFF"
-          color_fondo_borde="#BAE6FD"
+          color_fondo_borde="#E0F2FE"
         />
       </div>
 
       <div className="relative z-10 w-full max-w-md my-auto">
-        <Card className="w-full max-w-md border border-[#D0E6F4] shadow-2xl shadow-sky-950/10 bg-white/95 backdrop-blur-xl rounded-2xl relative overflow-hidden py-0 gap-0">
-          <CardHeader className="text-center space-y-3 px-6 pt-6 pb-5 border-b border-[#E3DCCB]/70">
+        <Card className="w-full max-w-md border border-[#E5E7EB] shadow-2xl shadow-sky-950/10 bg-white/95 backdrop-blur-xl rounded-2xl relative overflow-hidden py-0 gap-0">
+          <CardHeader className="text-center space-y-3 px-6 pt-6 pb-5 border-b border-[#E5E7EB]/70">
             <div className="flex flex-col items-center justify-center gap-2 mb-1">
               <img
-                src="/logos/logo-bumand.svg"
+                src="/logos/LOGO-BUMAND_2023.svg"
                 alt="Logo BUMAND Oficial"
                 className="h-14 w-auto object-contain"
               />
               <img
-                src="/logos/logo-diaconia.svg"
+                src="/logos/ALTA1.svg"
                 alt="Logo Diaconía FRIF-IFD"
-                className="h-6 w-auto object-contain opacity-90"
+                className="h-6 w-auto object-contain opacity-95"
               />
             </div>
-            <CardTitle className="font-display text-xl text-[#063A6B]">Plataforma Institucional</CardTitle>
+            <CardTitle className="font-display text-xl text-[#035683]">Plataforma Institucional</CardTitle>
             <CardDescription className="text-muted-foreground text-xs max-w-xs mx-auto leading-relaxed">
               Ingrese sus credenciales corporativas para acceder al sistema institucional.
             </CardDescription>
@@ -201,7 +208,7 @@ export default function PaginaInicioSesion() {
 
             <form onSubmit={manejarInicioSesion} className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="correo" className="text-xs font-bold text-[#063A6B]">
+                <Label htmlFor="correo" className="text-xs font-bold text-[#035683]">
                   Correo electrónico institucional
                 </Label>
                 <Input
@@ -211,12 +218,12 @@ export default function PaginaInicioSesion() {
                   value={correo}
                   onChange={(e) => set_correo(e.target.value)}
                   required
-                  className="h-10 border-[#E3DCCB] focus-visible:ring-[#17B4C4] rounded-xl text-xs px-3.5"
+                  className="h-10 border-[#E5E7EB] focus-visible:ring-[#00ABBD] rounded-xl text-xs px-3.5"
                 />
               </div>
               
               <div className="space-y-1.5">
-                <Label htmlFor="contrasena" className="text-xs font-bold text-[#063A6B]">
+                <Label htmlFor="contrasena" className="text-xs font-bold text-[#035683]">
                   Contraseña institucional
                 </Label>
                 <Input
@@ -226,7 +233,7 @@ export default function PaginaInicioSesion() {
                   value={contrasena}
                   onChange={(e) => set_contrasena(e.target.value)}
                   required
-                  className="h-10 border-[#E3DCCB] focus-visible:ring-[#17B4C4] rounded-xl text-xs px-3.5"
+                  className="h-10 border-[#E5E7EB] focus-visible:ring-[#00ABBD] rounded-xl text-xs px-3.5"
                 />
               </div>
 

@@ -24,8 +24,8 @@ export function BordeLuminoso({
   tamaño = 160,
   duracion = 7,
   ancho_borde = 2,
-  color_desde = "#17B4C4",
-  color_hacia = "#F8C766",
+  color_desde = "#00ABBD",
+  color_hacia = "#FFB600",
   radio_borde = 16,
 }: BordeLuminosoProps) {
   return (

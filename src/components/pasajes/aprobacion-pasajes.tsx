@@ -112,7 +112,7 @@ export function RecorridoEnriquecidoCard({ recorrido }: { recorrido: RecorridoIt
   const es_azul = medio_lower.includes("azul");
 
   return (
-    <div className="p-3.5 rounded-xl border border-slate-200/90 bg-white hover:border-[#17B4C4]/50 hover:shadow-xs transition-all space-y-2.5">
+    <div className="p-3.5 rounded-xl border border-slate-200/90 bg-white hover:border-[#00ABBD]/50 hover:shadow-xs transition-all space-y-2.5">
       {/* Fila 1: Badges de Tramo, Tipo de Actividad, Fecha y Tarifa */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-1.5">
@@ -151,7 +151,7 @@ export function RecorridoEnriquecidoCard({ recorrido }: { recorrido: RecorridoIt
                 : es_azul
                 ? "bg-sky-50 text-sky-700 border-sky-300 font-bold"
                 : es_teleferico
-                ? "bg-teal-50 text-teal-800 border-teal-300 font-bold"
+                ? "bg-[#00ABBD]/10 text-[#00808E] border-[#00ABBD]/30 font-bold"
                 : "bg-emerald-50 text-emerald-800 border-emerald-200"
             }`}
           >
@@ -165,7 +165,7 @@ export function RecorridoEnriquecidoCard({ recorrido }: { recorrido: RecorridoIt
             <Calendar className="w-3 h-3" />
             {recorrido.fecha}
           </span>
-          <span className="font-mono font-bold text-xs text-[#063A6B] bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200">
+          <span className="font-mono font-bold text-xs text-[#035683] bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200">
             Bs {recorrido.tarifa.toFixed(2)}
           </span>
         </div>
@@ -174,14 +174,14 @@ export function RecorridoEnriquecidoCard({ recorrido }: { recorrido: RecorridoIt
       {/* Fila 2: Secuencia visual de calles y paradas declaradas */}
       <div className="p-2.5 rounded-lg bg-slate-50/80 border border-slate-200/70 space-y-1.5">
         <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
-          <Route className="w-3 h-3 text-[#17B4C4]" />
+          <Route className="w-3 h-3 text-[#00ABBD]" />
           Recorrido de Calles y Paradas Declaradas en la App:
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
           {calles.map((calle, idx) => (
             <React.Fragment key={idx}>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white text-slate-800 text-[11px] font-medium border border-slate-200 shadow-2xs">
-                <MapPin className="w-2.5 h-2.5 text-[#063A6B] shrink-0" />
+                <MapPin className="w-2.5 h-2.5 text-[#035683] shrink-0" />
                 {calle}
               </span>
               {idx < calles.length - 1 && (
@@ -435,7 +435,7 @@ export function AprobacionPasajes() {
     ctx.moveTo(x, y);
     ctx.lineWidth = 2.2;
     ctx.lineCap = "round";
-    ctx.strokeStyle = "#063A6B";
+    ctx.strokeStyle = "#035683";
     set_dibujando(true);
   };
 
@@ -490,11 +490,11 @@ export function AprobacionPasajes() {
   };
 
   const renderizarDetalleCard = (con_boton_volver = true) => !solicitud_activa ? (
-    <Card className="border-[#E3DCCB] shadow-xs bg-white rounded-2xl p-10 text-center text-slate-500">
+    <Card className="border-[#E5E7EB] shadow-xs bg-white rounded-2xl p-10 text-center text-slate-500">
       <p className="text-sm font-medium">No hay ninguna declaración de pasajes registrada en el periodo actual.</p>
     </Card>
   ) : (
-    <Card className="border-[#E3DCCB] shadow-xs bg-white rounded-2xl overflow-hidden">
+    <Card className="border-[#E5E7EB] shadow-xs bg-white rounded-2xl overflow-hidden">
       <CardHeader className="pb-4 pt-5 px-6 border-b border-slate-100 bg-[#FBFBFA]/80">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -503,7 +503,7 @@ export function AprobacionPasajes() {
                 size="sm"
                 variant="outline"
                 onClick={() => set_subpestana("planillas")}
-                className="h-8 px-2.5 text-xs font-bold border-[#E3DCCB] text-[#063A6B] hover:bg-slate-100 rounded-xl gap-1 shrink-0"
+                className="h-8 px-2.5 text-xs font-bold border-[#E5E7EB] text-[#035683] hover:bg-slate-100 rounded-xl gap-1 shrink-0"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Volver</span>
@@ -552,7 +552,7 @@ export function AprobacionPasajes() {
               </Button>
             </div>
 
-            <Badge variant="outline" className="border-[#E3DCCB] text-[#063A6B] text-[11px] font-mono">
+            <Badge variant="outline" className="border-[#E5E7EB] text-[#035683] text-[11px] font-mono">
               {solicitud_activa.periodo}
             </Badge>
 
@@ -562,13 +562,13 @@ export function AprobacionPasajes() {
               variant="outline"
               disabled={descargando_pdf}
               onClick={() => descargarExpedientePdf(solicitud_activa)}
-              className="h-8 px-2.5 text-xs font-bold border-[#063A6B] text-[#063A6B] hover:bg-slate-100 rounded-xl gap-1.5 shadow-2xs"
+              className="h-8 px-2.5 text-xs font-bold border-[#035683] text-[#035683] hover:bg-slate-100 rounded-xl gap-1.5 shadow-2xs"
               title="Descargar expediente oficial mensual de recorridos en PDF con Puppeteer"
             >
               {descargando_pdf ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-[#17B4C4]" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-[#00ABBD]" />
               ) : (
-                <Printer className="w-3.5 h-3.5 text-[#17B4C4]" />
+                <Printer className="w-3.5 h-3.5 text-[#00ABBD]" />
               )}
               <span>Expediente PDF</span>
             </Button>
@@ -635,11 +635,11 @@ export function AprobacionPasajes() {
             onClick={() => set_subpestaña_detalle("recorridos")}
             className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition-all flex items-center gap-2 ${
               subpestaña_detalle === "recorridos"
-                ? "border-[#063A6B] text-[#063A6B]"
+                ? "border-[#035683] text-[#035683]"
                 : "border-transparent text-slate-500 hover:text-slate-800"
             }`}
           >
-            <Route className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <Route className="w-3.5 h-3.5 text-[#00ABBD]" />
             <span>Recorridos Declarados</span>
             <Badge variant="outline" className="font-mono text-[10px] ml-1 bg-slate-50">
               {solicitud_activa.recorridos.length}
@@ -651,11 +651,11 @@ export function AprobacionPasajes() {
             onClick={() => set_subpestaña_detalle("firma")}
             className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition-all flex items-center gap-2 ${
               subpestaña_detalle === "firma"
-                ? "border-[#063A6B] text-[#063A6B]"
+                ? "border-[#035683] text-[#035683]"
                 : "border-transparent text-slate-500 hover:text-slate-800"
             }`}
           >
-            <PenTool className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <PenTool className="w-3.5 h-3.5 text-[#00ABBD]" />
             <span>Ficha y Firma Digital</span>
             {solicitud_activa.firma_supervisor ? (
               <Badge className="bg-emerald-100 text-emerald-800 font-mono text-[10px] ml-1">
@@ -679,9 +679,9 @@ export function AprobacionPasajes() {
                 size="sm"
                 variant="outline"
                 onClick={() => set_solicitud_seleccionada(solicitud_activa)}
-                className="h-7 px-2.5 text-[11px] font-bold border-[#17B4C4]/60 text-[#063A6B] rounded-lg gap-1 hover:bg-[#17B4C4]/10"
+                className="h-7 px-2.5 text-[11px] font-bold border-[#00ABBD]/60 text-[#035683] rounded-lg gap-1 hover:bg-[#00ABBD]/10"
               >
-                <Eye className="w-3.5 h-3.5 text-[#17B4C4]" />
+                <Eye className="w-3.5 h-3.5 text-[#00ABBD]" />
                 Ver en Modal de Auditoría
               </Button>
             </div>
@@ -746,9 +746,9 @@ export function AprobacionPasajes() {
                   <button
                     type="button"
                     onClick={() => set_dialogo_firma_abierto(true)}
-                    className="w-full h-24 rounded-xl border-2 border-dashed border-slate-300 hover:border-[#17B4C4] bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col items-center justify-center gap-1.5 text-slate-400 hover:text-[#063A6B] cursor-pointer group"
+                    className="w-full h-24 rounded-xl border-2 border-dashed border-slate-300 hover:border-[#00ABBD] bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col items-center justify-center gap-1.5 text-slate-400 hover:text-[#035683] cursor-pointer group"
                   >
-                    <PenTool className="w-4 h-4 text-slate-400 group-hover:text-[#17B4C4] transition-colors" />
+                    <PenTool className="w-4 h-4 text-slate-400 group-hover:text-[#00ABBD] transition-colors" />
                     <span className="text-xs font-mono font-medium">Toca para asentar rúbrica digital</span>
                   </button>
 
@@ -795,15 +795,15 @@ export function AprobacionPasajes() {
 
         <div className="flex items-center gap-3">
           {/* Pastilla indicadora idéntica al diseño */}
-          <div className="px-4 py-2 rounded-xl bg-[#F8F9FA] border border-[#E3DCCB] text-xs font-mono text-slate-600 font-medium">
+          <div className="px-4 py-2 rounded-xl bg-[#F8F9FA] border border-[#E5E7EB] text-xs font-mono text-slate-600 font-medium">
             {total_formularios} formularios · {total_pendientes} pendientes
           </div>
 
           {es_becario && (
             <Dialog open={modal_declarar_abierto} onOpenChange={set_modal_declarar_abierto}>
               <DialogTrigger asChild>
-                <Button className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs h-9 gap-1.5 shadow-sm">
-                  <Plus className="w-4 h-4 text-[#F8C766]" />
+                <Button className="bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs h-9 gap-1.5 shadow-sm">
+                  <Plus className="w-4 h-4 text-[#FFB600]" />
                   Declarar Recorrido
                 </Button>
               </DialogTrigger>
@@ -819,14 +819,14 @@ export function AprobacionPasajes() {
       {/* PESTAÑAS PRINCIPALES DEL MÓDULO DE PASAJES                      */}
       {/* ============================================================== */}
       {!es_becario && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E3DCCB] pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E5E7EB] pb-3">
           <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
             <button
               type="button"
               onClick={() => set_subpestana("planillas")}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
                 subpestana === "planillas"
-                  ? "bg-[#063A6B] text-white shadow-xs"
+                  ? "bg-[#035683] text-white shadow-xs"
                   : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
               }`}
             >
@@ -848,7 +848,7 @@ export function AprobacionPasajes() {
                 onClick={() => set_subpestana("detalle")}
                 className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
                   subpestana === "detalle"
-                    ? "bg-[#063A6B] text-white shadow-xs"
+                    ? "bg-[#035683] text-white shadow-xs"
                     : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
                 }`}
               >
@@ -869,7 +869,7 @@ export function AprobacionPasajes() {
               onClick={() => set_subpestana("tarifario")}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
                 subpestana === "tarifario"
-                  ? "bg-[#063A6B] text-white shadow-xs"
+                  ? "bg-[#035683] text-white shadow-xs"
                   : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
               }`}
             >
@@ -884,10 +884,10 @@ export function AprobacionPasajes() {
                 variant="ghost"
                 size="sm"
                 onClick={() => set_vista_dividida(!vista_dividida)}
-                className="h-8 text-xs text-slate-600 hover:text-[#063A6B] border border-slate-200 bg-white shadow-2xs rounded-lg"
+                className="h-8 text-xs text-slate-600 hover:text-[#035683] border border-slate-200 bg-white shadow-2xs rounded-lg"
                 title="Alternar vista combinada de tabla y detalle al pie"
               >
-                <Columns className="w-3.5 h-3.5 mr-1.5 text-[#17B4C4]" />
+                <Columns className="w-3.5 h-3.5 mr-1.5 text-[#00ABBD]" />
                 {vista_dividida ? "Ocultar Detalle al Pie" : "Ver Detalle al Pie"}
               </Button>
             )}
@@ -904,7 +904,7 @@ export function AprobacionPasajes() {
           {/* ============================================================== */}
           {/* TARJETA 1: FORMULARIOS DEL MES (TABLA PRINCIPAL)              */}
           {/* ============================================================== */}
-          <Card className="border-[#E3DCCB] shadow-xs bg-white rounded-2xl overflow-hidden">
+          <Card className="border-[#E5E7EB] shadow-xs bg-white rounded-2xl overflow-hidden">
             <CardHeader className="pb-3 pt-5 px-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
@@ -923,7 +923,7 @@ export function AprobacionPasajes() {
                     onClick={() => set_filtro_estado("todos")}
                     className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                       filtro_estado === "todos"
-                        ? "bg-white text-[#063A6B] shadow-2xs font-bold"
+                        ? "bg-white text-[#035683] shadow-2xs font-bold"
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
@@ -1073,10 +1073,10 @@ export function AprobacionPasajes() {
                                     set_solicitud_seleccionada(item);
                                     set_subpestana("detalle");
                                   }}
-                                  className="h-8 px-2.5 text-xs font-bold border-[#17B4C4]/60 text-[#063A6B] hover:bg-[#17B4C4]/10 rounded-lg flex items-center gap-1.5 shadow-2xs"
+                                  className="h-8 px-2.5 text-xs font-bold border-[#00ABBD]/60 text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg flex items-center gap-1.5 shadow-2xs"
                                   title="Ver detalles y trazabilidad de calles declaradas"
                                 >
-                                  <Eye className="h-4 w-4 text-[#063A6B]" />
+                                  <Eye className="h-4 w-4 text-[#035683]" />
                                   <span className="hidden sm:inline">Ver</span>
                                 </Button>
                                 {es_pendiente ? (
@@ -1116,10 +1116,10 @@ export function AprobacionPasajes() {
       {/* DIÁLOGO MODAL: CANVAS PARA FIRMA DIGITAL DEL SUPERVISOR        */}
       {/* ============================================================== */}
       <Dialog open={dialogo_firma_abierto} onOpenChange={set_dialogo_firma_abierto}>
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-2xl bg-white border border-[#E3DCCB]">
-          <DialogHeader className="p-5 pb-3 border-b border-[#E3DCCB] bg-[#F8F9FA]">
-            <DialogTitle className="font-display text-base text-[#063A6B] flex items-center gap-2">
-              <PenTool className="w-4 h-4 text-[#17B4C4]" />
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-2xl bg-white border border-[#E5E7EB]">
+          <DialogHeader className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA]">
+            <DialogTitle className="font-display text-base text-[#035683] flex items-center gap-2">
+              <PenTool className="w-4 h-4 text-[#00ABBD]" />
               Firma Digital de Aprobación
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
@@ -1128,7 +1128,7 @@ export function AprobacionPasajes() {
           </DialogHeader>
 
           <div className="p-5 space-y-4">
-            <div className="rounded-xl border border-dashed border-[#17B4C4] bg-slate-50/50 p-2 overflow-hidden flex justify-center">
+            <div className="rounded-xl border border-dashed border-[#00ABBD] bg-slate-50/50 p-2 overflow-hidden flex justify-center">
               <canvas
                 ref={canvas_ref}
                 width={360}
@@ -1149,7 +1149,7 @@ export function AprobacionPasajes() {
               <button
                 type="button"
                 onClick={limpiarFirma}
-                className="text-xs text-rose-500 hover:text-rose-700 font-semibold flex items-center gap-1"
+                className="text-xs text-[#E2694B] hover:text-[#c9573b] font-semibold flex items-center gap-1"
               >
                 <RotateCcw className="w-3 h-3" />
                 Limpiar trazo
@@ -1157,19 +1157,19 @@ export function AprobacionPasajes() {
             </div>
           </div>
 
-          <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-slate-50 flex sm:justify-between items-center gap-2">
+          <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-slate-50 flex sm:justify-between items-center gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => set_dialogo_firma_abierto(false)}
-              className="text-xs border-[#E3DCCB]"
+              className="text-xs border-[#E5E7EB]"
             >
               Cancelar
             </Button>
             <Button
               type="button"
               onClick={guardarFirmaModal}
-              className="text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+              className="text-xs font-bold rounded-xl bg-[#007BBE] hover:bg-[#035683] text-white shadow-xs"
             >
               <Check className="w-3.5 h-3.5 mr-1" />
               Convalidar y Aprobar
@@ -1182,7 +1182,7 @@ export function AprobacionPasajes() {
       {/* DIÁLOGO MODAL: CONFIRMACIÓN DE RECHAZO CON OBSERVACIÓN         */}
       {/* ============================================================== */}
       <AlertDialog open={modal_observacion} onOpenChange={set_modal_observacion}>
-        <AlertDialogContent className="sm:max-w-[440px] bg-white rounded-2xl border-[#E3DCCB]">
+        <AlertDialogContent className="sm:max-w-[440px] bg-white rounded-2xl border-[#E5E7EB]">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-base font-bold text-[#E2694B] flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-[#E2694B]" />
@@ -1214,7 +1214,7 @@ export function AprobacionPasajes() {
                   set_texto_observacion(e.target.value);
                   if (error_rechazo) set_error_rechazo("");
                 }}
-                className={`w-full p-2.5 text-xs rounded-xl border-[#E3DCCB] focus-visible:ring-[#17B4C4] ${
+                className={`w-full p-2.5 text-xs rounded-xl border-[#E5E7EB] focus-visible:ring-[#00ABBD] ${
                   error_rechazo ? "border-[#E2694B] bg-[#E2694B]/5 focus-visible:ring-[#E2694B]" : ""
                 }`}
               />
@@ -1242,15 +1242,15 @@ export function AprobacionPasajes() {
         open={!!solicitud_seleccionada}
         onOpenChange={(abierto) => !abierto && set_solicitud_seleccionada(null)}
       >
-        <DialogContent className="max-w-3xl rounded-2xl p-0 overflow-hidden bg-white border border-[#E3DCCB] shadow-2xl">
-          <DialogHeader className="p-5 pb-3 border-b border-[#E3DCCB] bg-[#F8F9FA]">
+        <DialogContent className="max-w-3xl rounded-2xl p-0 overflow-hidden bg-white border border-[#E5E7EB] shadow-2xl">
+          <DialogHeader className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA]">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#063A6B]/10 text-[#063A6B] flex items-center justify-center font-bold text-sm shrink-0">
-                  <Bus className="w-5 h-5 text-[#063A6B]" />
+                <div className="w-9 h-9 rounded-xl bg-[#035683]/10 text-[#035683] flex items-center justify-center font-bold text-sm shrink-0">
+                  <Bus className="w-5 h-5 text-[#035683]" />
                 </div>
                 <div>
-                  <DialogTitle className="text-base font-bold text-[#063A6B]">
+                  <DialogTitle className="text-base font-bold text-[#035683]">
                     Expediente de Recorridos Declarados · {solicitud_seleccionada?.becario_nombre}
                   </DialogTitle>
                   <DialogDescription className="text-xs text-muted-foreground">
@@ -1259,7 +1259,7 @@ export function AprobacionPasajes() {
                 </div>
               </div>
 
-              <Badge variant="outline" className="border-[#E3DCCB] text-[#063A6B] font-mono text-xs">
+              <Badge variant="outline" className="border-[#E5E7EB] text-[#035683] font-mono text-xs">
                 {solicitud_seleccionada?.recorridos.length} Recorridos Declarados
               </Badge>
             </div>
@@ -1278,7 +1278,7 @@ export function AprobacionPasajes() {
               </div>
               <div>
                 <span className="text-[10px] uppercase font-mono text-muted-foreground block">Actividad Declarada</span>
-                <span className="font-bold text-[#063A6B] text-xs">{solicitud_seleccionada?.tipo_actividad || "Prácticas"}</span>
+                <span className="font-bold text-[#035683] text-xs">{solicitud_seleccionada?.tipo_actividad || "Prácticas"}</span>
               </div>
             </div>
 
@@ -1296,7 +1296,7 @@ export function AprobacionPasajes() {
             </div>
 
             {/* Liquidación institucional del 80% */}
-            <div className="p-4 rounded-xl bg-gradient-to-br from-[#063A6B] to-[#04284d] text-white flex items-center justify-between">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-[#035683] to-[#035683] text-white flex items-center justify-between">
               <div>
                 <span className="text-[11px] font-mono text-white/80 block">Monto total de pasajes declarados:</span>
                 <span className="text-lg font-mono font-bold text-white">
@@ -1304,17 +1304,17 @@ export function AprobacionPasajes() {
                 </span>
               </div>
               <div className="text-right">
-                <span className="text-[11px] font-mono text-[#7FE0E6] font-bold uppercase block">
+                <span className="text-[11px] font-mono text-[#00ABBD] font-bold uppercase block">
                   Reembolso Institucional del 80%:
                 </span>
-                <span className="text-2xl font-display font-bold text-[#F8C766]">
+                <span className="text-2xl font-display font-bold text-[#FFB600]">
                   Bs {((solicitud_seleccionada?.monto_devolucion_centavos || 0) / 100).toFixed(2)}
                 </span>
               </div>
             </div>
           </div>
 
-          <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-[#F8F9FA] flex justify-end gap-2">
+          <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] flex justify-end gap-2">
             <Button
               type="button"
               variant="outline"

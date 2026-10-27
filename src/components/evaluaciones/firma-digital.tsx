@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRef, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -23,7 +23,7 @@ export function FirmaDigital({ alFirmar }: { alFirmar: (firma_base64: string) =>
         contexto.lineJoin = "round";
         contexto.lineCap = "round";
         contexto.lineWidth = 2.5;
-        contexto.strokeStyle = "#063A6B";
+        contexto.strokeStyle = "#035683";
       }
     }
   }, []);
@@ -88,9 +88,9 @@ export function FirmaDigital({ alFirmar }: { alFirmar: (firma_base64: string) =>
   };
 
   return (
-    <Card className="border-[#E3DCCB] shadow-sm w-full max-w-md mx-auto max-h-[90vh] flex flex-col overflow-hidden bg-white rounded-2xl">
-      <CardHeader className="pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
-        <CardTitle className="font-display text-[#063A6B] text-lg">
+    <Card className="border-[#E5E7EB] shadow-sm w-full max-w-md mx-auto max-h-[90vh] flex flex-col overflow-hidden bg-white rounded-2xl">
+      <CardHeader className="pb-4 border-b border-[#E5E7EB] shrink-0 bg-white">
+        <CardTitle className="font-display text-[#035683] text-lg">
           Firma Electrónica
         </CardTitle>
         <CardDescription className="text-muted-foreground text-[12px]">
@@ -98,7 +98,7 @@ export function FirmaDigital({ alFirmar }: { alFirmar: (firma_base64: string) =>
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6 pt-5 space-y-4 overflow-y-auto flex-1">
-        <div className="border-2 border-dashed border-[#C9E5E4] rounded-xl bg-[#F6F2E9] overflow-hidden flex justify-center items-center touch-none">
+        <div className="border-2 border-dashed border-[#C9E5E4] rounded-xl bg-[#F8FAFC] overflow-hidden flex justify-center items-center touch-none">
           <canvas
             ref={lienzo_ref}
             width={350}
@@ -118,14 +118,14 @@ export function FirmaDigital({ alFirmar }: { alFirmar: (firma_base64: string) =>
           <Button 
             variant="outline" 
             onClick={limpiarLienzo}
-            className="flex-1 font-bold text-[#5B6D77] border-[#E3DCCB] rounded-xl"
+            className="flex-1 font-bold text-[#5B6D77] border-[#E5E7EB] rounded-xl"
           >
             Limpiar
           </Button>
           <Button 
             onClick={manejarGuardado}
             disabled={!tiene_firma}
-            className="flex-1 font-bold bg-[#17B4C4] hover:bg-[#17B4C4]/90 text-[#063A6B] rounded-xl"
+            className="flex-1 font-bold bg-[#00ABBD] hover:bg-[#00ABBD]/90 text-[#035683] rounded-xl"
           >
             Aprobar y Firmar
           </Button>

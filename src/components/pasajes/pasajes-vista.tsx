@@ -107,7 +107,7 @@ export const obtenerEstiloTransporte = (medio?: string) => {
   if (m.includes("morada")) return "bg-purple-50 text-purple-700 border-purple-300 font-semibold";
   if (m.includes("azul")) return "bg-blue-50 text-blue-700 border-blue-300 font-semibold";
   if (m.includes("plateada")) return "bg-zinc-100 text-zinc-800 border-zinc-400 font-semibold";
-  if (m.includes("teleférico") || m.includes("teleferico")) return "bg-teal-50 text-teal-800 border-teal-300 font-semibold";
+  if (m.includes("teleférico") || m.includes("teleferico")) return "bg-[#00ABBD]/10 text-[#00808E] border-[#00ABBD]/30 font-semibold";
   if (m.includes("minibús") || m.includes("minibus")) return "bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold";
   if (m.includes("micro")) return "bg-orange-50 text-orange-800 border-orange-300 font-semibold";
   return "bg-sky-50 text-sky-800 border-sky-300 font-semibold";
@@ -475,7 +475,7 @@ export function PasajesVista() {
     const rect = canvas.getBoundingClientRect();
     ctx.lineWidth = 2.5;
     ctx.lineCap = "round";
-    ctx.strokeStyle = "#063A6B";
+    ctx.strokeStyle = "#035683";
     ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
     ctx.stroke();
   };
@@ -508,8 +508,8 @@ export function PasajesVista() {
       {/* Cabecera y Alertas Institucionales */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold font-display text-[#063A6B] flex items-center gap-2">
-            <Bus className="w-6 h-6 text-[#17B4C4]" />
+          <h2 className="text-xl font-bold font-display text-[#035683] flex items-center gap-2">
+            <Bus className="w-6 h-6 text-[#00ABBD]" />
             Módulo de Declaración y Liquidación de Pasajes (80%)
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
@@ -518,15 +518,15 @@ export function PasajesVista() {
         </div>
 
         {/* Interruptor de prueba institucional para auditar la regla del Día 24 */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[#E3DCCB] bg-slate-50 shrink-0">
-          <Label htmlFor="switch-dia-24" className="text-[11px] font-mono font-medium text-[#063A6B] cursor-pointer">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[#E5E7EB] bg-slate-50 shrink-0">
+          <Label htmlFor="switch-dia-24" className="text-[11px] font-mono font-medium text-[#035683] cursor-pointer">
             Simular Día 24 ({dia_real}/mes)
           </Label>
           <Switch
             id="switch-dia-24"
             checked={simular_dia_24}
             onCheckedChange={set_simular_dia_24}
-            className="data-[state=checked]:bg-[#17B4C4]"
+            className="data-[state=checked]:bg-[#00ABBD]"
           />
         </div>
       </div>
@@ -537,12 +537,12 @@ export function PasajesVista() {
         {/* COLUMNA IZQUIERDA: FLUJO DE 2 PASOS (IDA Y VUELTA)             */}
         {/* ============================================================== */}
         <div className="lg:col-span-7 space-y-6">
-          <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl overflow-hidden">
-            <CardHeader className="pb-3 border-b border-[#E3DCCB]/60 bg-[#F8F9FA]/80">
+          <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl overflow-hidden">
+            <CardHeader className="pb-3 border-b border-[#E5E7EB]/60 bg-[#F8F9FA]/80">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="font-display text-base text-[#063A6B] flex items-center gap-2">
-                    <Navigation className="w-4 h-4 text-[#17B4C4]" />
+                  <CardTitle className="font-display text-base text-[#035683] flex items-center gap-2">
+                    <Navigation className="w-4 h-4 text-[#00ABBD]" />
                     Registro de Recorrido Diario
                   </CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
@@ -555,23 +555,23 @@ export function PasajesVista() {
                     type="date"
                     value={fecha_recorrido}
                     onChange={(e) => set_fecha_recorrido(e.target.value)}
-                    className="h-8 text-xs font-mono w-32 border-[#E3DCCB]"
+                    className="h-8 text-xs font-mono w-32 border-[#E5E7EB]"
                   />
                 </div>
               </div>
 
               {/* TABS DE PASOS: PASO 1 (IDA) VS PASO 2 (VUELTA) */}
-              <div className="flex rounded-xl p-1 bg-slate-200/70 border border-[#E3DCCB]/80 mt-3">
+              <div className="flex rounded-xl p-1 bg-slate-200/70 border border-[#E5E7EB]/80 mt-3">
                 <button
                   type="button"
                   onClick={() => set_paso_actual("ida")}
                   className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                     paso_actual === "ida"
-                      ? "bg-[#063A6B] text-white shadow-xs"
-                      : "text-slate-600 hover:text-[#063A6B]"
+                      ? "bg-[#035683] text-white shadow-xs"
+                      : "text-slate-600 hover:text-[#035683]"
                   }`}
                 >
-                  <span className="w-2 h-2 rounded-full bg-[#17B4C4]" />
+                  <span className="w-2 h-2 rounded-full bg-[#00ABBD]" />
                   Paso 1: Ida ({paradas_ida.length} paradas · Bs {total_ida.toFixed(2)})
                 </button>
                 <button
@@ -579,11 +579,11 @@ export function PasajesVista() {
                   onClick={() => set_paso_actual("vuelta")}
                   className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                     paso_actual === "vuelta"
-                      ? "bg-[#063A6B] text-white shadow-xs"
-                      : "text-slate-600 hover:text-[#063A6B]"
+                      ? "bg-[#035683] text-white shadow-xs"
+                      : "text-slate-600 hover:text-[#035683]"
                   }`}
                 >
-                  <span className="w-2 h-2 rounded-full bg-[#F8C766]" />
+                  <span className="w-2 h-2 rounded-full bg-[#FFB600]" />
                   Paso 2: Vuelta ({paradas_vuelta.length} paradas · Bs {total_vuelta.toFixed(2)})
                 </button>
               </div>
@@ -596,11 +596,11 @@ export function PasajesVista() {
               {paso_actual === "ida" && (
                 <div className="space-y-5 animate-in fade-in-50">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono uppercase font-bold text-[#063A6B] tracking-wider flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#17B4C4]" />
+                    <span className="text-xs font-mono uppercase font-bold text-[#035683] tracking-wider flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#00ABBD]" />
                       Ruta de Ida
                     </span>
-                    <span className="font-mono text-sm font-bold text-[#063A6B]">
+                    <span className="font-mono text-sm font-bold text-[#035683]">
                       Tarifa Ida: Bs {total_ida.toFixed(2)}
                     </span>
                   </div>
@@ -610,16 +610,16 @@ export function PasajesVista() {
                     {paradas_ida.map((parada) => (
                       <div
                         key={parada.id}
-                        className="flex items-center gap-2 p-2 rounded-xl border border-[#E3DCCB] bg-white hover:border-[#17B4C4]/50 transition-colors"
+                        className="flex items-center gap-2 p-2 rounded-xl border border-[#E5E7EB] bg-white hover:border-[#00ABBD]/50 transition-colors"
                       >
-                        <span className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center font-mono font-bold text-xs text-[#063A6B] shrink-0">
+                        <span className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center font-mono font-bold text-xs text-[#035683] shrink-0">
                           {parada.numero}
                         </span>
 
                         <button
                           type="button"
                           onClick={() => capturarGpsParada("ida", parada.id)}
-                          className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-[#17B4C4] transition-colors shrink-0"
+                          className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-[#00ABBD] transition-colors shrink-0"
                           title="Obtener coordenadas GPS en este punto"
                         >
                           <MapPin className="w-4 h-4" />
@@ -641,7 +641,7 @@ export function PasajesVista() {
                           className={`h-8 px-3 text-xs font-bold shrink-0 rounded-lg transition-all ${
                             parada.confirmada
                               ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
-                              : "border-[#E3DCCB] text-[#063A6B] hover:bg-slate-50"
+                              : "border-[#E5E7EB] text-[#035683] hover:bg-slate-50"
                           }`}
                         >
                           {parada.confirmada ? (
@@ -662,7 +662,7 @@ export function PasajesVista() {
                     <button
                       type="button"
                       onClick={() => agregarParada("ida")}
-                      className="text-xs font-bold text-[#17B4C4] hover:text-[#0E7A85] flex items-center gap-1 transition-colors"
+                      className="text-xs font-bold text-[#00ABBD] hover:text-[#00808E] flex items-center gap-1 transition-colors"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       Agregar parada
@@ -672,15 +672,15 @@ export function PasajesVista() {
                     </span>
                   </div>
 
-                  <Separator className="bg-[#E3DCCB]/60" />
+                  <Separator className="bg-[#E5E7EB]/60" />
 
                   {/* SELECTORES DE TARIFA DE LA IDA */}
-                  <div className="p-4 rounded-xl border border-[#E3DCCB] bg-slate-50/60 space-y-3">
+                  <div className="p-4 rounded-xl border border-[#E5E7EB] bg-slate-50/60 space-y-3">
                     <div className="flex items-center justify-between">
                       <Label className="text-xs font-mono uppercase font-bold text-muted-foreground">
                         TARIFA DE LA IDA
                       </Label>
-                      <span className="text-xs font-mono font-bold text-[#063A6B]">
+                      <span className="text-xs font-mono font-bold text-[#035683]">
                         Subtotal: Bs {total_ida.toFixed(2)}
                       </span>
                     </div>
@@ -694,12 +694,17 @@ export function PasajesVista() {
                               if (val) actualizarTarifa("ida", tramo.id, val);
                             }}
                           >
-                            <SelectTrigger className="flex-1 w-full h-9 px-3 rounded-lg border border-[#E3DCCB] bg-white text-xs font-medium text-[#1E293B] focus-visible:border-[#17B4C4]">
+                            <SelectTrigger className="flex-1 w-full h-9 px-3 rounded-lg border border-[#E5E7EB] bg-white text-xs font-medium text-[#1E293B] focus-visible:border-[#00ABBD]">
                               <SelectValue placeholder="Selecciona una tarifa oficial..." />
                             </SelectTrigger>
-                            <SelectContent className="bg-white border-[#E3DCCB] max-h-60 shadow-lg z-[100]">
+                            <SelectContent className="bg-white border-[#E5E7EB] max-h-60 shadow-lg z-[100]">
                               {OPCIONES_TARIFAS_LOCALES.map((opc) => (
-                                <SelectItem key={opc.codigo} value={opc.codigo} className="text-xs py-2 cursor-pointer hover:bg-slate-50">
+                                <SelectItem
+                                  key={opc.codigo}
+                                  value={opc.codigo}
+                                  etiqueta={opc.label}
+                                  className="text-xs py-2 cursor-pointer hover:bg-slate-50"
+                                >
                                   {opc.label}
                                 </SelectItem>
                               ))}
@@ -721,7 +726,7 @@ export function PasajesVista() {
                                   )
                                 );
                               }}
-                              className="w-20 h-9 text-xs font-mono border-[#E3DCCB]"
+                              className="w-20 h-9 text-xs font-mono border-[#E5E7EB]"
                             />
                           )}
 
@@ -742,7 +747,7 @@ export function PasajesVista() {
                     <button
                       type="button"
                       onClick={() => agregarTramoTarifa("ida")}
-                      className="text-xs font-bold text-[#063A6B] hover:text-[#17B4C4] flex items-center gap-1 transition-colors pt-1"
+                      className="text-xs font-bold text-[#035683] hover:text-[#00ABBD] flex items-center gap-1 transition-colors pt-1"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       Agregar tramo de tarifa (transbordo)
@@ -761,7 +766,7 @@ export function PasajesVista() {
                         toast.success("Ruta de ida guardada temporalmente");
                         set_paso_actual("vuelta");
                       }}
-                      className="bg-[#17B4C4] hover:bg-[#0E7A85] text-white font-bold text-xs rounded-xl h-10 px-5"
+                      className="bg-[#00ABBD] hover:bg-[#00808E] text-white font-bold text-xs rounded-xl h-10 px-5"
                     >
                       Siguiente: Vuelta →
                     </Button>
@@ -778,7 +783,7 @@ export function PasajesVista() {
                     <button
                       type="button"
                       onClick={() => set_paso_actual("ida")}
-                      className="text-xs font-bold text-muted-foreground hover:text-[#063A6B] flex items-center gap-1"
+                      className="text-xs font-bold text-muted-foreground hover:text-[#035683] flex items-center gap-1"
                     >
                       ← Volver a Ida
                     </button>
@@ -789,19 +794,19 @@ export function PasajesVista() {
                       variant="outline"
                       size="sm"
                       onClick={usarIdaEnReversa}
-                      className="border-[#063A6B] text-[#063A6B] hover:bg-[#063A6B]/5 font-bold text-xs rounded-xl h-8 px-3"
+                      className="border-[#035683] text-[#035683] hover:bg-[#035683]/5 font-bold text-xs rounded-xl h-8 px-3"
                     >
-                      <RotateCcw className="w-3.5 h-3.5 mr-1 text-[#17B4C4]" />
+                      <RotateCcw className="w-3.5 h-3.5 mr-1 text-[#00ABBD]" />
                       ↺ Usar la ida en reversa
                     </Button>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono uppercase font-bold text-[#063A6B] tracking-wider flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#F8C766]" />
+                    <span className="text-xs font-mono uppercase font-bold text-[#035683] tracking-wider flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#FFB600]" />
                       Ruta de Vuelta
                     </span>
-                    <span className="font-mono text-sm font-bold text-[#063A6B]">
+                    <span className="font-mono text-sm font-bold text-[#035683]">
                       Tarifa Vuelta: Bs {total_vuelta.toFixed(2)}
                     </span>
                   </div>
@@ -811,16 +816,16 @@ export function PasajesVista() {
                     {paradas_vuelta.map((parada) => (
                       <div
                         key={parada.id}
-                        className="flex items-center gap-2 p-2 rounded-xl border border-[#E3DCCB] bg-white hover:border-[#F8C766]/80 transition-colors"
+                        className="flex items-center gap-2 p-2 rounded-xl border border-[#E5E7EB] bg-white hover:border-[#FFB600]/80 transition-colors"
                       >
-                        <span className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center font-mono font-bold text-xs text-[#063A6B] shrink-0">
+                        <span className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center font-mono font-bold text-xs text-[#035683] shrink-0">
                           {parada.numero}
                         </span>
 
                         <button
                           type="button"
                           onClick={() => capturarGpsParada("vuelta", parada.id)}
-                          className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-[#17B4C4] transition-colors shrink-0"
+                          className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-[#00ABBD] transition-colors shrink-0"
                           title="Obtener coordenadas GPS en este punto"
                         >
                           <MapPin className="w-4 h-4" />
@@ -842,7 +847,7 @@ export function PasajesVista() {
                           className={`h-8 px-3 text-xs font-bold shrink-0 rounded-lg transition-all ${
                             parada.confirmada
                               ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
-                              : "border-[#E3DCCB] text-[#063A6B] hover:bg-slate-50"
+                              : "border-[#E5E7EB] text-[#035683] hover:bg-slate-50"
                           }`}
                         >
                           {parada.confirmada ? (
@@ -863,7 +868,7 @@ export function PasajesVista() {
                     <button
                       type="button"
                       onClick={() => agregarParada("vuelta")}
-                      className="text-xs font-bold text-[#17B4C4] hover:text-[#0E7A85] flex items-center gap-1 transition-colors"
+                      className="text-xs font-bold text-[#00ABBD] hover:text-[#00808E] flex items-center gap-1 transition-colors"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       Agregar parada de retorno
@@ -873,15 +878,15 @@ export function PasajesVista() {
                     </span>
                   </div>
 
-                  <Separator className="bg-[#E3DCCB]/60" />
+                  <Separator className="bg-[#E5E7EB]/60" />
 
                   {/* SELECTORES DE TARIFA DE LA VUELTA */}
-                  <div className="p-4 rounded-xl border border-[#E3DCCB] bg-slate-50/60 space-y-3">
+                  <div className="p-4 rounded-xl border border-[#E5E7EB] bg-slate-50/60 space-y-3">
                     <div className="flex items-center justify-between">
                       <Label className="text-xs font-mono uppercase font-bold text-muted-foreground">
                         TARIFA DE LA VUELTA
                       </Label>
-                      <span className="text-xs font-mono font-bold text-[#063A6B]">
+                      <span className="text-xs font-mono font-bold text-[#035683]">
                         Subtotal: Bs {total_vuelta.toFixed(2)}
                       </span>
                     </div>
@@ -895,12 +900,17 @@ export function PasajesVista() {
                               if (val) actualizarTarifa("vuelta", tramo.id, val);
                             }}
                           >
-                            <SelectTrigger className="flex-1 w-full h-9 px-3 rounded-lg border border-[#E3DCCB] bg-white text-xs font-medium text-[#1E293B] focus-visible:border-[#17B4C4]">
+                            <SelectTrigger className="flex-1 w-full h-9 px-3 rounded-lg border border-[#E5E7EB] bg-white text-xs font-medium text-[#1E293B] focus-visible:border-[#00ABBD]">
                               <SelectValue placeholder="Selecciona una tarifa oficial..." />
                             </SelectTrigger>
-                            <SelectContent className="bg-white border-[#E3DCCB] max-h-60 shadow-lg z-[100]">
+                            <SelectContent className="bg-white border-[#E5E7EB] max-h-60 shadow-lg z-[100]">
                               {OPCIONES_TARIFAS_LOCALES.map((opc) => (
-                                <SelectItem key={opc.codigo} value={opc.codigo} className="text-xs py-2 cursor-pointer hover:bg-slate-50">
+                                <SelectItem
+                                  key={opc.codigo}
+                                  value={opc.codigo}
+                                  etiqueta={opc.label}
+                                  className="text-xs py-2 cursor-pointer hover:bg-slate-50"
+                                >
                                   {opc.label}
                                 </SelectItem>
                               ))}
@@ -922,7 +932,7 @@ export function PasajesVista() {
                                   )
                                 );
                               }}
-                              className="w-20 h-9 text-xs font-mono border-[#E3DCCB]"
+                              className="w-20 h-9 text-xs font-mono border-[#E5E7EB]"
                             />
                           )}
 
@@ -943,7 +953,7 @@ export function PasajesVista() {
                     <button
                       type="button"
                       onClick={() => agregarTramoTarifa("vuelta")}
-                      className="text-xs font-bold text-[#063A6B] hover:text-[#17B4C4] flex items-center gap-1 transition-colors pt-1"
+                      className="text-xs font-bold text-[#035683] hover:text-[#00ABBD] flex items-center gap-1 transition-colors pt-1"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       Agregar tramo de tarifa (transbordo)
@@ -953,20 +963,20 @@ export function PasajesVista() {
               )}
 
               {/* ESTADO DE CAPTURA Y MAPA VECTORIAL SVG */}
-              <div className="p-3.5 rounded-xl border border-[#E3DCCB]/80 bg-slate-50 space-y-2">
+              <div className="p-3.5 rounded-xl border border-[#E5E7EB]/80 bg-slate-50 space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-mono text-muted-foreground">
                     {total_puntos_capturados === 0
                       ? "Aún no hay puntos capturados."
                       : `${total_puntos_capturados} puntos capturados en la jornada.`}
                   </span>
-                  <Badge variant="outline" className="font-mono text-[10px] bg-white border-[#E3DCCB]">
+                  <Badge variant="outline" className="font-mono text-[10px] bg-white border-[#E5E7EB]">
                     Georuta El Alto ↔ La Paz
                   </Badge>
                 </div>
 
                 {/* Vector SVG estilizado de ruta El Alto - La Paz */}
-                <div className="w-full h-24 bg-white rounded-lg border border-[#E3DCCB]/60 p-2 flex items-center justify-center">
+                <div className="w-full h-24 bg-white rounded-lg border border-[#E5E7EB]/60 p-2 flex items-center justify-center">
                   <svg viewBox="0 0 400 90" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
                     <path
                       d="M20,65 Q110,25 200,45 T380,30"
@@ -978,22 +988,22 @@ export function PasajesVista() {
                     <path
                       d="M30,75 Q130,55 220,35 T370,55"
                       fill="none"
-                      stroke="#F8C766"
+                      stroke="#FFB600"
                       strokeWidth="2.5"
                       strokeDasharray="5 4"
                       strokeLinecap="round"
                       opacity="0.8"
                     />
-                    <circle cx="20" cy="65" r="5" fill="#17B4C4" />
-                    <circle cx="200" cy="45" r="5" fill="#17B4C4" />
-                    <circle cx="380" cy="30" r="6" fill="#063A6B" />
+                    <circle cx="20" cy="65" r="5" fill="#00ABBD" />
+                    <circle cx="200" cy="45" r="5" fill="#00ABBD" />
+                    <circle cx="380" cy="30" r="6" fill="#035683" />
                     <text x="20" y="82" fontSize="9" fill="#5B6D77" fontFamily="sans-serif">
                       El Alto (Origen)
                     </text>
-                    <text x="200" y="20" fontSize="9" fill="#17B4C4" fontFamily="sans-serif" textAnchor="middle">
+                    <text x="200" y="20" fontSize="9" fill="#00ABBD" fontFamily="sans-serif" textAnchor="middle">
                       Ceja / Autopista
                     </text>
-                    <text x="380" y="82" fontSize="9" fill="#063A6B" fontFamily="sans-serif" textAnchor="end">
+                    <text x="380" y="82" fontSize="9" fill="#035683" fontFamily="sans-serif" textAnchor="end">
                       La Paz (Sede Diaconía)
                     </text>
                   </svg>
@@ -1001,12 +1011,12 @@ export function PasajesVista() {
               </div>
 
               {/* BARRA DE MONTO DEL DÍA Y BOTÓN DE GUARDAR RECORRIDO */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-[#063A6B] text-white">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-[#035683] text-white">
                 <div>
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-[#7FE0E6] block">
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-[#00ABBD] block">
                     MONTO CALCULADO DEL DÍA
                   </span>
-                  <span className="text-2xl font-display font-bold text-[#F8C766]">
+                  <span className="text-2xl font-display font-bold text-[#FFB600]">
                     Bs {monto_del_dia.toFixed(2)}
                   </span>
                   <span className="text-[11px] text-white/70 block font-mono">
@@ -1017,7 +1027,7 @@ export function PasajesVista() {
                 <Button
                   type="button"
                   onClick={guardarRecorridoDelDia}
-                  className="bg-[#F8C766] hover:bg-[#F5A623] text-[#3A2400] font-bold text-xs rounded-xl h-10 px-5 shadow-sm"
+                  className="bg-[#FFB600] hover:bg-[#FFB600] text-[#3A2400] font-bold text-xs rounded-xl h-10 px-5 shadow-sm"
                 >
                   <Plus className="w-4 h-4 mr-1.5" />
                   Guardar Recorrido del Día
@@ -1031,18 +1041,18 @@ export function PasajesVista() {
         {/* COLUMNA DERECHA: DETALLE DEL FORMULARIO MENSUAL Y DÍA 24       */}
         {/* ============================================================== */}
         <div className="lg:col-span-5 space-y-6">
-          <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl flex flex-col">
-            <CardHeader className="pb-3 border-b border-[#E3DCCB]/60 bg-[#F8F9FA]/80">
+          <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl flex flex-col">
+            <CardHeader className="pb-3 border-b border-[#E5E7EB]/60 bg-[#F8F9FA]/80">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="font-display text-base text-[#063A6B]">
+                  <CardTitle className="font-display text-base text-[#035683]">
                     Formulario Mensual de Pasajes
                   </CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
                     Liquidación para el reembolso institucional del 80%.
                   </CardDescription>
                 </div>
-                <Badge className="bg-[#17B4C4] text-white font-mono text-[11px]">
+                <Badge className="bg-[#00ABBD] text-white font-mono text-[11px]">
                   {recorridos.length} Recorridos
                 </Badge>
               </div>
@@ -1050,10 +1060,10 @@ export function PasajesVista() {
 
             <CardContent className="p-5 space-y-5">
               {/* FICHA TÉCNICA DEL BECARIO */}
-              <div className="space-y-2 text-xs border border-[#E3DCCB] p-3 rounded-xl bg-slate-50/50">
+              <div className="space-y-2 text-xs border border-[#E5E7EB] p-3 rounded-xl bg-slate-50/50">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Becario:</span>
-                  <span className="font-bold text-[#063A6B]">
+                  <span className="font-bold text-[#035683]">
                     {usuario?.nombre || "María Catunta Laime"}
                   </span>
                 </div>
@@ -1082,18 +1092,18 @@ export function PasajesVista() {
                     variant="outline"
                     onClick={descargarExpedientePdf}
                     disabled={descargando_pdf}
-                    className="h-7 px-2.5 text-[11px] font-bold border-[#063A6B] text-[#063A6B] hover:bg-slate-100 rounded-lg gap-1.5 shadow-2xs"
+                    className="h-7 px-2.5 text-[11px] font-bold border-[#035683] text-[#035683] hover:bg-slate-100 rounded-lg gap-1.5 shadow-2xs"
                     title="Exportar expediente mensual de recorridos a PDF con Puppeteer"
                   >
                     {descargando_pdf ? (
-                      <Loader2 className="w-3 h-3 animate-spin text-[#17B4C4]" />
+                      <Loader2 className="w-3 h-3 animate-spin text-[#00ABBD]" />
                     ) : (
-                      <Printer className="w-3 h-3 text-[#17B4C4]" />
+                      <Printer className="w-3 h-3 text-[#00ABBD]" />
                     )}
                     <span>Exportar PDF</span>
                   </Button>
                 </div>
-                <div className="overflow-y-auto max-h-[250px] space-y-2 border border-[#E3DCCB]/80 rounded-xl p-2 bg-white">
+                <div className="overflow-y-auto max-h-[250px] space-y-2 border border-[#E5E7EB]/80 rounded-xl p-2 bg-white">
                   {recorridos.map((rec) => (
                     <div
                       key={rec.id}
@@ -1101,7 +1111,7 @@ export function PasajesVista() {
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                          <span className="font-mono text-[10px] font-bold text-[#0A5CA0] bg-sky-100/80 px-1.5 py-0.5 rounded">
+                          <span className="font-mono text-[10px] font-bold text-[#007BBE] bg-sky-100/80 px-1.5 py-0.5 rounded">
                             {rec.fecha}
                           </span>
                           {rec.tramo && (
@@ -1141,7 +1151,7 @@ export function PasajesVista() {
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className="font-mono font-bold text-[#063A6B]">
+                        <span className="font-mono font-bold text-[#035683]">
                           Bs {rec.monto.toFixed(2)}
                         </span>
                         <Button
@@ -1149,7 +1159,7 @@ export function PasajesVista() {
                           variant="ghost"
                           size="sm"
                           onClick={() => set_recorrido_seleccionado(rec)}
-                          className="h-7 w-7 p-0 text-[#063A6B] hover:text-[#17B4C4] hover:bg-white rounded-lg border border-transparent hover:border-[#E3DCCB] transition-colors"
+                          className="h-7 w-7 p-0 text-[#035683] hover:text-[#00ABBD] hover:bg-white rounded-lg border border-transparent hover:border-[#E5E7EB] transition-colors"
                           title="Ver detalle del recorrido, paradas y calles declaradas"
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -1181,7 +1191,7 @@ export function PasajesVista() {
               </div>
 
               {/* TARJETA DE CÁLCULO DEL 80% */}
-              <div className="p-4 rounded-xl border border-[#E3DCCB] bg-gradient-to-br from-[#063A6B] to-[#04284d] text-white space-y-2">
+              <div className="p-4 rounded-xl border border-[#E5E7EB] bg-gradient-to-br from-[#035683] to-[#035683] text-white space-y-2">
                 <div className="flex justify-between items-baseline">
                   <span className="text-xs font-mono text-white/80">Monto total de pasajes:</span>
                   <span className="text-base font-mono font-bold text-white">
@@ -1190,10 +1200,10 @@ export function PasajesVista() {
                 </div>
                 <Separator className="bg-white/20 my-1" />
                 <div className="flex justify-between items-baseline">
-                  <span className="text-xs font-mono text-[#7FE0E6] font-bold uppercase">
+                  <span className="text-xs font-mono text-[#00ABBD] font-bold uppercase">
                     Devolución del 80%:
                   </span>
-                  <span className="text-2xl font-display font-bold text-[#F8C766]">
+                  <span className="text-2xl font-display font-bold text-[#FFB600]">
                     Bs {devolucion_80.toFixed(2)}
                   </span>
                 </div>
@@ -1226,9 +1236,9 @@ export function PasajesVista() {
                   <button
                     type="button"
                     onClick={() => set_dialogo_firma_abierto(true)}
-                    className="w-full py-5 border-2 border-dashed border-[#E3DCCB] rounded-xl hover:border-[#17B4C4] hover:bg-slate-50/80 text-xs font-bold text-[#063A6B] flex flex-col items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    className="w-full py-5 border-2 border-dashed border-[#E5E7EB] rounded-xl hover:border-[#00ABBD] hover:bg-slate-50/80 text-xs font-bold text-[#035683] flex flex-col items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
-                    <PenTool className="w-5 h-5 text-[#17B4C4]" />
+                    <PenTool className="w-5 h-5 text-[#00ABBD]" />
                     <span>Toca para firmar</span>
                     <span className="text-[10px] text-muted-foreground font-normal">
                       Acreditación de supervisión de pasajes
@@ -1245,7 +1255,7 @@ export function PasajesVista() {
                   onClick={manejarEnvioMensual}
                   className={`w-full h-11 text-xs font-bold rounded-xl transition-all shadow-sm ${
                     es_dia_habilitado
-                      ? "bg-[#F8C766] hover:bg-[#F5A623] text-[#3A2400] cursor-pointer"
+                      ? "bg-[#FFB600] hover:bg-[#FFB600] text-[#3A2400] cursor-pointer"
                       : "bg-slate-200 text-slate-400 cursor-not-allowed opacity-60"
                   }`}
                 >
@@ -1276,10 +1286,10 @@ export function PasajesVista() {
       {/* DIÁLOGO MODAL: CANVAS PARA FIRMA DIGITAL DEL SUPERVISOR        */}
       {/* ============================================================== */}
       <Dialog open={dialogo_firma_abierto} onOpenChange={set_dialogo_firma_abierto}>
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-2xl bg-white border border-[#E3DCCB]">
-          <DialogHeader className="p-5 pb-3 border-b border-[#E3DCCB] bg-[#F8F9FA]">
-            <DialogTitle className="font-display text-base text-[#063A6B] flex items-center gap-2">
-              <PenTool className="w-4 h-4 text-[#17B4C4]" />
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-2xl bg-white border border-[#E5E7EB]">
+          <DialogHeader className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA]">
+            <DialogTitle className="font-display text-base text-[#035683] flex items-center gap-2">
+              <PenTool className="w-4 h-4 text-[#00ABBD]" />
               Firma Digital del Supervisor
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
@@ -1288,7 +1298,7 @@ export function PasajesVista() {
           </DialogHeader>
 
           <DialogBody className="p-5 space-y-4">
-            <div className="border-2 border-dashed border-[#E3DCCB] rounded-xl bg-white p-1">
+            <div className="border-2 border-dashed border-[#E5E7EB] rounded-xl bg-white p-1">
               <canvas
                 ref={canvas_ref}
                 width={380}
@@ -1305,26 +1315,26 @@ export function PasajesVista() {
               <button
                 type="button"
                 onClick={limpiarCanvas}
-                className="text-rose-600 font-bold hover:underline"
+                className="text-[#E2694B] font-bold hover:underline"
               >
                 Limpiar trazo
               </button>
             </div>
           </DialogBody>
 
-          <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-slate-50 flex sm:justify-end gap-2">
+          <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-slate-50 flex sm:justify-end gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => set_dialogo_firma_abierto(false)}
-              className="text-xs border-[#E3DCCB]"
+              className="text-xs border-[#E5E7EB]"
             >
               Cancelar
             </Button>
             <Button
               type="button"
               onClick={guardarFirma}
-              className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold text-xs"
+              className="bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs"
             >
               Convalidar y Guardar Firma
             </Button>
@@ -1341,14 +1351,14 @@ export function PasajesVista() {
           if (!abierto) set_recorrido_seleccionado(null);
         }}
       >
-        <DialogContent className="sm:max-w-xl p-0 overflow-hidden rounded-2xl bg-white border border-[#E3DCCB] shadow-2xl">
-          <DialogHeader className="p-5 pb-3 border-b border-[#E3DCCB] bg-[#F8F9FA]">
+        <DialogContent className="sm:max-w-xl p-0 overflow-hidden rounded-2xl bg-white border border-[#E5E7EB] shadow-2xl">
+          <DialogHeader className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA]">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[#17B4C4]/15 text-[#0E7A85] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-[#00ABBD]/15 text-[#00808E] flex items-center justify-center">
                 <Route className="w-4 h-4" />
               </div>
               <div>
-                <DialogTitle className="font-display text-base text-[#063A6B]">
+                <DialogTitle className="font-display text-base text-[#035683]">
                   Auditoría de Recorrido — Calles y Transporte Multimodal
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
@@ -1361,10 +1371,10 @@ export function PasajesVista() {
           {recorrido_seleccionado && (
             <DialogBody className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
               {/* CABECERA CON BADGES DE TRAMO, ACTIVIDAD Y TRANSPORTE */}
-              <div className="p-3.5 rounded-xl border border-[#E3DCCB] bg-slate-50/70 space-y-2.5">
+              <div className="p-3.5 rounded-xl border border-[#E5E7EB] bg-slate-50/70 space-y-2.5">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <Badge className="bg-[#063A6B] text-white text-[10.5px] font-mono">
+                    <Badge className="bg-[#035683] text-white text-[10.5px] font-mono">
                       {recorrido_seleccionado.fecha}
                     </Badge>
                     <Badge
@@ -1382,7 +1392,7 @@ export function PasajesVista() {
                     </Badge>
                   </div>
 
-                  <span className="text-xs font-mono font-bold text-[#063A6B]">
+                  <span className="text-xs font-mono font-bold text-[#035683]">
                     Tarifa: Bs {recorrido_seleccionado.monto.toFixed(2)}
                   </span>
                 </div>
@@ -1412,8 +1422,8 @@ export function PasajesVista() {
               {/* TRAZADO DE CALLES DECLARADAS PASO A PASO */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs font-mono uppercase font-bold text-[#063A6B] flex items-center gap-1.5">
-                    <Navigation className="w-3.5 h-3.5 text-[#17B4C4]" />
+                  <Label className="text-xs font-mono uppercase font-bold text-[#035683] flex items-center gap-1.5">
+                    <Navigation className="w-3.5 h-3.5 text-[#00ABBD]" />
                     Trazado de Calles y Paradas Declaradas
                   </Label>
                   <span className="text-[10px] text-muted-foreground font-mono">
@@ -1422,13 +1432,13 @@ export function PasajesVista() {
                 </div>
 
                 {recorrido_seleccionado.calles_declaradas ? (
-                  <div className="space-y-2 border border-[#E3DCCB]/80 rounded-xl p-3 bg-white">
+                  <div className="space-y-2 border border-[#E5E7EB]/80 rounded-xl p-3 bg-white">
                     {recorrido_seleccionado.calles_declaradas.split("|").map((sub_tramo, idx_sub) => {
                       const pasos = obtenerPasosCalles(sub_tramo);
                       return (
                         <div key={idx_sub} className="space-y-2">
                           {recorrido_seleccionado.calles_declaradas!.includes("|") && (
-                            <div className="text-[10.5px] font-mono font-bold uppercase text-[#0A5CA0] pb-1 border-b border-slate-100">
+                            <div className="text-[10.5px] font-mono font-bold uppercase text-[#007BBE] pb-1 border-b border-slate-100">
                               {idx_sub === 0 ? "Tramo Inicial (Ida)" : "Tramo Conexo / Retorno"}
                             </div>
                           )}
@@ -1457,7 +1467,7 @@ export function PasajesVista() {
                                     <span
                                       className={`text-xs ${
                                         es_inicio || es_fin
-                                          ? "font-bold text-[#063A6B]"
+                                          ? "font-bold text-[#035683]"
                                           : "text-[#334155] font-medium"
                                       }`}
                                     >
@@ -1502,7 +1512,7 @@ export function PasajesVista() {
               )}
 
               {/* CONVALIDACIÓN DE REEMBOLSO DEL 80% */}
-              <div className="p-3.5 rounded-xl border border-[#E3DCCB] bg-gradient-to-br from-[#063A6B] to-[#04284d] text-white">
+              <div className="p-3.5 rounded-xl border border-[#E5E7EB] bg-gradient-to-br from-[#035683] to-[#035683] text-white">
                 <div className="flex items-center justify-between pb-2 border-b border-white/15">
                   <span className="text-xs font-mono text-white/80">Tarifa Declarada (100%):</span>
                   <span className="text-xs font-mono font-bold text-white">
@@ -1511,14 +1521,14 @@ export function PasajesVista() {
                 </div>
                 <div className="flex items-center justify-between pt-2">
                   <div>
-                    <span className="text-xs font-mono text-[#7FE0E6] font-bold block uppercase">
+                    <span className="text-xs font-mono text-[#00ABBD] font-bold block uppercase">
                       Subsidio Institucional Diaconía (80%):
                     </span>
                     <span className="text-[10px] text-white/70 font-mono">
                       Contraparte del becario (20%): Bs {(recorrido_seleccionado.monto * 0.2).toFixed(2)}
                     </span>
                   </div>
-                  <span className="text-xl font-display font-bold text-[#F8C766]">
+                  <span className="text-xl font-display font-bold text-[#FFB600]">
                     Bs {(recorrido_seleccionado.monto * 0.8).toFixed(2)}
                   </span>
                 </div>
@@ -1526,11 +1536,11 @@ export function PasajesVista() {
             </DialogBody>
           )}
 
-          <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-slate-50 flex sm:justify-end">
+          <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-slate-50 flex sm:justify-end">
             <Button
               type="button"
               onClick={() => set_recorrido_seleccionado(null)}
-              className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold text-xs rounded-xl px-5"
+              className="bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl px-5"
             >
               Cerrar Detalle
             </Button>

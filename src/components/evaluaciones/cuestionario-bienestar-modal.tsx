@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -169,7 +169,7 @@ export function CuestionarioBienestarModal({
       });
 
       toast.success("Cuestionario de Bienestar Universitario guardado exitosamente", {
-        description: `Nota asignada: ${puntaje_total_20} / 20 pts · Semáforo: ${semaforo_calculado.toUpperCase()}`,
+        description: `Nota asignada: ${puntaje_total_20} / 20 pts`,
       });
 
       if (alGuardarExito) {
@@ -258,20 +258,20 @@ export function CuestionarioBienestarModal({
     >
       <DialogContent
         showCloseButton={false}
-        className="sm:max-w-4xl max-h-[92vh] flex flex-col p-0 overflow-hidden rounded-2xl bg-white border border-[#E3DCCB] shadow-2xl"
+        className="sm:max-w-4xl max-h-[92vh] flex flex-col p-0 overflow-hidden rounded-2xl bg-white border border-[#E5E7EB] shadow-2xl"
       >
         {/* Cabecera del Modal */}
-        <DialogHeader className="p-5 pb-3 border-b border-[#E3DCCB] bg-[#F8F9FA] shrink-0">
+        <DialogHeader className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA] shrink-0">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#063A6B]/10 text-[#063A6B] flex items-center justify-center">
-                <HeartHandshake className="w-5 h-5 text-[#17B4C4]" />
+              <div className="w-10 h-10 rounded-xl bg-[#035683]/10 text-[#035683] flex items-center justify-center">
+                <HeartHandshake className="w-5 h-5 text-[#00ABBD]" />
               </div>
               <div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-[#17B4C4] font-bold block">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#00ABBD] font-bold block">
                   Módulo 05 · Trabajo Social e Institución
                 </span>
-                <DialogTitle className="font-display text-lg font-bold text-[#063A6B]">
+                <DialogTitle className="font-display text-lg font-bold text-[#035683]">
                   Cuestionario de Bienestar Personal, Social y Universitario
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
@@ -281,23 +281,15 @@ export function CuestionarioBienestarModal({
             </div>
 
             <div className="flex items-center gap-2">
-              <Badge
-                className={`font-mono text-xs font-bold px-3 py-1 ${
-                  semaforo_calculado === "verde"
-                    ? "bg-emerald-600 text-white"
-                    : semaforo_calculado === "amarillo"
-                    ? "bg-amber-500 text-white"
-                    : "bg-rose-600 text-white"
-                }`}
-              >
-                Puntaje: {puntaje_total_20} / 20 pts ({semaforo_calculado.toUpperCase()})
+              <Badge className="bg-[#035683] text-white font-mono text-xs font-bold px-3.5 py-1.5 rounded-xl shadow-xs">
+                Puntaje: {puntaje_total_20} / 20 pts
               </Badge>
             </div>
           </div>
         </DialogHeader>
 
         {/* Pestañas: Responder vs Configurar / Editar (Institución) */}
-        <div className="px-6 pt-3 bg-white border-b border-[#E3DCCB] shrink-0">
+        <div className="px-6 pt-3 bg-white border-b border-[#E5E7EB] shrink-0">
           <Tabs
             value={pestaña_activa}
             onValueChange={(val) => set_pestaña_activa(val as "cuestionario" | "configuracion")}
@@ -308,8 +300,8 @@ export function CuestionarioBienestarModal({
                 Llenado del Cuestionario (26 Preguntas)
               </TabsTrigger>
               {es_admin && (
-                <TabsTrigger value="configuracion" className="text-xs font-bold rounded-lg px-4 text-[#063A6B]">
-                  <Settings className="w-3.5 h-3.5 mr-1.5 text-[#17B4C4]" />
+                <TabsTrigger value="configuracion" className="text-xs font-bold rounded-lg px-4 text-[#035683]">
+                  <Settings className="w-3.5 h-3.5 mr-1.5 text-[#00ABBD]" />
                   Configurar / Editar Cuestionario (Institución)
                 </TabsTrigger>
               )}
@@ -323,11 +315,11 @@ export function CuestionarioBienestarModal({
             <div className="space-y-6">
               {/* Banner Informativo */}
               <div className="p-3.5 bg-sky-50 border border-sky-200 rounded-xl text-xs text-sky-900 flex items-start gap-2.5">
-                <Sparkles className="w-4 h-4 text-[#17B4C4] shrink-0 mt-0.5" />
+                <Sparkles className="w-4 h-4 text-[#00ABBD] shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
                   <p className="font-bold">Instrucción Oficial de Llenado:</p>
                   <p className="text-slate-600 leading-relaxed">
-                    Marque una sola opción por pregunta, según su situación actual. La calificación ponderada se calcula automáticamente sobre <strong>20 puntos</strong> y retroalimenta el semáforo institucional de vulnerabilidad.
+                    Marque una sola opción por pregunta, según su situación actual. La calificación ponderada se calcula automáticamente sobre <strong>20 puntos</strong> para el registro integral de bienestar universitario.
                   </p>
                 </div>
               </div>
@@ -339,19 +331,19 @@ export function CuestionarioBienestarModal({
                   return (
                     <div
                       key={p.id}
-                      className="p-4 rounded-xl border border-[#E3DCCB] bg-slate-50/50 space-y-3 hover:border-[#17B4C4]/60 transition-colors"
+                      className="p-4 rounded-xl border border-[#E5E7EB] bg-slate-50/50 space-y-3 hover:border-[#00ABBD]/60 transition-colors"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-0.5">
-                          <span className="font-mono text-xs font-bold text-[#17B4C4]">
+                          <span className="font-mono text-xs font-bold text-[#00ABBD]">
                             Pregunta #{p.numero} · {p.titulo}
                           </span>
-                          <h4 className="text-xs sm:text-sm font-semibold text-[#063A6B] leading-snug">
+                          <h4 className="text-xs sm:text-sm font-semibold text-[#035683] leading-snug">
                             {p.enunciado}
                           </h4>
                         </div>
                         {seleccion && (
-                          <Badge variant="outline" className="font-mono text-xs font-bold text-[#063A6B] border-[#063A6B]/30 shrink-0">
+                          <Badge variant="outline" className="font-mono text-xs font-bold text-[#035683] border-[#035683]/30 shrink-0">
                             Opción {seleccion}
                           </Badge>
                         )}
@@ -367,15 +359,15 @@ export function CuestionarioBienestarModal({
                               onClick={() => seleccionarOpcion(p.numero, op.inciso)}
                               className={`p-2.5 rounded-lg border text-xs text-left transition-all flex items-start gap-2 ${
                                 esta_seleccionada
-                                  ? "bg-[#063A6B] text-white border-[#063A6B] shadow-xs font-medium"
-                                  : "bg-white text-slate-700 border-[#E3DCCB] hover:bg-slate-50"
+                                  ? "bg-[#035683] text-white border-[#035683] shadow-xs font-medium"
+                                  : "bg-white text-slate-700 border-[#E5E7EB] hover:bg-slate-50"
                               }`}
                             >
                               <span
                                 className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${
                                   esta_seleccionada
-                                    ? "bg-[#17B4C4] text-[#063A6B]"
-                                    : "bg-slate-100 text-slate-600 border border-[#E3DCCB]"
+                                    ? "bg-[#00ABBD] text-[#035683]"
+                                    : "bg-slate-100 text-slate-600 border border-[#E5E7EB]"
                                 }`}
                               >
                                 {op.inciso}
@@ -406,7 +398,7 @@ export function CuestionarioBienestarModal({
                 <Button
                   size="sm"
                   onClick={manejarAgregarNuevaPregunta}
-                  className="h-8 px-3 bg-[#063A6B] text-white hover:bg-[#063A6B]/90 text-xs font-bold rounded-lg shrink-0 flex items-center gap-1"
+                  className="h-8 px-3 bg-[#035683] text-white hover:bg-[#035683]/90 text-xs font-bold rounded-lg shrink-0 flex items-center gap-1"
                 >
                   <PlusCircle className="w-3.5 h-3.5" /> Nueva Pregunta
                 </Button>
@@ -414,9 +406,9 @@ export function CuestionarioBienestarModal({
 
               {/* Formulario de edición si hay pregunta activa */}
               {id_pregunta_editando && (
-                <div className="p-4 rounded-xl border-2 border-[#17B4C4] bg-white space-y-3 shadow-md">
-                  <h4 className="text-xs font-bold text-[#063A6B] flex items-center gap-1.5 uppercase tracking-wider">
-                    <Edit3 className="w-4 h-4 text-[#17B4C4]" />
+                <div className="p-4 rounded-xl border-2 border-[#00ABBD] bg-white space-y-3 shadow-md">
+                  <h4 className="text-xs font-bold text-[#035683] flex items-center gap-1.5 uppercase tracking-wider">
+                    <Edit3 className="w-4 h-4 text-[#00ABBD]" />
                     Editando Pregunta
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -449,7 +441,7 @@ export function CuestionarioBienestarModal({
                     <Button
                       size="sm"
                       onClick={manejarConfirmarEdicionPregunta}
-                      className="h-8 bg-[#17B4C4] hover:bg-[#17B4C4]/90 text-[#063A6B] font-bold text-xs rounded-lg"
+                      className="h-8 bg-[#00ABBD] hover:bg-[#00ABBD]/90 text-[#035683] font-bold text-xs rounded-lg"
                     >
                       Aplicar Modificación
                     </Button>
@@ -462,10 +454,10 @@ export function CuestionarioBienestarModal({
                 {preguntas.map((p) => (
                   <div
                     key={p.id}
-                    className="p-3.5 bg-slate-50 border border-[#E3DCCB] rounded-xl flex items-center justify-between gap-3 text-xs"
+                    className="p-3.5 bg-slate-50 border border-[#E5E7EB] rounded-xl flex items-center justify-between gap-3 text-xs"
                   >
                     <div className="space-y-0.5 flex-1 pr-2">
-                      <span className="font-mono text-[11px] font-bold text-[#17B4C4]">
+                      <span className="font-mono text-[11px] font-bold text-[#00ABBD]">
                         #{p.numero} · {p.titulo}
                       </span>
                       <p className="font-semibold text-slate-800">{p.enunciado}</p>
@@ -479,7 +471,7 @@ export function CuestionarioBienestarModal({
                         size="sm"
                         variant="outline"
                         onClick={() => manejarIniciarEdicion(p)}
-                        className="h-8 px-2.5 border-[#17B4C4] text-[#063A6B] rounded-lg text-xs font-bold"
+                        className="h-8 px-2.5 border-[#00ABBD] text-[#035683] rounded-lg text-xs font-bold"
                       >
                         <Edit3 className="w-3.5 h-3.5 mr-1" />
                         Editar
@@ -515,10 +507,10 @@ export function CuestionarioBienestarModal({
         </DialogBody>
 
         {/* Pie del Modal */}
-        <DialogFooter className="p-4 border-t border-[#E3DCCB] bg-[#F8F9FA] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+        <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span>Nota Resultante:</span>
-            <strong className="font-mono font-bold text-[#063A6B] text-sm">
+            <strong className="font-mono font-bold text-[#035683] text-sm">
               {puntaje_total_20.toFixed(1)} / 20 puntos
             </strong>
           </div>
@@ -528,25 +520,25 @@ export function CuestionarioBienestarModal({
               type="button"
               variant="outline"
               onClick={intentarCerrarModal}
-              className="text-xs border-[#E3DCCB] rounded-xl"
+              className="text-xs border-[#E5E7EB] rounded-xl"
             >
               Cerrar
             </Button>
             {pestaña_activa === "configuracion" ? (
               <Button
                 onClick={manejarGuardarConfiguracion}
-                className="h-9 px-4 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs flex items-center gap-1.5"
+                className="h-9 px-4 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs flex items-center gap-1.5"
               >
-                <Save className="w-3.5 h-3.5 text-[#F8C766]" />
+                <Save className="w-3.5 h-3.5 text-[#FFB600]" />
                 Guardar Configuración Institucional
               </Button>
             ) : (
               <Button
                 disabled={guardando}
                 onClick={manejarGuardarRespuestas}
-                className="h-9 px-5 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs flex items-center gap-1.5"
+                className="h-9 px-5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs flex items-center gap-1.5"
               >
-                <CheckCircle className="w-3.5 h-3.5 text-[#17B4C4]" />
+                <CheckCircle className="w-3.5 h-3.5 text-[#00ABBD]" />
                 {guardando ? "Guardando..." : "Guardar Evaluación Socioeconómica (/20)"}
               </Button>
             )}

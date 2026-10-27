@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -298,10 +298,10 @@ export function RegistroDevocionales() {
   return (
     <div className="space-y-6">
       {/* Cabecera contextual */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E3DCCB] shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-xs">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <BookOpen className="w-5 h-5 text-[#0A5CA0]" />
+            <BookOpen className="w-5 h-5 text-[#007BBE]" />
             <h2 className="text-xl font-bold text-[#122029]">
               {es_supervisor_o_admin ? "Acompañamiento y Vida Espiritual" : "Devocionales y Vida Espiritual"}
             </h2>
@@ -333,17 +333,17 @@ export function RegistroDevocionales() {
           {es_becario && (
             <Dialog open={dialogo_abierto} onOpenChange={set_dialogo_abierto}>
               <DialogTrigger asChild>
-                <Button className="bg-[#0A5CA0] hover:bg-[#0A5CA0]/90 text-white gap-2 rounded-xl text-xs h-9 shadow-xs">
+                <Button className="bg-[#007BBE] hover:bg-[#007BBE]/90 text-white gap-2 rounded-xl text-xs h-9 shadow-xs">
                   <Plus className="w-4 h-4" />
                   Nuevo Devocional
                 </Button>
               </DialogTrigger>
               <DialogContent
                 showCloseButton={false}
-                className="max-w-xl max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl border-[#E3DCCB] bg-white shadow-2xl"
+                className="max-w-xl max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl border-[#E5E7EB] bg-white shadow-2xl"
               >
-                <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
-                  <DialogTitle className="flex items-center gap-2 text-[#0A5CA0]">
+                <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] shrink-0 bg-white">
+                  <DialogTitle className="flex items-center gap-2 text-[#007BBE]">
                     <BookOpen className="w-5 h-5" />
                     Registrar Devocional Personal
                   </DialogTitle>
@@ -354,13 +354,13 @@ export function RegistroDevocionales() {
                     <button
                       type="button"
                       onClick={() => aplicarVersiculoAlFormulario()}
-                      className="w-full text-left text-xs bg-[#17B4C4]/10 hover:bg-[#17B4C4]/15 border border-[#17B4C4]/20 rounded-xl p-2.5 flex items-center justify-between text-[#0E7A85] transition-colors"
+                      className="w-full text-left text-xs bg-[#00ABBD]/10 hover:bg-[#00ABBD]/15 border border-[#00ABBD]/20 rounded-xl p-2.5 flex items-center justify-between text-[#00808E] transition-colors"
                     >
                       <span className="font-semibold flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-[#17B4C4]" />
+                        <Sparkles className="w-3.5 h-3.5 text-[#00ABBD]" />
                         Cargar versículo de hoy ({versiculo_diario.cita})
                       </span>
-                      <span className="text-[11px] font-bold text-[#17B4C4]">Auto-llenar</span>
+                      <span className="text-[11px] font-bold text-[#00ABBD]">Auto-llenar</span>
                     </button>
                   )}
 
@@ -432,11 +432,11 @@ export function RegistroDevocionales() {
                   </div>
                 </DialogBody>
 
-                <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
+                <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
                   <Button variant="outline" onClick={() => set_dialogo_abierto(false)} className="rounded-xl">
                     Cancelar
                   </Button>
-                  <Button onClick={manejarCrearDevocional} className="bg-[#0A5CA0] text-white rounded-xl shadow-xs">
+                  <Button onClick={manejarCrearDevocional} className="bg-[#007BBE] text-white rounded-xl shadow-xs">
                     Guardar Devocional
                   </Button>
                 </DialogFooter>
@@ -455,7 +455,7 @@ export function RegistroDevocionales() {
             onClick={() => set_filtro_estado("todos")}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
               filtro_estado === "todos"
-                ? "bg-white text-[#0A5CA0] shadow-xs font-bold"
+                ? "bg-white text-[#007BBE] shadow-xs font-bold"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
@@ -494,7 +494,7 @@ export function RegistroDevocionales() {
             placeholder="Buscar por cita, tema, becario..."
             value={filtro_texto}
             onChange={(e) => set_filtro_texto(e.target.value)}
-            className="bg-white border-[#E3DCCB] text-xs h-9 rounded-xl pl-9 pr-3 shadow-2xs"
+            className="bg-white border-[#E5E7EB] text-xs h-9 rounded-xl pl-9 pr-3 shadow-2xs"
           />
         </div>
       </div>
@@ -524,11 +524,11 @@ export function RegistroDevocionales() {
             <TarjetaSpotlight
               key={item.id}
               color_luz="rgba(23, 180, 196, 0.15)"
-              className="border-[#E3DCCB] shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between h-full bg-white rounded-2xl"
+              className="border-[#E5E7EB] shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between h-full bg-white rounded-2xl"
             >
               <CardHeader className="p-5 pb-3">
                 <div className="flex items-center justify-between gap-2">
-                  <Badge className="bg-[#0A5CA0]/10 text-[#0A5CA0] border-[#0A5CA0]/20 font-bold text-[11px] px-2.5 py-0.5 shadow-2xs">
+                  <Badge className="bg-[#007BBE]/10 text-[#007BBE] border-[#007BBE]/20 font-bold text-[11px] px-2.5 py-0.5 shadow-2xs">
                     {item.cita_biblica}
                   </Badge>
                   <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -599,7 +599,7 @@ export function RegistroDevocionales() {
                           set_comentario_pastoral_texto("");
                           set_dialogo_pastoral_abierto(true);
                         }}
-                        className="text-[11px] h-7 px-2.5 text-[#0A5CA0] border-[#0A5CA0]/30 hover:bg-[#0A5CA0]/10 rounded-lg font-bold shadow-2xs gap-1"
+                        className="text-[11px] h-7 px-2.5 text-[#007BBE] border-[#007BBE]/30 hover:bg-[#007BBE]/10 rounded-lg font-bold shadow-2xs gap-1"
                       >
                         <MessageSquare className="w-3 h-3" />
                         Retroalimentar
@@ -617,10 +617,10 @@ export function RegistroDevocionales() {
       <Dialog open={dialogo_pastoral_abierto} onOpenChange={set_dialogo_pastoral_abierto}>
         <DialogContent
           showCloseButton={false}
-          className="max-w-md max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl border-[#E3DCCB] bg-white shadow-2xl"
+          className="max-w-md max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl border-[#E5E7EB] bg-white shadow-2xl"
         >
-          <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
-            <DialogTitle className="flex items-center gap-2 text-[#0A5CA0]">
+          <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] shrink-0 bg-white">
+            <DialogTitle className="flex items-center gap-2 text-[#007BBE]">
               <Church className="w-5 h-5" />
               Acompañamiento y Consejo Pastoral
             </DialogTitle>
@@ -631,7 +631,7 @@ export function RegistroDevocionales() {
               Devocional del becario <strong>{devocional_seleccionado?.nombre_becario}</strong>:
             </p>
             <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
-              <span className="font-bold text-[#0A5CA0] block mb-0.5">
+              <span className="font-bold text-[#007BBE] block mb-0.5">
                 {devocional_seleccionado?.cita_biblica} · {devocional_seleccionado?.titulo}
               </span>
               <p className="text-slate-600 italic">"{devocional_seleccionado?.reflexion}"</p>
@@ -656,7 +656,7 @@ export function RegistroDevocionales() {
             </div>
           </DialogBody>
 
-          <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
+          <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
             <Button
               variant="outline"
               onClick={() => set_dialogo_pastoral_abierto(false)}
@@ -668,7 +668,7 @@ export function RegistroDevocionales() {
             <Button
               onClick={manejarGuardarRetroalimentacion}
               disabled={guardando_retroalimentacion || !comentario_pastoral_texto.trim()}
-              className="bg-[#0A5CA0] hover:bg-[#0A5CA0]/90 text-white rounded-xl shadow-xs text-xs font-bold"
+              className="bg-[#007BBE] hover:bg-[#007BBE]/90 text-white rounded-xl shadow-xs text-xs font-bold"
             >
               {guardando_retroalimentacion ? "Guardando..." : "Asentar Acompañamiento"}
             </Button>

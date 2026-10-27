@@ -18,8 +18,6 @@ import {
   Calendar,
   Sparkles,
   ShieldAlert,
-  Wifi,
-  WifiOff,
   Plus,
   Upload,
   Download,
@@ -62,8 +60,6 @@ import {
 import { EstadoVacio } from "@/components/ui/estado-vacio";
 import { toast } from "sonner";
 import {
-  TarjetaSpotlight,
-  ContadorRodilloAnimado,
   PestanasAnimadas,
   type ElementoPestana,
 } from "@/components/animaciones";
@@ -88,7 +84,7 @@ export interface JustificacionIncidencia {
   created_at: string;
 }
 
-const MUESTRA_RECETA_MEDICA_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" fill="none"><rect width="600" height="400" rx="16" fill="%23FFFFFF" stroke="%23CBD5E1" stroke-width="2"/><rect x="24" y="24" width="552" height="60" rx="8" fill="%23F0FDF4" stroke="%2386EFAC"/><text x="44" y="52" fill="%23166534" font-family="sans-serif" font-size="16" font-weight="bold">CAJA NACIONAL DE SALUD · SEGURO UNIVERSITARIO SSU</text><text x="44" y="70" fill="%2315803D" font-family="sans-serif" font-size="12">CERTIFICADO Y RECETA MÉDICA OFICIAL - ATENCIÓN ODONTOLÓGICA DE URGENCIA</text><line x1="24" y1="104" x2="576" y2="104" stroke="%23E2E8F0" stroke-width="1.5"/><text x="44" y="135" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">PACIENTE:</text><text x="130" y="135" fill="%230F172A" font-family="sans-serif" font-size="13">Nilda Amalia Churata Paye</text><text x="360" y="135" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">FECHA:</text><text x="430" y="135" fill="%230F172A" font-family="sans-serif" font-size="13">06/10/2026</text><text x="44" y="170" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">DIAGNÓSTICO:</text><text x="160" y="170" fill="%230F172A" font-family="sans-serif" font-size="13">Pulpitis irreversible aguda pieza 3.8. Exodoncia de urgencia.</text><text x="44" y="205" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">PRESCRIPCIÓN:</text><text x="160" y="205" fill="%230F172A" font-family="sans-serif" font-size="13">Amoxicilina 500mg c/8h + Ketorolaco 10mg SL. Reposo 24 horas.</text><rect x="44" y="240" width="512" height="70" rx="8" fill="%23F8FAFC" stroke="%23E2E8F0"/><text x="60" y="268" fill="%23475569" font-family="sans-serif" font-size="11">Sello y Firma Digital:</text><text x="60" y="288" fill="%23063A6B" font-family="sans-serif" font-size="12" font-weight="bold">Dra. Paola Meneses Vargas · Matrícula Profesional N° 4598-LP</text><circle cx="500" cy="275" r="24" fill="%23DC2626" fill-opacity="0.1" stroke="%23DC2626" stroke-dasharray="3 3"/><text x="480" y="280" fill="%23DC2626" font-family="sans-serif" font-size="11" font-weight="bold">VALIDADO</text></svg>`;
+const MUESTRA_RECETA_MEDICA_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" fill="none"><rect width="600" height="400" rx="16" fill="%23FFFFFF" stroke="%23CBD5E1" stroke-width="2"/><rect x="24" y="24" width="552" height="60" rx="8" fill="%23F0FDF4" stroke="%2386EFAC"/><text x="44" y="52" fill="%23166534" font-family="sans-serif" font-size="16" font-weight="bold">CAJA NACIONAL DE SALUD · SEGURO UNIVERSITARIO SSU</text><text x="44" y="70" fill="%2315803D" font-family="sans-serif" font-size="12">CERTIFICADO Y RECETA MÉDICA OFICIAL - ATENCIÓN ODONTOLÓGICA DE URGENCIA</text><line x1="24" y1="104" x2="576" y2="104" stroke="%23E2E8F0" stroke-width="1.5"/><text x="44" y="135" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">PACIENTE:</text><text x="130" y="135" fill="%230F172A" font-family="sans-serif" font-size="13">Nilda Amalia Churata Paye</text><text x="360" y="135" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">FECHA:</text><text x="430" y="135" fill="%230F172A" font-family="sans-serif" font-size="13">06/10/2026</text><text x="44" y="170" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">DIAGNÓSTICO:</text><text x="160" y="170" fill="%230F172A" font-family="sans-serif" font-size="13">Pulpitis irreversible aguda pieza 3.8. Exodoncia de urgencia.</text><text x="44" y="205" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">PRESCRIPCIÓN:</text><text x="160" y="205" fill="%230F172A" font-family="sans-serif" font-size="13">Amoxicilina 500mg c/8h + Ketorolaco 10mg SL. Reposo 24 horas.</text><rect x="44" y="240" width="512" height="70" rx="8" fill="%23F8FAFC" stroke="%23E2E8F0"/><text x="60" y="268" fill="%23475569" font-family="sans-serif" font-size="11">Sello y Firma Digital:</text><text x="60" y="288" fill="%23035683" font-family="sans-serif" font-size="12" font-weight="bold">Dra. Paola Meneses Vargas · Matrícula Profesional N° 4598-LP</text><circle cx="500" cy="275" r="24" fill="%23DC2626" fill-opacity="0.1" stroke="%23DC2626" stroke-dasharray="3 3"/><text x="480" y="280" fill="%23DC2626" font-family="sans-serif" font-size="11" font-weight="bold">VALIDADO</text></svg>`;
 
 const BECARIOS_OFICIALES = [
   { id: 101, nombre: "Nilda Amalia Churata Paye", carrera: "Educación Parvularia", sede: "Centro Infantil Sagrada Familia" },
@@ -366,7 +362,7 @@ export function BandejaJustificaciones() {
 
   const justificaciones = justificaciones_servidor && justificaciones_servidor.length > 0 ? justificaciones_servidor : justificaciones_locales;
 
-  const { conectado } = useTiempoReal({
+  useTiempoReal({
     eventos: {
       justificacion_actualizada: () => {
         invalidar();
@@ -380,10 +376,34 @@ export function BandejaJustificaciones() {
   };
 
   const pestanas: ElementoPestana[] = [
-    { id: "todos", etiqueta: "Todas", contador: contarPorEstado("todos") },
-    { id: "pendiente", etiqueta: "Pendientes", contador: contarPorEstado("pendiente") },
-    { id: "aprobada", etiqueta: "Aprobadas", contador: contarPorEstado("aprobada") },
-    { id: "rechazada", etiqueta: "Rechazadas", contador: contarPorEstado("rechazada") },
+    {
+      id: "todos",
+      etiqueta: "Todas",
+      contador: contarPorEstado("todos"),
+      clase_contador: "bg-slate-200 text-slate-700",
+      clase_contador_activo: "bg-white/25 text-white",
+    },
+    {
+      id: "pendiente",
+      etiqueta: "Pendientes",
+      contador: contarPorEstado("pendiente"),
+      clase_contador: "bg-amber-100 text-amber-800 border border-amber-200",
+      clase_contador_activo: "bg-white text-amber-700 font-bold shadow-xs",
+    },
+    {
+      id: "aprobada",
+      etiqueta: "Aprobadas",
+      contador: contarPorEstado("aprobada"),
+      clase_contador: "bg-emerald-100 text-emerald-800 border border-emerald-200",
+      clase_contador_activo: "bg-white text-emerald-700 font-bold shadow-xs",
+    },
+    {
+      id: "rechazada",
+      etiqueta: "Rechazadas",
+      contador: contarPorEstado("rechazada"),
+      clase_contador: "bg-rose-100 text-rose-800 border border-rose-200",
+      clase_contador_activo: "bg-white text-rose-700 font-bold shadow-xs",
+    },
   ];
 
   const justificaciones_filtradas = justificaciones.filter((j) => {
@@ -493,66 +513,8 @@ export function BandejaJustificaciones() {
         </div>
       )}
 
-      {/* Cabecera adaptativa con botón siempre visible */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E3DCCB] shadow-sm">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <ClipboardCheck className="w-5 h-5 text-[#063A6B]" />
-            <h2 className="text-xl font-bold text-[#063A6B]">
-              Permisos y Justificaciones
-            </h2>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Gestión, registro y dictamen de permisos institucionales con pruebas justificables (recetas médicas, certificados o comprobantes oficiales).
-          </p>
-        </div>
-
-        <Button
-          onClick={() => set_modal_crear_abierto(true)}
-          className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs h-10 gap-2 shadow-sm shrink-0"
-        >
-          <Plus className="w-4 h-4 text-[#F8C766]" />
-          Registrar Permiso / Justificación
-        </Button>
-      </div>
-
-      {/* Tarjetas Resumen de Métricas con Watermelon UI */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <TarjetaSpotlight className="p-4 bg-white">
-          <span className="text-xs text-muted-foreground font-mono uppercase block">Total Solicitudes</span>
-          <div className="text-2xl font-bold text-[#063A6B] mt-1">
-            <ContadorRodilloAnimado valor={justificaciones.length} />
-          </div>
-          <span className="text-[11px] text-slate-500 mt-0.5 block">Historial consolidado</span>
-        </TarjetaSpotlight>
-
-        <TarjetaSpotlight className="p-4 bg-amber-50/40 border-amber-200">
-          <span className="text-xs text-amber-700 font-mono uppercase font-semibold block">Pendientes de Dictamen</span>
-          <div className="text-2xl font-bold text-amber-600 mt-1">
-            <ContadorRodilloAnimado valor={contarPorEstado("pendiente")} />
-          </div>
-          <span className="text-[11px] text-amber-800/80 mt-0.5 block">Requieren revisión inmediata</span>
-        </TarjetaSpotlight>
-
-        <TarjetaSpotlight className="p-4 bg-emerald-50/40 border-emerald-200">
-          <span className="text-xs text-emerald-700 font-mono uppercase font-semibold block">Aprobadas</span>
-          <div className="text-2xl font-bold text-emerald-600 mt-1">
-            <ContadorRodilloAnimado valor={contarPorEstado("aprobada")} />
-          </div>
-          <span className="text-[11px] text-emerald-800/80 mt-0.5 block">Horas convalidadas</span>
-        </TarjetaSpotlight>
-
-        <TarjetaSpotlight className="p-4 bg-rose-50/40 border-rose-200">
-          <span className="text-xs text-rose-700 font-mono uppercase font-semibold block">Rechazadas</span>
-          <div className="text-2xl font-bold text-rose-600 mt-1">
-            <ContadorRodilloAnimado valor={contarPorEstado("rechazada")} />
-          </div>
-          <span className="text-[11px] text-rose-800/80 mt-0.5 block">Sin respaldo normativo</span>
-        </TarjetaSpotlight>
-      </div>
-
-      {/* Barra de Filtros y Búsqueda */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-3 rounded-2xl border border-[#E3DCCB]">
+      {/* Barra de Filtros, Búsqueda y Registro */}
+      <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 bg-white p-3 rounded-2xl border border-[#E5E7EB]">
         <PestanasAnimadas
           pestanas={pestanas}
           pestana_activa_id={filtro_estado}
@@ -560,25 +522,24 @@ export function BandejaJustificaciones() {
           identificador_diseno="pestana_justificaciones_filtro"
         />
 
-        <div className="flex items-center gap-2">
-          {conectado ? (
-            <span className="hidden md:flex items-center gap-1 text-[11px] font-mono text-[#17B4C4]">
-              <Wifi className="w-3.5 h-3.5" /> En tiempo real
-            </span>
-          ) : (
-            <span className="hidden md:flex items-center gap-1 text-[11px] font-mono text-[#C49B24]">
-              <WifiOff className="w-3.5 h-3.5" /> Fuera de línea
-            </span>
-          )}
-          <div className="relative w-full sm:w-72">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="relative w-full sm:w-64">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={termino_busqueda}
               onChange={(e) => set_termino_busqueda(e.target.value)}
-              placeholder="Buscar por becario, carrera o motivo..."
-              className="pl-9 h-9 text-xs border-[#E3DCCB] rounded-xl focus-visible:ring-[#17B4C4]"
+              placeholder="Buscar por becario, carrera..."
+              className="pl-9 h-9 text-xs border-[#E5E7EB] rounded-xl focus-visible:ring-[#00ABBD]"
             />
           </div>
+
+          <Button
+            onClick={() => set_modal_crear_abierto(true)}
+            className="bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs h-9 gap-1.5 px-3.5 shadow-xs shrink-0 cursor-pointer"
+          >
+            <Plus className="w-4 h-4 text-[#FFB600]" />
+            <span>Registrar Permiso / Justificación</span>
+          </Button>
         </div>
       </div>
 
@@ -626,24 +587,24 @@ export function BandejaJustificaciones() {
             return (
               <Card
                 key={just.id}
-                className="bg-white border-[#E3DCCB] rounded-xl hover:shadow-md transition-shadow duration-200 overflow-hidden"
+                className="bg-white border-[#E5E7EB] rounded-xl hover:shadow-md transition-shadow duration-200 overflow-hidden"
               >
                 <CardContent className="p-5">
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     {/* Información del Becario y la Incidencia */}
                     <div className="space-y-2 flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-bold text-sm text-[#063A6B]">{just.becario_nombre}</span>
+                        <span className="font-bold text-sm text-[#035683]">{just.becario_nombre}</span>
                         <span className="text-xs text-muted-foreground font-mono">({just.carrera})</span>
                         <span className="text-slate-300">·</span>
                         <span className="text-xs text-slate-600 flex items-center gap-1">
-                          <Building className="w-3 h-3 text-[#17B4C4]" />
+                          <Building className="w-3 h-3 text-[#00ABBD]" />
                           {just.sede_nombre}
                         </span>
                       </div>
 
                       <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600">
-                        <span className="font-mono text-[11px] font-semibold text-[#0A5CA0] px-2 py-0.5 rounded-md bg-[#E3F9FA] border border-[#17B4C4]/20">
+                        <span className="font-mono text-[11px] font-semibold text-[#007BBE] px-2 py-0.5 rounded-md bg-[#E3F9FA] border border-[#00ABBD]/20">
                           {formatearTipoIncidencia(just.tipo_incidencia)}
                         </span>
                         <span className="flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
@@ -656,14 +617,14 @@ export function BandejaJustificaciones() {
                         </span>
                       </div>
 
-                      <div className="bg-[#F8F9FA] p-3 rounded-xl border border-[#E3DCCB]/60 text-xs">
+                      <div className="bg-[#F8F9FA] p-3 rounded-xl border border-[#E5E7EB]/60 text-xs">
                         <p className="font-semibold text-[#122029]">Motivo: {just.motivo}</p>
                         <p className="text-slate-600 mt-1 line-clamp-2 leading-relaxed">
                           {just.descripcion}
                         </p>
                         {just.documento_adjunto && (
-                          <div className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-[#0A5CA0]">
-                            <FileText className="w-3.5 h-3.5 text-[#17B4C4]" />
+                          <div className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-[#007BBE]">
+                            <FileText className="w-3.5 h-3.5 text-[#00ABBD]" />
                             <span>Documento Adjunto: {just.documento_adjunto}</span>
                           </div>
                         )}
@@ -672,7 +633,7 @@ export function BandejaJustificaciones() {
                       {/* Observación previa del supervisor si ya está dictaminado */}
                       {just.observacion_supervisor && (
                         <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-700">
-                          <span className="font-semibold text-[#063A6B] block mb-0.5">
+                          <span className="font-semibold text-[#035683] block mb-0.5">
                             Dictamen de Supervisión ({just.supervisor_nombre || "Supervisor"}):
                           </span>
                           <p className="italic">{just.observacion_supervisor}</p>
@@ -694,7 +655,7 @@ export function BandejaJustificaciones() {
                           variant="ghost"
                           size="sm"
                           onClick={() => set_justificacion_detalle(just)}
-                          className="h-8 rounded-xl text-xs text-slate-600 hover:text-[#063A6B] hover:bg-slate-100"
+                          className="h-8 rounded-xl text-xs text-slate-600 hover:text-[#035683] hover:bg-slate-100"
                         >
                           <Eye className="w-3.5 h-3.5 mr-1" />
                           Detalles
@@ -750,14 +711,14 @@ export function BandejaJustificaciones() {
             if (!abierto) set_justificacion_rechazo(null);
           }}
         >
-          <AlertDialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto p-6 bg-white border-[#E3DCCB] rounded-2xl">
-            <AlertDialogHeader className="pb-3 border-b border-[#E3DCCB]">
+          <AlertDialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto p-6 bg-white border-[#E5E7EB] rounded-2xl">
+            <AlertDialogHeader className="pb-3 border-b border-[#E5E7EB]">
               <AlertDialogTitle className="text-base font-bold text-rose-700 flex items-center gap-2">
                 <ShieldAlert className="w-5 h-5 text-rose-600" />
                 Fundamentación del Rechazo de Justificación
               </AlertDialogTitle>
               <AlertDialogDescription>
-                Becario: <span className="font-semibold text-[#063A6B]">{justificacion_rechazo.becario_nombre}</span> · Incidencia: {justificacion_rechazo.motivo}. Todo rechazo institucional requiere una motivación técnica obligatoria.
+                Becario: <span className="font-semibold text-[#035683]">{justificacion_rechazo.becario_nombre}</span> · Incidencia: {justificacion_rechazo.motivo}. Todo rechazo institucional requiere una motivación técnica obligatoria.
               </AlertDialogDescription>
             </AlertDialogHeader>
 
@@ -771,7 +732,7 @@ export function BandejaJustificaciones() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="motivo_rechazo" className="text-xs font-semibold text-[#063A6B]">
+                <Label htmlFor="motivo_rechazo" className="text-xs font-semibold text-[#035683]">
                   Observación y Motivo del Rechazo *
                 </Label>
                 <Textarea
@@ -780,12 +741,12 @@ export function BandejaJustificaciones() {
                   placeholder="Ingrese el dictamen del supervisor detallando por qué no procede la convalidación..."
                   value={observacion_rechazo}
                   onChange={(e) => set_observacion_rechazo(e.target.value)}
-                  className="text-xs border-[#E3DCCB] rounded-xl focus-visible:ring-rose-500 min-h-[90px]"
+                  className="text-xs border-[#E5E7EB] rounded-xl focus-visible:ring-rose-500 min-h-[90px]"
                 />
               </div>
             </div>
 
-            <AlertDialogFooter className="pt-3 border-t border-[#E3DCCB] gap-2">
+            <AlertDialogFooter className="pt-3 border-t border-[#E5E7EB] gap-2">
               <AlertDialogCancel
                 onClick={() => set_justificacion_rechazo(null)}
               >
@@ -794,7 +755,7 @@ export function BandejaJustificaciones() {
               <Button
                 onClick={manejarConfirmarRechazo}
                 disabled={!observacion_rechazo.trim()}
-                className="h-10 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-sm transition-all"
+                className="h-10 px-4 rounded-xl bg-[#E2694B] hover:bg-[#c9573b] text-white text-xs font-semibold shadow-sm transition-all"
               >
                 Confirmar Rechazo
               </Button>
@@ -813,20 +774,20 @@ export function BandejaJustificaciones() {
         >
           <DialogContent
             showCloseButton={false}
-            className="sm:max-w-[550px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E3DCCB] rounded-2xl shadow-2xl"
+            className="sm:max-w-[550px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E5E7EB] rounded-2xl shadow-2xl"
           >
-            <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
-              <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
-                <FileText className="w-5 h-5 text-[#17B4C4]" />
+            <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] shrink-0 bg-white">
+              <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#00ABBD]" />
                 Detalle del Expediente de Justificación
               </DialogTitle>
             </DialogHeader>
 
             <DialogBody className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0 text-xs">
-              <div className="grid grid-cols-2 gap-3 bg-[#F8F9FA] p-3 rounded-xl border border-[#E3DCCB]">
+              <div className="grid grid-cols-2 gap-3 bg-[#F8F9FA] p-3 rounded-xl border border-[#E5E7EB]">
                 <div>
                   <span className="text-muted-foreground block text-[11px]">Becario:</span>
-                  <span className="font-bold text-[#063A6B]">{justificacion_detalle.becario_nombre}</span>
+                  <span className="font-bold text-[#035683]">{justificacion_detalle.becario_nombre}</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-[11px]">Carrera:</span>
@@ -843,14 +804,14 @@ export function BandejaJustificaciones() {
               </div>
 
               <div>
-                <span className="font-semibold text-[#063A6B] block mb-1">Motivo Declarado:</span>
+                <span className="font-semibold text-[#035683] block mb-1">Motivo Declarado:</span>
                 <p className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-slate-700">
                   {justificacion_detalle.motivo}
                 </p>
               </div>
 
               <div>
-                <span className="font-semibold text-[#063A6B] block mb-1">Explicación y Justificación:</span>
+                <span className="font-semibold text-[#035683] block mb-1">Explicación y Justificación:</span>
                 <p className="bg-slate-50 p-3 rounded-lg border border-slate-200 text-slate-700 leading-relaxed whitespace-pre-wrap">
                   {justificacion_detalle.descripcion}
                 </p>
@@ -858,10 +819,10 @@ export function BandejaJustificaciones() {
 
               {/* Visor Real de Prueba Justificable */}
               {(justificacion_detalle.archivo_prueba_url || justificacion_detalle.documento_adjunto) && (
-                <div className="space-y-2 pt-2 border-t border-[#E3DCCB]">
+                <div className="space-y-2 pt-2 border-t border-[#E5E7EB]">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-xs text-[#063A6B] flex items-center gap-1.5">
-                      <ShieldAlert className="w-4 h-4 text-[#17B4C4]" />
+                    <span className="font-semibold text-xs text-[#035683] flex items-center gap-1.5">
+                      <ShieldAlert className="w-4 h-4 text-[#00ABBD]" />
                       Prueba Justificable Adjunta (Inspección de Respaldo)
                     </span>
                     <Badge variant="outline" className="text-[10px] font-mono border-emerald-300 text-emerald-700 bg-emerald-50">
@@ -872,7 +833,7 @@ export function BandejaJustificaciones() {
                   {justificacion_detalle.archivo_prueba_url?.startsWith("data:image/") ||
                   justificacion_detalle.archivo_prueba_url?.startsWith("http") ||
                   justificacion_detalle.documento_adjunto?.match(/\.(png|jpe?g|webp|gif|svg)$/i) ? (
-                    <div className="rounded-xl border border-[#E3DCCB] overflow-hidden bg-slate-50 p-2 text-center shadow-inner">
+                    <div className="rounded-xl border border-[#E5E7EB] overflow-hidden bg-slate-50 p-2 text-center shadow-inner">
                       <img
                         src={justificacion_detalle.archivo_prueba_url || MUESTRA_RECETA_MEDICA_SVG}
                         alt="Comprobante o Receta Médica"
@@ -883,13 +844,13 @@ export function BandejaJustificaciones() {
                       </p>
                     </div>
                   ) : (
-                    <div className="p-4 rounded-xl bg-slate-50 border border-[#E3DCCB] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="p-4 rounded-xl bg-slate-50 border border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-[#063A6B]/10 text-[#063A6B] flex items-center justify-center shrink-0">
-                          <FileText className="w-5 h-5 text-[#063A6B]" />
+                        <div className="w-10 h-10 rounded-lg bg-[#035683]/10 text-[#035683] flex items-center justify-center shrink-0">
+                          <FileText className="w-5 h-5 text-[#035683]" />
                         </div>
                         <div>
-                          <p className="font-bold text-xs text-[#063A6B]">
+                          <p className="font-bold text-xs text-[#035683]">
                             {justificacion_detalle.nombre_archivo_prueba || justificacion_detalle.documento_adjunto || "Certificado_Medico.pdf"}
                           </p>
                           <p className="text-[11px] text-muted-foreground">Documento digital firmado y convalidado</p>
@@ -901,7 +862,7 @@ export function BandejaJustificaciones() {
                           download={justificacion_detalle.nombre_archivo_prueba || "comprobante.pdf"}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center h-8 px-3 text-xs font-semibold rounded-lg bg-[#063A6B] text-white hover:bg-[#063A6B]/90 transition-colors"
+                          className="inline-flex items-center justify-center h-8 px-3 text-xs font-semibold rounded-lg bg-[#035683] text-white hover:bg-[#035683]/90 transition-colors"
                         >
                           Abrir / Descargar
                         </a>
@@ -912,11 +873,11 @@ export function BandejaJustificaciones() {
               )}
             </DialogBody>
 
-            <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end">
+            <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end">
               <Button
                 variant="outline"
                 onClick={() => set_justificacion_detalle(null)}
-                className="rounded-xl border-[#E3DCCB] text-xs h-9 hover:bg-slate-100"
+                className="rounded-xl border-[#E5E7EB] text-xs h-9 hover:bg-slate-100"
               >
                 Cerrar
               </Button>
@@ -929,11 +890,11 @@ export function BandejaJustificaciones() {
       <Dialog open={modal_crear_abierto} onOpenChange={set_modal_crear_abierto}>
         <DialogContent
           showCloseButton={false}
-          className="max-w-md max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E3DCCB] rounded-2xl shadow-2xl"
+          className="max-w-md max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E5E7EB] rounded-2xl shadow-2xl"
         >
-          <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
-            <DialogTitle className="flex items-center gap-2 text-[#063A6B] text-base font-bold">
-              <ClipboardCheck className="w-5 h-5 text-[#17B4C4]" />
+          <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] shrink-0 bg-white">
+            <DialogTitle className="flex items-center gap-2 text-[#035683] text-base font-bold">
+              <ClipboardCheck className="w-5 h-5 text-[#00ABBD]" />
               Registrar Permiso / Justificación
             </DialogTitle>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -944,17 +905,21 @@ export function BandejaJustificaciones() {
           <DialogBody className="p-6 space-y-3.5 overflow-y-auto flex-1 min-h-0 text-xs">
             {!es_becario && (
               <div>
-                <Label className="text-xs font-semibold text-[#063A6B]">Becario Solicitante</Label>
+                <Label className="text-xs font-semibold text-[#035683]">Becario Solicitante</Label>
                 <Select
                   value={String(becario_seleccionado_id)}
                   onValueChange={(val) => val && set_becario_seleccionado_id(Number(val))}
                 >
-                  <SelectTrigger className="w-full mt-1 text-xs h-9 px-3 rounded-xl border border-[#E3DCCB] bg-white text-[#063A6B] font-medium">
+                  <SelectTrigger className="w-full mt-1 text-xs h-9 px-3 rounded-xl border border-[#E5E7EB] bg-white text-[#035683] font-medium">
                     <SelectValue placeholder="Seleccionar becario" />
                   </SelectTrigger>
-                  <SelectContent className="max-h-56 bg-white border-[#E3DCCB] z-[100]">
+                  <SelectContent className="max-h-56 bg-white border-[#E5E7EB] z-[100]">
                     {lista_becarios.map((b) => (
-                      <SelectItem key={b.id} value={String(b.id)}>
+                      <SelectItem
+                        key={b.id}
+                        value={String(b.id)}
+                        etiqueta={`${b.nombre} (${b.carrera})`}
+                      >
                         {b.nombre} ({b.carrera})
                       </SelectItem>
                     ))}
@@ -964,17 +929,17 @@ export function BandejaJustificaciones() {
             )}
 
             <div>
-              <Label className="text-xs font-semibold text-[#063A6B]">Tipo de Incidencia</Label>
+              <Label className="text-xs font-semibold text-[#035683]">Tipo de Incidencia</Label>
               <Select
                 value={nuevo_tipo}
                 onValueChange={(val: any) => {
                   if (val) set_nuevo_tipo(val);
                 }}
               >
-                <SelectTrigger className="w-full mt-1 text-xs h-9 px-3 rounded-xl border border-[#E3DCCB] bg-white text-[#063A6B] font-medium">
+                <SelectTrigger className="w-full mt-1 text-xs h-9 px-3 rounded-xl border border-[#E5E7EB] bg-white text-[#035683] font-medium">
                   <SelectValue placeholder="Seleccionar tipo de incidencia" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-[#E3DCCB] z-[100]">
+                <SelectContent className="bg-white border-[#E5E7EB] z-[100]">
                   <SelectItem value="asistencia_practicas">Prácticas Preprofesionales</SelectItem>
                   <SelectItem value="asistencia_evento">Evento Geolocalizado Convocado</SelectItem>
                   <SelectItem value="escuela_lideres">Escuela de Líderes</SelectItem>
@@ -984,41 +949,41 @@ export function BandejaJustificaciones() {
             </div>
 
             <div>
-              <Label className="text-xs font-semibold text-[#063A6B]">Fecha de Incidencia</Label>
+              <Label className="text-xs font-semibold text-[#035683]">Fecha de Incidencia</Label>
               <Input
                 type="date"
                 value={nueva_fecha}
                 onChange={(e) => set_nueva_fecha(e.target.value)}
-                className="mt-1 text-xs rounded-xl border-[#E3DCCB]"
+                className="mt-1 text-xs rounded-xl border-[#E5E7EB]"
               />
             </div>
 
             <div>
-              <Label className="text-xs font-semibold text-[#063A6B]">Motivo Resumido</Label>
+              <Label className="text-xs font-semibold text-[#035683]">Motivo Resumido</Label>
               <Input
                 placeholder="Ej. Cita médica en seguro social, Examen parcial..."
                 value={nuevo_motivo}
                 onChange={(e) => set_nuevo_motivo(e.target.value)}
-                className="mt-1 text-xs rounded-xl border-[#E3DCCB]"
+                className="mt-1 text-xs rounded-xl border-[#E5E7EB]"
               />
             </div>
 
             <div>
-              <Label className="text-xs font-semibold text-[#063A6B]">Descripción Detallada</Label>
+              <Label className="text-xs font-semibold text-[#035683]">Descripción Detallada</Label>
               <Textarea
                 placeholder="Explica las circunstancias de la inasistencia o retraso..."
                 rows={3}
                 value={nueva_descripcion}
                 onChange={(e) => set_nueva_descripcion(e.target.value)}
-                className="mt-1 text-xs rounded-xl border-[#E3DCCB]"
+                className="mt-1 text-xs rounded-xl border-[#E5E7EB]"
               />
             </div>
 
             <div>
-              <Label className="text-xs font-semibold text-[#063A6B] block mb-1">
+              <Label className="text-xs font-semibold text-[#035683] block mb-1">
                 Prueba Justificable (Receta médica, certificado médico o comprobante — No carta) *
               </Label>
-              <div className="border-2 border-dashed border-[#E3DCCB] hover:border-[#17B4C4] rounded-xl p-4 bg-[#F8F9FA] transition-colors text-center cursor-pointer relative">
+              <div className="border-2 border-dashed border-[#E5E7EB] hover:border-[#00ABBD] rounded-xl p-4 bg-[#F8F9FA] transition-colors text-center cursor-pointer relative">
                 <input
                   type="file"
                   accept="image/*,.pdf"
@@ -1042,8 +1007,8 @@ export function BandejaJustificaciones() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-1">
-                    <Upload className="w-6 h-6 text-[#17B4C4]" />
-                    <span className="text-xs font-semibold text-[#063A6B]">
+                    <Upload className="w-6 h-6 text-[#00ABBD]" />
+                    <span className="text-xs font-semibold text-[#035683]">
                       Adjuntar receta o certificado médico
                     </span>
                     <span className="text-[10px] text-muted-foreground">
@@ -1055,19 +1020,19 @@ export function BandejaJustificaciones() {
             </div>
           </DialogBody>
 
-          <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
+          <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => set_modal_crear_abierto(false)}
-              className="rounded-xl border-[#E3DCCB]"
+              className="rounded-xl border-[#E5E7EB]"
             >
               Cancelar
             </Button>
             <Button
               size="sm"
               onClick={manejarCrearJustificacion}
-              className="bg-[#063A6B] hover:bg-[#063A6B]/90 text-white rounded-xl font-bold"
+              className="bg-[#035683] hover:bg-[#035683]/90 text-white rounded-xl font-bold"
             >
               Radicar Permiso / Justificación
             </Button>

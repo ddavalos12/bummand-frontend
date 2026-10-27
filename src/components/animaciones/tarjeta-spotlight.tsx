@@ -14,7 +14,7 @@ export interface TarjetaSpotlightProps extends React.HTMLAttributes<HTMLDivEleme
 
 /**
  * Tarjeta sobria e institucional sin halos ni destellos distractores.
- * Por directriz de diseño, los halos de luz están reservados exclusivamente para el menú lateral.
+ * Cumple con la regla de bordes redondeados orgánicos del Manual de Marca Diaconía FRIF-IFD.
  */
 export function TarjetaSpotlight({
   children,
@@ -28,7 +28,7 @@ export function TarjetaSpotlight({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-xl border border-[#E3DCCB] bg-white transition-shadow duration-300 hover:shadow-sm [--card-spacing:1.5rem]",
+        "relative overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white transition-shadow duration-300 hover:shadow-sm [--card-spacing:1.5rem]",
         className
       )}
       {...props}
@@ -37,4 +37,3 @@ export function TarjetaSpotlight({
     </div>
   );
 }
-

@@ -61,6 +61,7 @@ import {
 import {
   Dialog,
   DialogTrigger,
+  DialogBody,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -75,6 +76,9 @@ import { SabanaConsolidadoSemestral } from "./sabana-consolidado-semestral";
 import { FormularioF03 } from "./formulario-f03";
 import { FirmaDigital } from "./firma-digital";
 import { EvaluacionSocioeconomicaVista } from "./evaluacion-socioeconomica-vista";
+import { FormularioCargaNotasEstudiante } from "./formulario-carga-notas-estudiante";
+import { BandejaPreEvaluacionSupervisor } from "./bandeja-pre-evaluacion-supervisor";
+import { BandejaConvalidacionAdministracion } from "./bandeja-convalidacion-administracion";
 import {
   BECARIOS_SEMESTRE_II,
   CATALOGO_IGLESIAS_INSTITUCIONALES,
@@ -142,7 +146,7 @@ const MODULOS_OFICIALES: ModuloPonderado[] = [
     nombre: "5. Socioeconómica (Bienestar Universitario 26P)",
     evaluador_rol: "Trabajo Social",
     ponderacion_porcentaje: 20,
-    descripcion: "Diagnóstico socioeconómico de 26 preguntas y Semáforo de Vulnerabilidad.",
+    descripcion: "Diagnóstico socioeconómico y de bienestar estudiantil de 26 preguntas.",
   },
 ];
 
@@ -161,7 +165,7 @@ const TAREAS_CETI_CATALOGO = [
   { numero: 12, tema: "Evaluación Integral de Impacto Comunitario", ponderacion: "8.33%" },
 ];
 
-const MUESTRA_KARDEX_PDF_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="420" viewBox="0 0 600 420" fill="none"><rect width="600" height="420" rx="16" fill="%23FFFFFF" stroke="%23CBD5E1" stroke-width="2"/><rect x="24" y="24" width="552" height="64" rx="8" fill="%23EFF6FF" stroke="%2393C5FD"/><text x="44" y="52" fill="%231E3A8A" font-family="sans-serif" font-size="15" font-weight="bold">UNIVERSIDAD MAYOR DE SAN ANDRÉS · RECTORADO</text><text x="44" y="72" fill="%232563EB" font-family="sans-serif" font-size="12">HISTORIAL ACADÉMICO Y RÉCORD DE CALIFICACIONES SEMESTRALES</text><line x1="24" y1="104" x2="576" y2="104" stroke="%23E2E8F0" stroke-width="1.5"/><text x="44" y="132" fill="%23475569" font-family="sans-serif" font-size="12" font-weight="bold">FACULTAD:</text><text x="125" y="132" fill="%230F172A" font-family="sans-serif" font-size="12">Ciencias Económicas y Financieras</text><text x="360" y="132" fill="%23475569" font-family="sans-serif" font-size="12" font-weight="bold">PROMEDIO:</text><text x="440" y="132" fill="%23059669" font-family="sans-serif" font-size="13" font-weight="bold">82.50 pts (APROBADO)</text><rect x="44" y="150" width="512" height="150" rx="8" fill="%23F8FAFC" stroke="%23E2E8F0"/><text x="60" y="175" fill="%23334155" font-family="sans-serif" font-size="11" font-weight="bold">MATERIA</text><text x="380" y="175" fill="%23334155" font-family="sans-serif" font-size="11" font-weight="bold">NOTA</text><text x="460" y="175" fill="%23334155" font-family="sans-serif" font-size="11" font-weight="bold">ESTADO</text><line x1="44" y1="185" x2="556" y2="185" stroke="%23E2E8F0"/><text x="60" y="205" fill="%231E293B" font-family="sans-serif" font-size="11">Contabilidad de Costos II (CPA-201)</text><text x="380" y="205" fill="%23059669" font-family="sans-serif" font-size="11" font-weight="bold">85</text><text x="460" y="205" fill="%23059669" font-family="sans-serif" font-size="11">Aprobado</text><text x="60" y="230" fill="%231E293B" font-family="sans-serif" font-size="11">Matemática Financiera (CPA-202)</text><text x="380" y="230" fill="%23059669" font-family="sans-serif" font-size="11" font-weight="bold">78</text><text x="460" y="230" fill="%23059669" font-family="sans-serif" font-size="11">Aprobado</text><text x="60" y="255" fill="%231E293B" font-family="sans-serif" font-size="11">Microeconomía I (ECO-105)</text><text x="380" y="255" fill="%23059669" font-family="sans-serif" font-size="11" font-weight="bold">81</text><text x="460" y="255" fill="%23059669" font-family="sans-serif" font-size="11">Aprobado</text><text x="60" y="280" fill="%231E293B" font-family="sans-serif" font-size="11">Derecho Comercial y Laboral (DER-104)</text><text x="380" y="280" fill="%23059669" font-family="sans-serif" font-size="11" font-weight="bold">86</text><text x="460" y="280" fill="%23059669" font-family="sans-serif" font-size="11">Aprobado</text><rect x="44" y="315" width="512" height="70" rx="8" fill="%23FFFFFF" stroke="%23E2E8F0"/><text x="60" y="342" fill="%23475569" font-family="sans-serif" font-size="11">Sello Digital Rectorado:</text><text x="60" y="362" fill="%23063A6B" font-family="sans-serif" font-size="12" font-weight="bold">División de Títulos y Archivo Universitario UMSA · Ref. #8921-2026</text><circle cx="500" cy="350" r="22" fill="%23059669" fill-opacity="0.1" stroke="%23059669" stroke-dasharray="3 3"/><text x="477" y="354" fill="%23059669" font-family="sans-serif" font-size="10" font-weight="bold">CONVALIDADO</text></svg>`;
+const MUESTRA_KARDEX_PDF_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="420" viewBox="0 0 600 420" fill="none"><rect width="600" height="420" rx="16" fill="%23FFFFFF" stroke="%23CBD5E1" stroke-width="2"/><rect x="24" y="24" width="552" height="64" rx="8" fill="%23EFF6FF" stroke="%2393C5FD"/><text x="44" y="52" fill="%231E3A8A" font-family="sans-serif" font-size="15" font-weight="bold">UNIVERSIDAD MAYOR DE SAN ANDRÉS · RECTORADO</text><text x="44" y="72" fill="%232563EB" font-family="sans-serif" font-size="12">HISTORIAL ACADÉMICO Y RÉCORD DE CALIFICACIONES SEMESTRALES</text><line x1="24" y1="104" x2="576" y2="104" stroke="%23E2E8F0" stroke-width="1.5"/><text x="44" y="132" fill="%23475569" font-family="sans-serif" font-size="12" font-weight="bold">FACULTAD:</text><text x="125" y="132" fill="%230F172A" font-family="sans-serif" font-size="12">Ciencias Económicas y Financieras</text><text x="360" y="132" fill="%23475569" font-family="sans-serif" font-size="12" font-weight="bold">PROMEDIO:</text><text x="440" y="132" fill="%23059669" font-family="sans-serif" font-size="13" font-weight="bold">82.50 pts (APROBADO)</text><rect x="44" y="150" width="512" height="150" rx="8" fill="%23F8FAFC" stroke="%23E2E8F0"/><text x="60" y="175" fill="%23334155" font-family="sans-serif" font-size="11" font-weight="bold">MATERIA</text><text x="380" y="175" fill="%23334155" font-family="sans-serif" font-size="11" font-weight="bold">NOTA</text><text x="460" y="175" fill="%23334155" font-family="sans-serif" font-size="11" font-weight="bold">ESTADO</text><line x1="44" y1="185" x2="556" y2="185" stroke="%23E2E8F0"/><text x="60" y="205" fill="%231E293B" font-family="sans-serif" font-size="11">Contabilidad de Costos II (CPA-201)</text><text x="380" y="205" fill="%23059669" font-family="sans-serif" font-size="11" font-weight="bold">85</text><text x="460" y="205" fill="%23059669" font-family="sans-serif" font-size="11">Aprobado</text><text x="60" y="230" fill="%231E293B" font-family="sans-serif" font-size="11">Matemática Financiera (CPA-202)</text><text x="380" y="230" fill="%23059669" font-family="sans-serif" font-size="11" font-weight="bold">78</text><text x="460" y="230" fill="%23059669" font-family="sans-serif" font-size="11">Aprobado</text><text x="60" y="255" fill="%231E293B" font-family="sans-serif" font-size="11">Microeconomía I (ECO-105)</text><text x="380" y="255" fill="%23059669" font-family="sans-serif" font-size="11" font-weight="bold">81</text><text x="460" y="255" fill="%23059669" font-family="sans-serif" font-size="11">Aprobado</text><text x="60" y="280" fill="%231E293B" font-family="sans-serif" font-size="11">Derecho Comercial y Laboral (DER-104)</text><text x="380" y="280" fill="%23059669" font-family="sans-serif" font-size="11" font-weight="bold">86</text><text x="460" y="280" fill="%23059669" font-family="sans-serif" font-size="11">Aprobado</text><rect x="44" y="315" width="512" height="70" rx="8" fill="%23FFFFFF" stroke="%23E2E8F0"/><text x="60" y="342" fill="%23475569" font-family="sans-serif" font-size="11">Sello Digital Rectorado:</text><text x="60" y="362" fill="%23035683" font-family="sans-serif" font-size="12" font-weight="bold">División de Títulos y Archivo Universitario UMSA · Ref. #8921-2026</text><circle cx="500" cy="350" r="22" fill="%23059669" fill-opacity="0.1" stroke="%23059669" stroke-dasharray="3 3"/><text x="477" y="354" fill="%23059669" font-family="sans-serif" font-size="10" font-weight="bold">CONVALIDADO</text></svg>`;
 
 export interface DocumentoAcademicoSemestral {
   id: number;
@@ -269,6 +273,9 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
   const es_supervisor = usuario?.rol === "supervisor";
 
   const [pestaña_activa, set_pestaña_activa] = useState<string>(pestaña_inicial);
+  const [sub_pestana_academica, set_sub_pestana_academica] = useState<
+    "estudiante" | "supervisor" | "administracion"
+  >(es_supervisor ? "supervisor" : es_admin ? "administracion" : "estudiante");
 
   useEffect(() => {
     if (pestaña_inicial) {
@@ -526,11 +533,11 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
             onClick={() => set_pestaña_activa("consolidado")}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               pestaña_activa === "consolidado"
-                ? "bg-[#063A6B] text-white shadow-xs"
-                : "text-slate-700 hover:text-[#063A6B] hover:bg-white/80"
+                ? "bg-[#035683] text-white shadow-xs"
+                : "text-slate-700 hover:text-[#035683] hover:bg-white/80"
             }`}
           >
-            <Table2 className="w-3.5 h-3.5 text-[#F8C766]" />
+            <Table2 className="w-3.5 h-3.5 text-[#FFB600]" />
             <span>Sábana Consolidada</span>
             <span className={`text-[10px] font-mono px-1.5 py-0 rounded-full font-bold ${
               pestaña_activa === "consolidado" ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
@@ -544,11 +551,11 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
             onClick={() => set_pestaña_activa("iglesia_f03")}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               pestaña_activa === "iglesia_f03"
-                ? "bg-[#063A6B] text-white shadow-xs"
-                : "text-slate-700 hover:text-[#063A6B] hover:bg-white/80"
+                ? "bg-[#035683] text-white shadow-xs"
+                : "text-slate-700 hover:text-[#035683] hover:bg-white/80"
             }`}
           >
-            <BookOpen className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <BookOpen className="w-3.5 h-3.5 text-[#00ABBD]" />
             <span>1. Iglesia (F-03)</span>
           </button>
 
@@ -557,11 +564,11 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
             onClick={() => set_pestaña_activa("academica")}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               pestaña_activa === "academica"
-                ? "bg-[#063A6B] text-white shadow-xs"
-                : "text-slate-700 hover:text-[#063A6B] hover:bg-white/80"
+                ? "bg-[#035683] text-white shadow-xs"
+                : "text-slate-700 hover:text-[#035683] hover:bg-white/80"
             }`}
           >
-            <GraduationCap className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <GraduationCap className="w-3.5 h-3.5 text-[#00ABBD]" />
             <span>2. Académica (≥75)</span>
           </button>
 
@@ -570,11 +577,11 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
             onClick={() => set_pestaña_activa("mentor")}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               pestaña_activa === "mentor"
-                ? "bg-[#063A6B] text-white shadow-xs"
-                : "text-slate-700 hover:text-[#063A6B] hover:bg-white/80"
+                ? "bg-[#035683] text-white shadow-xs"
+                : "text-slate-700 hover:text-[#035683] hover:bg-white/80"
             }`}
           >
-            <QrCode className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <QrCode className="w-3.5 h-3.5 text-[#00ABBD]" />
             <span>3. Mentor (QR)</span>
           </button>
 
@@ -583,11 +590,11 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
             onClick={() => set_pestaña_activa("lideres")}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               pestaña_activa === "lideres"
-                ? "bg-[#063A6B] text-white shadow-xs"
-                : "text-slate-700 hover:text-[#063A6B] hover:bg-white/80"
+                ? "bg-[#035683] text-white shadow-xs"
+                : "text-slate-700 hover:text-[#035683] hover:bg-white/80"
             }`}
           >
-            <Users className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <Users className="w-3.5 h-3.5 text-[#00ABBD]" />
             <span>4. Escuela de Líderes</span>
           </button>
 
@@ -596,11 +603,11 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
             onClick={() => set_pestaña_activa("socioeconomica")}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               pestaña_activa === "socioeconomica"
-                ? "bg-[#063A6B] text-white shadow-xs"
-                : "text-slate-700 hover:text-[#063A6B] hover:bg-white/80"
+                ? "bg-[#035683] text-white shadow-xs"
+                : "text-slate-700 hover:text-[#035683] hover:bg-white/80"
             }`}
           >
-            <HeartHandshake className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <HeartHandshake className="w-3.5 h-3.5 text-[#00ABBD]" />
             <span>5. Socioeconómica (26P)</span>
           </button>
 
@@ -609,26 +616,26 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
             onClick={() => set_pestaña_activa("periodos")}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               pestaña_activa === "periodos"
-                ? "bg-[#063A6B] text-white shadow-xs"
-                : "text-slate-700 hover:text-[#063A6B] hover:bg-white/80"
+                ? "bg-[#035683] text-white shadow-xs"
+                : "text-slate-700 hover:text-[#035683] hover:bg-white/80"
             }`}
           >
-            <Calendar className="w-3.5 h-3.5 text-[#17B4C4]" />
+            <Calendar className="w-3.5 h-3.5 text-[#00ABBD]" />
             <span>Ponderaciones y Criterios</span>
           </button>
         </div>
 
         <div className="flex items-center gap-2 px-2 shrink-0">
-          <Badge variant="outline" className="font-mono text-xs border-slate-300 text-[#063A6B] bg-white px-2.5 py-1 font-bold">
+          <Badge variant="outline" className="font-mono text-xs border-slate-300 text-[#035683] bg-white px-2.5 py-1 font-bold">
             {periodo_actual_info.titulo}
           </Badge>
           {es_admin && (
             <Button
               size="sm"
               onClick={() => set_modal_nuevo_semestre_abierto(true)}
-              className="h-8 px-3 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs gap-1.5 shadow-xs"
+              className="h-8 px-3 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs gap-1.5 shadow-xs"
             >
-              <CalendarPlus className="w-3.5 h-3.5 text-[#F8C766]" />
+              <CalendarPlus className="w-3.5 h-3.5 text-[#FFB600]" />
               Nuevo Semestre
             </Button>
           )}
@@ -643,13 +650,13 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
           {/* Métricas Administrativas Oficiales del Semestre II */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* KPI 1: Total Becarios Titulares */}
-            <Card className="border-[#E3DCCB] bg-gradient-to-br from-[#063A6B] to-[#04284d] text-white rounded-2xl shadow-xs">
+            <Card className="border-[#E5E7EB] bg-gradient-to-br from-[#035683] to-[#035683] text-white rounded-2xl shadow-xs">
               <CardContent className="p-5 flex items-center justify-between">
                 <div className="space-y-1">
-                  <p className="text-[11px] font-mono text-[#7FE0E6] uppercase font-bold tracking-wider">
+                  <p className="text-[11px] font-mono text-[#00ABBD] uppercase font-bold tracking-wider">
                     Becarios en Programa
                   </p>
-                  <h3 className="text-3xl font-display font-bold text-[#F8C766]">
+                  <h3 className="text-3xl font-display font-bold text-[#FFB600]">
                     {total_becarios} <span className="text-sm font-normal text-white/70">titulares</span>
                   </h3>
                   <p className="text-xs text-white/90 font-medium pt-0.5">
@@ -657,13 +664,13 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                   </p>
                 </div>
                 <div className="p-3 bg-white/10 rounded-2xl">
-                  <Users className="w-8 h-8 text-[#F8C766]" />
+                  <Users className="w-8 h-8 text-[#FFB600]" />
                 </div>
               </CardContent>
             </Card>
 
             {/* KPI 2: Aprobación Óptima */}
-            <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
+            <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs">
               <CardContent className="p-5 flex items-center justify-between">
                 <div className="space-y-1">
                   <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold tracking-wider">
@@ -685,7 +692,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
             </Card>
 
             {/* KPI 3: Acompañamiento / Condicionados */}
-            <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
+            <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs">
               <CardContent className="p-5 flex items-center justify-between">
                 <div className="space-y-1">
                   <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold tracking-wider">
@@ -707,13 +714,13 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
             </Card>
 
             {/* KPI 4: Convalidación y Gobernanza */}
-            <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
+            <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs">
               <CardContent className="p-5 flex items-center justify-between">
                 <div className="space-y-1">
                   <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold tracking-wider">
                     Gobernanza Institucional
                   </p>
-                  <h3 className="text-3xl font-display font-bold text-[#063A6B]">
+                  <h3 className="text-3xl font-display font-bold text-[#035683]">
                     5 / 5 <span className="text-sm font-normal text-muted-foreground">módulos</span>
                   </h3>
                   <div className="pt-0.5">
@@ -728,8 +735,8 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                     )}
                   </div>
                 </div>
-                <div className="p-3 bg-[#17B4C4]/10 rounded-2xl">
-                  <Scale className="w-8 h-8 text-[#17B4C4]" />
+                <div className="p-3 bg-[#00ABBD]/10 rounded-2xl">
+                  <Scale className="w-8 h-8 text-[#00ABBD]" />
                 </div>
               </CardContent>
             </Card>
@@ -739,8 +746,8 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
           <div className="space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-base font-bold font-display text-[#063A6B] flex items-center gap-2">
-                  <Table2 className="w-4 h-4 text-[#17B4C4]" />
+                <h3 className="text-base font-bold font-display text-[#035683] flex items-center gap-2">
+                  <Table2 className="w-4 h-4 text-[#00ABBD]" />
                   Sábana Maestra de Calificaciones Semestrales Oficiales (14 Columnas)
                 </h3>
                 <p className="text-xs text-muted-foreground">
@@ -751,9 +758,9 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               {(es_admin || es_supervisor) && (
                 <Button
                   onClick={() => set_dialogo_firma_abierto(true)}
-                  className="h-9 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs shrink-0"
+                  className="h-9 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs shrink-0"
                 >
-                  <ShieldCheck className="w-4 h-4 text-[#F8C766]" />
+                  <ShieldCheck className="w-4 h-4 text-[#FFB600]" />
                   Convalidar Acta con Firma Digital
                 </Button>
               )}
@@ -784,18 +791,18 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
       {/* ============================================================== */}
       {pestaña_activa === "iglesia_f03" && (
         <div className="space-y-6">
-          <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
-            <CardHeader className="border-b border-[#E3DCCB]/60 bg-slate-50/50 pb-4">
+          <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs">
+            <CardHeader className="border-b border-[#E5E7EB]/60 bg-slate-50/50 pb-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="border-[#17B4C4] text-[#063A6B] font-bold text-[10px]">
+                    <Badge variant="outline" className="border-[#00ABBD] text-[#035683] font-bold text-[10px]">
                       Módulo 01 · 20% Oficial
                     </Badge>
                     <span className="text-xs text-muted-foreground">Evaluador: Pastor de la Iglesia Local</span>
                   </div>
-                  <CardTitle className="text-lg font-bold text-[#063A6B] flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-[#17B4C4]" />
+                  <CardTitle className="text-lg font-bold text-[#035683] flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-[#00ABBD]" />
                     Gobernanza del Instrumento F-03 · Evaluación Ministerial del Becario
                   </CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
@@ -805,9 +812,9 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
 
                 <Button
                   onClick={() => set_modal_preview_f03_abierto(true)}
-                  className="h-10 px-4 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs shrink-0"
+                  className="h-10 px-4 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs shrink-0"
                 >
-                  <Eye className="w-4 h-4 text-[#F8C766]" />
+                  <Eye className="w-4 h-4 text-[#FFB600]" />
                   Vista Previa del Formulario F-03
                 </Button>
               </div>
@@ -816,8 +823,8 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
             <CardContent className="p-6 space-y-6">
               {/* Configuración de Conexión a Catálogo de Iglesias */}
               <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                <h4 className="text-xs font-mono font-bold uppercase text-[#063A6B] flex items-center gap-1.5">
-                  <Building2 className="w-4 h-4 text-[#17B4C4]" />
+                <h4 className="text-xs font-mono font-bold uppercase text-[#035683] flex items-center gap-1.5">
+                  <Building2 className="w-4 h-4 text-[#00ABBD]" />
                   Conexión de Campos a Catálogos Institucionales
                 </h4>
                 <p className="text-xs text-muted-foreground">
@@ -836,7 +843,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                       size="sm"
                       variant={campo_iglesia_conectado ? "default" : "outline"}
                       onClick={() => set_campo_iglesia_conectado(!campo_iglesia_conectado)}
-                      className={`h-7 text-xs font-bold rounded-lg ${campo_iglesia_conectado ? "bg-[#063A6B]" : ""}`}
+                      className={`h-7 text-xs font-bold rounded-lg ${campo_iglesia_conectado ? "bg-[#035683]" : ""}`}
                     >
                       {campo_iglesia_conectado ? "Conectado" : "Texto Libre"}
                     </Button>
@@ -853,7 +860,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                       size="sm"
                       variant={campo_pastor_conectado ? "default" : "outline"}
                       onClick={() => set_campo_pastor_conectado(!campo_pastor_conectado)}
-                      className={`h-7 text-xs font-bold rounded-lg ${campo_pastor_conectado ? "bg-[#063A6B]" : ""}`}
+                      className={`h-7 text-xs font-bold rounded-lg ${campo_pastor_conectado ? "bg-[#035683]" : ""}`}
                     >
                       {campo_pastor_conectado ? "Conectado" : "Texto Libre"}
                     </Button>
@@ -864,7 +871,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               {/* Muestra de Catálogo Actual de Iglesias */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs font-bold text-[#063A6B]">Directorio Institucional de Congregaciones Registradas (6)</Label>
+                  <Label className="text-xs font-bold text-[#035683]">Directorio Institucional de Congregaciones Registradas (6)</Label>
                   <span className="text-[11px] text-muted-foreground">Base oficial Diaconía FRIF-IFD</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
@@ -887,19 +894,19 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                 </Label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
-                    <p className="font-bold text-[#063A6B]">Preguntas 1 a 4: Compromiso y Cargos</p>
+                    <p className="font-bold text-[#035683]">Preguntas 1 a 4: Compromiso y Cargos</p>
                     <p className="text-[11px] text-muted-foreground">Frecuencia de asistencia (cultos y escuela dominical), compromiso en reuniones, cargos que ocupa en la iglesia y calidad de cumplimiento.</p>
                   </div>
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
-                    <p className="font-bold text-[#063A6B]">Preguntas 5 a 8: Testimonio y Capacitación</p>
+                    <p className="font-bold text-[#035683]">Preguntas 5 a 8: Testimonio y Capacitación</p>
                     <p className="text-[11px] text-muted-foreground">Convicción de llamado, áreas en las que es ejemplo, asistencia a capacitaciones y testimonio dentro y fuera de la iglesia.</p>
                   </div>
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
-                    <p className="font-bold text-[#063A6B]">Preguntas 9 a 10: Relaciones y Discipulado</p>
+                    <p className="font-bold text-[#035683]">Preguntas 9 a 10: Relaciones y Discipulado</p>
                     <p className="text-[11px] text-muted-foreground">Relaciones interpersonales con líderes y miembros, y desarrollo de nuevos líderes bajo su tutela.</p>
                   </div>
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
-                    <p className="font-bold text-[#063A6B]">Preguntas 11 a 13: Fortalezas, Debilidades y Aporte</p>
+                    <p className="font-bold text-[#035683]">Preguntas 11 a 13: Fortalezas, Debilidades y Aporte</p>
                     <p className="text-[11px] text-muted-foreground">Diagnóstico de fortalezas, debilidades y apreciación pastoral sobre el impacto del programa BUMAND.</p>
                   </div>
                 </div>
@@ -913,8 +920,8 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               <DialogHeader className="pb-2 border-b border-slate-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
-                      <Eye className="w-4 h-4 text-[#17B4C4]" />
+                    <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+                      <Eye className="w-4 h-4 text-[#00ABBD]" />
                       Vista Previa Interactiva: Formulario F-03 Ministerial
                     </DialogTitle>
                     <DialogDescription className="text-xs text-muted-foreground">
@@ -939,18 +946,18 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
       {/* ============================================================== */}
       {pestaña_activa === "academica" && (
         <div className="space-y-6">
-          <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
-            <CardHeader className="border-b border-[#E3DCCB]/60 bg-slate-50/50 pb-4">
+          <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs">
+            <CardHeader className="border-b border-[#E5E7EB]/60 bg-slate-50/50 pb-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="border-[#17B4C4] text-[#063A6B] font-bold text-[10px]">
+                    <Badge variant="outline" className="border-[#00ABBD] text-[#035683] font-bold text-[10px]">
                       Módulo 02 · 20% Oficial
                     </Badge>
                     <span className="text-xs text-muted-foreground">Evaluador: Acreditación de Kárdex Universitario</span>
                   </div>
-                  <CardTitle className="text-lg font-bold text-[#063A6B] flex items-center gap-2">
-                    <GraduationCap className="w-5 h-5 text-[#17B4C4]" />
+                  <CardTitle className="text-lg font-bold text-[#035683] flex items-center gap-2">
+                    <GraduationCap className="w-5 h-5 text-[#00ABBD]" />
                     Gobernanza del Récord Académico y Normativa Contractual
                   </CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
@@ -960,11 +967,11 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
 
                 <div className="flex items-center gap-2 shrink-0">
                   <Button
-                    onClick={() => set_modal_carga_academica_abierto(true)}
-                    className="h-10 px-4 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs"
+                    onClick={() => set_sub_pestana_academica("estudiante")}
+                    className="h-10 px-4 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs"
                   >
-                    <Upload className="w-4 h-4 text-[#F8C766]" />
-                    Subir Récord / Historial Académico
+                    <Upload className="w-4 h-4 text-[#FFB600]" />
+                    Ir a Carga de Notas y Kárdex
                   </Button>
                 </div>
               </div>
@@ -975,12 +982,12 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#063A6B]">Umbral Contractual</span>
+                    <span className="text-xs font-bold text-[#035683]">Umbral Contractual</span>
                     <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] font-bold">
                       Obligatorio
                     </Badge>
                   </div>
-                  <h4 className="text-2xl font-bold font-display text-[#063A6B]">≥ 75 Pts</h4>
+                  <h4 className="text-2xl font-bold font-display text-[#035683]">≥ 75 Pts</h4>
                   <p className="text-xs text-muted-foreground">
                     Promedio mínimo exigido por contrato institucional de beca. Si es inferior a 75 pts, el expediente entra en estado de observación tutorial.
                   </p>
@@ -988,7 +995,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
 
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#063A6B]">Documentos Recibidos</span>
+                    <span className="text-xs font-bold text-[#035683]">Documentos Recibidos</span>
                     <Badge variant="outline" className="border-emerald-300 text-emerald-700 bg-emerald-50 text-[10px] font-bold">
                       Semestre II - 2026
                     </Badge>
@@ -1003,7 +1010,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
 
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#063A6B]">Penalización Reprobación</span>
+                    <span className="text-xs font-bold text-[#035683]">Penalización Reprobación</span>
                     <Badge className="bg-rose-100 text-rose-800 border-rose-300 text-[10px] font-bold">
                       Crítico
                     </Badge>
@@ -1017,392 +1024,158 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
             </CardContent>
           </Card>
 
-          {/* Formulario Activo Directo de Carga de Documentos Académicos */}
-          <Card className="border-[#17B4C4]/40 bg-white rounded-2xl shadow-sm overflow-hidden">
-            <CardHeader className="bg-[#063A6B]/5 border-b border-[#E3DCCB] pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-[#063A6B] text-white flex items-center justify-center">
-                    <FileUp className="w-4 h-4 text-[#F8C766]" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base font-bold text-[#063A6B]">
-                      Carga y Convalidación de Documentos Académicos (PDF o Imágenes)
-                    </CardTitle>
-                    <CardDescription className="text-xs text-muted-foreground">
-                      Suba el Récord Académico y el Historial / Kárdex Legalizado del becario para su análisis y ponderación sobre 20 pts.
-                    </CardDescription>
-                  </div>
-                </div>
-                <Badge variant="outline" className="border-[#17B4C4] text-[#063A6B] font-bold text-xs bg-[#17B4C4]/10">
-                  Formatos: PDF, JPG, PNG (Hasta 15 MB)
-                </Badge>
-              </div>
-            </CardHeader>
+          {/* Sub-Navegación de Fases del Flujo de Evaluación Académica */}
+          <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100/80 rounded-2xl border border-slate-200">
+            <Button
+              type="button"
+              variant={sub_pestana_academica === "estudiante" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => set_sub_pestana_academica("estudiante")}
+              className={`h-9 px-4 rounded-xl font-bold text-xs gap-2 ${
+                sub_pestana_academica === "estudiante"
+                  ? "bg-[#035683] text-white shadow-xs"
+                  : "text-slate-600 hover:text-[#035683] hover:bg-white"
+              }`}
+            >
+              <GraduationCap className="w-4 h-4 text-[#FFB600]" />
+              1. Carga de Notas y Kárdex (Estudiante)
+            </Button>
 
-            <CardContent className="p-6 space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Selector de Becario */}
-                <div>
-                  <Label className="text-xs font-bold text-[#063A6B] block mb-1">
-                    Becario a Convalidar *
-                  </Label>
-                  <Select
-                    value={String(becario_carga_id)}
-                    onValueChange={(v) => v && set_becario_carga_id(Number(v))}
-                  >
-                    <SelectTrigger className="h-10 text-xs border-[#E3DCCB] rounded-xl bg-white font-medium">
-                      <SelectValue placeholder="Seleccione un becario" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-56 bg-white border-[#E3DCCB] z-[100]">
-                      {BECARIOS_SEMESTRE_II.map((b) => (
-                        <SelectItem key={b.id} value={String(b.id)}>
-                          {b.nombre_completo} — {b.carrera} ({b.universidad})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            <Button
+              type="button"
+              variant={sub_pestana_academica === "supervisor" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => set_sub_pestana_academica("supervisor")}
+              className={`h-9 px-4 rounded-xl font-bold text-xs gap-2 ${
+                sub_pestana_academica === "supervisor"
+                  ? "bg-[#035683] text-white shadow-xs"
+                  : "text-slate-600 hover:text-[#035683] hover:bg-white"
+              }`}
+            >
+              <UserCheck className="w-4 h-4 text-[#00ABBD]" />
+              2. Pre-Evaluación y Edición (Supervisor)
+            </Button>
 
-                {/* Promedio Semestral */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <Label className="text-xs font-bold text-[#063A6B]">
-                      Promedio Académico Autodeclarado *
-                    </Label>
-                    <span className="text-[11px] font-mono text-muted-foreground">Escala 0 - 100 pts</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="100"
-                      value={promedio_carga}
-                      onChange={(e) => set_promedio_carga(e.target.value)}
-                      placeholder="Ej. 82.5"
-                      className="h-10 text-xs border-[#E3DCCB] rounded-xl font-bold text-[#063A6B]"
-                    />
-                    <div className="shrink-0">
-                      {parseFloat(promedio_carga) >= 75 ? (
-                        <Badge className="bg-emerald-600 text-white text-[11px] font-bold h-9 px-3 flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          ≥ 75 Pts (Meta Cumplida)
-                        </Badge>
-                      ) : (
-                        <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-[11px] font-bold h-9 px-3 flex items-center gap-1">
-                          <AlertTriangle className="w-3.5 h-3.5" />
-                          &lt; 75 Pts (Observado)
-                        </Badge>
-                      )}
+            <Button
+              type="button"
+              variant={sub_pestana_academica === "administracion" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => set_sub_pestana_academica("administracion")}
+              className={`h-9 px-4 rounded-xl font-bold text-xs gap-2 ${
+                sub_pestana_academica === "administracion"
+                  ? "bg-[#035683] text-white shadow-xs"
+                  : "text-slate-600 hover:text-[#035683] hover:bg-white"
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              3. Convalidación Central (Administración)
+            </Button>
+          </div>
+
+          {/* FASE 1: Formulario Estudiante */}
+          {sub_pestana_academica === "estudiante" && (
+            <div className="space-y-4">
+              {(es_admin || es_supervisor) && (
+                <Card className="border-slate-200 rounded-2xl bg-white p-4 shadow-2xs">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div>
+                      <Label className="text-xs font-bold text-[#035683]">Simular / Cargar como Becario:</Label>
+                      <p className="text-[11px] text-muted-foreground">
+                        Como supervisor o administrador, puede seleccionar a un becario específico para radicar o revisar sus notas y documentos.
+                      </p>
                     </div>
+                    <Select
+                      value={String(becario_carga_id)}
+                      onValueChange={(v) => v && set_becario_carga_id(Number(v))}
+                    >
+                      <SelectTrigger className="w-72 h-9 text-xs border-slate-200 rounded-xl bg-white font-medium">
+                        <SelectValue placeholder="Seleccione un becario" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-56 bg-white border-slate-200 z-[100]">
+                        {BECARIOS_SEMESTRE_II.map((b) => (
+                          <SelectItem key={b.id} value={String(b.id)} etiqueta={`${b.nombre_completo} (${b.carrera})`}>
+                            {b.nombre_completo} — {b.carrera} ({b.universidad})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                </div>
-              </div>
+                </Card>
+              )}
 
-              {/* Zonas de Carga de Archivos: Récord Académico e Historial */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Zona 1: Récord Académico */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-bold text-[#063A6B] flex items-center gap-1">
-                      <FileText className="w-3.5 h-3.5 text-[#17B4C4]" />
-                      1. Récord Académico Semestral (PDF / Imagen) *
-                    </Label>
-                    {archivo_record_tamano && (
-                      <Badge variant="outline" className="text-[10px] font-mono border-emerald-300 text-emerald-700">
-                        {archivo_record_tamano}
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className="relative border-2 border-dashed border-[#E3DCCB] hover:border-[#17B4C4] rounded-2xl p-4 bg-[#F8FAFC] transition-colors text-center">
-                    <input
-                      type="file"
-                      accept=".pdf,image/*"
-                      onChange={manejarSubirRecord}
-                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                    />
-
-                    {archivo_record_nombre ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                          <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-[#063A6B] truncate max-w-[220px]">
-                            {archivo_record_nombre}
-                          </p>
-                          <p className="text-[11px] text-muted-foreground mt-0.5">
-                            Archivo listo · Clic para reemplazar
-                          </p>
-                        </div>
-                        {archivo_record_url && archivo_record_url.startsWith("data:image/") && (
-                          <img
-                            src={archivo_record_url}
-                            alt="Preview Récord"
-                            className="max-h-20 rounded-lg border border-slate-200 mt-1 shadow-2xs"
-                          />
-                        )}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            set_archivo_record_nombre("");
-                            set_archivo_record_url("");
-                            set_archivo_record_tamano("");
-                          }}
-                          className="h-7 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg relative z-20"
-                        >
-                          <Trash2 className="w-3.5 h-3.5 mr-1" /> Quitar archivo
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-1.5 py-2">
-                        <div className="w-10 h-10 rounded-full bg-[#17B4C4]/10 text-[#17B4C4] flex items-center justify-center">
-                          <Upload className="w-5 h-5" />
-                        </div>
-                        <p className="text-xs font-bold text-[#063A6B]">
-                          Arrastre o haga clic para seleccionar Récord Académico
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
-                          Boleta o récord expedido por la secretaría académica universitaria (PDF, JPG, PNG)
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Zona 2: Historial Académico Completo */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-bold text-[#063A6B] flex items-center gap-1">
-                      <GraduationCap className="w-3.5 h-3.5 text-[#17B4C4]" />
-                      2. Historial Académico / Kárdex Completo (PDF / Imagen) *
-                    </Label>
-                    {archivo_historial_tamano && (
-                      <Badge variant="outline" className="text-[10px] font-mono border-emerald-300 text-emerald-700">
-                        {archivo_historial_tamano}
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className="relative border-2 border-dashed border-[#E3DCCB] hover:border-[#17B4C4] rounded-2xl p-4 bg-[#F8FAFC] transition-colors text-center">
-                    <input
-                      type="file"
-                      accept=".pdf,image/*"
-                      onChange={manejarSubirHistorial}
-                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                    />
-
-                    {archivo_historial_nombre ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                          <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-[#063A6B] truncate max-w-[220px]">
-                            {archivo_historial_nombre}
-                          </p>
-                          <p className="text-[11px] text-muted-foreground mt-0.5">
-                            Archivo listo · Clic para reemplazar
-                          </p>
-                        </div>
-                        {archivo_historial_url && archivo_historial_url.startsWith("data:image/") && (
-                          <img
-                            src={archivo_historial_url}
-                            alt="Preview Historial"
-                            className="max-h-20 rounded-lg border border-slate-200 mt-1 shadow-2xs"
-                          />
-                        )}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            set_archivo_historial_nombre("");
-                            set_archivo_historial_url("");
-                            set_archivo_historial_tamano("");
-                          }}
-                          className="h-7 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg relative z-20"
-                        >
-                          <Trash2 className="w-3.5 h-3.5 mr-1" /> Quitar archivo
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-1.5 py-2">
-                        <div className="w-10 h-10 rounded-full bg-[#17B4C4]/10 text-[#17B4C4] flex items-center justify-center">
-                          <Upload className="w-5 h-5" />
-                        </div>
-                        <p className="text-xs font-bold text-[#063A6B]">
-                          Arrastre o haga clic para seleccionar Historial Académico
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
-                          Kárdex o certificado acumulado legalizado con materias aprobadas (PDF, JPG, PNG)
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Botón de Envío Activo */}
-              <div className="flex items-center justify-end pt-2 border-t border-[#E3DCCB]">
-                <Button
-                  onClick={() => manejarEnviarConvalidacionAcademica()}
-                  disabled={subiendo_documentos}
-                  className="h-10 px-6 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-sm"
-                >
-                  <FileCheck className="w-4 h-4 text-[#F8C766]" />
-                  <span>{subiendo_documentos ? "Convalidando Documentos..." : "Subir y Convalidar Documentación Académica"}</span>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Tabla de Documentos Académicos Recibidos */}
-          <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs overflow-hidden">
-            <CardHeader className="border-b border-[#E3DCCB]/60 bg-slate-50/50 pb-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="space-y-0.5">
-                  <CardTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
-                    <Table2 className="w-4 h-4 text-[#17B4C4]" />
-                    Bandeja Oficial de Documentos Académicos Recibidos (Semestre II - 2026)
-                  </CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground">
-                    Expedientes convalidables con visualización y descarga directa de Récord Académico e Historial.
-                  </CardDescription>
-                </div>
-                <Badge variant="outline" className="border-emerald-300 text-emerald-800 bg-emerald-50 text-xs font-bold">
-                  {documentos_academicos.length} Acreditaciones Activas
-                </Badge>
-              </div>
-            </CardHeader>
-
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-slate-50 border-b border-[#E3DCCB]">
-                  <TableRow>
-                    <TableHead className="font-bold text-[#063A6B] text-xs">Becario / Universidad</TableHead>
-                    <TableHead className="font-bold text-[#063A6B] text-xs">Récord Académico (PDF/Img)</TableHead>
-                    <TableHead className="font-bold text-[#063A6B] text-xs">Historial / Kárdex</TableHead>
-                    <TableHead className="font-bold text-[#063A6B] text-xs text-center">Promedio</TableHead>
-                    <TableHead className="font-bold text-[#063A6B] text-xs text-center">Estado</TableHead>
-                    <TableHead className="font-bold text-[#063A6B] text-xs text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {documentos_academicos.map((doc) => (
-                    <TableRow key={doc.id} className="border-b border-[#E3DCCB]/40 hover:bg-slate-50/70 transition-colors">
-                      <TableCell>
-                        <div className="space-y-0.5">
-                          <p className="font-bold text-xs text-[#063A6B]">{doc.becario_nombre}</p>
-                          <p className="text-[11px] text-muted-foreground">
-                            {doc.carrera} · <span className="font-semibold text-slate-700">{doc.universidad}</span>
-                          </p>
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            set_visor_documento({
-                              abierto: true,
-                              titulo: `Récord Académico - ${doc.becario_nombre}`,
-                              nombre_archivo: doc.record_archivo_nombre,
-                              url: doc.record_archivo_url || MUESTRA_KARDEX_PDF_SVG,
-                              es_pdf: doc.record_archivo_nombre.toLowerCase().endsWith(".pdf"),
-                            })
-                          }
-                          className="inline-flex items-center gap-1.5 p-1.5 px-2.5 rounded-lg bg-slate-100 hover:bg-[#063A6B]/10 text-xs font-semibold text-[#063A6B] transition-colors border border-slate-200"
-                        >
-                          <FileText className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                          <span className="truncate max-w-[140px] text-[11px] font-mono">{doc.record_archivo_nombre}</span>
-                          <Eye className="w-3 h-3 text-[#17B4C4] shrink-0" />
-                        </button>
-                      </TableCell>
-
-                      <TableCell>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            set_visor_documento({
-                              abierto: true,
-                              titulo: `Historial Académico - ${doc.becario_nombre}`,
-                              nombre_archivo: doc.historial_archivo_nombre,
-                              url: doc.historial_archivo_url || MUESTRA_KARDEX_PDF_SVG,
-                              es_pdf: doc.historial_archivo_nombre.toLowerCase().endsWith(".pdf"),
-                            })
-                          }
-                          className="inline-flex items-center gap-1.5 p-1.5 px-2.5 rounded-lg bg-slate-100 hover:bg-[#063A6B]/10 text-xs font-semibold text-[#063A6B] transition-colors border border-slate-200"
-                        >
-                          <GraduationCap className="w-3.5 h-3.5 text-[#17B4C4] shrink-0" />
-                          <span className="truncate max-w-[140px] text-[11px] font-mono">{doc.historial_archivo_nombre}</span>
-                          <Eye className="w-3 h-3 text-[#17B4C4] shrink-0" />
-                        </button>
-                      </TableCell>
-
-                      <TableCell className="text-center">
-                        <Badge
-                          variant="outline"
-                          className={`font-mono text-xs font-bold ${
-                            doc.promedio_semestral >= 75
-                              ? "bg-emerald-50 text-emerald-800 border-emerald-300"
-                              : "bg-amber-50 text-amber-800 border-amber-300"
-                          }`}
-                        >
-                          {doc.promedio_semestral.toFixed(1)} pts
-                        </Badge>
-                      </TableCell>
-
-                      <TableCell className="text-center">
-                        <Badge
-                          className={`text-[10px] font-bold ${
-                            doc.estado === "convalidado"
-                              ? "bg-emerald-600 text-white"
-                              : "bg-amber-500 text-white"
-                          }`}
-                        >
-                          {doc.estado === "convalidado" ? "Convalidado" : "En Revisión"}
-                        </Badge>
-                      </TableCell>
-
-                      <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            set_visor_documento({
-                              abierto: true,
-                              titulo: `Expediente Académico Completo - ${doc.becario_nombre}`,
-                              nombre_archivo: doc.record_archivo_nombre,
-                              url: doc.record_archivo_url || MUESTRA_KARDEX_PDF_SVG,
-                              es_pdf: true,
-                            })
-                          }
-                          className="h-8 px-2.5 rounded-lg border-[#E3DCCB] text-[#063A6B] text-xs font-bold gap-1 hover:bg-[#063A6B]/5"
-                        >
-                          <Eye className="w-3.5 h-3.5 text-[#17B4C4]" />
-                          <span>Ver</span>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <FormularioCargaNotasEstudiante
+                becario_id={becario_carga_id}
+                becario_nombre={
+                  BECARIOS_SEMESTRE_II.find((b) => b.id === becario_carga_id)?.nombre_completo ||
+                  "Estudiante Becario"
+                }
+                carrera={
+                  BECARIOS_SEMESTRE_II.find((b) => b.id === becario_carga_id)?.carrera ||
+                  "Carrera Universitaria"
+                }
+                universidad={
+                  BECARIOS_SEMESTRE_II.find((b) => b.id === becario_carga_id)?.universidad ||
+                  "Universidad"
+                }
+                periodo_id={periodo_activo === "s2" ? 2 : 1}
+                periodo_nombre={periodo_activo === "s2" ? "Semestre II - 2026" : "Semestre I - 2026"}
+                alAbrirVisor={(titulo, nombre_archivo, url) => {
+                  set_visor_documento({
+                    abierto: true,
+                    titulo,
+                    nombre_archivo,
+                    url: url || MUESTRA_KARDEX_PDF_SVG,
+                    es_pdf: nombre_archivo.toLowerCase().endsWith(".pdf"),
+                  });
+                }}
+                alGuardarExitoso={(datos) => {
+                  toast.success("Récord y documentos registrados satisfactoriamente.");
+                }}
+              />
             </div>
-          </Card>
+          )}
 
+          {/* FASE 2: Pre-Evaluación y Edición por el Supervisor */}
+          {sub_pestana_academica === "supervisor" && (
+            <BandejaPreEvaluacionSupervisor
+              alAbrirVisor={(titulo, nombre_archivo, url) => {
+                set_visor_documento({
+                  abierto: true,
+                  titulo,
+                  nombre_archivo,
+                  url: url || MUESTRA_KARDEX_PDF_SVG,
+                  es_pdf: nombre_archivo.toLowerCase().endsWith(".pdf"),
+                });
+              }}
+              alAprobarPreEvaluacion={(datos) => {
+                toast.success("Pre-evaluación enviada a la bandeja de Administración.");
+              }}
+            />
+          )}
+
+          {/* FASE 3: Convalidación Central por Administración */}
+          {sub_pestana_academica === "administracion" && (
+            <BandejaConvalidacionAdministracion
+              alAbrirVisor={(titulo, nombre_archivo, url) => {
+                set_visor_documento({
+                  abierto: true,
+                  titulo,
+                  nombre_archivo,
+                  url: url || MUESTRA_KARDEX_PDF_SVG,
+                  es_pdf: nombre_archivo.toLowerCase().endsWith(".pdf"),
+                });
+              }}
+              alConvalidarOficial={(evaluacion_id) => {
+                toast.success("Calificaciones asentadas en Matriz 360 y Sábana Semestral.");
+              }}
+            />
+          )}
           {/* Diálogo Modal de Carga Rápida de Kárdex */}
           <Dialog open={modal_carga_academica_abierto} onOpenChange={set_modal_carga_academica_abierto}>
             <DialogContent className="sm:max-w-xl p-0 overflow-hidden bg-white rounded-2xl shadow-2xl">
-              <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] bg-white">
-                <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
-                  <Upload className="w-5 h-5 text-[#17B4C4]" />
+              <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] bg-white">
+                <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+                  <Upload className="w-5 h-5 text-[#00ABBD]" />
                   Subir Documentos Académicos de Becario
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
@@ -1410,19 +1183,19 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+              <DialogBody className="space-y-4">
                 <div>
-                  <Label className="text-xs font-bold text-[#063A6B] block mb-1">Becario Solicitante</Label>
+                  <Label className="text-xs font-bold text-[#035683] block mb-1">Becario Solicitante</Label>
                   <Select
                     value={String(becario_carga_id)}
                     onValueChange={(v) => v && set_becario_carga_id(Number(v))}
                   >
-                    <SelectTrigger className="h-10 text-xs border-[#E3DCCB] rounded-xl font-medium">
+                    <SelectTrigger className="h-10 text-xs border-[#E5E7EB] rounded-xl font-medium">
                       <SelectValue placeholder="Seleccione el becario" />
                     </SelectTrigger>
-                    <SelectContent className="max-h-56 bg-white border-[#E3DCCB] z-[100]">
+                    <SelectContent className="max-h-56 bg-white border-[#E5E7EB] z-[100]">
                       {BECARIOS_SEMESTRE_II.map((b) => (
-                        <SelectItem key={b.id} value={String(b.id)}>
+                        <SelectItem key={b.id} value={String(b.id)} etiqueta={`${b.nombre_completo} (${b.carrera})`}>
                           {b.nombre_completo} ({b.carrera})
                         </SelectItem>
                       ))}
@@ -1431,7 +1204,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                 </div>
 
                 <div>
-                  <Label className="text-xs font-bold text-[#063A6B] block mb-1">Promedio General Semestral</Label>
+                  <Label className="text-xs font-bold text-[#035683] block mb-1">Promedio General Semestral</Label>
                   <Input
                     type="number"
                     step="0.1"
@@ -1440,16 +1213,16 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                     value={promedio_carga}
                     onChange={(e) => set_promedio_carga(e.target.value)}
                     placeholder="Ej. 82.5"
-                    className="h-10 text-xs border-[#E3DCCB] rounded-xl font-bold"
+                    className="h-10 text-xs border-[#E5E7EB] rounded-xl font-bold"
                   />
                 </div>
 
                 {/* Subir Récord */}
                 <div>
-                  <Label className="text-xs font-bold text-[#063A6B] block mb-1">
+                  <Label className="text-xs font-bold text-[#035683] block mb-1">
                     1. Récord Académico Semestral (PDF / Imagen) *
                   </Label>
-                  <div className="relative border-2 border-dashed border-[#E3DCCB] hover:border-[#17B4C4] rounded-xl p-3 bg-slate-50 text-center">
+                  <div className="relative border-2 border-dashed border-[#E5E7EB] hover:border-[#00ABBD] rounded-xl p-3 bg-slate-50 text-center">
                     <input
                       type="file"
                       accept=".pdf,image/*"
@@ -1463,7 +1236,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                       </div>
                     ) : (
                       <div className="py-2 text-muted-foreground text-xs">
-                        <Upload className="w-5 h-5 text-[#17B4C4] mx-auto mb-1" />
+                        <Upload className="w-5 h-5 text-[#00ABBD] mx-auto mb-1" />
                         <span>Clic para adjuntar Récord Académico</span>
                       </div>
                     )}
@@ -1472,10 +1245,10 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
 
                 {/* Subir Historial */}
                 <div>
-                  <Label className="text-xs font-bold text-[#063A6B] block mb-1">
+                  <Label className="text-xs font-bold text-[#035683] block mb-1">
                     2. Historial Académico / Kárdex (PDF / Imagen) *
                   </Label>
-                  <div className="relative border-2 border-dashed border-[#E3DCCB] hover:border-[#17B4C4] rounded-xl p-3 bg-slate-50 text-center">
+                  <div className="relative border-2 border-dashed border-[#E5E7EB] hover:border-[#00ABBD] rounded-xl p-3 bg-slate-50 text-center">
                     <input
                       type="file"
                       accept=".pdf,image/*"
@@ -1489,20 +1262,20 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                       </div>
                     ) : (
                       <div className="py-2 text-muted-foreground text-xs">
-                        <Upload className="w-5 h-5 text-[#17B4C4] mx-auto mb-1" />
+                        <Upload className="w-5 h-5 text-[#00ABBD] mx-auto mb-1" />
                         <span>Clic para adjuntar Historial Académico</span>
                       </div>
                     )}
                   </div>
                 </div>
-              </div>
+              </DialogBody>
 
-              <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-slate-50 flex sm:justify-end gap-2">
+              <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-slate-50 flex sm:justify-end gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => set_modal_carga_academica_abierto(false)}
-                  className="h-9 rounded-xl border-[#E3DCCB] text-xs"
+                  className="h-9 rounded-xl border-[#E5E7EB] text-xs"
                 >
                   Cancelar
                 </Button>
@@ -1510,7 +1283,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                   type="button"
                   onClick={() => manejarEnviarConvalidacionAcademica()}
                   disabled={subiendo_documentos}
-                  className="h-9 px-4 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs"
+                  className="h-9 px-4 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs"
                 >
                   {subiendo_documentos ? "Subiendo..." : "Subir y Convalidar"}
                 </Button>
@@ -1525,9 +1298,9 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               onOpenChange={(abierto) => !abierto && set_visor_documento(null)}
             >
               <DialogContent className="sm:max-w-2xl p-0 overflow-hidden bg-white rounded-2xl shadow-2xl">
-                <DialogHeader className="p-4 px-6 border-b border-[#E3DCCB] bg-slate-50 flex flex-row items-center justify-between">
+                <DialogHeader className="p-4 px-6 border-b border-[#E5E7EB] bg-slate-50 flex flex-row items-center justify-between">
                   <div>
-                    <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
+                    <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
                       <FileText className="w-4 h-4 text-rose-600" />
                       {visor_documento.titulo}
                     </DialogTitle>
@@ -1555,7 +1328,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                   )}
                 </div>
 
-                <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-white flex sm:justify-between items-center">
+                <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-white flex sm:justify-between items-center">
                   <span className="text-[11px] text-muted-foreground">
                     Verificación de firma institucional BUMAND
                   </span>
@@ -1566,7 +1339,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                         download={visor_documento.nombre_archivo}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-[#063A6B] text-[#063A6B] text-xs font-bold hover:bg-[#063A6B]/5 transition-colors"
+                        className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-[#035683] text-[#035683] text-xs font-bold hover:bg-[#035683]/5 transition-colors"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>Descargar</span>
@@ -1576,7 +1349,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                       type="button"
                       variant="outline"
                       onClick={() => set_visor_documento(null)}
-                      className="h-8 rounded-lg border-[#E3DCCB] text-xs"
+                      className="h-8 rounded-lg border-[#E5E7EB] text-xs"
                     >
                       Cerrar
                     </Button>
@@ -1593,18 +1366,18 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
       {/* ============================================================== */}
       {pestaña_activa === "mentor" && (
         <div className="space-y-6">
-          <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
-            <CardHeader className="border-b border-[#E3DCCB]/60 bg-slate-50/50 pb-4">
+          <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs">
+            <CardHeader className="border-b border-[#E5E7EB]/60 bg-slate-50/50 pb-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="border-[#17B4C4] text-[#063A6B] font-bold text-[10px]">
+                    <Badge variant="outline" className="border-[#00ABBD] text-[#035683] font-bold text-[10px]">
                       Módulo 03 · 20% Oficial
                     </Badge>
                     <span className="text-xs text-muted-foreground">Evaluador: Mentor / Supervisor Diaconía en Terreno</span>
                   </div>
-                  <CardTitle className="text-lg font-bold text-[#063A6B] flex items-center gap-2">
-                    <QrCode className="w-5 h-5 text-[#17B4C4]" />
+                  <CardTitle className="text-lg font-bold text-[#035683] flex items-center gap-2">
+                    <QrCode className="w-5 h-5 text-[#00ABBD]" />
                     Gobernanza del Instrumento de Mentoría / Práctica Preprofesional (PP²)
                   </CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
@@ -1616,17 +1389,17 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                   <Button
                     onClick={() => set_modal_qr_mentor_abierto(true)}
                     variant="outline"
-                    className="h-10 px-3 border-[#063A6B] text-[#063A6B] font-bold rounded-xl text-xs gap-1.5 hover:bg-[#063A6B]/5"
+                    className="h-10 px-3 border-[#035683] text-[#035683] font-bold rounded-xl text-xs gap-1.5 hover:bg-[#035683]/5"
                   >
-                    <QrCode className="w-4 h-4 text-[#17B4C4]" />
+                    <QrCode className="w-4 h-4 text-[#00ABBD]" />
                     Ver Código QR
                   </Button>
 
                   <Button
                     onClick={() => set_modal_preview_mentor_abierto(true)}
-                    className="h-10 px-4 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs"
+                    className="h-10 px-4 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs"
                   >
-                    <Eye className="w-4 h-4 text-[#F8C766]" />
+                    <Eye className="w-4 h-4 text-[#FFB600]" />
                     Vista Previa Rúbrica
                   </Button>
                 </div>
@@ -1638,7 +1411,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#063A6B]">Sección I: 18 Reactivos de Desempeño</span>
+                    <span className="text-xs font-bold text-[#035683]">Sección I: 18 Reactivos de Desempeño</span>
                     <Badge variant="outline" className="border-slate-300 font-mono text-[10px]">Escala 1 a 10</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -1648,7 +1421,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
 
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#063A6B]">Sección II: 3 Preguntas Abiertas (19, 20, 21)</span>
+                    <span className="text-xs font-bold text-[#035683]">Sección II: 3 Preguntas Abiertas (19, 20, 21)</span>
                     <Badge variant="outline" className="border-slate-300 font-mono text-[10px]">Rúbrica Cualitativa</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -1666,7 +1439,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                   {PREGUNTAS_MENTOR_ESCALA.map((p) => (
                     <div key={p.numero} className="p-3 bg-white rounded-xl border border-slate-200 text-xs flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-[#063A6B]/10 text-[#063A6B] font-mono font-bold flex items-center justify-center text-[10px]">
+                        <span className="w-5 h-5 rounded-full bg-[#035683]/10 text-[#035683] font-mono font-bold flex items-center justify-center text-[10px]">
                           {p.numero}
                         </span>
                         <span className="text-slate-800 font-medium">{p.enunciado}</span>
@@ -1685,8 +1458,8 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
           <Dialog open={modal_qr_mentor_abierto} onOpenChange={set_modal_qr_mentor_abierto}>
             <DialogContent className="sm:max-w-sm p-6 bg-white rounded-2xl text-center space-y-4">
               <DialogHeader>
-                <DialogTitle className="text-[#063A6B] font-bold text-base flex items-center justify-center gap-2">
-                  <QrCode className="w-5 h-5 text-[#17B4C4]" />
+                <DialogTitle className="text-[#035683] font-bold text-base flex items-center justify-center gap-2">
+                  <QrCode className="w-5 h-5 text-[#00ABBD]" />
                   Código QR de Acceso Institucional
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
@@ -1694,8 +1467,8 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                 </DialogDescription>
               </DialogHeader>
               <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 inline-block mx-auto">
-                <div className="w-48 h-48 bg-white border-2 border-[#063A6B] rounded-xl flex items-center justify-center shadow-inner">
-                  <QrCode className="w-36 h-36 text-[#063A6B]" />
+                <div className="w-48 h-48 bg-white border-2 border-[#035683] rounded-xl flex items-center justify-center shadow-inner">
+                  <QrCode className="w-36 h-36 text-[#035683]" />
                 </div>
                 <p className="text-[11px] font-mono text-slate-500 mt-3 font-semibold">
                   bumand.diaconia.bo/evaluacion/mentor
@@ -1708,8 +1481,8 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
           <Dialog open={modal_preview_mentor_abierto} onOpenChange={set_modal_preview_mentor_abierto}>
             <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-y-auto p-6 bg-white rounded-2xl">
               <DialogHeader className="pb-2 border-b border-slate-200">
-                <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-[#17B4C4]" />
+                <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-[#00ABBD]" />
                   Vista Previa: Instrumento de Mentoría en Terreno
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
@@ -1717,15 +1490,15 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-3">
-                <div className="p-4 bg-[#063A6B]/5 border border-[#17B4C4]/30 rounded-xl text-xs space-y-1">
-                  <p className="font-bold text-[#063A6B]">Instrucciones para el Mentor:</p>
+                <div className="p-4 bg-[#035683]/5 border border-[#00ABBD]/30 rounded-xl text-xs space-y-1">
+                  <p className="font-bold text-[#035683]">Instrucciones para el Mentor:</p>
                   <p className="text-muted-foreground">Califique de 1 (deficiente) a 10 (excelente) cada reactivo de desempeño profesional y complete las preguntas cualitativas.</p>
                 </div>
                 <div className="space-y-2">
                   {PREGUNTAS_MENTOR_ESCALA.slice(0, 5).map((p) => (
                     <div key={p.numero} className="p-3 bg-white rounded-xl border border-slate-200 text-xs flex items-center justify-between">
                       <span className="font-medium text-slate-800">{p.numero}. {p.enunciado}</span>
-                      <span className="font-mono font-bold text-[#063A6B] bg-slate-100 px-2 py-1 rounded-lg">10 / 10</span>
+                      <span className="font-mono font-bold text-[#035683] bg-slate-100 px-2 py-1 rounded-lg">10 / 10</span>
                     </div>
                   ))}
                   <p className="text-[11px] text-center text-muted-foreground italic">+ 13 preguntas adicionales en la versión completa</p>
@@ -1741,18 +1514,18 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
       {/* ============================================================== */}
       {pestaña_activa === "lideres" && (
         <div className="space-y-6">
-          <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
-            <CardHeader className="border-b border-[#E3DCCB]/60 bg-slate-50/50 pb-4">
+          <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs">
+            <CardHeader className="border-b border-[#E5E7EB]/60 bg-slate-50/50 pb-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="border-[#17B4C4] text-[#063A6B] font-bold text-[10px]">
+                    <Badge variant="outline" className="border-[#00ABBD] text-[#035683] font-bold text-[10px]">
                       Módulo 04 · 20% Oficial
                     </Badge>
                     <span className="text-xs text-muted-foreground">Evaluador: Coordinación CETI y Asistencia</span>
                   </div>
-                  <CardTitle className="text-lg font-bold text-[#063A6B] flex items-center gap-2">
-                    <Users className="w-5 h-5 text-[#17B4C4]" />
+                  <CardTitle className="text-lg font-bold text-[#035683] flex items-center gap-2">
+                    <Users className="w-5 h-5 text-[#00ABBD]" />
                     Gobernanza de Escuela de Líderes y Formación Teológica CETI
                   </CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
@@ -1762,9 +1535,9 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
 
                 <Button
                   onClick={() => set_modal_preview_lideres_abierto(true)}
-                  className="h-10 px-4 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs shrink-0"
+                  className="h-10 px-4 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs shrink-0"
                 >
-                  <Eye className="w-4 h-4 text-[#F8C766]" />
+                  <Eye className="w-4 h-4 text-[#FFB600]" />
                   Vista Previa Registro CETI
                 </Button>
               </div>
@@ -1774,14 +1547,14 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               {/* Reglas de Asistencia de Viernes */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                  <h4 className="text-xs font-bold text-[#063A6B]">Asistencia Presencial a Reuniones de Viernes</h4>
+                  <h4 className="text-xs font-bold text-[#035683]">Asistencia Presencial a Reuniones de Viernes</h4>
                   <p className="text-xs text-muted-foreground">
                     Reuniones formativas obligatorias. Tolerancia máxima de 1 inasistencia justificada por semestre. Más de 1 falta sin justificación anula la nota del módulo.
                   </p>
                 </div>
 
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                  <h4 className="text-xs font-bold text-[#063A6B]">Ponderación de las 12 Tareas CETI</h4>
+                  <h4 className="text-xs font-bold text-[#035683]">Ponderación de las 12 Tareas CETI</h4>
                   <p className="text-xs text-muted-foreground">
                     Cada tarea representa un 8.33% de la nota teológica. El promedio general escalado al 20% aporta la nota semestral oficial.
                   </p>
@@ -1797,7 +1570,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                   {TAREAS_CETI_CATALOGO.map((t) => (
                     <div key={t.numero} className="p-3 bg-white rounded-xl border border-slate-200 text-xs flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-[#063A6B]/10 text-[#063A6B] font-mono font-bold flex items-center justify-center text-[10px]">
+                        <span className="w-5 h-5 rounded-full bg-[#035683]/10 text-[#035683] font-mono font-bold flex items-center justify-center text-[10px]">
                           {t.numero}
                         </span>
                         <span className="text-slate-800 font-medium">{t.tema}</span>
@@ -1816,8 +1589,8 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
           <Dialog open={modal_preview_lideres_abierto} onOpenChange={set_modal_preview_lideres_abierto}>
             <DialogContent className="sm:max-w-2xl p-6 bg-white rounded-2xl">
               <DialogHeader className="pb-2 border-b border-slate-200">
-                <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-[#17B4C4]" />
+                <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-[#00ABBD]" />
                   Vista Previa: Registro de Tareas y Asistencias CETI
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
@@ -1826,7 +1599,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               </DialogHeader>
               <div className="space-y-3 py-3">
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
-                  <span className="font-bold text-[#063A6B]">Total Tareas Registradas: 12 / 12</span>
+                  <span className="font-bold text-[#035683]">Total Tareas Registradas: 12 / 12</span>
                   <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold">100 Pts Promedio</Badge>
                 </div>
                 <p className="text-xs text-muted-foreground">Permite marcar entregas, cargar observaciones y calcular multas por inasistencias no justificadas.</p>
@@ -1841,62 +1614,37 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
       {/* ============================================================== */}
       {pestaña_activa === "socioeconomica" && (
         <div className="space-y-6">
-          <Card className="border-[#E3DCCB] bg-white rounded-2xl shadow-xs">
-            <CardHeader className="border-b border-[#E3DCCB]/60 bg-slate-50/50 pb-4">
+          <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs">
+            <CardHeader className="border-b border-[#E5E7EB]/60 bg-slate-50/50 pb-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="border-[#17B4C4] text-[#063A6B] font-bold text-[10px]">
+                    <Badge variant="outline" className="border-[#00ABBD] text-[#035683] font-bold text-[10px]">
                       Módulo 05 · 20% Oficial
                     </Badge>
                     <span className="text-xs text-muted-foreground">Evaluador: Área de Trabajo Social</span>
                   </div>
-                  <CardTitle className="text-lg font-bold text-[#063A6B] flex items-center gap-2">
-                    <HeartHandshake className="w-5 h-5 text-[#17B4C4]" />
+                  <CardTitle className="text-lg font-bold text-[#035683] flex items-center gap-2">
+                    <HeartHandshake className="w-5 h-5 text-[#00ABBD]" />
                     Gobernanza del Cuestionario de Bienestar Universitario (26 Preguntas)
                   </CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
-                    Catálogo oficial de reactivos socioeconómicos y determinación automática del Semáforo Institucional de Vulnerabilidad.
+                    Catálogo oficial de reactivos del diagnóstico socioeconómico y bienestar estudiantil.
                   </CardDescription>
                 </div>
 
                 <Button
                   onClick={() => set_modal_preview_socioeconomica_abierto(true)}
-                  className="h-10 px-4 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs shrink-0"
+                  className="h-10 px-4 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs shrink-0"
                 >
-                  <Eye className="w-4 h-4 text-[#F8C766]" />
+                  <Eye className="w-4 h-4 text-[#FFB600]" />
                   Vista Previa Cuestionario 26P
                 </Button>
               </div>
             </CardHeader>
 
             <CardContent className="p-6 space-y-6">
-              {/* Diagnóstico Semáforo Institucional */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                    <span className="text-xs font-bold text-emerald-900">Semáforo Verde</span>
-                  </div>
-                  <p className="text-xs text-emerald-800">Condición estable, sin riesgo crítico en hogar, salud ni finanzas.</p>
-                </div>
-
-                <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-amber-500" />
-                    <span className="text-xs font-bold text-amber-900">Semáforo Amarillo</span>
-                  </div>
-                  <p className="text-xs text-amber-800">Alerta preventiva, requiere seguimiento tutorial de Trabajo Social.</p>
-                </div>
-
-                <div className="p-4 bg-rose-50 rounded-xl border border-rose-200 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-rose-500" />
-                    <span className="text-xs font-bold text-rose-900">Semáforo Rojo</span>
-                  </div>
-                  <p className="text-xs text-rose-800">Vulnerabilidad alta, intervención prioritaria y plan de apoyo institucional.</p>
-                </div>
-              </div>
+              
 
               {/* Muestra de las 26 Preguntas */}
               <div className="space-y-3">
@@ -1907,7 +1655,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                   {PREGUNTAS_BIENESTAR_INICIALES.slice(0, 6).map((p) => (
                     <div key={p.id} className="p-3 bg-white rounded-xl border border-slate-200 text-xs flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-[#063A6B]/10 text-[#063A6B] font-mono font-bold flex items-center justify-center text-[10px]">
+                        <span className="w-5 h-5 rounded-full bg-[#035683]/10 text-[#035683] font-mono font-bold flex items-center justify-center text-[10px]">
                           {p.numero}
                         </span>
                         <div>
@@ -1930,8 +1678,8 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
           <Dialog open={modal_preview_socioeconomica_abierto} onOpenChange={set_modal_preview_socioeconomica_abierto}>
             <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto p-4 bg-white rounded-2xl">
               <DialogHeader className="pb-2 border-b border-slate-200">
-                <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-[#17B4C4]" />
+                <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-[#00ABBD]" />
                   Vista Previa Interactiva: Cuestionario de Bienestar (26 Preguntas)
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
@@ -1952,12 +1700,12 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
       {pestaña_activa === "periodos" && (
         <div className="space-y-6">
           {/* Calibración de Ponderaciones Oficiales */}
-          <Card className="border-[#17B4C4] bg-white rounded-2xl shadow-xs overflow-hidden">
-            <CardHeader className="bg-[#17B4C4]/10 pb-3 border-b border-[#17B4C4]/30">
+          <Card className="border-[#00ABBD] bg-white rounded-2xl shadow-xs overflow-hidden">
+            <CardHeader className="bg-[#00ABBD]/10 pb-3 border-b border-[#00ABBD]/30">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <CardTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
-                    <SlidersHorizontal className="w-4 h-4 text-[#17B4C4]" />
+                  <CardTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+                    <SlidersHorizontal className="w-4 h-4 text-[#00ABBD]" />
                     Ponderación Oficial de los 5 Módulos Canónicos (Suma = 100%)
                   </CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
@@ -1992,7 +1740,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                     size="sm"
                     onClick={manejarGuardarPonderaciones}
                     disabled={!ponderaciones_validas}
-                    className="h-8 px-4 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-lg text-xs shadow-xs"
+                    className="h-8 px-4 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-lg text-xs shadow-xs"
                   >
                     Guardar
                   </Button>
@@ -2008,7 +1756,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                       <Label className="text-xs font-bold text-slate-800 truncate" title={m.nombre}>
                         {m.nombre.split(" ")[1] || m.nombre}
                       </Label>
-                      <span className="font-mono font-bold text-xs text-[#063A6B]">
+                      <span className="font-mono font-bold text-xs text-[#035683]">
                         {ponderacion_temporal[m.clave]}%
                       </span>
                     </div>
@@ -2032,15 +1780,15 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
 
           {/* Rangos Oficiales de Aprobación */}
           <div className="space-y-3">
-            <h3 className="text-sm font-bold font-display text-[#063A6B] flex items-center gap-2">
-              <Scale className="w-4 h-4 text-[#17B4C4]" />
+            <h3 className="text-sm font-bold font-display text-[#035683] flex items-center gap-2">
+              <Scale className="w-4 h-4 text-[#00ABBD]" />
               Escala y Rangos de Aprobación Oficial Institucional (Diaconía FRIF-IFD)
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {RANGOS_APROBACION_OFICIALES.map((r, i) => (
-                <div key={i} className="p-4 bg-white rounded-xl border border-[#E3DCCB] space-y-2 shadow-2xs">
+                <div key={i} className="p-4 bg-white rounded-xl border border-[#E5E7EB] space-y-2 shadow-2xs">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#063A6B]">{r.calificacion}</span>
+                    <span className="text-xs font-bold text-[#035683]">{r.calificacion}</span>
                     <Badge variant="outline" className="font-mono font-bold text-xs border-slate-300">
                       {r.rango} pts
                     </Badge>
@@ -2053,8 +1801,8 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
 
           {/* Criterios de Evaluación Oficiales */}
           <div className="space-y-3 pt-2">
-            <h3 className="text-sm font-bold font-display text-[#063A6B] flex items-center gap-2">
-              <Layers className="w-4 h-4 text-[#17B4C4]" />
+            <h3 className="text-sm font-bold font-display text-[#035683] flex items-center gap-2">
+              <Layers className="w-4 h-4 text-[#00ABBD]" />
               Matriz Normativa de Criterios Canónicos Semestrales
             </h3>
             <CriteriosEvaluacionTabla />
@@ -2062,8 +1810,8 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
 
           {/* Gestión de Periodos Semestrales */}
           <div className="space-y-3 pt-2">
-            <h3 className="text-sm font-bold font-display text-[#063A6B] flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-[#17B4C4]" />
+            <h3 className="text-sm font-bold font-display text-[#035683] flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-[#00ABBD]" />
               Ciclos Semestrales Activos
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -2075,13 +1823,13 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                     onClick={() => set_periodo_activo(p.id)}
                     className={`p-4 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                       es_activo
-                        ? "bg-[#063A6B]/5 border-[#17B4C4] shadow-xs"
-                        : "bg-white border-[#E3DCCB] hover:border-slate-300"
+                        ? "bg-[#035683]/5 border-[#00ABBD] shadow-xs"
+                        : "bg-white border-[#E5E7EB] hover:border-slate-300"
                     }`}
                   >
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-xs text-[#063A6B]">{p.titulo}</span>
+                        <span className="font-bold text-xs text-[#035683]">{p.titulo}</span>
                         {p.habilitado ? (
                           <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] font-bold">
                             Activo
@@ -2115,52 +1863,55 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
       )}
 
       {/* Modal para Crear Nuevo Semestre */}
+      {/* Modal para Crear Nuevo Semestre */}
       <Dialog open={modal_nuevo_semestre_abierto} onOpenChange={set_modal_nuevo_semestre_abierto}>
-        <DialogContent className="sm:max-w-md bg-white rounded-2xl border-[#E3DCCB]">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[#063A6B] font-bold text-base flex items-center gap-2">
-              <CalendarPlus className="w-5 h-5 text-[#17B4C4]" />
+            <DialogTitle className="text-[#035683] font-bold text-base flex items-center gap-2">
+              <CalendarPlus className="w-5 h-5 text-[#00ABBD]" />
               Apertura de Nuevo Semestre Institucional
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
               Habilita un nuevo periodo evaluativo con base estándar del 20% y registro de expedientes.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={manejarCrearNuevoSemestre} className="space-y-3 pt-2">
-            <div>
-              <Label className="text-xs">Título del Semestre</Label>
-              <Input
-                value={nuevo_titulo}
-                onChange={(e) => set_nuevo_titulo(e.target.value)}
-                placeholder="Ej. Semestre I · 2027"
-                className="h-8 text-xs mt-1"
-                required
-              />
-            </div>
-            <div>
-              <Label className="text-xs">Descripción / Subtítulo</Label>
-              <Input
-                value={nuevo_subtitulo}
-                onChange={(e) => set_nuevo_subtitulo(e.target.value)}
-                placeholder="Ej. Ciclo lectivo regular"
-                className="h-8 text-xs mt-1"
-              />
-            </div>
-            <div>
-              <Label className="text-xs">Rango de Meses</Label>
-              <Input
-                value={nuevo_rango}
-                onChange={(e) => set_nuevo_rango(e.target.value)}
-                placeholder="Ej. Enero – Junio 2027"
-                className="h-8 text-xs mt-1"
-                required
-              />
-            </div>
-            <DialogFooter className="pt-2">
+          <form onSubmit={manejarCrearNuevoSemestre} className="flex flex-col flex-1 min-h-0">
+            <DialogBody className="space-y-3">
+              <div>
+                <Label className="text-xs">Título del Semestre</Label>
+                <Input
+                  value={nuevo_titulo}
+                  onChange={(e) => set_nuevo_titulo(e.target.value)}
+                  placeholder="Ej. Semestre I – 2027"
+                  className="h-8 text-xs mt-1"
+                  required
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Descripción / Subtítulo</Label>
+                <Input
+                  value={nuevo_subtitulo}
+                  onChange={(e) => set_nuevo_subtitulo(e.target.value)}
+                  placeholder="Ej. Ciclo lectivo regular"
+                  className="h-8 text-xs mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Rango de Meses</Label>
+                <Input
+                  value={nuevo_rango}
+                  onChange={(e) => set_nuevo_rango(e.target.value)}
+                  placeholder="Ej. Enero – Junio 2027"
+                  className="h-8 text-xs mt-1"
+                  required
+                />
+              </div>
+            </DialogBody>
+            <DialogFooter>
               <Button type="button" variant="outline" size="sm" onClick={() => set_modal_nuevo_semestre_abierto(false)}>
                 Cancelar
               </Button>
-              <Button type="submit" size="sm" className="bg-[#063A6B] hover:bg-[#063A6B]/90 font-bold">
+              <Button type="submit" size="sm" className="bg-[#035683] hover:bg-[#035683]/90 font-bold">
                 Habilitar Semestre
               </Button>
             </DialogFooter>

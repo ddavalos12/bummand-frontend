@@ -187,11 +187,11 @@ export function VisorReportesPdf() {
   return (
     <div className="space-y-6">
       {/* Botones de Emisión Inmediata de Reportes con Puppeteer */}
-      <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl">
-        <CardHeader className="pb-3 border-b border-[#E3DCCB]/60">
+      <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl">
+        <CardHeader className="pb-3 border-b border-[#E5E7EB]/60">
           <div>
-            <CardTitle className="text-lg font-bold font-display text-[#063A6B] flex items-center gap-2">
-              <Printer className="w-5 h-5 text-[#17B4C4]" />
+            <CardTitle className="text-lg font-bold font-display text-[#035683] flex items-center gap-2">
+              <Printer className="w-5 h-5 text-[#00ABBD]" />
               Emisión Oficial de Documentos y Reportes PDF
             </CardTitle>
             <CardDescription className="text-xs text-muted-foreground mt-1">
@@ -212,12 +212,12 @@ export function VisorReportesPdf() {
                   "Evaluacion_Semestre_II_2026.pdf"
                 )
               }
-              className="h-11 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold text-xs rounded-xl flex items-center gap-2 justify-center shadow-sm"
+              className="h-11 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl flex items-center gap-2 justify-center shadow-sm"
             >
               {descargando_id === "semestre_ii" ? (
-                <Loader2 className="w-4 h-4 animate-spin text-[#F8C766]" />
+                <Loader2 className="w-4 h-4 animate-spin text-[#FFB600]" />
               ) : (
-                <Printer className="w-4 h-4 text-[#F8C766]" />
+                <Printer className="w-4 h-4 text-[#FFB600]" />
               )}
               <span>Descargar PDF Semestre II (2 Páginas)</span>
             </Button>
@@ -233,12 +233,12 @@ export function VisorReportesPdf() {
                 )
               }
               variant="outline"
-              className="h-11 border-slate-300 text-[#063A6B] font-bold text-xs rounded-xl flex items-center gap-2 justify-center hover:bg-slate-50"
+              className="h-11 border-slate-300 text-[#035683] font-bold text-xs rounded-xl flex items-center gap-2 justify-center hover:bg-slate-50"
             >
               {descargando_id === "horas" ? (
-                <Loader2 className="w-4 h-4 animate-spin text-[#17B4C4]" />
+                <Loader2 className="w-4 h-4 animate-spin text-[#00ABBD]" />
               ) : (
-                <FileText className="w-4 h-4 text-[#17B4C4]" />
+                <FileText className="w-4 h-4 text-[#00ABBD]" />
               )}
               <span>Descargar Planilla Horas</span>
             </Button>
@@ -254,7 +254,7 @@ export function VisorReportesPdf() {
                 )
               }
               variant="outline"
-              className="h-11 border-slate-300 text-[#063A6B] font-bold text-xs rounded-xl flex items-center gap-2 justify-center hover:bg-slate-50"
+              className="h-11 border-slate-300 text-[#035683] font-bold text-xs rounded-xl flex items-center gap-2 justify-center hover:bg-slate-50"
             >
               {descargando_id === "f03" ? (
                 <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
@@ -275,12 +275,12 @@ export function VisorReportesPdf() {
                 )
               }
               variant="outline"
-              className="h-11 border-slate-300 text-[#063A6B] font-bold text-xs rounded-xl flex items-center gap-2 justify-center hover:bg-slate-50"
+              className="h-11 border-slate-300 text-[#035683] font-bold text-xs rounded-xl flex items-center gap-2 justify-center hover:bg-slate-50"
             >
               {descargando_id === "evento" ? (
-                <Loader2 className="w-4 h-4 animate-spin text-[#17B4C4]" />
+                <Loader2 className="w-4 h-4 animate-spin text-[#00ABBD]" />
               ) : (
-                <Sparkles className="w-4 h-4 text-[#17B4C4]" />
+                <Sparkles className="w-4 h-4 text-[#00ABBD]" />
               )}
               <span>Descargar Acta de Evento</span>
             </Button>
@@ -289,19 +289,19 @@ export function VisorReportesPdf() {
       </Card>
 
       {/* Módulo Especial: Exportación Individual por Estudiante (Puppeteer) */}
-      <Card className="border-[#063A6B]/30 shadow-md bg-white rounded-xl overflow-hidden ring-1 ring-[#063A6B]/10">
-        <CardHeader className="pb-3 border-b border-[#E3DCCB]/80 bg-gradient-to-r from-[#063A6B]/5 via-white to-[#17B4C4]/5">
+      <Card className="border-[#035683]/30 shadow-md bg-white rounded-xl overflow-hidden ring-1 ring-[#035683]/10">
+        <CardHeader className="pb-3 border-b border-[#E5E7EB]/80 bg-gradient-to-r from-[#035683]/5 via-white to-[#00ABBD]/5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <CardTitle className="text-base font-bold font-display text-[#063A6B] flex items-center gap-2">
-                <Users className="w-5 h-5 text-[#063A6B]" />
+              <CardTitle className="text-base font-bold font-display text-[#035683] flex items-center gap-2">
+                <Users className="w-5 h-5 text-[#035683]" />
                 Exportación Individual de Expediente y Asistencia por Estudiante
               </CardTitle>
               <CardDescription className="text-xs text-muted-foreground mt-0.5">
                 Genera el expediente mensual de recorridos con liquidación del 80% o el kárdex individual de asistencia mensual mediante Puppeteer.
               </CardDescription>
             </div>
-            <Badge className="bg-[#063A6B] text-[#F8C766] border-none text-[11px] font-mono self-start sm:self-center">
+            <Badge className="bg-[#035683] text-[#FFB600] border-none text-[11px] font-mono self-start sm:self-center">
               PUPPETEER ENGINE
             </Badge>
           </div>
@@ -312,20 +312,27 @@ export function VisorReportesPdf() {
             {/* Selector de Estudiante */}
             <div className="space-y-1.5 md:col-span-2">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-[#17B4C4]" />
+                <User className="w-3.5 h-3.5 text-[#00ABBD]" />
                 Seleccionar Estudiante Becario (Nómina BUMAND)
               </label>
               <Select
                 value={String(estudiante_seleccionado_id)}
                 onValueChange={(val) => val && set_estudiante_seleccionado_id(Number(val))}
               >
-                <SelectTrigger className="h-10 text-xs font-semibold border-[#E3DCCB] bg-slate-50 rounded-xl">
+                <SelectTrigger className="h-10 text-xs font-semibold border-[#E5E7EB] bg-slate-50 rounded-xl">
                   <SelectValue placeholder="Seleccione un estudiante" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-[#E3DCCB] max-h-72">
+                <SelectContent className="bg-white border-[#E5E7EB] max-h-72">
                   {LISTA_23_BECARIOS_REPORTES.map((becario) => (
-                    <SelectItem key={becario.id} value={String(becario.id)}>
-                      {becario.nombre} · CI: {becario.ci} ({becario.carrera})
+                    <SelectItem
+                      key={becario.id}
+                      value={String(becario.id)}
+                      etiqueta={`${becario.nombre} (${becario.carrera})`}
+                    >
+                      <div className="flex flex-col py-0.5 text-left">
+                        <span className="font-semibold text-slate-800">{becario.nombre}</span>
+                        <span className="text-[11px] text-slate-500">CI: {becario.ci} · {becario.carrera}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -335,14 +342,14 @@ export function VisorReportesPdf() {
             {/* Selector de Mes */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-[#17B4C4]" />
+                <Calendar className="w-3.5 h-3.5 text-[#00ABBD]" />
                 Mes del Expediente
               </label>
               <Select value={mes_individual} onValueChange={(val) => val && set_mes_individual(val)}>
-                <SelectTrigger className="h-10 text-xs font-semibold border-[#E3DCCB] bg-slate-50 rounded-xl">
+                <SelectTrigger className="h-10 text-xs font-semibold border-[#E5E7EB] bg-slate-50 rounded-xl">
                   <SelectValue placeholder="Mes" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-[#E3DCCB]">
+                <SelectContent className="bg-white border-[#E5E7EB]">
                   <SelectItem value="2026-10">Octubre 2026 (Actual)</SelectItem>
                   <SelectItem value="2026-09">Septiembre 2026</SelectItem>
                   <SelectItem value="2026-08">Agosto 2026</SelectItem>
@@ -355,11 +362,11 @@ export function VisorReportesPdf() {
           {/* Tarjeta Informativa del Becario Seleccionado */}
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-[#063A6B] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+              <div className="w-9 h-9 rounded-full bg-[#035683] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
                 {estudiante_actual.nombre.charAt(0)}
               </div>
               <div>
-                <span className="font-bold text-[#063A6B]">{estudiante_actual.nombre}</span>
+                <span className="font-bold text-[#035683]">{estudiante_actual.nombre}</span>
                 <p className="text-[11px] text-muted-foreground">
                   CI: {estudiante_actual.ci} LP · Carrera: {estudiante_actual.carrera} · Sede: {estudiante_actual.sede}
                 </p>
@@ -378,12 +385,12 @@ export function VisorReportesPdf() {
                     `Expediente_Recorridos_${estudiante_actual.nombre.replace(/\s+/g, '_')}_${mes_individual}.pdf`
                   )
                 }
-                className="h-9 px-3.5 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold text-xs rounded-xl shadow-xs gap-1.5"
+                className="h-9 px-3.5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl shadow-xs gap-1.5"
               >
                 {descargando_id === `recorridos_${estudiante_actual.id}` ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#F8C766]" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#FFB600]" />
                 ) : (
-                  <Bus className="w-3.5 h-3.5 text-[#F8C766]" />
+                  <Bus className="w-3.5 h-3.5 text-[#FFB600]" />
                 )}
                 <span>Expediente de Recorridos (PDF)</span>
               </Button>
@@ -400,12 +407,12 @@ export function VisorReportesPdf() {
                     `Asistencia_Mensual_${estudiante_actual.nombre.replace(/\s+/g, '_')}_${mes_individual}.pdf`
                   )
                 }
-                className="h-9 px-3.5 border-[#063A6B] text-[#063A6B] hover:bg-slate-100 font-bold text-xs rounded-xl shadow-2xs gap-1.5"
+                className="h-9 px-3.5 border-[#035683] text-[#035683] hover:bg-slate-100 font-bold text-xs rounded-xl shadow-2xs gap-1.5"
               >
                 {descargando_id === `asistencia_${estudiante_actual.id}` ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#17B4C4]" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#00ABBD]" />
                 ) : (
-                  <Clock className="w-3.5 h-3.5 text-[#17B4C4]" />
+                  <Clock className="w-3.5 h-3.5 text-[#00ABBD]" />
                 )}
                 <span>Asistencia Mensual (PDF)</span>
               </Button>
@@ -415,9 +422,9 @@ export function VisorReportesPdf() {
       </Card>
 
       {/* Historial de Documentos Oficiales Disponibles */}
-      <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl">
-        <CardHeader className="pb-3 border-b border-[#E3DCCB]/60">
-          <CardTitle className="text-base font-bold font-display text-[#063A6B]">
+      <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl">
+        <CardHeader className="pb-3 border-b border-[#E5E7EB]/60">
+          <CardTitle className="text-base font-bold font-display text-[#035683]">
             Historial de Reportes Emitidos y Archivados
           </CardTitle>
           <CardDescription className="text-xs text-muted-foreground">
@@ -427,22 +434,22 @@ export function VisorReportesPdf() {
         <CardContent className="p-0">
           <Table>
             <TableHeader className="bg-slate-50/60">
-              <TableRow className="border-b border-[#E3DCCB]">
-                <TableHead className="font-bold text-[#063A6B]">Documento Oficial</TableHead>
-                <TableHead className="font-bold text-[#063A6B]">Periodo</TableHead>
-                <TableHead className="font-bold text-[#063A6B]">Destinatario / Alcance</TableHead>
-                <TableHead className="font-bold text-[#063A6B]">Fecha Emisión</TableHead>
-                <TableHead className="font-bold text-[#063A6B] text-center">Descarga Puppeteer</TableHead>
+              <TableRow className="border-b border-[#E5E7EB]">
+                <TableHead className="font-bold text-[#035683]">Documento Oficial</TableHead>
+                <TableHead className="font-bold text-[#035683]">Periodo</TableHead>
+                <TableHead className="font-bold text-[#035683]">Destinatario / Alcance</TableHead>
+                <TableHead className="font-bold text-[#035683]">Fecha Emisión</TableHead>
+                <TableHead className="font-bold text-[#035683] text-center">Descarga Puppeteer</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {reportes.map((r) => {
                 const en_descarga = descargando_id === String(r.id);
                 return (
-                  <TableRow key={r.id} className="border-b border-[#E3DCCB]/40 hover:bg-[#17B4C4]/5 text-xs">
+                  <TableRow key={r.id} className="border-b border-[#E5E7EB]/40 hover:bg-[#00ABBD]/5 text-xs">
                     <TableCell className="font-semibold text-[#1E293B]">
                       <div className="flex items-center gap-2">
-                        <div className="p-1.5 rounded-lg bg-[#063A6B]/5 text-[#063A6B]">
+                        <div className="p-1.5 rounded-lg bg-[#035683]/5 text-[#035683]">
                           <FileText className="w-4 h-4" />
                         </div>
                         <span>{r.titulo}</span>
@@ -461,16 +468,16 @@ export function VisorReportesPdf() {
                         variant="outline"
                         disabled={descargando_id !== null}
                         onClick={() => descargarReportePuppeteer(String(r.id), r.endpoint, r.nombre_archivo)}
-                        className="h-8 px-3 border-[#17B4C4] text-[#063A6B] hover:bg-[#17B4C4]/10 rounded-lg text-xs font-bold inline-flex items-center gap-1.5"
+                        className="h-8 px-3 border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg text-xs font-bold inline-flex items-center gap-1.5"
                       >
                         {en_descarga ? (
                           <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-[#17B4C4]" />
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-[#00ABBD]" />
                             <span>Generando...</span>
                           </>
                         ) : (
                           <>
-                            <Download className="w-3.5 h-3.5 text-[#17B4C4]" />
+                            <Download className="w-3.5 h-3.5 text-[#00ABBD]" />
                             <span>Descargar PDF</span>
                           </>
                         )}

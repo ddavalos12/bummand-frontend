@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -31,25 +31,25 @@ export function RadarGeocerca({ alMarcarLlegada }: { alMarcarLlegada?: (ubicacio
           background: `linear-gradient(rgba(15,48,74,0.94), rgba(15,48,74,0.94)),
                        repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(255,255,255,0.05) 20px),
                        repeating-linear-gradient(90deg, transparent, transparent 19px, rgba(255,255,255,0.05) 20px)`,
-          backgroundColor: '#063A6B'
+          backgroundColor: '#035683'
         }}
       >
         {/* Anillo discontinuo fijo */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[130px] h-[130px] rounded-full border border-dashed border-[#7FE0E6]/30" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[130px] h-[130px] rounded-full border border-dashed border-[#00ABBD]/30" />
         
         {detectando ? (
           <>
             {/* Anillos animados */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-[1.5px] border-[#7FE0E6] opacity-0 animate-ping" style={{ animationDuration: '2.6s', animationDelay: '0s' }} />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-[1.5px] border-[#7FE0E6] opacity-0 animate-ping" style={{ animationDuration: '2.6s', animationDelay: '0.7s' }} />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-[1.5px] border-[#7FE0E6] opacity-0 animate-ping" style={{ animationDuration: '2.6s', animationDelay: '1.4s' }} />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-[1.5px] border-[#00ABBD] opacity-0 animate-ping" style={{ animationDuration: '2.6s', animationDelay: '0s' }} />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-[1.5px] border-[#00ABBD] opacity-0 animate-ping" style={{ animationDuration: '2.6s', animationDelay: '0.7s' }} />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-[1.5px] border-[#00ABBD] opacity-0 animate-ping" style={{ animationDuration: '2.6s', animationDelay: '1.4s' }} />
           </>
         ) : (
           /* Marcador cuando se detecta */
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full w-4 h-4 bg-[#F5A623] rounded-t-full rounded-bl-full -rotate-45 shadow-[0_0_0_4px_rgba(245,166,35,0.2)]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full w-4 h-4 bg-[#FFB600] rounded-t-full rounded-bl-full -rotate-45 shadow-[0_0_0_4px_rgba(245,166,35,0.2)]" />
         )}
 
-        <div className="absolute bottom-2.5 left-2.5 font-mono text-[10px] text-[#7FE0E6] bg-black/30 px-2 py-1 rounded-md">
+        <div className="absolute bottom-2.5 left-2.5 font-mono text-[10px] text-[#00ABBD] bg-black/30 px-2 py-1 rounded-md">
           {detectando ? "ESCANEANDO PERÍMETRO..." : "COORDENADAS FIJADAS"}
         </div>
       </div>
@@ -69,14 +69,14 @@ export function RadarGeocerca({ alMarcarLlegada }: { alMarcarLlegada?: (ubicacio
           <Button 
             disabled={detectando}
             onClick={() => alMarcarLlegada && alMarcarLlegada(ubicacion || "")}
-            className="flex-1 h-11 bg-[#17B4C4] hover:bg-[#17B4C4]/90 text-[#063A6B] font-bold rounded-xl"
+            className="flex-1 h-11 bg-[#00ABBD] hover:bg-[#00ABBD]/90 text-[#035683] font-bold rounded-xl"
           >
             Marcar Llegada
           </Button>
           <Button 
             variant="outline"
             disabled={detectando}
-            className="flex-1 h-11 border-[#E3DCCB] text-[#5B6D77] font-bold rounded-xl"
+            className="flex-1 h-11 border-[#E5E7EB] text-[#5B6D77] font-bold rounded-xl"
           >
             Marcar Salida
           </Button>

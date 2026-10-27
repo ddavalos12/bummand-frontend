@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -133,12 +133,12 @@ export function SelectorCitaBiblica({
     <div className="space-y-3 p-3.5 bg-slate-50/80 rounded-2xl border border-slate-200">
       <div className="flex items-center justify-between gap-2">
         <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-          <BookOpen className="w-3.5 h-3.5 text-[#0A5CA0]" />
+          <BookOpen className="w-3.5 h-3.5 text-[#007BBE]" />
           Selección Canónica de Pasaje Bíblico
         </label>
         <Badge
           variant="outline"
-          className="bg-white border-[#0A5CA0]/30 text-[#0A5CA0] font-mono font-bold text-xs shadow-2xs"
+          className="bg-white border-[#007BBE]/30 text-[#007BBE] font-mono font-bold text-xs shadow-2xs"
         >
           {cita_actual}
         </Badge>
@@ -152,7 +152,7 @@ export function SelectorCitaBiblica({
           <select
             value={libro}
             onChange={(e) => manejarCambioLibro(e.target.value)}
-            className="w-full text-xs rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A5CA0] shadow-2xs"
+            className="w-full text-xs rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#007BBE] shadow-2xs"
           >
             <optgroup label="Nuevo Testamento (Recomendado)">
               {LIBROS_BIBLIA.filter((l) => l.testamento === "NT").map((l) => (
@@ -183,7 +183,7 @@ export function SelectorCitaBiblica({
             max={libro_objeto.capitulos}
             value={capitulo}
             onChange={(e) => manejarCambioCapitulo(Number(e.target.value))}
-            className="w-full text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A5CA0] shadow-2xs"
+            className="w-full text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#007BBE] shadow-2xs"
           />
         </div>
 
@@ -193,12 +193,12 @@ export function SelectorCitaBiblica({
             <span className="text-[11px] font-semibold text-slate-600">
               {es_rango ? "Versículos" : "Versículo"}
             </span>
-            <label className="text-[10px] text-[#0A5CA0] font-semibold cursor-pointer flex items-center gap-1 select-none">
+            <label className="text-[10px] text-[#007BBE] font-semibold cursor-pointer flex items-center gap-1 select-none">
               <input
                 type="checkbox"
                 checked={es_rango}
                 onChange={(e) => toggleRango(e.target.checked)}
-                className="w-3 h-3 rounded accent-[#0A5CA0]"
+                className="w-3 h-3 rounded accent-[#007BBE]"
               />
               ¿Rango?
             </label>
@@ -212,7 +212,7 @@ export function SelectorCitaBiblica({
                 value={versiculo_inicio}
                 onChange={(e) => manejarCambioVersiculoInicio(Number(e.target.value))}
                 placeholder="Ini"
-                className="w-1/2 text-xs rounded-xl border border-slate-200 bg-white px-2 py-2 text-slate-800 text-center shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#0A5CA0]"
+                className="w-1/2 text-xs rounded-xl border border-slate-200 bg-white px-2 py-2 text-slate-800 text-center shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#007BBE]"
                 title="Versículo inicial"
               />
               <span className="text-xs text-slate-400 font-bold">-</span>
@@ -222,7 +222,7 @@ export function SelectorCitaBiblica({
                 value={versiculo_fin || versiculo_inicio + 1}
                 onChange={(e) => manejarCambioVersiculoFin(Number(e.target.value))}
                 placeholder="Fin"
-                className="w-1/2 text-xs rounded-xl border border-slate-200 bg-white px-2 py-2 text-slate-800 text-center shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#0A5CA0]"
+                className="w-1/2 text-xs rounded-xl border border-slate-200 bg-white px-2 py-2 text-slate-800 text-center shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#007BBE]"
                 title="Versículo final"
               />
             </div>
@@ -232,7 +232,7 @@ export function SelectorCitaBiblica({
               min={1}
               value={versiculo_inicio}
               onChange={(e) => manejarCambioVersiculoInicio(Number(e.target.value))}
-              className="w-full text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A5CA0] shadow-2xs"
+              className="w-full text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#007BBE] shadow-2xs"
             />
           )}
         </div>
@@ -251,15 +251,15 @@ export function SelectorCitaBiblica({
           variant="ghost"
           onClick={consultarPasajeApi}
           disabled={cargando_pasaje}
-          className="h-7 px-2.5 text-[11px] font-semibold text-[#0A5CA0] hover:bg-[#0A5CA0]/10 gap-1 rounded-lg shrink-0 self-end sm:self-auto"
+          className="h-7 px-2.5 text-[11px] font-semibold text-[#007BBE] hover:bg-[#007BBE]/10 gap-1 rounded-lg shrink-0 self-end sm:self-auto"
         >
-          <Sparkles className="w-3 h-3 text-[#17B4C4]" />
+          <Sparkles className="w-3 h-3 text-[#00ABBD]" />
           {cargando_pasaje ? "Consultando..." : "Consultar texto RVR60"}
         </Button>
       </div>
 
       {texto_previa && (
-        <div className="p-2.5 rounded-xl bg-white border border-[#17B4C4]/30 text-slate-700 text-[11px] italic leading-relaxed">
+        <div className="p-2.5 rounded-xl bg-white border border-[#00ABBD]/30 text-slate-700 text-[11px] italic leading-relaxed">
           &laquo;{texto_previa}&raquo;
         </div>
       )}

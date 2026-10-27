@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { AlertDialog as PrimitivoAlertDialog } from "@base-ui/react/alert-dialog";
@@ -66,7 +66,7 @@ function AlertDialogContent({
       <PrimitivoAlertDialog.Popup
         data-slot="alert-dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl bg-white p-6 text-sm text-[#122029] shadow-xl border border-[#E3DCCB] duration-150 outline-none sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl bg-white p-6 text-sm text-[#122029] shadow-xl border border-[#E5E7EB] duration-150 outline-none sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
           className
         )}
         {...propiedades}
@@ -113,7 +113,7 @@ function AlertDialogTitle({
   return (
     <PrimitivoAlertDialog.Title
       data-slot="alert-dialog-title"
-      className={cn("font-display text-base font-bold text-[#063A6B] leading-snug", className)}
+      className={cn("font-display text-base font-bold text-[#035683] leading-snug", className)}
       {...propiedades}
     />
   );
@@ -155,7 +155,7 @@ function AlertDialogAction({
         render ?? (
           <Button
             className={cn(
-              "h-10 px-4 rounded-xl font-semibold text-xs bg-[#063A6B] hover:bg-[#063A6B]/90 text-white shadow-sm transition-all",
+              "h-10 px-4 rounded-xl font-semibold text-xs bg-[#035683] hover:bg-[#035683]/90 text-white shadow-sm transition-all",
               className
             )}
           />
@@ -192,7 +192,7 @@ function AlertDialogCancel({
           <Button
             variant="outline"
             className={cn(
-              "h-10 px-4 rounded-xl font-semibold text-xs border-[#E3DCCB] text-[#5B6D77] hover:bg-slate-50 transition-all",
+              "h-10 px-4 rounded-xl font-semibold text-xs border-[#E5E7EB] text-[#5B6D77] hover:bg-slate-50 transition-all",
               className
             )}
           />

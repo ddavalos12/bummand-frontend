@@ -13,12 +13,19 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
   DialogBody,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Combobox } from "@/components/ui/combobox";
+import {
+  generarOpcionesCarreras,
+  generarOpcionesIglesias,
+} from "./constantes-academicas-eclesiales";
+import { ModalVisorDocumentoBecario } from "./modal-visor-documento-becario";
 import { Switch } from "@/components/ui/switch";
 import {
   Search,
@@ -46,6 +53,7 @@ import {
   Users,
   UserPlus,
   Printer,
+  Download,
   Loader2,
   Smartphone,
   Bus,
@@ -72,6 +80,7 @@ export interface BecarioVista {
   nombre: string;
   ci: string;
   expedicion: string;
+  complemento?: string;
   estado_civil: string;
   sexo: "M" | "F";
   carrera: string;
@@ -85,6 +94,7 @@ export interface BecarioVista {
   ciudad: string;
   iglesia: string;
   lugar_practica: string;
+  supervisor_id?: number | null;
   tutor_nombre: string;
   tutor_correo: string;
   estado: "activo" | "pendiente_validacion";
@@ -93,7 +103,26 @@ export interface BecarioVista {
   historial_horas_mes: HorasMesHistorico[];
   tiene_usuario?: boolean;
   usuario_id?: number | null;
+  url_carnet?: string;
+  nombre_archivo_carnet?: string;
+  url_kardex?: string;
+  nombre_archivo_kardex?: string;
+  fecha_subida_documentos?: string;
 }
+
+// Terminaciones y extensiones departamentales oficiales de Cédula de Identidad en Bolivia (SEGIP)
+export const TERMINACIONES_CI_BOLIVIA = [
+  { codigo: "LP", departamento: "La Paz" },
+  { codigo: "SC", departamento: "Santa Cruz" },
+  { codigo: "CB", departamento: "Cochabamba" },
+  { codigo: "OR", departamento: "Oruro" },
+  { codigo: "PT", departamento: "Potosí" },
+  { codigo: "TJ", departamento: "Tarija" },
+  { codigo: "CH", departamento: "Chuquisaca" },
+  { codigo: "BN", departamento: "Beni" },
+  { codigo: "PA", departamento: "Pando" },
+  { codigo: "QR", departamento: "Extranjero / Naturalizado" },
+] as const;
 
 const SUPERVISORES_INSTITUCIONALES = [
   { nombre: "Angel Javier Ali Paz", correo: "angel.ali@diaconia.bo" },
@@ -101,6 +130,33 @@ const SUPERVISORES_INSTITUCIONALES = [
   { nombre: "Rodrigo Solorzano", correo: "rodrigo.solorzano@diaconia.bo" },
   { nombre: "Lic. Mónica Valenzuela", correo: "monica.valenzuela@diaconia.bo" },
 ];
+
+/**
+ * Función de determinación de pertenencia de becario a un supervisor institucional.
+ * Comprueba id numérico de supervisor, coincidencia de correo o prefijo, o nombre de tutor.
+ */
+export function esBecarioDeSupervisor(becario: BecarioVista, usuarioActual: any): boolean {
+  if (!usuarioActual) return false;
+  if (becario.supervisor_id && Number(becario.supervisor_id) === Number(usuarioActual.id)) {
+    return true;
+  }
+  if (usuarioActual.correo && becario.tutor_correo) {
+    const c_usr = String(usuarioActual.correo).toLowerCase().trim();
+    const c_tut = String(becario.tutor_correo).toLowerCase().trim();
+    if (c_usr === c_tut) return true;
+    const p_usr = c_usr.split("@")[0];
+    const p_tut = c_tut.split("@")[0];
+    if (p_usr && p_tut && p_usr === p_tut) return true;
+  }
+  if (usuarioActual.nombre && becario.tutor_nombre) {
+    const n_usr = String(usuarioActual.nombre).toLowerCase().trim();
+    const n_tut = String(becario.tutor_nombre).toLowerCase().trim();
+    if (n_usr === n_tut || n_tut.includes(n_usr) || n_usr.includes(n_tut)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 const BECARIOS_INICIALES: BecarioVista[] = [
   {
@@ -819,6 +875,10 @@ function normalizarBecario(remoto: any): BecarioVista {
     match_inicial?.tutor_correo ||
     SUPERVISORES_INSTITUCIONALES[0].correo;
 
+  const supervisor_id =
+    remoto.supervisor_id ??
+    (remoto.supervisor ? remoto.supervisor.id : match_inicial?.supervisor_id ?? null);
+
   const horas_mes_actual =
     typeof remoto.horas_mes_actual === "number"
       ? remoto.horas_mes_actual
@@ -855,7 +915,12 @@ function normalizarBecario(remoto: any): BecarioVista {
     id: remoto.id || match_inicial?.id || 1,
     nombre,
     ci: ci_str || match_inicial?.ci || "0000000",
-    expedicion: remoto.expedicion || remoto.lugar_expedicion || match_inicial?.expedicion || "LP",
+    expedicion: TERMINACIONES_CI_BOLIVIA.some(
+      (t) => t.codigo === (remoto.expedicion || remoto.lugar_expedicion || match_inicial?.expedicion || "LP").trim().toUpperCase()
+    )
+      ? (remoto.expedicion || remoto.lugar_expedicion || match_inicial?.expedicion || "LP").trim().toUpperCase()
+      : "LP",
+    complemento: remoto.complemento || (ci_str.includes("-") ? ci_str.split("-")[1]?.trim().toUpperCase() : undefined),
     estado_civil: remoto.estado_civil || match_inicial?.estado_civil || "Soltero(a)",
     sexo: remoto.sexo === "M" || remoto.sexo === "F" ? remoto.sexo : match_inicial?.sexo || "M",
     carrera: remoto.carrera || match_inicial?.carrera || "Carrera Universitaria",
@@ -869,6 +934,7 @@ function normalizarBecario(remoto: any): BecarioVista {
     ciudad: remoto.ciudad || match_inicial?.ciudad || "La Paz",
     iglesia,
     lugar_practica,
+    supervisor_id,
     tutor_nombre,
     tutor_correo,
     estado,
@@ -879,6 +945,11 @@ function normalizarBecario(remoto: any): BecarioVista {
       ? Boolean(remoto.usuario || remoto.usuario_id)
       : true,
     usuario_id: remoto.usuario_id ?? (remoto.usuario ? remoto.usuario.id : null),
+    url_carnet: remoto.url_carnet || match_inicial?.url_carnet,
+    nombre_archivo_carnet: remoto.nombre_archivo_carnet || match_inicial?.nombre_archivo_carnet || `CI_${ci_str || "doc"}.pdf`,
+    url_kardex: remoto.url_kardex || match_inicial?.url_kardex,
+    nombre_archivo_kardex: remoto.nombre_archivo_kardex || match_inicial?.nombre_archivo_kardex || `Kardex_2026_${remoto.universidad || match_inicial?.universidad || "UMSA"}.pdf`,
+    fecha_subida_documentos: remoto.fecha_subida_documentos || match_inicial?.fecha_subida_documentos || "2026-02-15",
   };
 }
 
@@ -932,8 +1003,14 @@ export function GestionBecarios() {
     }
   };
   const es_admin = usuario?.rol === "administrador";
+  const es_supervisor = usuario?.rol === "supervisor";
 
-  const [lista_becarios, set_lista_becarios] = useState<BecarioVista[]>(BECARIOS_INICIALES);
+  const [lista_becarios, set_lista_becarios] = useState<BecarioVista[]>(() => {
+    if (usuario?.rol === "supervisor") {
+      return BECARIOS_INICIALES.filter((b) => esBecarioDeSupervisor(b, usuario));
+    }
+    return BECARIOS_INICIALES;
+  });
   const [busqueda, set_busqueda] = useState("");
   const [modal_abierto, set_modal_abierto] = useState(false);
 
@@ -943,53 +1020,177 @@ export function GestionBecarios() {
 
   // Consulta API con datos precargados y normalización defensiva
   const { datos: becarios_remotos } = useConsulta<BecarioVista[]>(
-    "lista_becarios",
+    `lista_becarios_${usuario?.id || "global"}`,
     async () => {
       try {
         const respuesta = await clienteApi.get<any[]>("/api/becarios");
         if (Array.isArray(respuesta) && respuesta.length > 0) {
-          return respuesta.map(normalizarBecario);
+          const normalizados = respuesta.map(normalizarBecario);
+          if (usuario?.rol === "supervisor") {
+            return normalizados.filter((b) => esBecarioDeSupervisor(b, usuario));
+          }
+          return normalizados;
+        }
+        if (usuario?.rol === "supervisor") {
+          return BECARIOS_INICIALES.filter((b) => esBecarioDeSupervisor(b, usuario));
         }
         return BECARIOS_INICIALES;
       } catch {
+        if (usuario?.rol === "supervisor") {
+          return BECARIOS_INICIALES.filter((b) => esBecarioDeSupervisor(b, usuario));
+        }
         return BECARIOS_INICIALES;
       }
     },
-    { datos_iniciales: BECARIOS_INICIALES }
+    {
+      datos_iniciales:
+        usuario?.rol === "supervisor"
+          ? BECARIOS_INICIALES.filter((b) => esBecarioDeSupervisor(b, usuario))
+          : BECARIOS_INICIALES,
+    }
   );
 
   useEffect(() => {
-    if (becarios_remotos && Array.isArray(becarios_remotos) && becarios_remotos.length > 0) {
-      set_lista_becarios(becarios_remotos.map(normalizarBecario));
+    if (becarios_remotos && Array.isArray(becarios_remotos)) {
+      set_lista_becarios(becarios_remotos);
     }
   }, [becarios_remotos]);
 
-  // Estados del formulario nuevo becario
+  // Lista adaptada al rol: el supervisor SÓLO ve a los becarios que supervisa
+  const lista_para_rol = useMemo(() => {
+    if (es_supervisor) {
+      return lista_becarios.filter((b) => esBecarioDeSupervisor(b, usuario));
+    }
+    return lista_becarios;
+  }, [lista_becarios, es_supervisor, usuario]);
+
+  // Estados del formulario nuevo becario (Estandarizado Bolivia SEGIP)
   const [nuevo_nombre, set_nuevo_nombre] = useState("");
   const [nuevo_ci, set_nuevo_ci] = useState("");
+  const [nuevo_expedicion, set_nuevo_expedicion] = useState("LP");
+  const [nuevo_complemento, set_nuevo_complemento] = useState("");
   const [nueva_carrera, set_nueva_carrera] = useState("");
   const [nueva_universidad, set_nueva_universidad] = useState("UMSA");
-  const [nueva_iglesia, set_nueva_iglesia] = useState("Iglesia Alianza La Paz");
+  const [nueva_iglesia, set_nueva_iglesia] = useState("");
   const [nuevo_lugar, set_nuevo_lugar] = useState("Oficina Central Bloque A");
   const [nuevo_estado, set_nuevo_estado] = useState<"pendiente_validacion" | "activo">("pendiente_validacion");
   const [nuevo_documento_nombre, set_nuevo_documento_nombre] = useState("");
   const [nuevo_documento_url, set_nuevo_documento_url] = useState("");
   const [nuevo_documento_tamano, set_nuevo_documento_tamano] = useState("");
+
+  // Documentos específicos de identidad y académicos
+  const [nuevo_carnet_nombre, set_nuevo_carnet_nombre] = useState("");
+  const [nuevo_carnet_url, set_nuevo_carnet_url] = useState("");
+  const [nuevo_carnet_tamano, set_nuevo_carnet_tamano] = useState("");
+
+  const [nuevo_kardex_nombre, set_nuevo_kardex_nombre] = useState("");
+  const [nuevo_kardex_url, set_nuevo_kardex_url] = useState("");
+  const [nuevo_kardex_tamano, set_nuevo_kardex_tamano] = useState("");
+
   const [guardando_becario, set_guardando_becario] = useState(false);
 
-  const manejarSubirDocumentoNuevoBecario = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Estados para Modal de Edición de Becario (Exclusivo Administrador)
+  const [modal_editar_abierto, set_modal_editar_abierto] = useState(false);
+  const [becario_a_editar, set_becario_a_editar] = useState<BecarioVista | null>(null);
+  const [edit_nombre, set_edit_nombre] = useState("");
+  const [edit_ci, set_edit_ci] = useState("");
+  const [edit_expedicion, set_edit_expedicion] = useState("LP");
+  const [edit_complemento, set_edit_complemento] = useState("");
+  const [edit_carrera, set_edit_carrera] = useState("");
+  const [edit_universidad, set_edit_universidad] = useState("UMSA");
+  const [edit_correo, set_edit_correo] = useState("");
+  const [edit_celular, set_edit_celular] = useState("");
+  const [edit_sexo, set_edit_sexo] = useState<"M" | "F">("F");
+  const [edit_estado_civil, set_edit_estado_civil] = useState("Soltero(a)");
+  const [edit_fecha_nacimiento, set_edit_fecha_nacimiento] = useState("2003-01-01");
+  const [edit_direccion, set_edit_direccion] = useState("");
+  const [edit_ciudad, set_edit_ciudad] = useState("La Paz");
+  const [edit_iglesia, set_edit_iglesia] = useState("");
+  const [edit_sede, set_edit_sede] = useState("Oficina Central Bloque A");
+  const [edit_supervisor, set_edit_supervisor] = useState(SUPERVISORES_INSTITUCIONALES[0].nombre);
+  const [edit_estado, set_edit_estado] = useState<"activo" | "pendiente_validacion">("activo");
+  const [edit_ceti, set_edit_ceti] = useState(1);
+  const [edit_horas_meta_mes, set_edit_horas_meta_mes] = useState(40);
+  const [edit_carnet_nombre, set_edit_carnet_nombre] = useState("");
+  const [edit_carnet_url, set_edit_carnet_url] = useState("");
+  const [edit_kardex_nombre, set_edit_kardex_nombre] = useState("");
+  const [edit_kardex_url, set_edit_kardex_url] = useState("");
+  const [guardando_edicion, set_guardando_edicion] = useState(false);
+
+  // Estado del Visor de Documentos Oficiales
+  const [documento_visor_seleccionado, set_documento_visor_seleccionado] = useState<{
+    tipo: "carnet" | "kardex";
+    becario: BecarioVista;
+  } | null>(null);
+
+  // Catálogos dinámicos para Combobox (Carreras por Universidad e Iglesias Diaconía/BUMAND)
+  const opciones_carreras_nuevo = useMemo(
+    () => generarOpcionesCarreras(nueva_universidad),
+    [nueva_universidad]
+  );
+  const opciones_carreras_edicion = useMemo(
+    () => generarOpcionesCarreras(edit_universidad),
+    [edit_universidad]
+  );
+  const opciones_iglesias = useMemo(
+    () => generarOpcionesIglesias(),
+    []
+  );
+
+  const manejarSubirCarnetNuevo = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 15 * 1024 * 1024) {
-      toast.error("Archivo demasiado grande", { description: "El documento debe ser menor a 15 MB." });
+      toast.error("Archivo demasiado grande", { description: "El carnet debe ser menor a 15 MB." });
       return;
     }
-    const tamano = file.size > 1024 * 1024 ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` : `${(file.size / 1024).toFixed(0)} KB`;
-    set_nuevo_documento_nombre(file.name);
-    set_nuevo_documento_tamano(tamano);
+    const tamano = file.size > 1024 * 1024 ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` : `${Math.round(file.size / 1024)} KB`;
+    set_nuevo_carnet_nombre(file.name);
+    set_nuevo_carnet_tamano(tamano);
     const lector = new FileReader();
-    lector.onload = () => set_nuevo_documento_url(lector.result as string);
+    lector.onload = () => set_nuevo_carnet_url(lector.result as string);
     lector.readAsDataURL(file);
+    toast.success("Cédula de Identidad adjuntada", { description: file.name });
+  };
+
+  const manejarSubirKardexNuevo = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("Archivo demasiado grande", { description: "El kárdex debe ser menor a 15 MB." });
+      return;
+    }
+    const tamano = file.size > 1024 * 1024 ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` : `${Math.round(file.size / 1024)} KB`;
+    set_nuevo_kardex_nombre(file.name);
+    set_nuevo_kardex_tamano(tamano);
+    const lector = new FileReader();
+    lector.onload = () => set_nuevo_kardex_url(lector.result as string);
+    lector.readAsDataURL(file);
+    toast.success("Kárdex académico adjuntado", { description: file.name });
+  };
+
+  const manejarSubirDocumentoNuevoBecario = (e: React.ChangeEvent<HTMLInputElement>) => {
+    manejarSubirCarnetNuevo(e);
+  };
+
+  const manejarSubirCarnetEdicion = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    set_edit_carnet_nombre(file.name);
+    const lector = new FileReader();
+    lector.onload = () => set_edit_carnet_url(lector.result as string);
+    lector.readAsDataURL(file);
+    toast.success("Carnet actualizado en formulario", { description: file.name });
+  };
+
+  const manejarSubirKardexEdicion = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    set_edit_kardex_nombre(file.name);
+    const lector = new FileReader();
+    lector.onload = () => set_edit_kardex_url(lector.result as string);
+    lector.readAsDataURL(file);
+    toast.success("Kárdex actualizado en formulario", { description: file.name });
   };
 
   // Estado para Asignar Supervisor (Modal)
@@ -1011,26 +1212,27 @@ export function GestionBecarios() {
   } = useConfirmacionDialogo();
 
   const becarios_en_riesgo = useMemo(() => {
-    return lista_becarios.filter((b) => (b.horas_mes_actual ?? 0) < 35);
-  }, [lista_becarios]);
+    return lista_para_rol.filter((b) => (b.horas_mes_actual ?? 0) < 35);
+  }, [lista_para_rol]);
 
   const becarios_pendientes = useMemo(() => {
-    return lista_becarios.filter((b) => b.estado === "pendiente_validacion");
-  }, [lista_becarios]);
+    return lista_para_rol.filter((b) => b.estado === "pendiente_validacion");
+  }, [lista_para_rol]);
 
   const sedes_unicas = useMemo(() => {
     const conjunto = new Set<string>();
-    lista_becarios.forEach((b) => {
+    lista_para_rol.forEach((b) => {
       const nombre_sede = typeof b.lugar_practica === "string" ? b.lugar_practica : (b.lugar_practica as any)?.nombre;
       if (nombre_sede) conjunto.add(nombre_sede);
     });
     return Array.from(conjunto);
-  }, [lista_becarios]);
+  }, [lista_para_rol]);
 
   const tiene_cambios_nuevo_becario =
     nuevo_nombre.trim() !== "" ||
     nuevo_ci.trim() !== "" ||
-    nueva_carrera.trim() !== "";
+    nueva_carrera.trim() !== "" ||
+    nueva_iglesia.trim() !== "";
 
   const intentarCerrarModalBecario = () => {
     confirmarCierreSinCompletar(
@@ -1039,10 +1241,18 @@ export function GestionBecarios() {
         set_modal_abierto(false);
         set_nuevo_nombre("");
         set_nuevo_ci("");
+        set_nuevo_complemento("");
         set_nueva_carrera("");
+        set_nueva_iglesia("");
         set_nuevo_documento_nombre("");
         set_nuevo_documento_url("");
         set_nuevo_documento_tamano("");
+        set_nuevo_carnet_nombre("");
+        set_nuevo_carnet_url("");
+        set_nuevo_carnet_tamano("");
+        set_nuevo_kardex_nombre("");
+        set_nuevo_kardex_url("");
+        set_nuevo_kardex_tamano("");
         set_nuevo_estado("pendiente_validacion");
       },
       "Registro de Nuevo Becario"
@@ -1051,7 +1261,7 @@ export function GestionBecarios() {
 
   // Filtrado reactivo defensivo contra propiedades nulas o indefinidas
   const busqueda_limpia = (busqueda || "").toLowerCase().trim();
-  const becarios_filtrados = lista_becarios.filter((b) => {
+  const becarios_filtrados = lista_para_rol.filter((b) => {
     if (!b) return false;
     const nombre = (b.nombre || "").toLowerCase();
     const ci = String(b.ci || "");
@@ -1067,6 +1277,10 @@ export function GestionBecarios() {
 
   const manejarGuardarBecario = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!es_admin) {
+      toast.error("Acción restringida: Solo el Administrador puede registrar nuevos becarios.");
+      return;
+    }
     if (!nuevo_nombre.trim() || !nuevo_ci.trim()) {
       toast.error("El nombre completo y el C.I. son obligatorios");
       return;
@@ -1075,12 +1289,19 @@ export function GestionBecarios() {
     try {
       set_guardando_becario(true);
 
+      const ci_limpio = nuevo_complemento.trim()
+        ? `${nuevo_ci.trim()}-${nuevo_complemento.trim().toUpperCase()}`
+        : nuevo_ci.trim();
+
       const payload = {
-        ci: nuevo_ci.trim(),
+        ci: ci_limpio,
+        lugar_expedicion: nuevo_expedicion,
         nombre: nuevo_nombre.trim(),
-        carrera: es_admin ? (nueva_carrera.trim() || "Ingeniería de Sistemas") : "Carrera Pendiente Asignación",
-        universidad: es_admin ? nueva_universidad : "UMSA",
+        carrera: nueva_carrera.trim() || "Ingeniería de Sistemas",
+        universidad: nueva_universidad,
         fecha_ingreso: new Date().toISOString().split("T")[0],
+        url_carnet: nuevo_carnet_url || undefined,
+        url_kardex: nuevo_kardex_url || undefined,
       };
 
       let creado_remoto: any = null;
@@ -1093,7 +1314,8 @@ export function GestionBecarios() {
       const nuevo: BecarioVista = normalizarBecario(creado_remoto || {
         ...payload,
         id: lista_becarios.length + 1,
-        expedicion: "LP",
+        expedicion: nuevo_expedicion,
+        complemento: nuevo_complemento.trim() || undefined,
         estado_civil: "Soltero(a)",
         sexo: "M",
         ceti: 1,
@@ -1103,13 +1325,18 @@ export function GestionBecarios() {
         edad: 24,
         direccion: "Zona Central",
         ciudad: "La Paz",
-        iglesia: es_admin ? nueva_iglesia : "Iglesia Central",
-        lugar_practica: es_admin ? nuevo_lugar : "Oficina Central Bloque A",
+        iglesia: nueva_iglesia,
+        lugar_practica: nuevo_lugar,
         tutor_nombre: SUPERVISORES_INSTITUCIONALES[0].nombre,
         tutor_correo: SUPERVISORES_INSTITUCIONALES[0].correo,
         estado: nuevo_estado,
         horas_mes_actual: 0,
         horas_meta_mes: 40.0,
+        url_carnet: nuevo_carnet_url || undefined,
+        nombre_archivo_carnet: nuevo_carnet_nombre || undefined,
+        url_kardex: nuevo_kardex_url || undefined,
+        nombre_archivo_kardex: nuevo_kardex_nombre || undefined,
+        fecha_subida_documentos: new Date().toISOString().split("T")[0],
         historial_horas_mes: [
           { mes: "Octubre 2026", horas_realizadas: 0, meta_horas: 40.0, porcentaje: 0, estado: "en_riesgo" },
           { mes: "Septiembre 2026", horas_realizadas: 0, meta_horas: 40.0, porcentaje: 0, estado: "en_riesgo" },
@@ -1122,16 +1349,162 @@ export function GestionBecarios() {
       set_lista_becarios([nuevo, ...lista_becarios]);
       set_nuevo_nombre("");
       set_nuevo_ci("");
+      set_nuevo_complemento("");
+      set_nuevo_expedicion("LP");
       set_nueva_carrera("");
+      set_nueva_iglesia("");
+      set_nuevo_carnet_nombre("");
+      set_nuevo_carnet_url("");
+      set_nuevo_carnet_tamano("");
+      set_nuevo_kardex_nombre("");
+      set_nuevo_kardex_url("");
+      set_nuevo_kardex_tamano("");
       set_modal_abierto(false);
 
       toast.success(`Becario ${nuevo.nombre} pre-registrado exitosamente en nómina.`, {
-        description: `El C.I. ${nuevo.ci} ha sido habilitado para que el estudiante cree su cuenta en la app móvil.`,
+        description: `El C.I. ${nuevo.ci} ${nuevo.expedicion} ha sido habilitado para el becario.`,
       });
     } catch (err: any) {
       toast.error(`Error al registrar becario: ${err?.message || "Ocurrió un error inesperado"}`);
     } finally {
       set_guardando_becario(false);
+    }
+  };
+
+  const abrirModalEditarBecario = (becario: BecarioVista) => {
+    if (!es_admin) {
+      toast.error("Acción restringida: Solo el Administrador puede editar datos de becarios.");
+      return;
+    }
+    set_becario_a_editar(becario);
+    set_edit_nombre(becario.nombre || "");
+
+    const partes_ci = (becario.ci || "").split("-");
+    set_edit_ci(partes_ci[0] || "");
+    set_edit_complemento(partes_ci[1] || becario.complemento || "");
+
+    const exp_normalizada = (becario.expedicion || "LP").trim().toUpperCase();
+    const existe_exp = TERMINACIONES_CI_BOLIVIA.some((t) => t.codigo === exp_normalizada);
+    set_edit_expedicion(existe_exp ? exp_normalizada : "LP");
+
+    set_edit_carrera(becario.carrera || "");
+    set_edit_universidad(becario.universidad || "UMSA");
+    set_edit_correo(becario.correo || "");
+    set_edit_celular(becario.celular || "");
+    set_edit_sexo((becario.sexo as "M" | "F") || "F");
+    set_edit_estado_civil(becario.estado_civil || "Soltero(a)");
+    set_edit_fecha_nacimiento(becario.fecha_nacimiento || "2003-01-01");
+    set_edit_direccion(becario.direccion || "");
+    set_edit_ciudad(becario.ciudad || "La Paz");
+    set_edit_iglesia(typeof becario.iglesia === "string" ? becario.iglesia : (becario.iglesia as any)?.nombre || "");
+    set_edit_sede(typeof becario.lugar_practica === "string" ? becario.lugar_practica : (becario.lugar_practica as any)?.nombre || "Oficina Central Bloque A");
+    set_edit_supervisor(becario.tutor_nombre || SUPERVISORES_INSTITUCIONALES[0].nombre);
+    set_edit_estado(becario.estado === "activo" ? "activo" : "pendiente_validacion");
+    set_edit_ceti(becario.ceti ?? 1);
+    set_edit_horas_meta_mes(becario.horas_meta_mes ?? 40);
+    set_edit_carnet_nombre(becario.nombre_archivo_carnet || "");
+    set_edit_carnet_url(becario.url_carnet || "");
+    set_edit_kardex_nombre(becario.nombre_archivo_kardex || "");
+    set_edit_kardex_url(becario.url_kardex || "");
+    set_modal_editar_abierto(true);
+  };
+
+  const guardarEdicionBecario = async () => {
+    if (!becario_a_editar) return;
+    if (!es_admin) {
+      toast.error("Acción restringida: Solo el Administrador puede editar datos.");
+      return;
+    }
+    if (!edit_nombre.trim()) {
+      toast.error("El nombre completo es obligatorio.");
+      return;
+    }
+    if (!edit_ci.trim()) {
+      toast.error("El número de carnet de identidad (C.I.) es obligatorio.");
+      return;
+    }
+
+    set_guardando_edicion(true);
+    try {
+      const ci_formateado = edit_complemento.trim()
+        ? `${edit_ci.trim()}-${edit_complemento.trim().toUpperCase()}`
+        : edit_ci.trim();
+
+      const supervisor_encontrado = SUPERVISORES_INSTITUCIONALES.find(
+        (s) => s.nombre === edit_supervisor
+      ) || SUPERVISORES_INSTITUCIONALES[0];
+
+      // Intentar actualizar vía API remota
+      try {
+        await clienteApi.put(`/api/becarios/${becario_a_editar.id}`, {
+          nombre: edit_nombre.trim(),
+          ci: ci_formateado,
+          lugar_expedicion: edit_expedicion,
+          carrera: edit_carrera.trim(),
+          universidad: edit_universidad,
+          institucion: "Fundación Diaconía FRIF-IFD",
+          celular: edit_celular.trim(),
+          estado_civil: edit_estado_civil,
+          sexo: edit_sexo,
+          fecha_nacimiento: edit_fecha_nacimiento,
+          direccion: edit_direccion.trim(),
+          ciudad: edit_ciudad.trim(),
+          ceti: edit_ceti,
+          url_carnet: edit_carnet_url || becario_a_editar.url_carnet || undefined,
+          url_kardex: edit_kardex_url || becario_a_editar.url_kardex || undefined,
+        });
+      } catch (err_api) {
+        console.warn("Actualización remota en backend falló o sin conexión, aplicando optimista local:", err_api);
+      }
+
+      // Actualizar registro en lista local
+      const becario_actualizado: BecarioVista = {
+        ...becario_a_editar,
+        nombre: edit_nombre.trim(),
+        ci: ci_formateado,
+        expedicion: edit_expedicion,
+        complemento: edit_complemento.trim() || undefined,
+        carrera: edit_carrera.trim(),
+        universidad: edit_universidad,
+        correo: edit_correo.trim() || becario_a_editar.correo,
+        celular: edit_celular.trim(),
+        sexo: edit_sexo,
+        estado_civil: edit_estado_civil,
+        fecha_nacimiento: edit_fecha_nacimiento,
+        direccion: edit_direccion.trim(),
+        ciudad: edit_ciudad.trim(),
+        iglesia: edit_iglesia.trim() || becario_a_editar.iglesia,
+        lugar_practica: edit_sede,
+        tutor_nombre: supervisor_encontrado.nombre,
+        tutor_correo: supervisor_encontrado.correo,
+        estado: edit_estado,
+        ceti: edit_ceti,
+        horas_meta_mes: edit_horas_meta_mes,
+        url_carnet: edit_carnet_url || becario_a_editar.url_carnet,
+        nombre_archivo_carnet: edit_carnet_nombre || becario_a_editar.nombre_archivo_carnet,
+        url_kardex: edit_kardex_url || becario_a_editar.url_kardex,
+        nombre_archivo_kardex: edit_kardex_nombre || becario_a_editar.nombre_archivo_kardex,
+      };
+
+      set_lista_becarios((prev) =>
+        prev.map((b) => (b.id === becario_a_editar.id ? becario_actualizado : b))
+      );
+
+      if (becario_ficha_modal && becario_ficha_modal.id === becario_a_editar.id) {
+        set_becario_ficha_modal(becario_actualizado);
+      }
+
+      toast.success("Expediente actualizado exitosamente", {
+        description: `Los datos de ${edit_nombre.trim()} han sido actualizados y estandarizados.`,
+      });
+      set_modal_editar_abierto(false);
+      set_becario_a_editar(null);
+    } catch {
+      toast.error("Error al actualizar becario", {
+        description: "No se pudieron guardar los cambios en el expediente.",
+      });
+    } finally {
+      set_guardando_edicion(false);
     }
   };
 
@@ -1207,26 +1580,30 @@ export function GestionBecarios() {
   };
 
   return (
-    <Card className="border-[#E3DCCB] shadow-sm bg-white rounded-xl">
+    <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl">
       <Tabs
         value={pestaña_activa}
         onValueChange={(val) => set_pestaña_activa(val as any)}
         className="w-full"
       >
-        <CardHeader className="pb-4 border-b border-[#E3DCCB]/60 space-y-4">
+        <CardHeader className="pb-4 border-b border-[#E5E7EB]/60 space-y-4">
           {/* Fila 1: Título y descripción limpia + Badges institucionales */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <CardTitle className="text-xl font-bold font-display text-[#063A6B]">
-                Gestión de Becarios y Gobernanza de Expedientes
+              <CardTitle className="text-xl font-bold font-display text-[#035683]">
+                {es_supervisor
+                  ? "Becarios Asignados a mi Supervisión"
+                  : "Gestión de Becarios y Gobernanza de Expedientes"}
               </CardTitle>
               <CardDescription className="text-muted-foreground text-xs sm:text-sm">
-                Directorio oficial de estudiantes beneficiarios del programa BUMAND - Diaconía FRIF-IFD.
+                {es_supervisor
+                  ? `Listado exclusivo de los becarios asignados bajo la tutoría y acompañamiento de ${usuario?.nombre || "su usuario"}.`
+                  : "Directorio oficial de estudiantes beneficiarios del programa BUMAND - Diaconía FRIF-IFD."}
               </CardDescription>
             </div>
             <div className="flex items-center gap-2 self-start sm:self-center">
-              <Badge variant="outline" className="h-7 px-2.5 border-[#E3DCCB] text-[#063A6B] font-mono text-xs font-bold">
-                Total: {lista_becarios.length} becarios
+              <Badge variant="outline" className="h-7 px-2.5 border-[#E5E7EB] text-[#035683] font-mono text-xs font-bold">
+                Total: {lista_para_rol.length} {es_supervisor ? "asignados" : "becarios"}
               </Badge>
               {verificacion_mensual_activa && (
                 <Badge className="h-7 px-2.5 bg-amber-500 text-white font-mono text-[11px] font-bold flex items-center gap-1 animate-pulse">
@@ -1237,23 +1614,23 @@ export function GestionBecarios() {
           </div>
 
           {/* Fila 2: TABS SUPERIORES (ARRIBA DE LA BÚSQUEDA - Ahorra espacio vertical) */}
-          <TabsList className="w-full grid grid-cols-2 lg:grid-cols-4 p-1.5 bg-slate-100/90 border border-[#E3DCCB] rounded-2xl shadow-xs gap-2 group-data-horizontal/tabs:h-auto h-auto">
+          <TabsList className="w-full grid grid-cols-2 lg:grid-cols-4 p-1.5 bg-slate-100/90 border border-[#E5E7EB] rounded-2xl shadow-xs gap-2 group-data-horizontal/tabs:h-auto h-auto">
             <TabsTrigger
               value="directorio"
-              className="w-full h-10 py-2 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#063A6B] hover:text-[#063A6B] hover:bg-white/90 data-active:bg-[#063A6B] data-active:text-white data-active:hover:bg-[#063A6B] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
+              className="w-full h-10 py-2 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#035683] hover:text-[#035683] hover:bg-white/90 data-active:bg-[#035683] data-active:text-white data-active:hover:bg-[#035683] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
             >
-              <Users className="w-4 h-4 text-[#17B4C4]" />
-              <span>Directorio General</span>
-              <span className="bg-slate-200 text-[#063A6B] text-[10px] px-2 py-0.5 rounded-md font-mono font-bold">
-                {lista_becarios.length}
+              <Users className="w-4 h-4 text-[#00ABBD]" />
+              <span>{es_supervisor ? "Mis Becarios" : "Directorio General"}</span>
+              <span className="bg-slate-200 text-[#035683] text-[10px] px-2 py-0.5 rounded-md font-mono font-bold">
+                {lista_para_rol.length}
               </span>
             </TabsTrigger>
 
             <TabsTrigger
               value="horas"
-              className="w-full h-10 py-2 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#063A6B] hover:text-[#063A6B] hover:bg-white/90 data-active:bg-[#063A6B] data-active:text-white data-active:hover:bg-[#063A6B] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
+              className="w-full h-10 py-2 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#035683] hover:text-[#035683] hover:bg-white/90 data-active:bg-[#035683] data-active:text-white data-active:hover:bg-[#035683] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
             >
-              <Clock className="w-4 h-4 text-[#17B4C4]" />
+              <Clock className="w-4 h-4 text-[#00ABBD]" />
               <span>Control de Horas</span>
               {becarios_en_riesgo.length > 0 ? (
                 <span className="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-md font-mono font-bold">
@@ -1268,27 +1645,27 @@ export function GestionBecarios() {
 
             <TabsTrigger
               value="sedes"
-              className="w-full h-10 py-2 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#063A6B] hover:text-[#063A6B] hover:bg-white/90 data-active:bg-[#063A6B] data-active:text-white data-active:hover:bg-[#063A6B] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
+              className="w-full h-10 py-2 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#035683] hover:text-[#035683] hover:bg-white/90 data-active:bg-[#035683] data-active:text-white data-active:hover:bg-[#035683] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
             >
-              <Building2 className="w-4 h-4 text-[#17B4C4]" />
+              <Building2 className="w-4 h-4 text-[#00ABBD]" />
               <span>Asignación & Sedes</span>
-              <span className="bg-[#17B4C4]/15 text-[#0E7A85] text-[10px] px-2 py-0.5 rounded-md font-mono font-bold">
+              <span className="bg-[#00ABBD]/15 text-[#00808E] text-[10px] px-2 py-0.5 rounded-md font-mono font-bold">
                 {sedes_unicas.length} sedes
               </span>
             </TabsTrigger>
 
             <TabsTrigger
               value="validaciones"
-              className="w-full h-10 py-2 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#063A6B] hover:text-[#063A6B] hover:bg-white/90 data-active:bg-[#063A6B] data-active:text-white data-active:hover:bg-[#063A6B] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
+              className="w-full h-10 py-2 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer text-[#035683] hover:text-[#035683] hover:bg-white/90 data-active:bg-[#035683] data-active:text-white data-active:hover:bg-[#035683] data-active:hover:text-white data-active:shadow-xs flex items-center justify-center gap-2"
             >
-              <FileCheck className="w-4 h-4 text-[#17B4C4]" />
+              <FileCheck className="w-4 h-4 text-[#00ABBD]" />
               <span>Validaciones</span>
               {becarios_pendientes.length > 0 ? (
                 <span className="bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-md font-mono font-bold animate-pulse">
                   {becarios_pendientes.length} pendientes
                 </span>
               ) : (
-                <span className="bg-slate-200 text-[#063A6B] text-[10px] px-2 py-0.5 rounded-md font-mono font-bold">
+                <span className="bg-slate-200 text-[#035683] text-[10px] px-2 py-0.5 rounded-md font-mono font-bold">
                   0
                 </span>
               )}
@@ -1308,23 +1685,25 @@ export function GestionBecarios() {
                     ? "Filtrar por sede, becario o tutor asignado..."
                     : pestaña_activa === "validaciones"
                     ? "Buscar expedientes pendientes de ratificación..."
+                    : es_supervisor
+                    ? "Buscar entre mis becarios por nombre, CI o carrera..."
                     : "Buscar por nombre, CI, universidad o carrera..."
                 }
                 value={busqueda}
                 onChange={(e) => set_busqueda(e.target.value)}
-                className="h-10 pl-9 border-[#E3DCCB] focus-visible:ring-[#17B4C4]"
+                className="h-10 pl-9 border-[#E5E7EB] focus-visible:ring-[#00ABBD]"
               />
             </div>
 
             {/* Acciones contextuales a la derecha según la pestaña activa */}
             <div className="flex flex-wrap items-center gap-2 shrink-0">
-              {pestaña_activa === "directorio" && (
+              {pestaña_activa === "directorio" && es_admin && (
                 <Button
                   onClick={() => {
                     set_nuevo_estado("activo");
                     set_modal_abierto(true);
                   }}
-                  className="h-10 px-4 bg-[#17B4C4] hover:bg-[#17B4C4]/90 text-[#063A6B] font-bold rounded-xl flex items-center gap-2 shadow-sm text-xs cursor-pointer"
+                  className="h-10 px-4 bg-[#00ABBD] hover:bg-[#00ABBD]/90 text-[#035683] font-bold rounded-xl flex items-center gap-2 shadow-sm text-xs cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Nuevo Becario</span>
@@ -1332,15 +1711,15 @@ export function GestionBecarios() {
               )}
 
               {pestaña_activa === "horas" && (
-                <Badge variant="outline" className="h-10 px-3 bg-slate-50 border-[#E3DCCB] text-[#063A6B] text-xs font-semibold flex items-center gap-1.5">
-                  <Award className="w-3.5 h-3.5 text-[#17B4C4]" />
+                <Badge variant="outline" className="h-10 px-3 bg-slate-50 border-[#E5E7EB] text-[#035683] text-xs font-semibold flex items-center gap-1.5">
+                  <Award className="w-3.5 h-3.5 text-[#00ABBD]" />
                   <span>Meta Reglamentaria: 40.0 hrs / mes</span>
                 </Badge>
               )}
 
               {pestaña_activa === "sedes" && (
-                <Badge variant="outline" className="h-10 px-3 bg-slate-50 border-[#E3DCCB] text-[#063A6B] text-xs font-semibold flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-[#17B4C4]" />
+                <Badge variant="outline" className="h-10 px-3 bg-slate-50 border-[#E5E7EB] text-[#035683] text-xs font-semibold flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-[#00ABBD]" />
                   <span>{sedes_unicas.length} Sedes Operativas</span>
                 </Badge>
               )}
@@ -1349,7 +1728,7 @@ export function GestionBecarios() {
                 <div className="flex items-center gap-2">
                   {es_admin && (
                     <BotonSolicitudVerificacion
-                      total_becarios={lista_becarios.length}
+                      total_becarios={lista_para_rol.length}
                       confirmarAccionInstitucional={confirmarAccionInstitucional}
                       alEmitirOrden={() => {
                         set_verificacion_mensual_activa(true);
@@ -1359,16 +1738,18 @@ export function GestionBecarios() {
                       }}
                     />
                   )}
-                  <Button
-                    onClick={() => {
-                      set_nuevo_estado("pendiente_validacion");
-                      set_modal_abierto(true);
-                    }}
-                    className="h-10 px-3.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl flex items-center gap-1.5 text-xs shadow-sm cursor-pointer"
-                  >
-                    <UserPlus className="w-4 h-4" />
-                    <span>Registrar Pendiente</span>
-                  </Button>
+                  {es_admin && (
+                    <Button
+                      onClick={() => {
+                        set_nuevo_estado("pendiente_validacion");
+                        set_modal_abierto(true);
+                      }}
+                      className="h-10 px-3.5 bg-[#FFB600] hover:bg-[#FFB600]/90 text-[#035683] font-bold rounded-xl flex items-center gap-1.5 text-xs shadow-sm cursor-pointer"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      <span>Registrar Pendiente</span>
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -1378,30 +1759,42 @@ export function GestionBecarios() {
         <CardContent className="p-4 sm:p-6 space-y-5">
           {/* TAB 1: DIRECTORIO GENERAL (COMPACTA, CERO SCROLL HORIZONTAL) */}
           <TabsContent value="directorio" className="space-y-4">
-            <div className="border border-[#E3DCCB] rounded-2xl overflow-hidden bg-white shadow-2xs">
+            <div className="border border-[#E5E7EB] rounded-2xl overflow-hidden bg-white shadow-2xs">
               <Table>
-                <TableHeader className="bg-slate-50/80 border-b border-[#E3DCCB]">
+                <TableHeader className="bg-slate-50/80 border-b border-[#E5E7EB]">
                   <TableRow>
-                    <TableHead className="w-[280px] font-bold text-[#063A6B]">Becario & Documento</TableHead>
-                    <TableHead className="font-bold text-[#063A6B]">Carrera / Universidad</TableHead>
-                    <TableHead className="font-bold text-[#063A6B]">Sede Asignada</TableHead>
-                    <TableHead className="w-[130px] font-bold text-[#063A6B] text-center">Estado</TableHead>
-                    <TableHead className="w-[190px] font-bold text-[#063A6B] text-right">Acciones</TableHead>
+                    <TableHead className="w-[280px] font-bold text-[#035683]">Becario & Documento</TableHead>
+                    <TableHead className="font-bold text-[#035683]">Carrera / Universidad</TableHead>
+                    <TableHead className="font-bold text-[#035683]">Sede Asignada</TableHead>
+                    <TableHead className="w-[130px] font-bold text-[#035683] text-center">Estado</TableHead>
+                    <TableHead className="w-[190px] font-bold text-[#035683] text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {becarios_filtrados.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground text-xs">
-                        No se encontraron becarios que coincidan con la búsqueda.
+                      <TableCell colSpan={5} className="text-center py-10 text-muted-foreground text-xs">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <Users className="w-8 h-8 text-slate-300" />
+                          <p className="font-semibold text-slate-600">
+                            {es_supervisor
+                              ? "No tiene becarios asignados o ninguno coincide con la búsqueda."
+                              : "No se encontraron becarios que coincidan con la búsqueda."}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground">
+                            {es_supervisor
+                              ? "La administración central asigna los estudiantes a su supervisión institucional."
+                              : "Verifique los términos de búsqueda o registre un nuevo becario."}
+                          </p>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ) : (
                     becarios_filtrados.map((b) => (
-                      <TableRow key={b.id} className="border-b border-[#E3DCCB]/40 hover:bg-[#17B4C4]/5 transition-colors">
+                      <TableRow key={b.id} className="border-b border-[#E5E7EB]/40 hover:bg-[#00ABBD]/5 transition-colors">
                         <TableCell className="font-medium text-[#1E293B]">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-[#063A6B]/10 text-[#063A6B] flex items-center justify-center font-bold text-xs shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-[#035683]/10 text-[#035683] flex items-center justify-center font-bold text-xs shrink-0">
                               {(b.nombre || "B").charAt(0).toUpperCase()}
                             </div>
                             <div className="min-w-0">
@@ -1425,8 +1818,8 @@ export function GestionBecarios() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1.5 text-xs text-[#063A6B] font-semibold">
-                            <Building2 className="w-3.5 h-3.5 text-[#17B4C4] shrink-0" />
+                          <div className="flex items-center gap-1.5 text-xs text-[#035683] font-semibold">
+                            <Building2 className="w-3.5 h-3.5 text-[#00ABBD] shrink-0" />
                             <span className="truncate max-w-[190px]">
                               {typeof b.lugar_practica === "string" ? b.lugar_practica : (b.lugar_practica as any)?.nombre || "Oficina Central"}
                             </span>
@@ -1466,27 +1859,38 @@ export function GestionBecarios() {
                               size="sm"
                               variant="outline"
                               onClick={() => set_becario_ficha_modal(b)}
-                              className="h-8 px-2.5 text-xs font-bold border-[#063A6B]/30 text-[#063A6B] hover:bg-[#063A6B]/10 rounded-lg flex items-center gap-1 cursor-pointer"
+                              className="h-8 px-2.5 text-xs font-bold border-[#035683]/30 text-[#035683] hover:bg-[#035683]/10 rounded-lg flex items-center gap-1 cursor-pointer"
                               title="Visualizar Datos Completos del Expediente"
                             >
-                              <Eye className="w-3.5 h-3.5 text-[#063A6B]" />
+                              <Eye className="w-3.5 h-3.5 text-[#035683]" />
                               <span>Ficha</span>
                             </Button>
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => set_becario_horas_modal(b)}
-                              className="h-8 px-2 text-xs font-bold border-[#17B4C4]/50 text-[#063A6B] hover:bg-[#17B4C4]/10 rounded-lg flex items-center gap-1 cursor-pointer"
+                              className="h-8 px-2 text-xs font-bold border-[#00ABBD]/50 text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg flex items-center gap-1 cursor-pointer"
                               title="Ver Historial de Horas por Mes"
                             >
-                              <Clock className="w-3.5 h-3.5 text-[#17B4C4]" />
+                              <Clock className="w-3.5 h-3.5 text-[#00ABBD]" />
                             </Button>
                             {es_admin && (
                               <Button
                                 size="sm"
                                 variant="ghost"
+                                onClick={() => abrirModalEditarBecario(b)}
+                                className="h-8 w-8 p-0 text-[#035683] hover:text-[#00ABBD] hover:bg-slate-100 rounded-lg cursor-pointer"
+                                title="Editar datos del becario"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </Button>
+                            )}
+                            {es_admin && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
                                 onClick={() => abrirModalAsignarSupervisor(b)}
-                                className="h-8 w-8 p-0 text-[#063A6B] hover:bg-slate-100 rounded-lg cursor-pointer"
+                                className="h-8 w-8 p-0 text-[#035683] hover:bg-slate-100 rounded-lg cursor-pointer"
                                 title="Asignar Supervisor Institucional"
                               >
                                 <UserCog className="w-3.5 h-3.5" />
@@ -1527,30 +1931,37 @@ export function GestionBecarios() {
 
           {/* TAB 2: CONTROL DE HORAS & METAS */}
           <TabsContent value="horas" className="space-y-4">
-            <div className="border border-[#E3DCCB] rounded-2xl overflow-hidden bg-white shadow-2xs">
+            <div className="border border-[#E5E7EB] rounded-2xl overflow-hidden bg-white shadow-2xs">
               <Table>
-                <TableHeader className="bg-slate-50/80 border-b border-[#E3DCCB]">
+                <TableHeader className="bg-slate-50/80 border-b border-[#E5E7EB]">
                   <TableRow>
-                    <TableHead className="w-[280px] font-bold text-[#063A6B]">Becario & Documento</TableHead>
-                    <TableHead className="font-bold text-[#063A6B]">Sede Asignada</TableHead>
-                    <TableHead className="w-[240px] font-bold text-[#063A6B]">Horas del Mes & Cumplimiento</TableHead>
-                    <TableHead className="font-bold text-[#063A6B]">Supervisor Asignado</TableHead>
-                    <TableHead className="w-[180px] font-bold text-[#063A6B] text-right">Acciones</TableHead>
+                    <TableHead className="w-[280px] font-bold text-[#035683]">Becario & Documento</TableHead>
+                    <TableHead className="font-bold text-[#035683]">Sede Asignada</TableHead>
+                    <TableHead className="w-[240px] font-bold text-[#035683]">Horas del Mes & Cumplimiento</TableHead>
+                    <TableHead className="font-bold text-[#035683]">Supervisor Asignado</TableHead>
+                    <TableHead className="w-[180px] font-bold text-[#035683] text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {becarios_filtrados.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground text-xs">
-                        No se encontraron registros de horas para becarios.
+                      <TableCell colSpan={5} className="text-center py-10 text-muted-foreground text-xs">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <Clock className="w-8 h-8 text-slate-300" />
+                          <p className="font-semibold text-slate-600">
+                            {es_supervisor
+                              ? "No se encontraron horas de becarios asignados a su supervisión."
+                              : "No se encontraron registros de horas para becarios."}
+                          </p>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ) : (
                     becarios_filtrados.map((b) => (
-                      <TableRow key={b.id} className="border-b border-[#E3DCCB]/40 hover:bg-[#17B4C4]/5 transition-colors">
+                      <TableRow key={b.id} className="border-b border-[#E5E7EB]/40 hover:bg-[#00ABBD]/5 transition-colors">
                         <TableCell className="font-medium text-[#1E293B]">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-[#063A6B]/10 text-[#063A6B] flex items-center justify-center font-bold text-xs shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-[#035683]/10 text-[#035683] flex items-center justify-center font-bold text-xs shrink-0">
                               {(b.nombre || "B").charAt(0).toUpperCase()}
                             </div>
                             <div className="min-w-0">
@@ -1564,8 +1975,8 @@ export function GestionBecarios() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1.5 text-xs text-[#063A6B] font-semibold">
-                            <Building2 className="w-3.5 h-3.5 text-[#17B4C4] shrink-0" />
+                          <div className="flex items-center gap-1.5 text-xs text-[#035683] font-semibold">
+                            <Building2 className="w-3.5 h-3.5 text-[#00ABBD] shrink-0" />
                             <span className="truncate max-w-[190px]">
                               {typeof b.lugar_practica === "string" ? b.lugar_practica : (b.lugar_practica as any)?.nombre || "Oficina Central"}
                             </span>
@@ -1574,7 +1985,7 @@ export function GestionBecarios() {
                         <TableCell>
                           <div className="space-y-1.5 min-w-[160px]">
                             <div className="flex items-center justify-between text-xs">
-                              <span className="font-bold text-[#063A6B]">
+                              <span className="font-bold text-[#035683]">
                                 {(b.horas_mes_actual ?? 0).toFixed(1)} / {(b.horas_meta_mes ?? 40).toFixed(1)} hrs
                               </span>
                               <span className="text-[11px] font-semibold text-muted-foreground">
@@ -1606,7 +2017,7 @@ export function GestionBecarios() {
                           <div className="text-xs">
                             <p className="font-semibold text-[#1E293B]">{b.tutor_nombre || "Sin Asignar"}</p>
                             <p className="text-muted-foreground text-[11px] font-mono flex items-center gap-1">
-                              <Mail className="w-3 h-3 text-[#17B4C4]" />
+                              <Mail className="w-3 h-3 text-[#00ABBD]" />
                               {b.tutor_correo || ""}
                             </p>
                           </div>
@@ -1617,17 +2028,17 @@ export function GestionBecarios() {
                               size="sm"
                               variant="outline"
                               onClick={() => set_becario_horas_modal(b)}
-                              className="h-8 px-2.5 text-xs font-bold border-[#17B4C4]/50 text-[#063A6B] hover:bg-[#17B4C4]/10 rounded-lg flex items-center gap-1 cursor-pointer"
+                              className="h-8 px-2.5 text-xs font-bold border-[#00ABBD]/50 text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg flex items-center gap-1 cursor-pointer"
                               title="Ver Historial Completo de Horas"
                             >
-                              <Clock className="w-3.5 h-3.5 text-[#17B4C4]" />
+                              <Clock className="w-3.5 h-3.5 text-[#00ABBD]" />
                               <span>Horas</span>
                             </Button>
                             <Button
                               size="sm"
                               variant="ghost"
                               onClick={() => set_becario_ficha_modal(b)}
-                              className="h-8 w-8 p-0 text-[#063A6B] hover:bg-slate-100 rounded-lg cursor-pointer"
+                              className="h-8 w-8 p-0 text-[#035683] hover:bg-slate-100 rounded-lg cursor-pointer"
                               title="Ver Ficha"
                             >
                               <Eye className="w-3.5 h-3.5" />
@@ -1644,30 +2055,37 @@ export function GestionBecarios() {
 
           {/* TAB 3: ASIGNACIÓN INSTITUCIONAL & SEDES */}
           <TabsContent value="sedes" className="space-y-4">
-            <div className="border border-[#E3DCCB] rounded-2xl overflow-hidden bg-white shadow-2xs">
+            <div className="border border-[#E5E7EB] rounded-2xl overflow-hidden bg-white shadow-2xs">
               <Table>
-                <TableHeader className="bg-slate-50/80 border-b border-[#E3DCCB]">
+                <TableHeader className="bg-slate-50/80 border-b border-[#E5E7EB]">
                   <TableRow>
-                    <TableHead className="w-[280px] font-bold text-[#063A6B]">Becario & Documento</TableHead>
-                    <TableHead className="font-bold text-[#063A6B]">Sede de Prácticas</TableHead>
-                    <TableHead className="font-bold text-[#063A6B]">Supervisor Institucional</TableHead>
-                    <TableHead className="font-bold text-[#063A6B]">Iglesia de Procedencia</TableHead>
-                    <TableHead className="w-[180px] font-bold text-[#063A6B] text-right">Acciones</TableHead>
+                    <TableHead className="w-[280px] font-bold text-[#035683]">Becario & Documento</TableHead>
+                    <TableHead className="font-bold text-[#035683]">Sede de Prácticas</TableHead>
+                    <TableHead className="font-bold text-[#035683]">Supervisor Institucional</TableHead>
+                    <TableHead className="font-bold text-[#035683]">Iglesia de Procedencia</TableHead>
+                    <TableHead className="w-[180px] font-bold text-[#035683] text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {becarios_filtrados.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground text-xs">
-                        No se encontraron asignaciones de sedes.
+                      <TableCell colSpan={5} className="text-center py-10 text-muted-foreground text-xs">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <Building2 className="w-8 h-8 text-slate-300" />
+                          <p className="font-semibold text-slate-600">
+                            {es_supervisor
+                              ? "No se encontraron sedes vinculadas a sus becarios supervisados."
+                              : "No se encontraron asignaciones de sedes."}
+                          </p>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ) : (
                     becarios_filtrados.map((b) => (
-                      <TableRow key={b.id} className="border-b border-[#E3DCCB]/40 hover:bg-[#17B4C4]/5 transition-colors">
+                      <TableRow key={b.id} className="border-b border-[#E5E7EB]/40 hover:bg-[#00ABBD]/5 transition-colors">
                         <TableCell className="font-medium text-[#1E293B]">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-[#063A6B]/10 text-[#063A6B] flex items-center justify-center font-bold text-xs shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-[#035683]/10 text-[#035683] flex items-center justify-center font-bold text-xs shrink-0">
                               {(b.nombre || "B").charAt(0).toUpperCase()}
                             </div>
                             <div className="min-w-0">
@@ -1681,8 +2099,8 @@ export function GestionBecarios() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1.5 text-xs text-[#063A6B] font-semibold">
-                            <Building2 className="w-3.5 h-3.5 text-[#17B4C4] shrink-0" />
+                          <div className="flex items-center gap-1.5 text-xs text-[#035683] font-semibold">
+                            <Building2 className="w-3.5 h-3.5 text-[#00ABBD] shrink-0" />
                             <span className="truncate max-w-[210px]">
                               {typeof b.lugar_practica === "string" ? b.lugar_practica : (b.lugar_practica as any)?.nombre || "Oficina Central Bloque A"}
                             </span>
@@ -1692,14 +2110,14 @@ export function GestionBecarios() {
                           <div className="text-xs">
                             <p className="font-semibold text-[#1E293B]">{b.tutor_nombre || "Sin Asignar"}</p>
                             <p className="text-muted-foreground text-[11px] font-mono flex items-center gap-1">
-                              <Mail className="w-3 h-3 text-[#17B4C4]" />
+                              <Mail className="w-3 h-3 text-[#00ABBD]" />
                               {b.tutor_correo || "Sin correo registrado"}
                             </p>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Church className="w-3.5 h-3.5 text-[#063A6B] shrink-0" />
+                            <Church className="w-3.5 h-3.5 text-[#035683] shrink-0" />
                             <span className="truncate max-w-[200px]">
                               {typeof b.iglesia === "string" ? b.iglesia : (b.iglesia as any)?.nombre || "Iglesia Institucional"}
                             </span>
@@ -1711,8 +2129,20 @@ export function GestionBecarios() {
                               <Button
                                 size="sm"
                                 variant="outline"
+                                onClick={() => abrirModalEditarBecario(b)}
+                                className="h-8 px-2.5 text-xs font-bold border-[#00ABBD]/40 text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg flex items-center gap-1 cursor-pointer"
+                                title="Editar expediente de práctica"
+                              >
+                                <Edit2 className="w-3.5 h-3.5 text-[#00ABBD]" />
+                                <span className="hidden sm:inline">Editar</span>
+                              </Button>
+                            )}
+                            {es_admin && (
+                              <Button
+                                size="sm"
+                                variant="outline"
                                 onClick={() => abrirModalAsignarSupervisor(b)}
-                                className="h-8 px-2.5 text-xs font-bold border-[#063A6B]/30 text-[#063A6B] hover:bg-[#063A6B]/10 rounded-lg flex items-center gap-1 cursor-pointer"
+                                className="h-8 px-2.5 text-xs font-bold border-[#035683]/30 text-[#035683] hover:bg-[#035683]/10 rounded-lg flex items-center gap-1 cursor-pointer"
                                 title="Reasignar o Cambiar Tutor"
                               >
                                 <UserCog className="w-3.5 h-3.5" />
@@ -1723,7 +2153,7 @@ export function GestionBecarios() {
                               size="sm"
                               variant="ghost"
                               onClick={() => set_becario_ficha_modal(b)}
-                              className="h-8 w-8 p-0 text-[#063A6B] hover:bg-slate-100 rounded-lg cursor-pointer"
+                              className="h-8 w-8 p-0 text-[#035683] hover:bg-slate-100 rounded-lg cursor-pointer"
                               title="Ver Ficha"
                             >
                               <Eye className="w-3.5 h-3.5" />
@@ -1740,14 +2170,14 @@ export function GestionBecarios() {
 
           {/* TAB 4: GOBERNANZA & BANDEJA DE VALIDACIONES */}
           <TabsContent value="validaciones" className="space-y-4">
-            <div className="border border-[#E3DCCB] rounded-2xl overflow-hidden bg-white shadow-2xs">
+            <div className="border border-[#E5E7EB] rounded-2xl overflow-hidden bg-white shadow-2xs">
               <Table>
-                <TableHeader className="bg-slate-50/80 border-b border-[#E3DCCB]">
+                <TableHeader className="bg-slate-50/80 border-b border-[#E5E7EB]">
                   <TableRow>
-                    <TableHead className="w-[280px] font-bold text-[#063A6B]">Becario & Documento</TableHead>
-                    <TableHead className="font-bold text-[#063A6B]">Carrera / Universidad</TableHead>
-                    <TableHead className="w-[160px] font-bold text-[#063A6B] text-center">Estado Documental</TableHead>
-                    <TableHead className="w-[220px] font-bold text-[#063A6B] text-right">Acciones Prioritarias</TableHead>
+                    <TableHead className="w-[280px] font-bold text-[#035683]">Becario & Documento</TableHead>
+                    <TableHead className="font-bold text-[#035683]">Carrera / Universidad</TableHead>
+                    <TableHead className="w-[160px] font-bold text-[#035683] text-center">Estado Documental</TableHead>
+                    <TableHead className="w-[220px] font-bold text-[#035683] text-right">Acciones Prioritarias</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1760,7 +2190,9 @@ export function GestionBecarios() {
                             No existen expedientes con validación pendiente.
                           </p>
                           <p className="text-[11px] text-muted-foreground">
-                            Todos los becarios activos cuentan con sus documentos y confirmaciones ratificadas.
+                            {es_supervisor
+                              ? "Todos sus becarios supervisados cuentan con sus documentos y confirmaciones ratificadas."
+                              : "Todos los becarios activos cuentan con sus documentos y confirmaciones ratificadas."}
                           </p>
                         </div>
                       </TableCell>
@@ -1769,7 +2201,7 @@ export function GestionBecarios() {
                     becarios_filtrados
                       .filter((b) => b.estado === "pendiente_validacion")
                       .map((b) => (
-                        <TableRow key={b.id} className="border-b border-[#E3DCCB]/40 hover:bg-[#17B4C4]/5 transition-colors">
+                        <TableRow key={b.id} className="border-b border-[#E5E7EB]/40 hover:bg-[#00ABBD]/5 transition-colors">
                           <TableCell className="font-medium text-[#1E293B]">
                             <div className="flex items-center gap-2.5">
                               <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs shrink-0">
@@ -1810,21 +2242,33 @@ export function GestionBecarios() {
                                 <Button
                                   size="sm"
                                   onClick={() => manejarValidarBecario(b.id)}
-                                  className="h-8 px-3 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                                  className="h-8 px-3 text-xs font-bold bg-[#007BBE] hover:bg-[#035683] text-white rounded-xl flex items-center gap-1.5 shadow-2xs cursor-pointer"
                                   title="Validar expediente y marcar como Activo"
                                 >
                                   <CheckCircle2 className="w-3.5 h-3.5" />
                                   <span>Validar</span>
                                 </Button>
                               )}
+                              {es_admin && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => abrirModalEditarBecario(b)}
+                                  className="h-8 px-2.5 text-xs font-bold border-[#00ABBD]/40 text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg flex items-center gap-1 cursor-pointer"
+                                  title="Editar y corregir datos"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5 text-[#00ABBD]" />
+                                  <span>Editar</span>
+                                </Button>
+                              )}
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => set_becario_ficha_modal(b)}
-                                className="h-8 px-2.5 text-xs font-bold border-[#063A6B]/30 text-[#063A6B] hover:bg-[#063A6B]/10 rounded-lg flex items-center gap-1 cursor-pointer"
+                                className="h-8 px-2.5 text-xs font-bold border-[#035683]/30 text-[#035683] hover:bg-[#035683]/10 rounded-lg flex items-center gap-1 cursor-pointer"
                                 title="Ver Ficha Completa"
                               >
-                                <Eye className="w-3.5 h-3.5 text-[#063A6B]" />
+                                <Eye className="w-3.5 h-3.5 text-[#035683]" />
                                 <span>Ficha</span>
                               </Button>
                             </div>
@@ -1839,273 +2283,344 @@ export function GestionBecarios() {
         </CardContent>
       </Tabs>
 
-      {/* Modal Registrar Nuevo Becario BUMAND */}
-      <Dialog
-        open={modal_abierto}
-        onOpenChange={(ab) => {
-          if (!ab) intentarCerrarModalBecario();
-          else set_modal_abierto(true);
-        }}
-      >
-        <DialogContent
-          showCloseButton={false}
-          className="sm:max-w-[520px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white rounded-2xl border-[#E3DCCB] shadow-2xl"
+      {/* Modal Registrar Nuevo Becario BUMAND (Exclusivo Administrador) */}
+      {es_admin && (
+        <Dialog
+          open={modal_abierto}
+          onOpenChange={(ab) => {
+            if (!ab) intentarCerrarModalBecario();
+            else set_modal_abierto(true);
+          }}
         >
-          <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
-            <DialogTitle className="text-lg font-bold text-[#063A6B]">
-              Registrar Nuevo Becario BUMAND
-            </DialogTitle>
-            <p className="text-xs text-muted-foreground mt-1">
-              El C.I. registrado en esta nómina servirá como clave de validación para que el estudiante cree su usuario de sistema con rol de becario (cruce de listas).
-            </p>
-          </DialogHeader>
+          <DialogContent
+            showCloseButton={false}
+            className="sm:max-w-[680px] max-h-[92vh] flex flex-col p-0 overflow-hidden bg-white rounded-2xl border-[#E5E7EB] shadow-2xl"
+          >
+            <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] shrink-0 bg-white">
+              <DialogTitle className="text-lg font-bold text-[#035683]">
+                Registrar Nuevo Becario BUMAND
+              </DialogTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                El C.I. registrado en esta nómina servirá como clave de validación para que el estudiante cree su usuario de sistema con rol de becario (cruce de listas).
+              </p>
+            </DialogHeader>
 
-          <form onSubmit={manejarGuardarBecario} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-            <DialogBody className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
-              {!es_admin && (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span>
-                    Gobernanza activa: Los campos <strong>Universidad</strong>, <strong>Carrera</strong>, <strong>Iglesia</strong> y <strong>Sede</strong> están bloqueados para roles no administradores.
-                  </span>
-                </div>
-              )}
-
-              <div className="space-y-1">
-                <Label htmlFor="nombre_completo" className="text-xs font-semibold text-[#122029]">
-                  Nombre Completo
-                </Label>
-                <Input
-                  id="nombre_completo"
-                  placeholder="Ej. Juan Pérez Mamani"
-                  value={nuevo_nombre}
-                  onChange={(e) => set_nuevo_nombre(e.target.value)}
-                  required
-                  className="h-10 border-[#E3DCCB] focus-visible:ring-[#17B4C4]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={manejarGuardarBecario} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <DialogBody className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
                 <div className="space-y-1">
-                  <Label htmlFor="ci_num" className="text-xs font-semibold text-[#122029]">
-                    Cédula de Identidad (C.I.)
+                  <Label htmlFor="nombre_completo" className="text-xs font-semibold text-[#122029]">
+                    Nombre Completo
                   </Label>
                   <Input
-                    id="ci_num"
-                    placeholder="12345678"
-                    value={nuevo_ci}
-                    onChange={(e) => set_nuevo_ci(e.target.value)}
+                    id="nombre_completo"
+                    placeholder="Ej. Juan Pérez Mamani"
+                    value={nuevo_nombre}
+                    onChange={(e) => set_nuevo_nombre(e.target.value)}
                     required
-                    className="h-10 border-[#E3DCCB] focus-visible:ring-[#17B4C4]"
+                    className="h-10 border-[#E5E7EB] focus-visible:ring-[#00ABBD]"
                   />
                 </div>
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="univ" className="text-xs font-semibold text-[#122029]">
-                      Universidad
+
+                {/* Identificación Estandarizada Bolivia SEGIP */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div className="space-y-1 sm:col-span-2">
+                    <Label htmlFor="ci_num" className="text-xs font-semibold text-[#122029]">
+                      Cédula de Identidad (C.I.) *
                     </Label>
-                    {!es_admin && (
-                      <Badge variant="outline" className="text-[10px] text-amber-700 border-amber-300">
-                        Solo Admin
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      <Input
+                        id="ci_num"
+                        placeholder="Ej. 8473921"
+                        value={nuevo_ci}
+                        onChange={(e) => set_nuevo_ci(e.target.value)}
+                        required
+                        className="h-10 flex-1 border-[#E5E7EB] font-mono text-sm focus-visible:ring-[#00ABBD]"
+                      />
+                      <div className="w-[110px] shrink-0">
+                        <Select
+                          value={nuevo_expedicion}
+                          onValueChange={(v) => v && set_nuevo_expedicion(v)}
+                        >
+                          <SelectTrigger className="h-10 border-[#E5E7EB] bg-white font-mono font-bold text-[#035683] px-2 text-xs">
+                            <SelectValue placeholder="Exp." />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white border-[#E5E7EB] max-h-56">
+                            {TERMINACIONES_CI_BOLIVIA.map((t) => (
+                              <SelectItem
+                                key={t.codigo}
+                                value={t.codigo}
+                                etiqueta={`${t.codigo} (${t.departamento})`}
+                              >
+                                <span className="font-mono font-bold text-[#035683] w-6 inline-block">{t.codigo}</span>
+                                <span className="text-slate-600 text-xs">{t.departamento}</span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                   </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="ci_comp" className="text-xs font-semibold text-[#122029]">
+                      Complemento
+                    </Label>
+                    <Input
+                      id="ci_comp"
+                      placeholder="Ej. 1A"
+                      maxLength={5}
+                      value={nuevo_complemento}
+                      onChange={(e) => set_nuevo_complemento(e.target.value.toUpperCase())}
+                      className="h-10 border-[#E5E7EB] font-mono text-xs uppercase"
+                      title="Código alfanumérico SEGIP solo en caso de homonimia"
+                    />
+                  </div>
+                </div>
+
+                {/* Universidad (Fila individual completa) */}
+                <div className="space-y-1">
+                  <Label htmlFor="univ_sel" className="text-xs font-semibold text-[#122029]">
+                    Universidad
+                  </Label>
                   <Select
                     value={nueva_universidad}
                     onValueChange={(v) => v && set_nueva_universidad(v)}
-                    disabled={!es_admin}
                   >
-                    <SelectTrigger className="h-10 border-[#E3DCCB] disabled:opacity-60 disabled:bg-slate-100">
+                    <SelectTrigger id="univ_sel" className="h-10 border-[#E5E7EB] w-full">
                       <SelectValue placeholder="Universidad" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="UMSA">UMSA</SelectItem>
-                      <SelectItem value="UPEA">UPEA</SelectItem>
-                      <SelectItem value="UCB">UCB</SelectItem>
-                      <SelectItem value="UNIVALLE">UNIVALLE</SelectItem>
+                      <SelectItem value="UMSA">UMSA (Universidad Mayor de San Andrés)</SelectItem>
+                      <SelectItem value="UPEA">UPEA (Universidad Pública de El Alto)</SelectItem>
+                      <SelectItem value="UCB">UCB (Universidad Católica Boliviana)</SelectItem>
+                      <SelectItem value="UNIVALLE">UNIVALLE (Universidad del Valle)</SelectItem>
+                      <SelectItem value="UNIFRANZ">UNIFRANZ (Universidad Franz Tamayo)</SelectItem>
+                      <SelectItem value="EMI">EMI (Escuela Militar de Ingeniería)</SelectItem>
+                      <SelectItem value="UTB">UTB (Universidad Tecnológica Boliviana)</SelectItem>
+                      <SelectItem value="OTRA">Otra Universidad</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
 
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="carrera_txt" className="text-xs font-semibold text-[#122029]">
-                    Carrera
+                {/* Carrera Universitaria (Fila individual completa) */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-[#122029]">
+                    Carrera Universitaria *
                   </Label>
-                  {!es_admin && (
-                    <Badge variant="outline" className="text-[10px] text-amber-700 border-amber-300">
-                      Solo Admin
-                    </Badge>
-                  )}
+                  <Combobox
+                    valor={nueva_carrera}
+                    alCambiar={set_nueva_carrera}
+                    opciones={opciones_carreras_nuevo}
+                    buscable
+                    permitirPersonalizado
+                    placeholder="Seleccionar o escribir carrera..."
+                    placeholderBusqueda="Buscar carrera en Bolivia..."
+                    textoVacio="No encontrada en el catálogo. Presiona Enter o clic abajo para usar este nombre."
+                    iconoPrincipal={GraduationCap}
+                    className="w-full"
+                  />
                 </div>
-                <Input
-                  id="carrera_txt"
-                  placeholder="Ej. Ingeniería de Sistemas"
-                  value={nueva_carrera}
-                  onChange={(e) => set_nueva_carrera(e.target.value)}
-                  disabled={!es_admin}
-                  required={es_admin}
-                  className="h-10 border-[#E3DCCB] focus-visible:ring-[#17B4C4] disabled:opacity-60 disabled:bg-slate-100"
-                />
-              </div>
 
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="iglesia_txt" className="text-xs font-semibold text-[#122029]">
-                    Iglesia Congregacional
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-[#122029]">
+                    Iglesia Congregacional (Diaconía / BUMAND)
                   </Label>
-                  {!es_admin && (
-                    <Badge variant="outline" className="text-[10px] text-amber-700 border-amber-300">
-                      Solo Admin
-                    </Badge>
-                  )}
+                  <Combobox
+                    valor={nueva_iglesia}
+                    alCambiar={set_nueva_iglesia}
+                    opciones={opciones_iglesias}
+                    buscable
+                    permitirPersonalizado
+                    placeholder="Seleccionar o escribir congregación..."
+                    placeholderBusqueda="Buscar congregación Diaconía..."
+                    textoVacio="No encontrada en el catálogo. Presiona Enter o clic abajo para usar este nombre."
+                    iconoPrincipal={Church}
+                    className="w-full"
+                  />
                 </div>
-                <Input
-                  id="iglesia_txt"
-                  placeholder="Ej. Iglesia Bautista Central El Alto"
-                  value={nueva_iglesia}
-                  onChange={(e) => set_nueva_iglesia(e.target.value)}
-                  disabled={!es_admin}
-                  required={es_admin}
-                  className="h-10 border-[#E3DCCB] focus-visible:ring-[#17B4C4] disabled:opacity-60 disabled:bg-slate-100"
-                />
-              </div>
 
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
+                <div className="space-y-1">
                   <Label htmlFor="lugar_sel" className="text-xs font-semibold text-[#122029]">
                     Sede / Lugar de Práctica Asignado
                   </Label>
-                  {!es_admin && (
-                    <Badge variant="outline" className="text-[10px] text-amber-700 border-amber-300">
-                      Solo Admin
-                    </Badge>
-                  )}
+                  <Select
+                    value={nuevo_lugar}
+                    onValueChange={(v) => v && set_nuevo_lugar(v)}
+                  >
+                    <SelectTrigger className="h-10 border-[#E5E7EB]">
+                      <SelectValue placeholder="Seleccionar sede" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Oficina Central Bloque A">Oficina Central Bloque A</SelectItem>
+                      <SelectItem value="Oficina Central Bloque B">Oficina Central Bloque B</SelectItem>
+                      <SelectItem value="Sucursal Juan Pablo II">Sucursal Juan Pablo II</SelectItem>
+                      <SelectItem value="Sucursal Villa Adela">Sucursal Villa Adela</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <Select
-                  value={nuevo_lugar}
-                  onValueChange={(v) => v && set_nuevo_lugar(v)}
-                  disabled={!es_admin}
-                >
-                  <SelectTrigger className="h-10 border-[#E3DCCB] disabled:opacity-60 disabled:bg-slate-100">
-                    <SelectValue placeholder="Seleccionar sede" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Oficina Central Bloque A">Oficina Central Bloque A</SelectItem>
-                    <SelectItem value="Oficina Central Bloque B">Oficina Central Bloque B</SelectItem>
-                    <SelectItem value="Sucursal Juan Pablo II">Sucursal Juan Pablo II</SelectItem>
-                    <SelectItem value="Sucursal Villa Adela">Sucursal Villa Adela</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
 
-              <div className="space-y-1">
-                <Label htmlFor="estado_inicial_sel" className="text-xs font-semibold text-[#122029]">
-                  Estado Inicial del Expediente
-                </Label>
-                <Select
-                  value={nuevo_estado}
-                  onValueChange={(v) => v && set_nuevo_estado(v as any)}
-                >
-                  <SelectTrigger id="estado_inicial_sel" className="h-10 border-[#E3DCCB]">
-                    <SelectValue placeholder="Estado inicial" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pendiente_validacion">
-                      Pendiente de Validación (Cruce de listas y documentación)
-                    </SelectItem>
-                    <SelectItem value="activo">
-                      Activo (Expediente aprobado e incorporado de inmediato)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  {nuevo_estado === "pendiente_validacion"
-                    ? "El becario se registrará con alerta en la pestaña 'Validaciones' hasta ratificar sus documentos."
-                    : "El becario se incorporará directamente como activo en el Directorio General."}
-                </p>
-              </div>
-
-              {/* Carga de Documentación de Respaldo */}
-              <div className="space-y-1.5 pt-1">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-semibold text-[#122029]">
-                    Documentación de Identidad o Matrícula (PDF / Imagen)
+                <div className="space-y-1">
+                  <Label htmlFor="estado_inicial_sel" className="text-xs font-semibold text-[#122029]">
+                    Estado Inicial del Expediente
                   </Label>
-                  {nuevo_documento_tamano && (
-                    <Badge variant="outline" className="text-[10px] font-mono border-emerald-300 text-emerald-700 bg-emerald-50">
-                      {nuevo_documento_tamano}
-                    </Badge>
-                  )}
+                  <Select
+                    value={nuevo_estado}
+                    onValueChange={(v) => v && set_nuevo_estado(v as any)}
+                  >
+                    <SelectTrigger id="estado_inicial_sel" className="h-10 border-[#E5E7EB]">
+                      <SelectValue placeholder="Estado inicial" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem
+                        value="pendiente_validacion"
+                        etiqueta="Pendiente de Validación"
+                      >
+                        <div className="flex flex-col py-0.5 text-left">
+                          <span className="font-medium text-slate-800">Pendiente de Validación</span>
+                          <span className="text-[11px] text-slate-500">Cruce de listas y documentación</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem
+                        value="activo"
+                        etiqueta="Activo"
+                      >
+                        <div className="flex flex-col py-0.5 text-left">
+                          <span className="font-medium text-slate-800">Activo</span>
+                          <span className="text-[11px] text-slate-500">Expediente aprobado e incorporado de inmediato</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    {nuevo_estado === "pendiente_validacion"
+                      ? "El becario se registrará con alerta en la pestaña 'Validaciones' hasta ratificar sus documentos."
+                      : "El becario se incorporará directamente como activo en el Directorio General."}
+                  </p>
                 </div>
-                <div className="relative border-2 border-dashed border-[#E3DCCB] hover:border-[#17B4C4] rounded-xl p-3 bg-slate-50 text-center transition-colors">
-                  <input
-                    type="file"
-                    accept=".pdf,image/*"
-                    onChange={manejarSubirDocumentoNuevoBecario}
-                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                  />
-                  {nuevo_documento_nombre ? (
-                    <div className="flex items-center justify-between text-xs font-bold text-emerald-800">
-                      <div className="flex items-center gap-1.5 truncate max-w-[280px]">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span className="truncate">{nuevo_documento_nombre}</span>
-                      </div>
-                      <Badge variant="outline" className="text-[10px] border-emerald-300">Adjunto</Badge>
-                    </div>
-                  ) : (
-                    <div className="py-1 text-muted-foreground text-xs flex items-center justify-center gap-2">
-                      <Upload className="w-4 h-4 text-[#17B4C4]" />
-                      <span>Haga clic para adjuntar fotocopia de C.I., matrícula o kárdex</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </DialogBody>
 
-            <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={intentarCerrarModalBecario}
-                disabled={guardando_becario}
-                className="h-10 border-[#E3DCCB] rounded-xl hover:bg-slate-100"
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                disabled={guardando_becario}
-                className="h-10 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl shadow-sm flex items-center gap-2"
-              >
-                {guardando_becario ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Guardando en Nómina...</span>
-                  </>
-                ) : (
-                  <span>Guardar Becario</span>
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+                {/* Carga de Documentación Oficial (Carnet y Kárdex) */}
+                <div className="space-y-3 pt-2 border-t border-[#E5E7EB]">
+                  <Label className="text-xs font-bold text-[#035683] uppercase tracking-wider block">
+                    Documentación Oficial de Respaldo (Carnet y Kárdex)
+                  </Label>
+
+                  {/* 1. Carnet de Identidad */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-semibold text-[#122029]">
+                        1. Cédula de Identidad (Carnet - Anverso / Reverso)
+                      </Label>
+                      {nuevo_carnet_tamano && (
+                        <Badge variant="outline" className="text-[10px] font-mono border-emerald-300 text-emerald-700 bg-emerald-50">
+                          {nuevo_carnet_tamano}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="relative border-2 border-dashed border-[#E5E7EB] hover:border-[#00ABBD] rounded-xl p-2.5 bg-slate-50 text-center transition-colors">
+                      <input
+                        type="file"
+                        accept=".pdf,image/*"
+                        onChange={manejarSubirCarnetNuevo}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                      />
+                      {nuevo_carnet_nombre ? (
+                        <div className="flex items-center justify-between text-xs font-bold text-emerald-800">
+                          <div className="flex items-center gap-1.5 truncate max-w-[360px]">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <span className="truncate">{nuevo_carnet_nombre}</span>
+                          </div>
+                          <Badge variant="outline" className="text-[10px] border-emerald-300">C.I. Adjunto</Badge>
+                        </div>
+                      ) : (
+                        <div className="py-0.5 text-muted-foreground text-xs flex items-center justify-center gap-2">
+                          <Upload className="w-3.5 h-3.5 text-[#00ABBD]" />
+                          <span>Adjuntar fotocopia o escaneo de C.I. (PDF / Imagen)</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 2. Kárdex Académico / Matrícula */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-semibold text-[#122029]">
+                        2. Kárdex Académico / Matrícula Universitaria
+                      </Label>
+                      {nuevo_kardex_tamano && (
+                        <Badge variant="outline" className="text-[10px] font-mono border-emerald-300 text-emerald-700 bg-emerald-50">
+                          {nuevo_kardex_tamano}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="relative border-2 border-dashed border-[#E5E7EB] hover:border-[#00ABBD] rounded-xl p-2.5 bg-slate-50 text-center transition-colors">
+                      <input
+                        type="file"
+                        accept=".pdf,image/*"
+                        onChange={manejarSubirKardexNuevo}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                      />
+                      {nuevo_kardex_nombre ? (
+                        <div className="flex items-center justify-between text-xs font-bold text-emerald-800">
+                          <div className="flex items-center gap-1.5 truncate max-w-[360px]">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <span className="truncate">{nuevo_kardex_nombre}</span>
+                          </div>
+                          <Badge variant="outline" className="text-[10px] border-emerald-300">Kárdex Adjunto</Badge>
+                        </div>
+                      ) : (
+                        <div className="py-0.5 text-muted-foreground text-xs flex items-center justify-center gap-2">
+                          <Upload className="w-3.5 h-3.5 text-[#00ABBD]" />
+                          <span>Adjuntar kárdex de notas o matrícula universitaria (PDF / Imagen)</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </DialogBody>
+
+              <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={intentarCerrarModalBecario}
+                  disabled={guardando_becario}
+                  className="h-10 border-[#E5E7EB] rounded-xl hover:bg-slate-100"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={guardando_becario}
+                  className="h-10 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl shadow-sm flex items-center gap-2"
+                >
+                  {guardando_becario ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Guardando en Nómina...</span>
+                    </>
+                  ) : (
+                    <span>Guardar Becario</span>
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Modal Historial de Horas Realizadas por Mes */}
       <Dialog open={!!becario_horas_modal} onOpenChange={(open) => !open && set_becario_horas_modal(null)}>
         <DialogContent
           showCloseButton={false}
-          className="sm:max-w-[620px] max-h-[85vh] flex flex-col p-0 overflow-hidden bg-white rounded-2xl border-[#E3DCCB] shadow-2xl"
+          className="sm:max-w-[620px] max-h-[85vh] flex flex-col p-0 overflow-hidden bg-white rounded-2xl border-[#E5E7EB] shadow-2xl"
         >
-          <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] bg-[#F8F9FA] shrink-0">
+          <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] bg-[#F8F9FA] shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#063A6B]/10 text-[#063A6B] flex items-center justify-center">
-                <Clock className="w-5 h-5 text-[#17B4C4]" />
+              <div className="w-10 h-10 rounded-xl bg-[#035683]/10 text-[#035683] flex items-center justify-center">
+                <Clock className="w-5 h-5 text-[#00ABBD]" />
               </div>
               <div>
-                <DialogTitle className="text-base font-bold text-[#063A6B]">
+                <DialogTitle className="text-base font-bold text-[#035683]">
                   Historial de Horas Realizadas por Mes
                 </DialogTitle>
                 <CardDescription className="text-xs text-muted-foreground">
@@ -2118,10 +2633,10 @@ export function GestionBecarios() {
           <DialogBody className="p-6 space-y-5 overflow-y-auto flex-1 min-h-0">
             {becario_horas_modal && (
               <>
-                <div className="p-4 rounded-xl bg-[#063A6B]/5 border border-[#063A6B]/15 flex items-center justify-between">
+                <div className="p-4 rounded-xl bg-[#035683]/5 border border-[#035683]/15 flex items-center justify-between">
                   <div>
                     <span className="text-xs text-muted-foreground">Mes Actual (Octubre 2026)</span>
-                    <p className="text-2xl font-bold font-mono text-[#063A6B]">
+                    <p className="text-2xl font-bold font-mono text-[#035683]">
                       {(becario_horas_modal.horas_mes_actual ?? 0).toFixed(1)}{" "}
                       <span className="text-sm font-normal text-muted-foreground">
                         / {(becario_horas_modal.horas_meta_mes ?? 40).toFixed(1)} hrs
@@ -2130,7 +2645,7 @@ export function GestionBecarios() {
                   </div>
                   <div className="text-right">
                     <span className="text-xs text-muted-foreground">Avance Global</span>
-                    <p className="text-2xl font-bold font-mono text-[#17B4C4]">
+                    <p className="text-2xl font-bold font-mono text-[#00ABBD]">
                       {(becario_horas_modal.horas_meta_mes ?? 0) > 0
                         ? Math.round(((becario_horas_modal.horas_mes_actual ?? 0) / (becario_horas_modal.horas_meta_mes || 40)) * 100)
                         : 0}%
@@ -2139,27 +2654,27 @@ export function GestionBecarios() {
                 </div>
 
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#063A6B]">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683]">
                     Desglose Mensual Acumulado
                   </h4>
-                  <div className="border border-[#E3DCCB] rounded-xl overflow-hidden">
+                  <div className="border border-[#E5E7EB] rounded-xl overflow-hidden">
                     <Table>
                       <TableHeader className="bg-slate-50">
-                        <TableRow className="border-b border-[#E3DCCB]">
-                          <TableHead className="text-xs font-bold text-[#063A6B]">Mes</TableHead>
-                          <TableHead className="text-xs font-bold text-[#063A6B]">Horas</TableHead>
-                          <TableHead className="text-xs font-bold text-[#063A6B]">Meta</TableHead>
-                          <TableHead className="text-xs font-bold text-[#063A6B]">Progreso</TableHead>
-                          <TableHead className="text-xs font-bold text-[#063A6B] text-right">Estado</TableHead>
+                        <TableRow className="border-b border-[#E5E7EB]">
+                          <TableHead className="text-xs font-bold text-[#035683]">Mes</TableHead>
+                          <TableHead className="text-xs font-bold text-[#035683]">Horas</TableHead>
+                          <TableHead className="text-xs font-bold text-[#035683]">Meta</TableHead>
+                          <TableHead className="text-xs font-bold text-[#035683]">Progreso</TableHead>
+                          <TableHead className="text-xs font-bold text-[#035683] text-right">Estado</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {becario_horas_modal.historial_horas_mes?.map((h, i) => (
-                          <TableRow key={i} className="border-b border-[#E3DCCB]/40">
+                          <TableRow key={i} className="border-b border-[#E5E7EB]/40">
                             <TableCell className="text-xs font-bold text-[#1E293B]">
                               {h.mes}
                             </TableCell>
-                            <TableCell className="font-mono text-xs font-bold text-[#063A6B]">
+                            <TableCell className="font-mono text-xs font-bold text-[#035683]">
                               {(h.horas_realizadas ?? 0).toFixed(1)} hrs
                             </TableCell>
                             <TableCell className="font-mono text-xs text-muted-foreground">
@@ -2195,8 +2710,8 @@ export function GestionBecarios() {
                   </div>
                 </div>
 
-                <div className="p-3 bg-slate-50 border border-[#E3DCCB] rounded-xl text-xs text-muted-foreground flex items-center gap-2">
-                  <Award className="w-4 h-4 text-[#17B4C4] shrink-0" />
+                <div className="p-3 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs text-muted-foreground flex items-center gap-2">
+                  <Award className="w-4 h-4 text-[#00ABBD] shrink-0" />
                   <span>
                     El cumplimiento mínimo reglamentario es de <strong>40.0 horas mensuales</strong> de práctica y servicio institucional en BUMAND.
                   </span>
@@ -2205,12 +2720,12 @@ export function GestionBecarios() {
             )}
           </DialogBody>
 
-          <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA] shrink-0 flex justify-end">
+          <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA] shrink-0 flex justify-end">
             <Button
               type="button"
               variant="outline"
               onClick={() => set_becario_horas_modal(null)}
-              className="h-9 border-[#E3DCCB] rounded-xl text-xs font-semibold"
+              className="h-9 border-[#E5E7EB] rounded-xl text-xs font-semibold"
             >
               Cerrar
             </Button>
@@ -2222,16 +2737,16 @@ export function GestionBecarios() {
       <Dialog open={!!becario_ficha_modal} onOpenChange={(open) => !open && set_becario_ficha_modal(null)}>
         <DialogContent
           showCloseButton={false}
-          className="sm:max-w-[760px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white rounded-2xl border-[#E3DCCB] shadow-2xl"
+          className="sm:max-w-[760px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white rounded-2xl border-[#E5E7EB] shadow-2xl"
         >
-          <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] bg-[#F8F9FA] shrink-0">
+          <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] bg-[#F8F9FA] shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-[#063A6B] text-[#17B4C4] flex items-center justify-center font-bold text-lg shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-[#035683] text-[#00ABBD] flex items-center justify-center font-bold text-lg shadow-sm">
                   {(becario_ficha_modal?.nombre || "B").charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <DialogTitle className="text-lg font-bold text-[#063A6B]">
+                  <DialogTitle className="text-lg font-bold text-[#035683]">
                     {becario_ficha_modal?.nombre || "Becario Institucional"}
                   </DialogTitle>
                   <CardDescription className="text-xs text-muted-foreground flex items-center gap-2">
@@ -2241,16 +2756,35 @@ export function GestionBecarios() {
                   </CardDescription>
                 </div>
               </div>
-              <Badge
-                variant="outline"
-                className={
-                  becario_ficha_modal?.estado === "activo"
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-300 text-xs font-bold"
-                    : "bg-amber-50 text-amber-700 border-amber-300 text-xs font-bold"
-                }
-              >
-                {becario_ficha_modal?.estado === "activo" ? "ACTIVO" : "PENDIENTE VALIDACIÓN"}
-              </Badge>
+              <div className="flex items-center gap-2">
+                {es_admin && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      if (!becario_ficha_modal) return;
+                      const actual = becario_ficha_modal;
+                      set_becario_ficha_modal(null);
+                      abrirModalEditarBecario(actual);
+                    }}
+                    className="h-8 px-2.5 text-xs font-bold border-[#00ABBD]/50 text-[#035683] hover:bg-[#00ABBD]/10 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                    title="Editar expediente institucional"
+                  >
+                    <Edit2 className="w-3.5 h-3.5 text-[#00ABBD]" />
+                    <span>Editar</span>
+                  </Button>
+                )}
+                <Badge
+                  variant="outline"
+                  className={
+                    becario_ficha_modal?.estado === "activo"
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-300 text-xs font-bold"
+                      : "bg-amber-50 text-amber-700 border-amber-300 text-xs font-bold"
+                  }
+                >
+                  {becario_ficha_modal?.estado === "activo" ? "ACTIVO" : "PENDIENTE VALIDACIÓN"}
+                </Badge>
+              </div>
             </div>
           </DialogHeader>
 
@@ -2259,11 +2793,11 @@ export function GestionBecarios() {
               <>
                 {/* Bloque 1: Datos Personales */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#063A6B] flex items-center gap-2">
-                    <UserCheck className="w-4 h-4 text-[#17B4C4]" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683] flex items-center gap-2">
+                    <UserCheck className="w-4 h-4 text-[#00ABBD]" />
                     Datos Personales y de Identificación
                   </h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-slate-50 border border-[#E3DCCB] rounded-xl text-xs">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs">
                     <div>
                       <span className="text-muted-foreground block text-[11px]">Cédula de Identidad</span>
                       <p className="font-bold text-[#1E293B] font-mono">
@@ -2283,7 +2817,7 @@ export function GestionBecarios() {
                     <div>
                       <span className="text-muted-foreground block text-[11px]">Fecha de Nacimiento</span>
                       <p className="font-semibold text-[#1E293B] flex items-center gap-1">
-                        <Calendar className="w-3 h-3 text-[#17B4C4]" />
+                        <Calendar className="w-3 h-3 text-[#00ABBD]" />
                         {becario_ficha_modal.fecha_nacimiento || "-"}
                       </p>
                     </div>
@@ -2293,15 +2827,15 @@ export function GestionBecarios() {
                     </div>
                     <div>
                       <span className="text-muted-foreground block text-[11px]">Teléfono Celular</span>
-                      <p className="font-bold text-[#063A6B] font-mono flex items-center gap-1">
-                        <Phone className="w-3 h-3 text-[#17B4C4]" />
+                      <p className="font-bold text-[#035683] font-mono flex items-center gap-1">
+                        <Phone className="w-3 h-3 text-[#00ABBD]" />
                         {becario_ficha_modal.celular || "-"}
                       </p>
                     </div>
                     <div className="sm:col-span-3">
                       <span className="text-muted-foreground block text-[11px]">Correo Institucional / Personal</span>
-                      <p className="font-bold text-[#063A6B] font-mono flex items-center gap-1.5">
-                        <Mail className="w-3.5 h-3.5 text-[#17B4C4]" />
+                      <p className="font-bold text-[#035683] font-mono flex items-center gap-1.5">
+                        <Mail className="w-3.5 h-3.5 text-[#00ABBD]" />
                         {becario_ficha_modal.correo || "-"}
                       </p>
                     </div>
@@ -2310,11 +2844,11 @@ export function GestionBecarios() {
 
                 {/* Bloque 2: Domicilio */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#063A6B] flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-[#17B4C4]" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683] flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-[#00ABBD]" />
                     Residencia y Domicilio
                   </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-slate-50 border border-[#E3DCCB] rounded-xl text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs">
                     <div>
                       <span className="text-muted-foreground block text-[11px]">Dirección Registrada</span>
                       <p className="font-semibold text-[#1E293B]">{becario_ficha_modal.direccion || "-"}</p>
@@ -2328,18 +2862,18 @@ export function GestionBecarios() {
 
                 {/* Bloque 3: Formación y Pastoral */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#063A6B] flex items-center gap-2">
-                    <GraduationCap className="w-4 h-4 text-[#17B4C4]" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683] flex items-center gap-2">
+                    <GraduationCap className="w-4 h-4 text-[#00ABBD]" />
                     Formación Universitaria y Comunidad Eclesiástica
                   </h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-slate-50 border border-[#E3DCCB] rounded-xl text-xs">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs">
                     <div className="sm:col-span-2">
                       <span className="text-muted-foreground block text-[11px]">Universidad</span>
                       <p className="font-semibold text-[#1E293B]">{becario_ficha_modal.universidad || "-"}</p>
                     </div>
                     <div>
                       <span className="text-muted-foreground block text-[11px]">Nivel CETI</span>
-                      <Badge variant="outline" className="mt-0.5 border-[#063A6B] text-[#063A6B] font-bold">
+                      <Badge variant="outline" className="mt-0.5 border-[#035683] text-[#035683] font-bold">
                         CETI {becario_ficha_modal.ceti ?? 1}
                       </Badge>
                     </div>
@@ -2350,7 +2884,7 @@ export function GestionBecarios() {
                     <div className="sm:col-span-3">
                       <span className="text-muted-foreground block text-[11px]">Iglesia de Membresía</span>
                       <p className="font-semibold text-[#1E293B] flex items-center gap-1.5">
-                        <Church className="w-3.5 h-3.5 text-[#063A6B]" />
+                        <Church className="w-3.5 h-3.5 text-[#035683]" />
                         {typeof becario_ficha_modal.iglesia === "string" ? becario_ficha_modal.iglesia : (becario_ficha_modal.iglesia as any)?.nombre || "Iglesia Institucional"}
                       </p>
                     </div>
@@ -2359,14 +2893,14 @@ export function GestionBecarios() {
 
                 {/* Bloque 4: Asignación BUMAND */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#063A6B] flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-[#17B4C4]" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683] flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-[#00ABBD]" />
                     Asignación Institucional en BUMAND
                   </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-slate-50 border border-[#E3DCCB] rounded-xl text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs">
                     <div>
                       <span className="text-muted-foreground block text-[11px]">Sede de Prácticas</span>
-                      <p className="font-bold text-[#063A6B]">{typeof becario_ficha_modal.lugar_practica === "string" ? becario_ficha_modal.lugar_practica : (becario_ficha_modal.lugar_practica as any)?.nombre || "Oficina Central Bloque A"}</p>
+                      <p className="font-bold text-[#035683]">{typeof becario_ficha_modal.lugar_practica === "string" ? becario_ficha_modal.lugar_practica : (becario_ficha_modal.lugar_practica as any)?.nombre || "Oficina Central Bloque A"}</p>
                     </div>
                     <div>
                       <span className="text-muted-foreground block text-[11px]">Supervisor Tutor Asignado</span>
@@ -2375,7 +2909,7 @@ export function GestionBecarios() {
                     </div>
                     <div>
                       <span className="text-muted-foreground block text-[11px]">Horas Acumuladas Mes Actual</span>
-                      <p className="font-mono font-bold text-[#063A6B]">
+                      <p className="font-mono font-bold text-[#035683]">
                         {(becario_ficha_modal.horas_mes_actual ?? 0).toFixed(1)} / {(becario_ficha_modal.horas_meta_mes ?? 40).toFixed(1)} hrs
                       </p>
                     </div>
@@ -2392,39 +2926,105 @@ export function GestionBecarios() {
 
                 {/* Bloque 5: Expediente Documental y Acreditaciones */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#063A6B] flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-[#17B4C4]" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683] flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-[#00ABBD]" />
                     Expediente Documental y Acreditaciones (PDF / Imágenes)
                   </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-slate-50 border border-[#E3DCCB] rounded-xl text-xs">
-                    <div className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-2xs">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
-                          <FileText className="w-4 h-4" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs">
+                    {/* Tarjeta Carnet de Identidad */}
+                    <div className="p-3 bg-white border border-slate-200 rounded-xl flex flex-col justify-between shadow-2xs gap-2.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
+                            <FileText className="w-4 h-4 text-rose-600" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-800 text-xs">Cédula de Identidad</p>
+                            <p className="text-[10px] text-muted-foreground font-mono">
+                              {becario_ficha_modal.nombre_archivo_carnet || `CI_${becario_ficha_modal.ci}_${becario_ficha_modal.expedicion}.pdf`}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-bold text-slate-800 text-xs">Cédula de Identidad</p>
-                          <p className="text-[10px] text-muted-foreground font-mono">CI_{becario_ficha_modal.ci || "doc"}.pdf</p>
-                        </div>
+                        <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-700 bg-emerald-50 font-bold">
+                          Acreditado SEGIP
+                        </Badge>
                       </div>
-                      <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-700 bg-emerald-50 font-bold">
-                        Acreditado
-                      </Badge>
+
+                      <div className="flex items-center justify-end gap-1.5 pt-1 border-t border-slate-100">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            set_documento_visor_seleccionado({
+                              tipo: "carnet",
+                              becario: becario_ficha_modal,
+                            });
+                          }}
+                          className="h-7 px-2.5 text-xs text-[#035683] hover:bg-slate-100 font-bold flex items-center gap-1 cursor-pointer"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-[#00ABBD]" />
+                          <span>Ver Carnet</span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            toast.success(`Descargando CI_${becario_ficha_modal.ci}_${becario_ficha_modal.expedicion}.pdf`);
+                          }}
+                          className="h-7 px-2 text-xs text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
+                          title="Descargar copia oficial"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
                     </div>
 
-                    <div className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-2xs">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-[#17B4C4]/10 text-[#063A6B] flex items-center justify-center font-bold">
-                          <GraduationCap className="w-4 h-4 text-[#17B4C4]" />
+                    {/* Tarjeta Matrícula / Kárdex */}
+                    <div className="p-3 bg-white border border-slate-200 rounded-xl flex flex-col justify-between shadow-2xs gap-2.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-lg bg-[#00ABBD]/10 text-[#035683] flex items-center justify-center font-bold">
+                            <GraduationCap className="w-4 h-4 text-[#00ABBD]" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-800 text-xs">Matrícula / Kárdex</p>
+                            <p className="text-[10px] text-muted-foreground font-mono">
+                              {becario_ficha_modal.nombre_archivo_kardex || `Matricula_2026_${becario_ficha_modal.universidad || "UMSA"}.pdf`}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-bold text-slate-800 text-xs">Matrícula / Kárdex</p>
-                          <p className="text-[10px] text-muted-foreground font-mono">Matricula_2026_{becario_ficha_modal.universidad || "UMSA"}.pdf</p>
-                        </div>
+                        <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-700 bg-emerald-50 font-bold">
+                          Matrícula Vigente
+                        </Badge>
                       </div>
-                      <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-700 bg-emerald-50 font-bold">
-                        Vigente
-                      </Badge>
+
+                      <div className="flex items-center justify-end gap-1.5 pt-1 border-t border-slate-100">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            set_documento_visor_seleccionado({
+                              tipo: "kardex",
+                              becario: becario_ficha_modal,
+                            });
+                          }}
+                          className="h-7 px-2.5 text-xs text-[#035683] hover:bg-slate-100 font-bold flex items-center gap-1 cursor-pointer"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-[#00ABBD]" />
+                          <span>Ver Kárdex</span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            toast.success(`Descargando Matricula_2026_${becario_ficha_modal.universidad || "UMSA"}.pdf`);
+                          }}
+                          className="h-7 px-2 text-xs text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
+                          title="Descargar copia oficial"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2432,7 +3032,7 @@ export function GestionBecarios() {
             )}
           </DialogBody>
 
-          <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA] shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+          <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA] shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 type="button"
@@ -2442,13 +3042,13 @@ export function GestionBecarios() {
                   becario_ficha_modal &&
                   descargarExpedienteRecorridosEstudiante(becario_ficha_modal.id, becario_ficha_modal.nombre)
                 }
-                className="h-9 border-[#063A6B] text-[#063A6B] hover:bg-[#063A6B]/10 rounded-xl text-xs font-bold gap-1.5 shadow-2xs"
+                className="h-9 border-[#035683] text-[#035683] hover:bg-[#035683]/10 rounded-xl text-xs font-bold gap-1.5 shadow-2xs"
                 title="Exportar expediente mensual de recorridos en PDF con Puppeteer"
               >
                 {descargando_pdf_estudiante === 'recorridos_' + (becario_ficha_modal?.id ?? 0) ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#17B4C4]" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#00ABBD]" />
                 ) : (
-                  <Bus className="w-3.5 h-3.5 text-[#17B4C4]" />
+                  <Bus className="w-3.5 h-3.5 text-[#00ABBD]" />
                 )}
                 <span>Expediente Recorridos (PDF)</span>
               </Button>
@@ -2461,26 +3061,46 @@ export function GestionBecarios() {
                   becario_ficha_modal &&
                   descargarAsistenciaMensualEstudiante(becario_ficha_modal.id, becario_ficha_modal.nombre)
                 }
-                className="h-9 border-[#063A6B] text-[#063A6B] hover:bg-[#063A6B]/10 rounded-xl text-xs font-bold gap-1.5 shadow-2xs"
+                className="h-9 border-[#035683] text-[#035683] hover:bg-[#035683]/10 rounded-xl text-xs font-bold gap-1.5 shadow-2xs"
                 title="Exportar kárdex de asistencia mensual en PDF con Puppeteer"
               >
                 {descargando_pdf_estudiante === 'asistencia_' + (becario_ficha_modal?.id ?? 0) ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#17B4C4]" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#00ABBD]" />
                 ) : (
-                  <Clock className="w-3.5 h-3.5 text-[#17B4C4]" />
+                  <Clock className="w-3.5 h-3.5 text-[#00ABBD]" />
                 )}
                 <span>Asistencia Mensual (PDF)</span>
               </Button>
             </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => set_becario_ficha_modal(null)}
-              className="h-9 border-[#E3DCCB] rounded-xl text-xs font-semibold"
-            >
-              Cerrar
-            </Button>
+            <div className="flex items-center gap-2">
+              {es_admin && (
+                <Button
+                  type="button"
+                  variant="default"
+                  onClick={() => {
+                    if (!becario_ficha_modal) return;
+                    const actual = becario_ficha_modal;
+                    set_becario_ficha_modal(null);
+                    abrirModalEditarBecario(actual);
+                  }}
+                  className="h-9 bg-[#035683] hover:bg-[#024366] text-white rounded-xl text-xs font-bold gap-1.5 shadow-sm cursor-pointer"
+                  title="Editar expediente completo del becario"
+                >
+                  <Edit2 className="w-3.5 h-3.5 text-[#00ABBD]" />
+                  <span>Editar Expediente</span>
+                </Button>
+              )}
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => set_becario_ficha_modal(null)}
+                className="h-9 border-[#E5E7EB] rounded-xl text-xs font-semibold"
+              >
+                Cerrar
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -2489,11 +3109,11 @@ export function GestionBecarios() {
       <Dialog open={modal_supervisor_abierto} onOpenChange={set_modal_supervisor_abierto}>
         <DialogContent
           showCloseButton={false}
-          className="sm:max-w-[440px] p-0 overflow-hidden bg-white rounded-2xl border-[#E3DCCB] shadow-2xl"
+          className="sm:max-w-[440px] p-0 overflow-hidden bg-white rounded-2xl border-[#E5E7EB] shadow-2xl"
         >
-          <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] bg-[#F8F9FA]">
-            <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
-              <UserCog className="w-5 h-5 text-[#17B4C4]" />
+          <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] bg-[#F8F9FA]">
+            <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+              <UserCog className="w-5 h-5 text-[#00ABBD]" />
               Asignar Supervisor Institucional
             </DialogTitle>
             <CardDescription className="text-xs text-muted-foreground">
@@ -2503,8 +3123,8 @@ export function GestionBecarios() {
 
           <DialogBody className="p-6 space-y-4">
             {becario_seleccionado && (
-              <div className="p-3 bg-slate-50 border border-[#E3DCCB] rounded-xl text-xs space-y-1">
-                <p className="font-bold text-[#063A6B]">{becario_seleccionado.nombre || "Becario"}</p>
+              <div className="p-3 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs space-y-1">
+                <p className="font-bold text-[#035683]">{becario_seleccionado.nombre || "Becario"}</p>
                 <p className="text-muted-foreground">
                   CI: {becario_seleccionado.ci || "-"} · {becario_seleccionado.carrera || "-"} ({becario_seleccionado.universidad || "-"})
                 </p>
@@ -2522,13 +3142,20 @@ export function GestionBecarios() {
                 value={supervisor_seleccionado}
                 onValueChange={(val) => val && set_supervisor_seleccionado(val)}
               >
-                <SelectTrigger id="sel-supervisor" className="h-10 border-[#E3DCCB]">
+                <SelectTrigger id="sel-supervisor" className="h-10 border-[#E5E7EB]">
                   <SelectValue placeholder="Seleccionar supervisor" />
                 </SelectTrigger>
                 <SelectContent>
                   {SUPERVISORES_INSTITUCIONALES.map((sup) => (
-                    <SelectItem key={sup.correo} value={sup.nombre}>
-                      {sup.nombre} ({sup.correo})
+                    <SelectItem
+                      key={sup.correo}
+                      value={sup.nombre}
+                      etiqueta={sup.nombre}
+                    >
+                      <div className="flex flex-col py-0.5 text-left">
+                        <span className="font-medium text-slate-800">{sup.nombre}</span>
+                        <span className="text-[10px] text-slate-400 font-mono">{sup.correo}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -2536,25 +3163,579 @@ export function GestionBecarios() {
             </div>
           </DialogBody>
 
-          <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA] flex justify-end gap-2">
+          <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA] flex justify-end gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => set_modal_supervisor_abierto(false)}
-              className="h-9 border-[#E3DCCB] rounded-xl text-xs"
+              className="h-9 border-[#E5E7EB] rounded-xl text-xs"
             >
               Cancelar
             </Button>
             <Button
               type="button"
               onClick={manejarGuardarSupervisor}
-              className="h-9 bg-[#063A6B] hover:bg-[#063A6B]/90 text-white font-bold rounded-xl text-xs shadow-sm"
+              className="h-9 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs shadow-sm"
             >
               Confirmar Asignación
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal Editar Becario BUMAND (Exclusivo Administrador) */}
+      {es_admin && (
+        <Dialog
+          open={modal_editar_abierto}
+          onOpenChange={(ab) => {
+            if (!ab) {
+              set_modal_editar_abierto(false);
+              set_becario_a_editar(null);
+            }
+          }}
+        >
+          <DialogContent
+            showCloseButton={false}
+            className="sm:max-w-[760px] max-h-[92vh] flex flex-col p-0 overflow-hidden bg-white rounded-2xl border-[#E5E7EB] shadow-2xl"
+          >
+            <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] bg-[#F8F9FA] shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#035683] text-[#00ABBD] flex items-center justify-center font-bold text-base shadow-sm">
+                    <Edit2 className="w-5 h-5 text-[#00ABBD]" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-base font-bold text-[#035683]">
+                      Editar Expediente de Becario
+                    </DialogTitle>
+                    <DialogDescription className="text-xs text-muted-foreground">
+                      Modificación autorizada de datos institucionales, académicos y de identidad (SEGIP)
+                    </DialogDescription>
+                  </div>
+                </div>
+                <Badge variant="outline" className="bg-[#035683]/10 text-[#035683] border-[#035683]/30 text-xs font-bold font-mono">
+                  ID: #{becario_a_editar?.id}
+                </Badge>
+              </div>
+            </DialogHeader>
+
+            <DialogBody className="p-6 space-y-5 overflow-y-auto flex-1 min-h-0">
+              {/* Sección 1: Identificación Oficial (SEGIP Bolivia) */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683] flex items-center gap-2">
+                  <UserCheck className="w-4 h-4 text-[#00ABBD]" />
+                  Identificación Oficial (SEGIP Bolivia)
+                </h4>
+
+                <div className="space-y-1">
+                  <Label htmlFor="edit_nombre" className="text-xs font-semibold text-[#122029]">
+                    Nombre Completo *
+                  </Label>
+                  <Input
+                    id="edit_nombre"
+                    value={edit_nombre}
+                    onChange={(e) => set_edit_nombre(e.target.value)}
+                    required
+                    className="h-10 border-[#E5E7EB] focus-visible:ring-[#00ABBD]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div className="space-y-1 sm:col-span-2">
+                    <Label htmlFor="edit_ci" className="text-xs font-semibold text-[#122029]">
+                      Cédula de Identidad (C.I.) *
+                    </Label>
+                    <div className="flex items-center gap-1.5">
+                      <Input
+                        id="edit_ci"
+                        placeholder="Ej. 8473921"
+                        value={edit_ci}
+                        onChange={(e) => set_edit_ci(e.target.value)}
+                        required
+                        className="h-10 flex-1 border-[#E5E7EB] font-mono text-sm focus-visible:ring-[#00ABBD]"
+                      />
+                      <div className="w-[125px] shrink-0">
+                        <Select
+                          value={edit_expedicion}
+                          onValueChange={(v) => v && set_edit_expedicion(v)}
+                        >
+                          <SelectTrigger className="h-10 border-[#E5E7EB] bg-white font-mono font-bold text-[#035683] px-2 text-xs">
+                            <SelectValue placeholder="Exp." />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white border-[#E5E7EB] max-h-56">
+                            {TERMINACIONES_CI_BOLIVIA.map((t) => (
+                              <SelectItem
+                                key={t.codigo}
+                                value={t.codigo}
+                                etiqueta={`${t.codigo} (${t.departamento})`}
+                              >
+                                <span className="font-mono font-bold text-[#035683] w-6 inline-block">{t.codigo}</span>
+                                <span className="text-slate-600 text-xs">{t.departamento}</span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="edit_complemento" className="text-xs font-semibold text-[#122029]">
+                      Complemento (SEGIP)
+                    </Label>
+                    <Input
+                      id="edit_complemento"
+                      placeholder="Ej. 1A"
+                      maxLength={5}
+                      value={edit_complemento}
+                      onChange={(e) => set_edit_complemento(e.target.value.toUpperCase())}
+                      className="h-10 border-[#E5E7EB] font-mono text-xs uppercase"
+                      title="Código alfanumérico SEGIP solo en caso de homonimia"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold text-[#122029]">Sexo</Label>
+                    <Select
+                      value={edit_sexo}
+                      onValueChange={(v) => v && set_edit_sexo(v as "M" | "F")}
+                    >
+                      <SelectTrigger className="h-10 border-[#E5E7EB] bg-white text-xs">
+                        <SelectValue placeholder="Sexo" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-[#E5E7EB]">
+                        <SelectItem value="M" etiqueta="Masculino">Masculino</SelectItem>
+                        <SelectItem value="F" etiqueta="Femenino">Femenino</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold text-[#122029]">Estado Civil</Label>
+                    <Select
+                      value={edit_estado_civil}
+                      onValueChange={(v) => v && set_edit_estado_civil(v)}
+                    >
+                      <SelectTrigger className="h-10 border-[#E5E7EB] bg-white text-xs">
+                        <SelectValue placeholder="Estado Civil" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-[#E5E7EB]">
+                        <SelectItem value="Soltero(a)">Soltero(a)</SelectItem>
+                        <SelectItem value="Casado(a)">Casado(a)</SelectItem>
+                        <SelectItem value="Divorciado(a)">Divorciado(a)</SelectItem>
+                        <SelectItem value="Viudo(a)">Viudo(a)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1 col-span-2 sm:col-span-1">
+                    <Label htmlFor="edit_nac" className="text-xs font-semibold text-[#122029]">
+                      Fecha Nacimiento
+                    </Label>
+                    <Input
+                      id="edit_nac"
+                      type="date"
+                      value={edit_fecha_nacimiento}
+                      onChange={(e) => set_edit_fecha_nacimiento(e.target.value)}
+                      className="h-10 border-[#E5E7EB] text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Sección 2: Contacto y Residencia */}
+              <div className="space-y-3 pt-2 border-t border-[#E5E7EB]/60">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683] flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-[#00ABBD]" />
+                  Contacto y Residencia
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="edit_celular" className="text-xs font-semibold text-[#122029]">
+                      Teléfono Celular
+                    </Label>
+                    <Input
+                      id="edit_celular"
+                      placeholder="Ej. 71234567"
+                      value={edit_celular}
+                      onChange={(e) => set_edit_celular(e.target.value)}
+                      className="h-10 border-[#E5E7EB] font-mono text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="edit_correo" className="text-xs font-semibold text-[#122029]">
+                      Correo Electrónico
+                    </Label>
+                    <Input
+                      id="edit_correo"
+                      type="email"
+                      placeholder="becario@diaconia.bo"
+                      value={edit_correo}
+                      onChange={(e) => set_edit_correo(e.target.value)}
+                      className="h-10 border-[#E5E7EB] text-xs font-mono"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="edit_ciudad" className="text-xs font-semibold text-[#122029]">
+                      Ciudad / Municipio
+                    </Label>
+                    <Input
+                      id="edit_ciudad"
+                      placeholder="Ej. La Paz, El Alto"
+                      value={edit_ciudad}
+                      onChange={(e) => set_edit_ciudad(e.target.value)}
+                      className="h-10 border-[#E5E7EB] text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="edit_direccion" className="text-xs font-semibold text-[#122029]">
+                      Dirección / Domicilio
+                    </Label>
+                    <Input
+                      id="edit_direccion"
+                      placeholder="Zona, Calle, Número"
+                      value={edit_direccion}
+                      onChange={(e) => set_edit_direccion(e.target.value)}
+                      className="h-10 border-[#E5E7EB] text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Sección 3: Formación Universitaria y Pastoral */}
+              <div className="space-y-3 pt-2 border-t border-[#E5E7EB]/60">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683] flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4 text-[#00ABBD]" />
+                  Formación Universitaria y Pastoral
+                </h4>
+
+                <div className="space-y-3">
+                  {/* Universidad (Fila individual completa) */}
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold text-[#122029]">Universidad</Label>
+                    <Select
+                      value={edit_universidad}
+                      onValueChange={(v) => v && set_edit_universidad(v)}
+                    >
+                      <SelectTrigger className="h-10 border-[#E5E7EB] bg-white text-xs w-full">
+                        <SelectValue placeholder="Universidad" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-[#E5E7EB]">
+                        <SelectItem value="UMSA">UMSA (Universidad Mayor de San Andrés)</SelectItem>
+                        <SelectItem value="UPEA">UPEA (Universidad Pública de El Alto)</SelectItem>
+                        <SelectItem value="UCB">UCB (Universidad Católica Boliviana)</SelectItem>
+                        <SelectItem value="UNIVALLE">UNIVALLE (Universidad del Valle)</SelectItem>
+                        <SelectItem value="UNIFRANZ">UNIFRANZ (Universidad Franz Tamayo)</SelectItem>
+                        <SelectItem value="EMI">EMI (Escuela Militar de Ingeniería)</SelectItem>
+                        <SelectItem value="UTB">UTB (Universidad Tecnológica Boliviana)</SelectItem>
+                        <SelectItem value="OTRA">Otra Universidad</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Carrera Universitaria (Fila individual completa) */}
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold text-[#122029]">
+                      Carrera Universitaria *
+                    </Label>
+                    <Combobox
+                      valor={edit_carrera}
+                      alCambiar={set_edit_carrera}
+                      opciones={opciones_carreras_edicion}
+                      buscable
+                      permitirPersonalizado
+                      placeholder="Seleccionar o escribir carrera..."
+                      placeholderBusqueda="Buscar carrera en Bolivia..."
+                      textoVacio="No encontrada en el catálogo. Presiona Enter o clic abajo para usar este nombre."
+                      iconoPrincipal={GraduationCap}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Iglesia Congregacional (Fila individual completa) */}
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold text-[#122029]">
+                      Iglesia Congregacional (Diaconía / BUMAND)
+                    </Label>
+                    <Combobox
+                      valor={edit_iglesia}
+                      alCambiar={set_edit_iglesia}
+                      opciones={opciones_iglesias}
+                      buscable
+                      permitirPersonalizado
+                      placeholder="Seleccionar o escribir congregación..."
+                      placeholderBusqueda="Buscar congregación Diaconía..."
+                      textoVacio="No encontrada en el catálogo. Presiona Enter o clic abajo para usar este nombre."
+                      iconoPrincipal={Church}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Nivel CETI (Fila individual) */}
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold text-[#122029]">Nivel CETI</Label>
+                    <Select
+                      value={String(edit_ceti)}
+                      onValueChange={(v) => v && set_edit_ceti(Number(v))}
+                    >
+                      <SelectTrigger className="h-10 border-[#E5E7EB] bg-white text-xs w-full">
+                        <SelectValue placeholder="CETI" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-[#E5E7EB]">
+                        <SelectItem value="1">Nivel CETI 1</SelectItem>
+                        <SelectItem value="2">Nivel CETI 2</SelectItem>
+                        <SelectItem value="3">Nivel CETI 3</SelectItem>
+                        <SelectItem value="4">Nivel CETI 4</SelectItem>
+                        <SelectItem value="5">Nivel CETI 5</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sección 4: Asignación Institucional en BUMAND */}
+              <div className="space-y-3 pt-2 border-t border-[#E5E7EB]/60">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683] flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-[#00ABBD]" />
+                  Asignación y Estado Institucional
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold text-[#122029]">Sede de Prácticas</Label>
+                    <Select
+                      value={edit_sede}
+                      onValueChange={(v) => v && set_edit_sede(v)}
+                    >
+                      <SelectTrigger className="h-10 border-[#E5E7EB] bg-white text-xs">
+                        <SelectValue placeholder="Sede asignada" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-[#E5E7EB]">
+                        <SelectItem value="Oficina Central Bloque A">Oficina Central Bloque A</SelectItem>
+                        <SelectItem value="Centro Infantil Sagrada Familia">Centro Infantil Sagrada Familia</SelectItem>
+                        <SelectItem value="Agencia Villa Dolores">Agencia Villa Dolores</SelectItem>
+                        <SelectItem value="Consultorio Médico San Lucas">Consultorio Médico San Lucas</SelectItem>
+                        <SelectItem value="Hogar de Niños Amor y Esperanza">Hogar de Niños Amor y Esperanza</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold text-[#122029]">Supervisor Tutor Asignado</Label>
+                    <Select
+                      value={edit_supervisor}
+                      onValueChange={(v) => v && set_edit_supervisor(v)}
+                    >
+                      <SelectTrigger className="h-10 border-[#E5E7EB] bg-white text-xs">
+                        <SelectValue placeholder="Supervisor" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-[#E5E7EB]">
+                        {SUPERVISORES_INSTITUCIONALES.map((sup) => (
+                          <SelectItem
+                            key={sup.correo}
+                            value={sup.nombre}
+                            etiqueta={sup.nombre}
+                          >
+                            <div className="flex flex-col py-0.5 text-left">
+                              <span className="font-medium text-slate-800">{sup.nombre}</span>
+                              <span className="text-[10px] text-slate-400 font-mono">{sup.correo}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold text-[#122029]">Estado del Expediente</Label>
+                    <Select
+                      value={edit_estado}
+                      onValueChange={(v) => v && set_edit_estado(v as any)}
+                    >
+                      <SelectTrigger className="h-10 border-[#E5E7EB] bg-white text-xs">
+                        <SelectValue placeholder="Estado" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-[#E5E7EB]">
+                        <SelectItem value="activo" etiqueta="Activo">
+                          <span className="font-semibold text-emerald-700">Activo (Expediente Aprobado)</span>
+                        </SelectItem>
+                        <SelectItem value="pendiente_validacion" etiqueta="Pendiente de Validación">
+                          <span className="font-semibold text-amber-700">Pendiente de Validación (Cruce Documental)</span>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="edit_meta" className="text-xs font-semibold text-[#122029]">
+                      Meta Horaria Mensual
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="edit_meta"
+                        type="number"
+                        min="10"
+                        max="80"
+                        step="1"
+                        value={edit_horas_meta_mes}
+                        onChange={(e) => set_edit_horas_meta_mes(Number(e.target.value) || 40)}
+                        className="h-10 border-[#E5E7EB] font-mono text-xs"
+                      />
+                      <span className="text-xs font-bold text-muted-foreground">hrs / mes</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sección 5: Expediente Documental Oficial (Carnet y Kárdex) */}
+              <div className="space-y-3 pt-2 border-t border-[#E5E7EB]/60">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683] flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-[#00ABBD]" />
+                  Expediente Documental (Carnet y Kárdex)
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Carnet de Identidad */}
+                  <div className="p-3 border border-[#E5E7EB] rounded-xl bg-slate-50 space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-800">Cédula de Identidad (SEGIP)</span>
+                      <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-300">
+                        {edit_carnet_nombre || becario_a_editar?.nombre_archivo_carnet ? "Cargado" : "Pendiente"}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept=".pdf,image/*"
+                          onChange={manejarSubirCarnetEdicion}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                        />
+                        <Button type="button" variant="outline" size="sm" className="h-8 text-xs font-bold text-[#035683] border-[#00ABBD] cursor-pointer">
+                          <Upload className="w-3.5 h-3.5 text-[#00ABBD] mr-1" />
+                          Actualizar Carnet
+                        </Button>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (becario_a_editar) {
+                            set_documento_visor_seleccionado({
+                              tipo: "carnet",
+                              becario: {
+                                ...becario_a_editar,
+                                url_carnet: edit_carnet_url || becario_a_editar.url_carnet,
+                              },
+                            });
+                          }
+                        }}
+                        className="h-8 text-xs font-semibold text-[#035683] cursor-pointer"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-[#00ABBD] mr-1" />
+                        Ver
+                      </Button>
+                    </div>
+                    <p className="text-[10px] font-mono text-muted-foreground truncate">
+                      {edit_carnet_nombre || becario_a_editar?.nombre_archivo_carnet || `CI_${edit_ci || "doc"}_${edit_expedicion}.pdf`}
+                    </p>
+                  </div>
+
+                  {/* Kárdex Académico */}
+                  <div className="p-3 border border-[#E5E7EB] rounded-xl bg-slate-50 space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-800">Kárdex / Matrícula</span>
+                      <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-300">
+                        {edit_kardex_nombre || becario_a_editar?.nombre_archivo_kardex ? "Cargado" : "Pendiente"}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept=".pdf,image/*"
+                          onChange={manejarSubirKardexEdicion}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                        />
+                        <Button type="button" variant="outline" size="sm" className="h-8 text-xs font-bold text-[#035683] border-[#00ABBD] cursor-pointer">
+                          <Upload className="w-3.5 h-3.5 text-[#00ABBD] mr-1" />
+                          Actualizar Kárdex
+                        </Button>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (becario_a_editar) {
+                            set_documento_visor_seleccionado({
+                              tipo: "kardex",
+                              becario: {
+                                ...becario_a_editar,
+                                url_kardex: edit_kardex_url || becario_a_editar.url_kardex,
+                              },
+                            });
+                          }
+                        }}
+                        className="h-8 text-xs font-semibold text-[#035683] cursor-pointer"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-[#00ABBD] mr-1" />
+                        Ver
+                      </Button>
+                    </div>
+                    <p className="text-[10px] font-mono text-muted-foreground truncate">
+                      {edit_kardex_nombre || becario_a_editar?.nombre_archivo_kardex || `Kardex_2026_${edit_universidad}.pdf`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </DialogBody>
+
+            <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA] shrink-0 flex items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  set_modal_editar_abierto(false);
+                  set_becario_a_editar(null);
+                }}
+                className="h-9 border-[#E5E7EB] rounded-xl text-xs font-semibold"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                onClick={guardarEdicionBecario}
+                disabled={guardando_edicion}
+                className="h-9 bg-[#035683] hover:bg-[#024366] text-white rounded-xl text-xs font-bold gap-1.5 shadow-sm cursor-pointer"
+              >
+                {guardando_edicion ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                )}
+                <span>Guardar Cambios</span>
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Visor de Documentos Oficiales (Carnet y Kárdex) */}
+      {documento_visor_seleccionado && (
+        <ModalVisorDocumentoBecario
+          abierto={Boolean(documento_visor_seleccionado)}
+          alCerrar={() => set_documento_visor_seleccionado(null)}
+          tipo={documento_visor_seleccionado.tipo}
+          becario={documento_visor_seleccionado.becario}
+        />
+      )}
 
       {/* Diálogo de Confirmación Institucional */}
       {DialogoConfirmacionInstitucional}

@@ -20,7 +20,7 @@ interface PropiedadesBotonHalo
  * proyectando un halo de luz sofisticado.
  */
 export function BotonHalo({
-  color_halo = "rgba(23, 180, 196, 0.4)",
+  color_halo = "rgba(0, 171, 189, 0.4)",
   radio_px = 140,
   children,
   className,
@@ -49,8 +49,8 @@ export function BotonHalo({
       transition={{ type: "spring", stiffness: 450, damping: 25 }}
       disabled={disabled}
       className={cn(
-        "relative overflow-hidden rounded-xl border border-[#063A6B]/20 bg-[#063A6B] text-white px-4 py-2.5 text-xs font-bold shadow-sm transition-all select-none",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#17B4C4]",
+        "relative overflow-hidden rounded-xl border border-[#035683]/20 bg-[#035683] text-white px-4 py-2.5 text-xs font-bold shadow-sm transition-all select-none",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ABBD]",
         "disabled:opacity-50 disabled:pointer-events-none",
         className
       )}

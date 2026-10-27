@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,9 +52,9 @@ export function ListaEvaluaciones() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {evaluaciones.map((ev, indice) => (
-        <Card key={ev.id} className="border border-[#E3DCCB]">
+        <Card key={ev.id} className="border border-[#E5E7EB]">
           <CardHeader className="pb-2 flex flex-row items-start gap-4 space-y-0">
-            <div className="w-8 h-8 rounded-lg bg-[#0A5CA0] text-[#F8C766] font-mono font-bold flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-[#007BBE] text-[#FFB600] font-mono font-bold flex items-center justify-center shrink-0">
               0{indice + 1}
             </div>
             <div className="flex-1">
@@ -70,7 +70,7 @@ export function ListaEvaluaciones() {
                   ev.estado === "aprobado"
                     ? "bg-[#3FA66B]/10 text-[#3FA66B]"
                     : ev.estado === "borrador"
-                    ? "bg-[#D99B2B]/10 text-[#D99B2B]"
+                    ? "bg-[#FFB600]/10 text-[#FFB600]"
                     : "bg-muted text-muted-foreground"
                 }`}
               >
@@ -81,7 +81,7 @@ export function ListaEvaluaciones() {
           <CardContent>
             {ev.puntuacion && (
               <div className="flex items-baseline gap-2 mt-2">
-                <span className="font-display font-bold text-2xl text-[#063A6B]">{ev.puntuacion}</span>
+                <span className="font-display font-bold text-2xl text-[#035683]">{ev.puntuacion}</span>
                 <span className="font-mono text-[11px] text-[#8A9BA4]">/ 10 pts</span>
               </div>
             )}

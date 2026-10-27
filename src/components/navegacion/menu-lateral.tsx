@@ -144,12 +144,6 @@ export function MenuLateral({
               icono: ClipboardCheck,
             },
             {
-              id: "devocionales",
-              etiqueta: "Mis Devocionales",
-              descripcion: "Lectura bíblica y pastoral",
-              icono: BookOpen,
-            },
-            {
               id: "evaluaciones",
               etiqueta: "Mis Evaluaciones",
               descripcion: "Matriz y Socioeconómica",
@@ -213,12 +207,6 @@ export function MenuLateral({
               badge: "Reembolso",
             },
             {
-              id: "devocionales",
-              etiqueta: "Devocionales y Pastoral",
-              descripcion: "Acompañamiento y retroalimentación",
-              icono: BookOpen,
-            },
-            {
               id: "evaluaciones",
               etiqueta: "Matriz de Evaluación",
               descripcion: "Matriz integral y Socioeconómica",
@@ -247,9 +235,9 @@ export function MenuLateral({
       ];
 
   const contenido_menu = (
-    <div className="flex flex-col h-full bg-white/80 backdrop-blur-xl border-r border-[#E3DCCB]/70 select-none">
+    <div className="flex flex-col h-full bg-white/80 backdrop-blur-xl border-r border-[#E5E7EB]/70 select-none">
       {/* 1. Encabezado del Menú con Marca BUMAND */}
-      <div className={`h-16 flex items-center border-b border-[#E3DCCB]/60 bg-transparent ${colapsado ? "justify-center px-2" : "justify-between px-4"}`}>
+      <div className={`h-16 flex items-center border-b border-[#E5E7EB]/60 bg-transparent ${colapsado ? "justify-center px-2" : "justify-between px-4"}`}>
         {colapsado ? (
           <div className="w-full flex items-center justify-center">
             <button
@@ -268,12 +256,12 @@ export function MenuLateral({
         ) : (
           <div className="flex items-center gap-2.5 overflow-hidden">
             <img
-              src="/logos/logo-bumand.svg"
+              src="/logos/LOGO-BUMAND_2023.svg"
               alt="BUMAND"
               className="h-9 w-auto object-contain shrink-0"
             />
             <img
-              src="/logos/logo-diaconia.svg"
+              src="/logos/ALTA1.svg"
               alt="Diaconía IFD"
               className="h-5 w-auto object-contain opacity-80 shrink-0"
             />
@@ -284,7 +272,7 @@ export function MenuLateral({
         {!colapsado && (
           <button
             onClick={alAlternarColapso}
-            className="hidden lg:flex w-7 h-7 rounded-lg border border-[#E3DCCB] items-center justify-center text-[#5B6D77] hover:text-[#063A6B] hover:bg-[#F0F4F8] transition-colors"
+            className="hidden lg:flex w-7 h-7 rounded-lg border border-[#E5E7EB] items-center justify-center text-[#808080] hover:text-[#035683] hover:bg-[#F0F4F8] transition-colors"
             title="Colapsar menú lateral"
             type="button"
           >
@@ -296,7 +284,7 @@ export function MenuLateral({
         {colapsado && (
           <button
             onClick={alAlternarColapso}
-            className="hidden lg:flex absolute -right-3 top-5 w-6 h-6 rounded-full bg-white border border-[#E3DCCB] shadow-md items-center justify-center text-[#063A6B] hover:bg-slate-50 hover:scale-110 transition-all z-50 cursor-pointer"
+            className="hidden lg:flex absolute -right-3 top-5 w-6 h-6 rounded-full bg-white border border-[#E5E7EB] shadow-md items-center justify-center text-[#035683] hover:bg-slate-50 hover:scale-110 transition-all z-50 cursor-pointer"
             title="Expandir menú lateral"
             type="button"
           >
@@ -307,7 +295,7 @@ export function MenuLateral({
         {/* Botón de cierre en móvil */}
         <button
           onClick={alCerrarMenuMovil}
-          className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center text-[#5B6D77] hover:bg-slate-100"
+          className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center text-[#808080] hover:bg-slate-100"
           type="button"
         >
           <X className="w-4 h-4" />
@@ -344,20 +332,20 @@ export function MenuLateral({
                       colapsado ? "justify-center p-2.5" : "px-3 py-2 text-left"
                     } ${
                       esta_activo
-                        ? "bg-[#063A6B] text-white shadow-xs font-bold"
-                        : "text-[#475569] hover:bg-[#F0F4F8] hover:text-[#063A6B] font-medium"
+                        ? "bg-[#035683] text-white shadow-xs font-bold"
+                        : "text-[#475569] hover:bg-[#F0F4F8] hover:text-[#035683] font-medium"
                     }`}
                   >
                     {/* Indicador lateral sutil de item activo */}
                     {esta_activo && !colapsado && (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-[#17B4C4] rounded-r-full" />
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-[#00ABBD] rounded-r-full" />
                     )}
 
                     <Icono
                       className={`w-4 h-4 shrink-0 transition-colors ${
                         esta_activo
-                          ? "text-[#F8C766]"
-                          : "text-[#5B6D77] group-hover:text-[#063A6B]"
+                          ? "text-[#FFB600]"
+                          : "text-[#808080] group-hover:text-[#035683]"
                       }`}
                     />
 
@@ -368,7 +356,7 @@ export function MenuLateral({
                           <span
                             className={`text-[9px] font-mono px-1.5 py-0.2 rounded-md ${
                               esta_activo
-                                ? "bg-[#17B4C4] text-[#063A6B] font-bold"
+                                ? "bg-[#00ABBD] text-[#035683] font-bold"
                                 : "bg-slate-100 text-slate-600 font-semibold"
                             }`}
                           >
@@ -386,28 +374,28 @@ export function MenuLateral({
       </div>
 
       {/* 3. Pie del Menú Lateral (Perfil, Cerrar Sesión y Estado) */}
-      <div className="p-2.5 border-t border-[#E3DCCB]/80 bg-white/50 backdrop-blur-xs space-y-2 relative z-10">
+      <div className="p-2.5 border-t border-[#E5E7EB]/80 bg-white/50 backdrop-blur-xs space-y-2 relative z-10">
         {/* Tarjeta del Usuario Activo */}
         {colapsado ? (
           <div className="flex flex-col items-center py-1">
             <div
-              className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#063A6B] to-[#0A4F8F] text-[#F8C766] font-bold text-xs flex items-center justify-center shadow-xs cursor-pointer hover:ring-2 hover:ring-[#17B4C4]/50 transition-all"
+              className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#035683] to-[#007BBE] text-[#FFB600] font-bold text-xs flex items-center justify-center shadow-xs cursor-pointer hover:ring-2 hover:ring-[#00ABBD]/50 transition-all"
               title={`${usuario.nombre} (${usuario.correo})`}
             >
               {usuario.nombre.charAt(0)}
             </div>
           </div>
         ) : (
-          <div className="p-2 rounded-xl bg-white border border-[#E3DCCB]/70 shadow-2xs flex items-center gap-2.5 hover:border-[#17B4C4]/50 transition-colors">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#063A6B] to-[#0A4F8F] text-[#F8C766] font-bold text-xs flex items-center justify-center shadow-xs shrink-0">
+          <div className="p-2 rounded-xl bg-white border border-[#E5E7EB]/70 shadow-2xs flex items-center gap-2.5 hover:border-[#00ABBD]/50 transition-colors">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#035683] to-[#007BBE] text-[#FFB600] font-bold text-xs flex items-center justify-center shadow-xs shrink-0">
               {usuario.nombre.charAt(0)}
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1">
-                {es_admin && <ShieldCheck className="w-3.5 h-3.5 text-[#063A6B] shrink-0" />}
-                {es_supervisor && <UserCheck className="w-3.5 h-3.5 text-[#17B4C4] shrink-0" />}
+                {es_admin && <ShieldCheck className="w-3.5 h-3.5 text-[#035683] shrink-0" />}
+                {es_supervisor && <UserCheck className="w-3.5 h-3.5 text-[#00ABBD] shrink-0" />}
                 {es_becario && <GraduationCap className="w-3.5 h-3.5 text-emerald-600 shrink-0" />}
-                <p className="text-xs font-bold text-[#063A6B] truncate leading-tight">
+                <p className="text-xs font-bold text-[#035683] truncate leading-tight">
                   {usuario.nombre}
                 </p>
               </div>
@@ -426,7 +414,7 @@ export function MenuLateral({
               variant="outline"
               size="sm"
               title="Cerrar sesión corporativa"
-              className={`w-full border-[#E3DCCB] text-[#E2694B] hover:bg-[#E2694B]/10 hover:text-[#E2694B] font-bold text-xs rounded-xl transition-colors ${
+              className={`w-full border-[#E5E7EB] text-[#E2694B] hover:bg-[#E2694B]/10 hover:text-[#E2694B] font-bold text-xs rounded-xl transition-colors ${
                 colapsado ? "px-0 justify-center h-9" : "justify-center gap-2 h-9"
               }`}
             >
@@ -486,8 +474,8 @@ export function MenuLateral({
         <aside
           className={`fixed top-0 left-0 h-screen transition-all duration-300 ease-in-out z-50 bg-transparent ${
             colapsado
-              ? "w-[72px] border-r border-[#E3DCCB]/70"
-              : "w-64 shadow-2xl shadow-slate-950/25 border-r border-[#E3DCCB]/70"
+              ? "w-[72px] border-r border-[#E5E7EB]/70"
+              : "w-64 shadow-2xl shadow-slate-950/25 border-r border-[#E5E7EB]/70"
           }`}
         >
           {contenido_menu}

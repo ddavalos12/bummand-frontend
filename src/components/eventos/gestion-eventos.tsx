@@ -588,7 +588,7 @@ export function GestionEventos() {
       font-size: 12px;
     }
     .header {
-      border-bottom: 2.5px solid #063A6B;
+      border-bottom: 2.5px solid #035683;
       padding-bottom: 12px;
       margin-bottom: 16px;
       display: flex;
@@ -598,7 +598,7 @@ export function GestionEventos() {
     .titulo {
       font-size: 18px;
       font-weight: 800;
-      color: #063A6B;
+      color: #035683;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin: 0;
@@ -612,7 +612,7 @@ export function GestionEventos() {
     .folio {
       font-family: monospace;
       font-size: 11px;
-      color: #063A6B;
+      color: #035683;
       background: #F0F4F8;
       padding: 4px 8px;
       border-radius: 4px;
@@ -628,10 +628,10 @@ export function GestionEventos() {
       background: #F8F9FA;
       padding: 12px 14px;
       border-radius: 8px;
-      border: 1px solid #E3DCCB;
+      border: 1px solid #E5E7EB;
     }
     .datos-grid p { margin: 2px 0; }
-    .datos-grid strong { color: #063A6B; }
+    .datos-grid strong { color: #035683; }
     .resumen {
       display: flex;
       gap: 16px;
@@ -639,11 +639,11 @@ export function GestionEventos() {
       background: #F0F9FA;
       padding: 10px 14px;
       border-radius: 8px;
-      border-left: 4px solid #17B4C4;
+      border-left: 4px solid #00ABBD;
     }
     .resumen div { flex: 1; }
-    .resumen strong { color: #063A6B; display: block; font-size: 10px; text-transform: uppercase; }
-    .resumen span { font-size: 16px; font-weight: bold; color: #063A6B; }
+    .resumen strong { color: #035683; display: block; font-size: 10px; text-transform: uppercase; }
+    .resumen span { font-size: 16px; font-weight: bold; color: #035683; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -651,7 +651,7 @@ export function GestionEventos() {
       font-size: 11px;
     }
     th {
-      background: #063A6B;
+      background: #035683;
       color: #FFFFFF;
       padding: 7px 8px;
       text-align: left;
@@ -681,7 +681,7 @@ export function GestionEventos() {
       font-size: 11px;
     }
     .linea-firma {
-      border-top: 1px solid #063A6B;
+      border-top: 1px solid #035683;
       margin-bottom: 6px;
     }
     .pie-pagina {
@@ -837,19 +837,14 @@ export function GestionEventos() {
         </div>
       )}
 
-      {/* Encabezado Principal - Acciones de Servicio */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E3DCCB] shadow-sm">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Compass className="w-5 h-5 text-[#063A6B]" />
-            <h2 className="text-xl font-bold text-[#063A6B]">
-              Acciones de Servicio
-            </h2>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Actividades y eventos espontáneos con horarios y geocercas variables vinculados con la App Móvil. Cada acción creada queda disponible de inmediato para la marcación y convalidación de horas de los becarios.
-          </p>
-        </div>
+      {/* Barra de Control Superior Minimalista: Pestañas de Estado a la Izquierda y Botón a la Derecha */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <PestanasAnimadas
+          pestanas={pestanas}
+          pestana_activa_id={filtro_estado}
+          al_cambiar_pestana={set_filtro_estado}
+          identificador_diseno="pestana_eventos_filtro"
+        />
 
         {/* Botón Juicy para Nueva Acción de Servicio */}
         <Dialog open={dialogo_nuevo_abierto} onOpenChange={set_dialogo_nuevo_abierto}>
@@ -868,11 +863,11 @@ export function GestionEventos() {
 
           <DialogContent
             showCloseButton={false}
-            className="sm:max-w-[620px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E3DCCB] rounded-2xl shadow-2xl"
+            className="sm:max-w-[620px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E5E7EB] rounded-2xl shadow-2xl"
           >
-            <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
-              <DialogTitle className="text-lg font-bold text-[#063A6B] flex items-center gap-2">
-                <Compass className="w-5 h-5 text-[#17B4C4]" />
+            <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] shrink-0 bg-white">
+              <DialogTitle className="text-lg font-bold text-[#035683] flex items-center gap-2">
+                <Compass className="w-5 h-5 text-[#00ABBD]" />
                 Convocatoria de Acción de Servicio Geolocalizada
               </DialogTitle>
               <p className="text-xs text-muted-foreground">
@@ -883,7 +878,7 @@ export function GestionEventos() {
             <form onSubmit={manejarCrearEvento} className="flex flex-col flex-1 min-h-0 overflow-hidden">
               <DialogBody className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
                 <div className="space-y-1.5">
-                  <Label htmlFor="titulo" className="text-xs font-semibold text-[#063A6B]">
+                  <Label htmlFor="titulo" className="text-xs font-semibold text-[#035683]">
                     Título del Evento *
                   </Label>
                   <Input
@@ -892,12 +887,12 @@ export function GestionEventos() {
                     placeholder="Ej: Jornada Anual de Voluntariado y Acción Social"
                     value={nuevo_titulo}
                     onChange={(e) => set_nuevo_titulo(e.target.value)}
-                    className="h-10 text-xs border-[#E3DCCB] rounded-xl focus-visible:ring-[#17B4C4]"
+                    className="h-10 text-xs border-[#E5E7EB] rounded-xl focus-visible:ring-[#00ABBD]"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="descripcion" className="text-xs font-semibold text-[#063A6B]">
+                  <Label htmlFor="descripcion" className="text-xs font-semibold text-[#035683]">
                     Descripción y Objetivos
                   </Label>
                   <Textarea
@@ -905,23 +900,23 @@ export function GestionEventos() {
                     placeholder="Detalla las actividades formativas, requerimientos y propósito de la convocatoria..."
                     value={nueva_descripcion}
                     onChange={(e) => set_nueva_descripcion(e.target.value)}
-                    className="text-xs border-[#E3DCCB] rounded-xl focus-visible:ring-[#17B4C4] min-h-[70px]"
+                    className="text-xs border-[#E5E7EB] rounded-xl focus-visible:ring-[#00ABBD] min-h-[70px]"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-[#063A6B]">Tipo de Evento</Label>
+                    <Label className="text-xs font-semibold text-[#035683]">Tipo de Evento</Label>
                     <Select
                       value={nuevo_tipo}
                       onValueChange={(val: any) => {
                         if (val) set_nuevo_tipo(val);
                       }}
                     >
-                      <SelectTrigger className="w-full h-10 text-xs border-[#E3DCCB] rounded-xl bg-white">
+                      <SelectTrigger className="w-full h-10 text-xs border-[#E5E7EB] rounded-xl bg-white">
                         <SelectValue placeholder="Seleccionar tipo" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white border-[#E3DCCB]">
+                      <SelectContent className="bg-white border-[#E5E7EB]">
                         <SelectItem value="escuela_lideres_especial">Escuela de Líderes Especial</SelectItem>
                         <SelectItem value="taller">Taller de Formación</SelectItem>
                         <SelectItem value="servicio_diaconal">Servicio Diaconal</SelectItem>
@@ -932,7 +927,7 @@ export function GestionEventos() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-[#063A6B]">Fecha del Evento</Label>
+                    <Label className="text-xs font-semibold text-[#035683]">Fecha del Evento</Label>
                     <SeleccionadorFecha
                       fecha={nueva_fecha}
                       alCambiar={set_nueva_fecha}
@@ -943,30 +938,30 @@ export function GestionEventos() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-[#063A6B]">Hora de Inicio</Label>
+                    <Label className="text-xs font-semibold text-[#035683]">Hora de Inicio</Label>
                     <Input
                       type="time"
                       value={nueva_hora_inicio}
                       onChange={(e) => set_nueva_hora_inicio(e.target.value)}
-                      className="h-10 text-xs border-[#E3DCCB] rounded-xl"
+                      className="h-10 text-xs border-[#E5E7EB] rounded-xl"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-[#063A6B]">Hora de Conclusión</Label>
+                    <Label className="text-xs font-semibold text-[#035683]">Hora de Conclusión</Label>
                     <Input
                       type="time"
                       value={nueva_hora_fin}
                       onChange={(e) => set_nueva_hora_fin(e.target.value)}
-                      className="h-10 text-xs border-[#E3DCCB] rounded-xl"
+                      className="h-10 text-xs border-[#E5E7EB] rounded-xl"
                     />
                   </div>
                 </div>
 
                 {/* Parámetros de Geolocalización y Geocerca */}
-                <div className="p-3.5 bg-[#F8F9FA] border border-[#E3DCCB] rounded-xl space-y-3">
+                <div className="p-3.5 bg-[#F8F9FA] border border-[#E5E7EB] rounded-xl space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#063A6B] flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-[#17B4C4]" />
+                    <span className="text-xs font-bold text-[#035683] flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-[#00ABBD]" />
                       Parámetros de Geocerca (La Paz - El Alto)
                     </span>
                     <span className="text-[10px] text-muted-foreground font-mono">WGS84 EPSG:4326</span>
@@ -982,7 +977,7 @@ export function GestionEventos() {
                           key={p.etiqueta}
                           type="button"
                           onClick={() => aplicarPredeterminadoGps(idx)}
-                          className="text-[10.5px] px-2.5 py-1 rounded-lg border border-[#E3DCCB] bg-white hover:border-[#17B4C4] hover:text-[#063A6B] transition-colors"
+                          className="text-[10.5px] px-2.5 py-1 rounded-lg border border-[#E5E7EB] bg-white hover:border-[#00ABBD] hover:text-[#035683] transition-colors"
                         >
                           {p.etiqueta.split("(")[0]}
                         </button>
@@ -997,7 +992,7 @@ export function GestionEventos() {
                         value={nueva_latitud}
                         onChange={(e) => set_nueva_latitud(e.target.value)}
                         placeholder="-16.500054"
-                        className="h-9 text-xs border-[#E3DCCB] font-mono"
+                        className="h-9 text-xs border-[#E5E7EB] font-mono"
                       />
                     </div>
                     <div>
@@ -1006,7 +1001,7 @@ export function GestionEventos() {
                         value={nueva_longitud}
                         onChange={(e) => set_nueva_longitud(e.target.value)}
                         placeholder="-68.173455"
-                        className="h-9 text-xs border-[#E3DCCB] font-mono"
+                        className="h-9 text-xs border-[#E5E7EB] font-mono"
                       />
                     </div>
                     <div>
@@ -1016,7 +1011,7 @@ export function GestionEventos() {
                         value={nuevo_radio}
                         onChange={(e) => set_nuevo_radio(e.target.value)}
                         placeholder="100"
-                        className="h-9 text-xs border-[#E3DCCB] font-mono"
+                        className="h-9 text-xs border-[#E5E7EB] font-mono"
                       />
                     </div>
                   </div>
@@ -1027,24 +1022,24 @@ export function GestionEventos() {
                       value={nueva_referencia}
                       onChange={(e) => set_nueva_referencia(e.target.value)}
                       placeholder="Ej: Av. Juan Pablo II #2540, a pasos de la UPEA"
-                      className="h-9 text-xs border-[#E3DCCB]"
+                      className="h-9 text-xs border-[#E5E7EB]"
                     />
                   </div>
                 </div>
               </DialogBody>
 
-              <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
+              <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => set_dialogo_nuevo_abierto(false)}
-                  className="rounded-xl border-[#E3DCCB] text-xs h-10 hover:bg-slate-100"
+                  className="rounded-xl border-[#E5E7EB] text-xs h-10 hover:bg-slate-100"
                 >
                   Cancelar
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-[#063A6B] hover:bg-[#084885] text-white rounded-xl text-xs h-10 px-5 font-semibold shadow-sm"
+                  className="bg-[#035683] hover:bg-[#084885] text-white rounded-xl text-xs h-10 px-5 font-semibold shadow-sm"
                 >
                   Publicar y Sincronizar con App Móvil
                 </Button>
@@ -1052,16 +1047,6 @@ export function GestionEventos() {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
-
-      {/* Barra de Filtros por Estado */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <PestanasAnimadas
-          pestanas={pestanas}
-          pestana_activa_id={filtro_estado}
-          al_cambiar_pestana={set_filtro_estado}
-          identificador_diseno="pestana_eventos_filtro"
-        />
       </div>
 
       {/* Cuadrícula de Tarjetas de Eventos con Cult UI (TarjetaSpotlight + BordeLuminoso) */}
@@ -1087,13 +1072,13 @@ export function GestionEventos() {
             <TarjetaSpotlight
               key={ev.id}
               className={`p-5 flex flex-col justify-between transition-all duration-300 ${
-                es_evento_activo_dia ? "ring-2 ring-[#17B4C4]/50 shadow-lg" : ""
+                es_evento_activo_dia ? "ring-2 ring-[#00ABBD]/50 shadow-lg" : ""
               }`}
             >
               <div className="space-y-4">
                 {/* Cabecera de Estado y Tipo */}
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-mono uppercase px-2.5 py-1 rounded-md bg-[#063A6B]/5 text-[#063A6B] font-semibold border border-[#063A6B]/10">
+                  <span className="text-[11px] font-mono uppercase px-2.5 py-1 rounded-md bg-[#035683]/5 text-[#035683] font-semibold border border-[#035683]/10">
                     {formatearTipo(ev.tipo_evento)}
                   </span>
 
@@ -1115,25 +1100,25 @@ export function GestionEventos() {
 
                 {/* Título y Descripción */}
                 <div>
-                  <h3 className="font-bold text-sm text-[#063A6B] line-clamp-1">{ev.titulo}</h3>
+                  <h3 className="font-bold text-sm text-[#035683] line-clamp-1">{ev.titulo}</h3>
                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
                     {ev.descripcion}
                   </p>
                 </div>
 
                 {/* Datos de Horario y Lugar */}
-                <div className="space-y-1.5 text-xs text-slate-600 bg-[#F8F9FA] p-3 rounded-xl border border-[#E3DCCB]/70">
+                <div className="space-y-1.5 text-xs text-slate-600 bg-[#F8F9FA] p-3 rounded-xl border border-[#E5E7EB]/70">
                   <div className="flex items-center gap-2">
-                    <CalendarIcon className="w-3.5 h-3.5 text-[#17B4C4] shrink-0" />
-                    <span className="font-semibold text-[#063A6B]">{ev.fecha}</span>
+                    <CalendarIcon className="w-3.5 h-3.5 text-[#00ABBD] shrink-0" />
+                    <span className="font-semibold text-[#035683]">{ev.fecha}</span>
                     <span className="text-muted-foreground">·</span>
-                    <Clock className="w-3.5 h-3.5 text-[#17B4C4] shrink-0" />
+                    <Clock className="w-3.5 h-3.5 text-[#00ABBD] shrink-0" />
                     <span>
                       {ev.hora_inicio} - {ev.hora_fin}
                     </span>
                   </div>
 
-                  <div className="flex items-start gap-2 pt-1 border-t border-[#E3DCCB]/40">
+                  <div className="flex items-start gap-2 pt-1 border-t border-[#E5E7EB]/40">
                     <MapPin className="w-3.5 h-3.5 text-[#E2694B] shrink-0 mt-0.5" />
                     <div className="min-w-0">
                       <p className="font-medium text-[#122029] truncate">{ev.direccion_referencia}</p>
@@ -1146,19 +1131,19 @@ export function GestionEventos() {
 
                 {/* Estadísticas de Asistencia con Watermelon UI */}
                 <div className="grid grid-cols-3 gap-2 pt-1 text-center">
-                  <div className="p-2 rounded-lg bg-white border border-[#E3DCCB]">
+                  <div className="p-2 rounded-lg bg-white border border-[#E5E7EB]">
                     <span className="text-[10px] uppercase text-muted-foreground font-medium block">Convocados</span>
-                    <span className="font-bold text-xs text-[#063A6B]">{ev.total_convocados}</span>
+                    <span className="font-bold text-xs text-[#035683]">{ev.total_convocados}</span>
                   </div>
-                  <div className="p-2 rounded-lg bg-white border border-[#E3DCCB]">
+                  <div className="p-2 rounded-lg bg-white border border-[#E5E7EB]">
                     <span className="text-[10px] uppercase text-muted-foreground font-medium block">Marcaciones</span>
                     <span className="font-bold text-xs text-emerald-600">
                       <ContadorRodilloAnimado valor={presentes + retrasos} />
                     </span>
                   </div>
-                  <div className="p-2 rounded-lg bg-white border border-[#E3DCCB]">
+                  <div className="p-2 rounded-lg bg-white border border-[#E5E7EB]">
                     <span className="text-[10px] uppercase text-muted-foreground font-medium block">Puntualidad</span>
-                    <span className="font-bold text-xs text-[#17B4C4]">
+                    <span className="font-bold text-xs text-[#00ABBD]">
                       <ContadorRodilloAnimado valor={pct_puntualidad} sufijo="%" />
                     </span>
                   </div>
@@ -1166,30 +1151,30 @@ export function GestionEventos() {
               </div>
 
               {/* Botón para Abrir Acta de Asistencia */}
-              <div className="pt-4 mt-2 border-t border-[#E3DCCB]/60 flex items-center gap-2">
+              <div className="pt-4 mt-2 border-t border-[#E5E7EB]/60 flex items-center gap-2">
                 <Button
                   onClick={() => set_evento_seleccionado_acta(ev)}
                   variant="outline"
-                  className="flex-1 h-9 rounded-xl border-[#063A6B] text-[#063A6B] hover:bg-[#063A6B]/5 text-xs font-semibold gap-1.5 transition-colors"
+                  className="flex-1 h-9 rounded-xl border-[#035683] text-[#035683] hover:bg-[#035683]/5 text-xs font-semibold gap-1.5 transition-colors"
                 >
-                  <FileText className="w-3.5 h-3.5 text-[#17B4C4]" />
+                  <FileText className="w-3.5 h-3.5 text-[#00ABBD]" />
                   <span>Ver Acta</span>
                 </Button>
 
                 <Button
                   onClick={() => abrirModalEditar(ev)}
                   variant="outline"
-                  className="h-9 px-3 rounded-xl border-[#E3DCCB] text-[#063A6B] hover:bg-[#063A6B]/5 hover:border-[#063A6B] text-xs font-semibold gap-1.5 transition-colors"
+                  className="h-9 px-3 rounded-xl border-[#E5E7EB] text-[#035683] hover:bg-[#035683]/5 hover:border-[#035683] text-xs font-semibold gap-1.5 transition-colors"
                   title="Editar parámetros y geocerca de esta acción"
                 >
-                  <Pencil className="w-3.5 h-3.5 text-[#17B4C4]" />
+                  <Pencil className="w-3.5 h-3.5 text-[#00ABBD]" />
                   <span>Editar</span>
                 </Button>
 
                 <Button
                   onClick={() => manejarEliminarEvento(ev)}
                   variant="outline"
-                  className="h-9 w-9 p-0 rounded-xl border-[#E3DCCB] text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-colors flex items-center justify-center shrink-0"
+                  className="h-9 w-9 p-0 rounded-xl border-[#E5E7EB] text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-colors flex items-center justify-center shrink-0"
                   title="Eliminar convocatoria"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -1206,11 +1191,11 @@ export function GestionEventos() {
       <Dialog open={dialogo_editar_abierto} onOpenChange={set_dialogo_editar_abierto}>
         <DialogContent
           showCloseButton={false}
-          className="sm:max-w-[620px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E3DCCB] rounded-2xl shadow-2xl"
+          className="sm:max-w-[620px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E5E7EB] rounded-2xl shadow-2xl"
         >
-          <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
-            <DialogTitle className="text-lg font-bold text-[#063A6B] flex items-center gap-2">
-              <Pencil className="w-5 h-5 text-[#17B4C4]" />
+          <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] shrink-0 bg-white">
+            <DialogTitle className="text-lg font-bold text-[#035683] flex items-center gap-2">
+              <Pencil className="w-5 h-5 text-[#00ABBD]" />
               Editar Acción de Servicio
             </DialogTitle>
             <p className="text-xs text-muted-foreground">
@@ -1221,7 +1206,7 @@ export function GestionEventos() {
           <form onSubmit={manejarGuardarEdicion} className="flex flex-col flex-1 min-h-0 overflow-hidden">
             <DialogBody className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
               <div className="space-y-1.5">
-                <Label htmlFor="edit-titulo" className="text-xs font-semibold text-[#063A6B]">
+                <Label htmlFor="edit-titulo" className="text-xs font-semibold text-[#035683]">
                   Título del Evento *
                 </Label>
                 <Input
@@ -1230,12 +1215,12 @@ export function GestionEventos() {
                   placeholder="Ej: Jornada Anual de Voluntariado y Acción Social"
                   value={edit_titulo}
                   onChange={(e) => set_edit_titulo(e.target.value)}
-                  className="h-10 text-xs border-[#E3DCCB] rounded-xl focus-visible:ring-[#17B4C4]"
+                  className="h-10 text-xs border-[#E5E7EB] rounded-xl focus-visible:ring-[#00ABBD]"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="edit-descripcion" className="text-xs font-semibold text-[#063A6B]">
+                <Label htmlFor="edit-descripcion" className="text-xs font-semibold text-[#035683]">
                   Descripción y Objetivos
                 </Label>
                 <Textarea
@@ -1243,23 +1228,23 @@ export function GestionEventos() {
                   placeholder="Detalla las actividades formativas, requerimientos y propósito de la convocatoria..."
                   value={edit_descripcion}
                   onChange={(e) => set_edit_descripcion(e.target.value)}
-                  className="text-xs border-[#E3DCCB] rounded-xl focus-visible:ring-[#17B4C4] min-h-[70px]"
+                  className="text-xs border-[#E5E7EB] rounded-xl focus-visible:ring-[#00ABBD] min-h-[70px]"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-[#063A6B]">Tipo de Evento</Label>
+                  <Label className="text-xs font-semibold text-[#035683]">Tipo de Evento</Label>
                   <Select
                     value={edit_tipo}
                     onValueChange={(val: any) => {
                       if (val) set_edit_tipo(val);
                     }}
                   >
-                    <SelectTrigger className="w-full h-10 text-xs border-[#E3DCCB] rounded-xl bg-white">
+                    <SelectTrigger className="w-full h-10 text-xs border-[#E5E7EB] rounded-xl bg-white">
                       <SelectValue placeholder="Seleccionar tipo" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white border-[#E3DCCB]">
+                    <SelectContent className="bg-white border-[#E5E7EB]">
                       <SelectItem value="escuela_lideres_especial">Escuela de Líderes Especial</SelectItem>
                       <SelectItem value="taller">Taller de Formación</SelectItem>
                       <SelectItem value="servicio_diaconal">Servicio Diaconal</SelectItem>
@@ -1270,19 +1255,19 @@ export function GestionEventos() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-[#063A6B]">Estado Operativo</Label>
+                  <Label className="text-xs font-semibold text-[#035683]">Estado Operativo</Label>
                   <Select
                     value={edit_estado}
                     onValueChange={(val: any) => {
                       if (val) set_edit_estado(val);
                     }}
                   >
-                    <SelectTrigger className="w-full h-10 text-xs border-[#E3DCCB] rounded-xl bg-white">
+                    <SelectTrigger className="w-full h-10 text-xs border-[#E5E7EB] rounded-xl bg-white">
                       <SelectValue placeholder="Seleccionar estado" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white border-[#E3DCCB]">
+                    <SelectContent className="bg-white border-[#E5E7EB]">
                       <SelectItem value="programado">Programado</SelectItem>
-                      <SelectItem value="en_curso">En Curso (Habilita marcación)</SelectItem>
+                      <SelectItem value="en_curso" etiqueta="En Curso">En Curso (Habilita marcación)</SelectItem>
                       <SelectItem value="finalizado">Finalizado</SelectItem>
                       <SelectItem value="cancelado">Cancelado</SelectItem>
                     </SelectContent>
@@ -1292,7 +1277,7 @@ export function GestionEventos() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-[#063A6B]">Fecha del Evento</Label>
+                  <Label className="text-xs font-semibold text-[#035683]">Fecha del Evento</Label>
                   <SeleccionadorFecha
                     fecha={edit_fecha}
                     alCambiar={set_edit_fecha}
@@ -1302,31 +1287,31 @@ export function GestionEventos() {
 
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-[#063A6B]">Hora Inicio</Label>
+                    <Label className="text-xs font-semibold text-[#035683]">Hora Inicio</Label>
                     <Input
                       type="time"
                       value={edit_hora_inicio}
                       onChange={(e) => set_edit_hora_inicio(e.target.value)}
-                      className="h-10 text-xs border-[#E3DCCB] rounded-xl"
+                      className="h-10 text-xs border-[#E5E7EB] rounded-xl"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-[#063A6B]">Hora Fin</Label>
+                    <Label className="text-xs font-semibold text-[#035683]">Hora Fin</Label>
                     <Input
                       type="time"
                       value={edit_hora_fin}
                       onChange={(e) => set_edit_hora_fin(e.target.value)}
-                      className="h-10 text-xs border-[#E3DCCB] rounded-xl"
+                      className="h-10 text-xs border-[#E5E7EB] rounded-xl"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Parámetros de Geolocalización y Geocerca */}
-              <div className="p-3.5 bg-[#F8F9FA] border border-[#E3DCCB] rounded-xl space-y-3">
+              <div className="p-3.5 bg-[#F8F9FA] border border-[#E5E7EB] rounded-xl space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#063A6B] flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-[#17B4C4]" />
+                  <span className="text-xs font-bold text-[#035683] flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#00ABBD]" />
                     Parámetros de Geocerca (La Paz - El Alto)
                   </span>
                   <span className="text-[10px] text-muted-foreground font-mono">WGS84 EPSG:4326</span>
@@ -1342,7 +1327,7 @@ export function GestionEventos() {
                         key={p.etiqueta}
                         type="button"
                         onClick={() => aplicarPredeterminadoGpsEdicion(idx)}
-                        className="text-[10.5px] px-2.5 py-1 rounded-lg border border-[#E3DCCB] bg-white hover:border-[#17B4C4] hover:text-[#063A6B] transition-colors"
+                        className="text-[10.5px] px-2.5 py-1 rounded-lg border border-[#E5E7EB] bg-white hover:border-[#00ABBD] hover:text-[#035683] transition-colors"
                       >
                         {p.etiqueta.split("(")[0]}
                       </button>
@@ -1357,7 +1342,7 @@ export function GestionEventos() {
                       value={edit_latitud}
                       onChange={(e) => set_edit_latitud(e.target.value)}
                       placeholder="-16.500054"
-                      className="h-9 text-xs border-[#E3DCCB] font-mono"
+                      className="h-9 text-xs border-[#E5E7EB] font-mono"
                     />
                   </div>
                   <div>
@@ -1366,7 +1351,7 @@ export function GestionEventos() {
                       value={edit_longitud}
                       onChange={(e) => set_edit_longitud(e.target.value)}
                       placeholder="-68.173455"
-                      className="h-9 text-xs border-[#E3DCCB] font-mono"
+                      className="h-9 text-xs border-[#E5E7EB] font-mono"
                     />
                   </div>
                   <div>
@@ -1376,7 +1361,7 @@ export function GestionEventos() {
                       value={edit_radio}
                       onChange={(e) => set_edit_radio(e.target.value)}
                       placeholder="100"
-                      className="h-9 text-xs border-[#E3DCCB] font-mono"
+                      className="h-9 text-xs border-[#E5E7EB] font-mono"
                     />
                   </div>
                 </div>
@@ -1387,27 +1372,27 @@ export function GestionEventos() {
                     value={edit_referencia}
                     onChange={(e) => set_edit_referencia(e.target.value)}
                     placeholder="Ej: Av. Juan Pablo II #2540, a pasos de la UPEA"
-                    className="h-9 text-xs border-[#E3DCCB]"
+                    className="h-9 text-xs border-[#E5E7EB]"
                   />
                 </div>
               </div>
             </DialogBody>
 
-            <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
+            <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => set_dialogo_editar_abierto(false)}
-                className="rounded-xl border-[#E3DCCB] text-xs h-10 hover:bg-slate-100"
+                className="rounded-xl border-[#E5E7EB] text-xs h-10 hover:bg-slate-100"
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 disabled={guardando_edicion}
-                className="rounded-xl bg-[#063A6B] hover:bg-[#084885] text-white text-xs h-10 px-4 font-semibold gap-1.5 shadow-sm"
+                className="rounded-xl bg-[#035683] hover:bg-[#084885] text-white text-xs h-10 px-4 font-semibold gap-1.5 shadow-sm"
               >
-                <Check className="w-4 h-4 text-[#17B4C4]" />
+                <Check className="w-4 h-4 text-[#00ABBD]" />
                 <span>{guardando_edicion ? "Guardando..." : "Guardar Cambios"}</span>
               </Button>
             </DialogFooter>
@@ -1426,12 +1411,12 @@ export function GestionEventos() {
         >
           <DialogContent
             showCloseButton={false}
-            className="sm:max-w-[780px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E3DCCB] rounded-2xl shadow-2xl"
+            className="sm:max-w-[780px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E5E7EB] rounded-2xl shadow-2xl"
           >
-            <DialogHeader className="p-6 pb-4 border-b border-[#E3DCCB] shrink-0 bg-white">
+            <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] shrink-0 bg-white">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                  <DialogTitle className="text-base font-bold text-[#063A6B] flex items-center gap-2">
+                  <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
                     <ShieldCheck className="w-5 h-5 text-emerald-600" />
                     Acta Oficial de Asistencia Geolocalizada
                   </DialogTitle>
@@ -1444,9 +1429,9 @@ export function GestionEventos() {
                     onClick={() => manejarDescargarActaPdf(evento_seleccionado_acta)}
                     disabled={descargando_pdf}
                     size="sm"
-                    className="h-8 rounded-xl bg-[#063A6B] hover:bg-[#084885] text-white text-xs gap-1.5 font-medium shadow-sm"
+                    className="h-8 rounded-xl bg-[#035683] hover:bg-[#084885] text-white text-xs gap-1.5 font-medium shadow-sm"
                   >
-                    <Download className="w-3.5 h-3.5 text-[#F8C766]" />
+                    <Download className="w-3.5 h-3.5 text-[#FFB600]" />
                     <span>{descargando_pdf ? "Generando PDF..." : "Descargar Acta PDF"}</span>
                   </Button>
                 </div>
@@ -1456,9 +1441,9 @@ export function GestionEventos() {
             <DialogBody className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
               {/* Cuadro de Métricas con Watermelon UI ContadorRodilloAnimado */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="p-3 rounded-xl bg-[#F8F9FA] border border-[#E3DCCB] text-center">
+                <div className="p-3 rounded-xl bg-[#F8F9FA] border border-[#E5E7EB] text-center">
                   <span className="text-[11px] text-muted-foreground uppercase font-mono block">Convocados</span>
-                  <span className="text-2xl font-bold text-[#063A6B]">
+                  <span className="text-2xl font-bold text-[#035683]">
                     {evento_seleccionado_acta.total_convocados}
                   </span>
                 </div>
@@ -1474,9 +1459,9 @@ export function GestionEventos() {
                     />
                   </span>
                 </div>
-                <div className="p-3 rounded-xl bg-[#E3F9FA] border border-[#17B4C4]/30 text-center">
-                  <span className="text-[11px] text-[#0A5CA0] uppercase font-mono block">Puntualidad</span>
-                  <span className="text-2xl font-bold text-[#0A5CA0]">
+                <div className="p-3 rounded-xl bg-[#E3F9FA] border border-[#00ABBD]/30 text-center">
+                  <span className="text-[11px] text-[#007BBE] uppercase font-mono block">Puntualidad</span>
+                  <span className="text-2xl font-bold text-[#007BBE]">
                     <ContadorRodilloAnimado
                       valor={
                         evento_seleccionado_acta.asistencias.length > 0
@@ -1506,10 +1491,10 @@ export function GestionEventos() {
               </div>
 
               {/* Visor con Google Maps Embebido y Geocerca del Evento */}
-              <div className="p-3.5 bg-slate-50 border border-[#E3DCCB] rounded-xl space-y-2">
+              <div className="p-3.5 bg-slate-50 border border-[#E5E7EB] rounded-xl space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-[#063A6B] flex items-center gap-1.5">
-                    <Map className="w-4 h-4 text-[#17B4C4]" />
+                  <span className="font-bold text-[#035683] flex items-center gap-1.5">
+                    <Map className="w-4 h-4 text-[#00ABBD]" />
                     Ubicación y Geocerca Satelital del Evento (WGS84)
                   </span>
                   <Button
@@ -1521,14 +1506,14 @@ export function GestionEventos() {
                         "_blank"
                       );
                     }}
-                    className="h-7 px-2.5 text-[11px] border-[#17B4C4] text-[#063A6B] rounded-lg flex items-center gap-1"
+                    className="h-7 px-2.5 text-[11px] border-[#00ABBD] text-[#035683] rounded-lg flex items-center gap-1"
                   >
-                    <ExternalLink className="w-3 h-3 text-[#17B4C4]" />
+                    <ExternalLink className="w-3 h-3 text-[#00ABBD]" />
                     Abrir en Google Maps
                   </Button>
                 </div>
 
-                <div className="relative w-full h-44 bg-slate-200 rounded-xl overflow-hidden border border-[#E3DCCB]">
+                <div className="relative w-full h-44 bg-slate-200 rounded-xl overflow-hidden border border-[#E5E7EB]">
                   <iframe
                     title="Mapa Google Maps Evento"
                     width="100%"
@@ -1540,13 +1525,13 @@ export function GestionEventos() {
                 </div>
                 <div className="flex items-center justify-between text-[11px] font-mono text-muted-foreground pt-1">
                   <span>Ref: {evento_seleccionado_acta.direccion_referencia}</span>
-                  <span className="text-[#063A6B] font-bold">Radio: {evento_seleccionado_acta.radio_tolerancia_m} m</span>
+                  <span className="text-[#035683] font-bold">Radio: {evento_seleccionado_acta.radio_tolerancia_m} m</span>
                 </div>
               </div>
 
               {/* Lista y Tabla de Becarios Convocados */}
-              <div className="border border-[#E3DCCB] rounded-xl overflow-hidden bg-white">
-                <div className="bg-[#F8F9FA] px-4 py-2.5 border-b border-[#E3DCCB] flex items-center justify-between text-xs font-semibold text-[#063A6B]">
+              <div className="border border-[#E5E7EB] rounded-xl overflow-hidden bg-white">
+                <div className="bg-[#F8F9FA] px-4 py-2.5 border-b border-[#E5E7EB] flex items-center justify-between text-xs font-semibold text-[#035683]">
                   <span>Nómina de Becarios y Llamada de Lista en Vivo</span>
                   <span className="font-mono text-[11px] text-muted-foreground">
                     Confirmación presencial con switches
@@ -1559,7 +1544,7 @@ export function GestionEventos() {
                     No existen marcaciones registradas aún para este evento programado.
                   </div>
                 ) : (
-                  <div className="divide-y divide-[#E3DCCB]/60">
+                  <div className="divide-y divide-[#E5E7EB]/60">
                     {evento_seleccionado_acta.asistencias.map((asist) => {
                       const badge_estado =
                         asist.estado === "presente" ? (
@@ -1587,7 +1572,7 @@ export function GestionEventos() {
                         >
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-xs text-[#063A6B]">{asist.nombre}</span>
+                              <span className="font-bold text-xs text-[#035683]">{asist.nombre}</span>
                               <span className="text-[11px] text-muted-foreground font-mono">({asist.carrera})</span>
                             </div>
                             {asist.observaciones && (
@@ -1605,7 +1590,7 @@ export function GestionEventos() {
                             <div className="text-right font-mono text-xs">
                               <div className="font-semibold text-slate-700">{asist.hora_marcacion}</div>
                               <div className="text-[10.5px] text-muted-foreground flex items-center justify-end gap-1">
-                                <Navigation className="w-2.5 h-2.5 text-[#17B4C4]" />
+                                <Navigation className="w-2.5 h-2.5 text-[#00ABBD]" />
                                 <span>{asist.distancia_m > 0 ? `${asist.distancia_m} m` : "Sin señal"}</span>
                               </div>
                             </div>
@@ -1634,11 +1619,11 @@ export function GestionEventos() {
               </div>
             </DialogBody>
 
-            <DialogFooter className="p-4 px-6 border-t border-[#E3DCCB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end">
+            <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end">
               <Button
                 variant="outline"
                 onClick={() => set_evento_seleccionado_acta(null)}
-                className="rounded-xl border-[#E3DCCB] text-xs h-9 hover:bg-slate-100"
+                className="rounded-xl border-[#E5E7EB] text-xs h-9 hover:bg-slate-100"
               >
                 Cerrar Acta
               </Button>
