@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import {
@@ -203,15 +203,16 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
   const [mes_seleccionado, set_mes_seleccionado] = useState<string>("2026-10");
 
   const horas_por_mes = [
-    { mes: "Octubre 2026", clave: "2026-10", horas: 38.5, meta: 40.0, dias: 10, estado: "en_progreso" },
-    { mes: "Septiembre 2026", clave: "2026-09", horas: 42.0, meta: 40.0, dias: 11, estado: "cumplido" },
-    { mes: "Agosto 2026", clave: "2026-08", horas: 40.0, meta: 40.0, dias: 10, estado: "cumplido" },
+    { mes: "Octubre 2026", clave: "2026-10", horas: 38.5, meta: 36.0, dias: 10, estado: "cumplido" },
+    { mes: "Septiembre 2026", clave: "2026-09", horas: 42.0, meta: 36.0, dias: 11, estado: "cumplido" },
+    { mes: "Agosto 2026", clave: "2026-08", horas: 36.0, meta: 36.0, dias: 10, estado: "cumplido" },
   ];
 
   const mes_actual_datos = horas_por_mes.find((m) => m.clave === mes_seleccionado) || horas_por_mes[0];
   const horas_acumuladas = mes_actual_datos.horas;
   const horas_meta = mes_actual_datos.meta;
-  const porcentaje_meta = Math.min(100, Math.round((horas_acumuladas / horas_meta) * 100));
+  const porcentaje_real_meta = Math.round((horas_acumuladas / horas_meta) * 100);
+  const porcentaje_meta = Math.min(100, porcentaje_real_meta);
 
   const abrirDialogo = () => {
     if (alAbrirMarcacion) {
@@ -316,7 +317,9 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {horas_por_mes.map((h) => {
           const es_seleccionado = h.clave === mes_seleccionado;
-          const avance = Math.min(100, Math.round((h.horas / h.meta) * 100));
+          const avance_real = Math.round((h.horas / h.meta) * 100);
+          const avance = Math.min(100, avance_real);
+          const excedente = h.horas - h.meta;
           return (
             <div
               key={h.clave}
@@ -337,12 +340,16 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
                       : "bg-amber-50 text-amber-700 border-amber-300"
                   }`}
                 >
-                  {h.estado === "cumplido" ? "100% CUMPLIDO" : `${avance}% AVANCE`}
+                  {excedente > 0
+                    ? `META SUPERADA (+${excedente.toFixed(1)} h · ${avance_real}%)`
+                    : h.estado === "cumplido"
+                    ? `${avance_real}% CUMPLIDO`
+                    : `${avance_real}% AVANCE`}
                 </Badge>
               </div>
               <div className="flex items-baseline justify-between text-xs font-mono">
                 <span className="font-bold text-sm text-[#035683]">{h.horas.toFixed(1)} hrs</span>
-                <span className="text-muted-foreground text-[11px]">Meta: {h.meta.toFixed(1)} hrs</span>
+                <span className="text-muted-foreground text-[11px]">Meta: {h.meta.toFixed(1)} hrs (9h/sem)</span>
               </div>
               <Progress value={avance} className="h-1.5 mt-2 bg-slate-100" />
             </div>
@@ -361,8 +368,10 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
             <span className="text-[11px] font-mono font-bold uppercase text-muted-foreground">
               Horas Acumuladas
             </span>
-            <Badge className="bg-[#035683]/10 text-[#035683] border-[#035683]/20 text-[10px] font-bold">
-              {porcentaje_meta}%
+            <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] font-bold">
+              {horas_acumuladas > horas_meta
+                ? `Meta Superada (+${(horas_acumuladas - horas_meta).toFixed(1)}h · ${porcentaje_real_meta}%)`
+                : `${porcentaje_real_meta}%`}
             </Badge>
           </div>
           <div className="flex items-baseline gap-1.5">

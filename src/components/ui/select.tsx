@@ -195,9 +195,9 @@ const DICCIONARIO_ETIQUETAS: Record<string, string> = {
   tardanza: "Tardanza",
   convalidado: "Convalidado",
   alertas: "Solo Alertas y Observados",
-  cumplido: "Meta Cumplida (≥40 hrs)",
-  en_progreso: "En Progreso (80% - 99%)",
-  en_riesgo: "En Riesgo (<80%)",
+  cumplido: "Meta Cumplida (≥36 hrs)",
+  en_progreso: "En Progreso (27 a 35.9 hrs)",
+  en_riesgo: "En Riesgo (<27 hrs)",
   no_iniciado: "No Iniciado",
 
   // Pasajes y Tarifas

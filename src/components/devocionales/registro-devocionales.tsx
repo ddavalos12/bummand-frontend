@@ -1,10 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -365,11 +366,10 @@ export function RegistroDevocionales() {
                   )}
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-700">Fecha de reflexión</label>
-                    <Input
-                      type="date"
-                      value={String(formulario.valores.fecha)}
-                      onChange={(e) => formulario.cambiarValor("fecha", e.target.value)}
+                    <label className="text-xs font-semibold text-gray-700 block mb-1">Fecha de reflexión</label>
+                    <SeleccionadorFecha
+                      valorString={String(formulario.valores.fecha)}
+                      alCambiarString={(val) => formulario.cambiarValor("fecha", val)}
                       onBlur={() => formulario.tocarCampo("fecha")}
                       className={formulario.obtenerClaseInput("fecha", "mt-1 text-xs")}
                     />

@@ -188,7 +188,7 @@ const EVENTOS_INICIALES: EventoGeolocalizado[] = [
     id: 2,
     titulo: "Taller Práctico de Formulario Pastoral F-03",
     descripcion:
-      "Instrucción metodológica sobre los 5 ejes canónicos diaconales y convalidación semestral de horas con firma digital.",
+      "Instrucción metodológica sobre los 5 ejes canónicos diaconales y convalidación semestral de horas con trazabilidad en sistema.",
     tipo_evento: "taller",
     fecha: "2026-10-18",
     hora_inicio: "09:00",
@@ -768,7 +768,7 @@ export function GestionEventos() {
     <div class="firma">
       <div class="linea-firma"></div>
       <strong>Supervisión Diaconal FRIF-IFD</strong><br/>
-      Firma y Sello de Convalidación
+      Trazabilidad y Sello de Convalidación
     </div>
     <div class="firma">
       <div class="linea-firma"></div>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import {
@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -295,14 +296,13 @@ export function FormularioMentorModal({
                     }}
                     className="h-8 text-[11px] bg-white font-mono"
                   />
-                  <Input
-                    type="date"
-                    value={fecha_evaluacion}
-                    onChange={(e) => {
-                      set_fecha_evaluacion(e.target.value);
+                  <SeleccionadorFecha
+                    valorString={fecha_evaluacion}
+                    alCambiarString={(val) => {
+                      set_fecha_evaluacion(val);
                       set_hay_modificaciones(true);
                     }}
-                    className="h-8 text-[11px] bg-white"
+                    className="h-8 text-[11px] bg-white border-[#E5E7EB]"
                   />
                 </div>
               </div>

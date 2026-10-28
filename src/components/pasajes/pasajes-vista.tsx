@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Bus,
   MapPin,
@@ -28,6 +28,8 @@ import {
 import { clienteApi } from "@/lib/cliente-api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
+import { HistorialParadasEstudiante } from "./historial-paradas-estudiante";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -128,10 +130,13 @@ export const obtenerPasosCalles = (texto_calles?: string): string[] => {
  * @component PasajesVista
  * @description Módulo interactivo de declaración y liquidación mensual de pasajes con flujo
  * de 2 pasos (Ida y Vuelta), inversión en reversa, botón "✓ En esta parada", selectores
- * locales La Paz/El Alto, firma digital de supervisor y restricción del día 24 de cada mes.
+ * locales La Paz/El Alto, trazabilidad en sistema y restricción del día 24 de cada mes.
  */
 export function PasajesVista() {
   const { usuario } = usarAutenticacion();
+
+  // Control de vista: declaración de recorrido diario vs historial de paradas
+  const [pestana_modulo, set_pestana_modulo] = useState<"declaracion" | "historial">("declaracion");
 
   // Control de pasos: "ida" | "vuelta"
   const [paso_actual, set_paso_actual] = useState<"ida" | "vuelta">("ida");
@@ -191,12 +196,6 @@ export function PasajesVista() {
     confirmarEliminacionRegistro,
     DialogoConfirmacionInstitucional,
   } = useConfirmacionDialogo();
-
-  // Firma digital del supervisor
-  const [dialogo_firma_abierto, set_dialogo_firma_abierto] = useState<boolean>(false);
-  const [firma_supervisor, set_firma_supervisor] = useState<string | null>(null);
-  const canvas_ref = useRef<HTMLCanvasElement | null>(null);
-  const [esta_dibujando, set_esta_dibujando] = useState<boolean>(false);
 
   // Restricción del día 24:
   // Permitimos conmutador de simulación para verificar en cualquier fecha
@@ -453,56 +452,6 @@ export function PasajesVista() {
     });
   };
 
-  // --- DIBUJO DE CANVAS PARA FIRMA DIGITAL ---
-
-  const iniciarDibujo = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    set_esta_dibujando(true);
-    const canvas = canvas_ref.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const rect = canvas.getBoundingClientRect();
-    ctx.beginPath();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-  };
-
-  const dibujar = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!esta_dibujando) return;
-    const canvas = canvas_ref.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const rect = canvas.getBoundingClientRect();
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = "#035683";
-    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-    ctx.stroke();
-  };
-
-  const detenerDibujo = () => {
-    set_esta_dibujando(false);
-  };
-
-  const limpiarCanvas = () => {
-    const canvas = canvas_ref.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  };
-
-  const guardarFirma = () => {
-    const canvas = canvas_ref.current;
-    if (!canvas) return;
-    const data_url = canvas.toDataURL("image/png");
-    set_firma_supervisor(data_url);
-    set_dialogo_firma_abierto(false);
-    toast.success("Firma digital del supervisor registrada", {
-      description: "Hash biométrico convalidado e incrustado en el expediente mensual.",
-    });
-  };
-
   return (
     <div className="space-y-8">
       {/* Cabecera y Alertas Institucionales */}
@@ -513,24 +462,61 @@ export function PasajesVista() {
             Módulo de Declaración y Liquidación de Pasajes (80%)
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Registro de tramos ida/vuelta, tarifas locales de La Paz y El Alto, y firma digital de supervisión.
+            Registro de tramos ida/vuelta, tarifas locales de La Paz y El Alto, historial de paradas e intervalos.
           </p>
         </div>
 
-        {/* Interruptor de prueba institucional para auditar la regla del Día 24 */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[#E5E7EB] bg-slate-50 shrink-0">
-          <Label htmlFor="switch-dia-24" className="text-[11px] font-mono font-medium text-[#035683] cursor-pointer">
-            Simular Día 24 ({dia_real}/mes)
-          </Label>
-          <Switch
-            id="switch-dia-24"
-            checked={simular_dia_24}
-            onCheckedChange={set_simular_dia_24}
-            className="data-[state=checked]:bg-[#00ABBD]"
-          />
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Selector de Pestañas: Declaración vs Historial de Paradas */}
+          <div className="flex p-1 bg-slate-100 rounded-xl border border-slate-200">
+            <button
+              type="button"
+              onClick={() => set_pestana_modulo("declaracion")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                pestana_modulo === "declaracion"
+                  ? "bg-[#035683] text-white shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Navigation className="w-3.5 h-3.5" />
+              <span>Declarar Recorrido</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => set_pestana_modulo("historial")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                pestana_modulo === "historial"
+                  ? "bg-[#035683] text-white shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Bus className="w-3.5 h-3.5" />
+              <span>Historial de Paradas</span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-[#00ABBD]/20 text-[#00808E]">
+                Intervalo
+              </span>
+            </button>
+          </div>
+
+          {/* Interruptor de prueba institucional para auditar la regla del Día 24 */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[#E5E7EB] bg-slate-50 shrink-0">
+            <Label htmlFor="switch-dia-24" className="text-[11px] font-mono font-medium text-[#035683] cursor-pointer">
+              Simular Día 24 ({dia_real}/mes)
+            </Label>
+            <Switch
+              id="switch-dia-24"
+              checked={simular_dia_24}
+              onCheckedChange={set_simular_dia_24}
+              className="data-[state=checked]:bg-[#00ABBD]"
+            />
+          </div>
         </div>
       </div>
 
+      {pestana_modulo === "historial" ? (
+        <HistorialParadasEstudiante becario_id_inicial={usuario?.becario_id || usuario?.id || 1} />
+      ) : (
+        <>
       {/* DISPOSICIÓN EN 2 COLUMNAS: FORMULARIO DE RUTA (IZQ) Y DETALLE / LIQUIDACIÓN (DER) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* ============================================================== */}
@@ -551,11 +537,10 @@ export function PasajesVista() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Input
-                    type="date"
-                    value={fecha_recorrido}
-                    onChange={(e) => set_fecha_recorrido(e.target.value)}
-                    className="h-8 text-xs font-mono w-32 border-[#E5E7EB]"
+                  <SeleccionadorFecha
+                    valorString={fecha_recorrido}
+                    alCambiarString={(val) => set_fecha_recorrido(val)}
+                    className="h-8 text-xs font-mono w-40 border-[#E5E7EB]"
                   />
                 </div>
               </div>
@@ -1212,39 +1197,25 @@ export function PasajesVista() {
                 </p>
               </div>
 
-              {/* CAJA DE FIRMA DIGITAL DEL SUPERVISOR ("TOCA PARA FIRMAR") */}
+              {/* TARJETA DE TRAZABILIDAD DE REVISIÓN EN SISTEMA */}
               <div>
                 <Label className="text-xs font-mono uppercase font-bold text-muted-foreground block mb-2">
-                  Firma Digital del Supervisor
+                  Trazabilidad de Revisión en Sistema
                 </Label>
-                {firma_supervisor ? (
-                  <div className="p-3 rounded-xl border-2 border-emerald-500/80 bg-emerald-50/40 text-center space-y-1">
-                    <img
-                      src={firma_supervisor}
-                      alt="Firma del Supervisor"
-                      className="h-14 mx-auto object-contain"
-                    />
-                    <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-emerald-800">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                      Firmado Digitalmente por: Carlos Alanoca (Supervisor)
-                    </div>
-                    <p className="text-[10px] font-mono text-muted-foreground">
-                      C.I. 4839201 LP · Hash SHA-256 verificado
-                    </p>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => set_dialogo_firma_abierto(true)}
-                    className="w-full py-5 border-2 border-dashed border-[#E5E7EB] rounded-xl hover:border-[#00ABBD] hover:bg-slate-50/80 text-xs font-bold text-[#035683] flex flex-col items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <PenTool className="w-5 h-5 text-[#00ABBD]" />
-                    <span>Toca para firmar</span>
-                    <span className="text-[10px] text-muted-foreground font-normal">
-                      Acreditación de supervisión de pasajes
+                <div className="p-3.5 rounded-xl border border-[#E5E7EB] bg-slate-50/70 space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#035683] flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-[#00ABBD]" />
+                      Responsable: Carlos Alanoca
                     </span>
-                  </button>
-                )}
+                    <Badge variant="outline" className="text-[10px] font-mono border-amber-300 bg-amber-50 text-amber-800">
+                      Revisión en Sistema
+                    </Badge>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    La revisión y aprobación mensual se registra directamente con trazabilidad de usuario en sistema una vez enviado el formulario.
+                  </p>
+                </div>
               </div>
 
               {/* BOTÓN Y RESTRICCIÓN DEL DÍA 24 */}
@@ -1281,66 +1252,6 @@ export function PasajesVista() {
           </Card>
         </div>
       </div>
-
-      {/* ============================================================== */}
-      {/* DIÁLOGO MODAL: CANVAS PARA FIRMA DIGITAL DEL SUPERVISOR        */}
-      {/* ============================================================== */}
-      <Dialog open={dialogo_firma_abierto} onOpenChange={set_dialogo_firma_abierto}>
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-2xl bg-white border border-[#E5E7EB]">
-          <DialogHeader className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA]">
-            <DialogTitle className="font-display text-base text-[#035683] flex items-center gap-2">
-              <PenTool className="w-4 h-4 text-[#00ABBD]" />
-              Firma Digital del Supervisor
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              Dibuje la rúbrica de supervisión en el recuadro interactivo.
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogBody className="p-5 space-y-4">
-            <div className="border-2 border-dashed border-[#E5E7EB] rounded-xl bg-white p-1">
-              <canvas
-                ref={canvas_ref}
-                width={380}
-                height={160}
-                onMouseDown={iniciarDibujo}
-                onMouseMove={dibujar}
-                onMouseUp={detenerDibujo}
-                onMouseLeave={detenerDibujo}
-                className="w-full h-40 touch-none cursor-crosshair bg-white rounded-lg"
-              />
-            </div>
-            <div className="flex justify-between items-center text-xs text-muted-foreground">
-              <span>Rúbrica válida para convalidación institucional.</span>
-              <button
-                type="button"
-                onClick={limpiarCanvas}
-                className="text-[#E2694B] font-bold hover:underline"
-              >
-                Limpiar trazo
-              </button>
-            </div>
-          </DialogBody>
-
-          <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-slate-50 flex sm:justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => set_dialogo_firma_abierto(false)}
-              className="text-xs border-[#E5E7EB]"
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="button"
-              onClick={guardarFirma}
-              className="bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs"
-            >
-              Convalidar y Guardar Firma
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* ============================================================== */}
       {/* DIÁLOGO MODAL: DETALLE CONECTADO DE CALLES Y TELEFÉRICO        */}
@@ -1547,6 +1458,8 @@ export function PasajesVista() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </>
+      )}
 
       {/* Diálogo de Confirmación Institucional */}
       {DialogoConfirmacionInstitucional}

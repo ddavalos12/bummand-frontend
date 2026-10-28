@@ -74,7 +74,6 @@ import { toast } from "sonner";
 import { CriteriosEvaluacionTabla } from "./criterios-evaluacion-tabla";
 import { SabanaConsolidadoSemestral } from "./sabana-consolidado-semestral";
 import { FormularioF03 } from "./formulario-f03";
-import { FirmaDigital } from "./firma-digital";
 import { EvaluacionSocioeconomicaVista } from "./evaluacion-socioeconomica-vista";
 import { FormularioCargaNotasEstudiante } from "./formulario-carga-notas-estudiante";
 import { BandejaPreEvaluacionSupervisor } from "./bandeja-pre-evaluacion-supervisor";
@@ -313,9 +312,8 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
     socioeconomica: 20,
   });
 
-  // Firma Digital Institucional Canvas
-  const [firma_supervisor, set_firma_supervisor] = useState<string | null>(null);
-  const [dialogo_firma_abierto, set_dialogo_firma_abierto] = useState<boolean>(false);
+  // Convalidación de Acta en Sistema
+  const [acta_convalidada, set_acta_convalidada] = useState<boolean>(false);
 
   // Estados para Diálogos Modales de Vista Previa (Preview)
   const [modal_preview_f03_abierto, set_modal_preview_f03_abierto] = useState<boolean>(false);
@@ -724,13 +722,13 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                     5 / 5 <span className="text-sm font-normal text-muted-foreground">módulos</span>
                   </h3>
                   <div className="pt-0.5">
-                    {firma_supervisor ? (
+                    {acta_convalidada ? (
                       <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-xs py-0.5">
-                        <CheckCircle2 className="w-3 h-3 mr-1" /> Convalidado
+                        <CheckCircle2 className="w-3 h-3 mr-1" /> Convalidado en Sistema
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50 font-bold text-[10px]">
-                        Firma Digital Pendiente
+                        Pendiente de Convalidación
                       </Badge>
                     )}
                   </div>
@@ -757,32 +755,22 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
 
               {(es_admin || es_supervisor) && (
                 <Button
-                  onClick={() => set_dialogo_firma_abierto(true)}
+                  onClick={() => {
+                    set_acta_convalidada(true);
+                    toast.success("Acta semestral convalidada en sistema", {
+                      description: "El consolidado semestral ha sido acreditado formalmente con trazabilidad de sistema.",
+                    });
+                  }}
                   className="h-9 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs shrink-0"
                 >
                   <ShieldCheck className="w-4 h-4 text-[#FFB600]" />
-                  Convalidar Acta con Firma Digital
+                  {acta_convalidada ? "Acta Convalidada en Sistema" : "Convalidar Acta en Sistema"}
                 </Button>
               )}
             </div>
 
             <SabanaConsolidadoSemestral />
           </div>
-
-          {/* Modal de Firma Digital Canvas */}
-          <Dialog open={dialogo_firma_abierto} onOpenChange={set_dialogo_firma_abierto}>
-            <DialogContent className="sm:max-w-[450px] p-0 border-none bg-transparent shadow-none">
-              <FirmaDigital
-                alFirmar={(_b64) => {
-                  set_firma_supervisor(_b64);
-                  set_dialogo_firma_abierto(false);
-                  toast.success("Firma institucional convalidada correctamente", {
-                    description: "El acta semestral consolidada ha sido sellada formalmente.",
-                  });
-                }}
-              />
-            </DialogContent>
-          </Dialog>
         </div>
       )}
 
@@ -925,7 +913,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                       Vista Previa Interactiva: Formulario F-03 Ministerial
                     </DialogTitle>
                     <DialogDescription className="text-xs text-muted-foreground">
-                      Esta es la interfaz y flujo exacto que el pastor o supervisor utiliza para responder y emitir la acreditación firmada.
+                      Esta es la interfaz y flujo exacto que el pastor o supervisor utiliza para responder y emitir la acreditación institucional.
                     </DialogDescription>
                   </div>
                   <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-800 text-[10px] font-bold">
@@ -1330,7 +1318,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
 
                 <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-white flex sm:justify-between items-center">
                   <span className="text-[11px] text-muted-foreground">
-                    Verificación de firma institucional BUMAND
+                    Verificación y trazabilidad institucional BUMAND
                   </span>
                   <div className="flex items-center gap-2">
                     {visor_documento.url && (

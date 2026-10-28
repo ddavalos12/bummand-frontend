@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -301,10 +302,9 @@ export function DialogoJustificarFalta({
               <Label className="text-xs font-semibold text-[#035683] block mb-1">
                 Fecha del Suceso
               </Label>
-              <Input
-                type="date"
-                value={fecha_incidencia}
-                onChange={(e) => set_fecha_incidencia(e.target.value)}
+              <SeleccionadorFecha
+                valorString={fecha_incidencia}
+                alCambiarString={(val) => set_fecha_incidencia(val)}
                 className="text-xs h-9 rounded-xl border-[#E5E7EB] bg-white"
               />
             </div>

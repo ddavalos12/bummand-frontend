@@ -2649,16 +2649,16 @@ export function PanelControlVista() {
                   <Badge
                     variant="outline"
                     className={
-                      horas_semanales_asignadas_calculadas >= 16 && horas_semanales_asignadas_calculadas <= 20
+                      horas_semanales_asignadas_calculadas >= 9
                         ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold"
                         : "bg-amber-50 text-amber-800 border-amber-300 font-bold"
                     }
                   >
-                    {horas_semanales_asignadas_calculadas >= 16 && horas_semanales_asignadas_calculadas <= 20
-                      ? "Óptimo (16h a 20h)"
-                      : horas_semanales_asignadas_calculadas < 16
-                      ? "Carga Parcial (<16h)"
-                      : "Sobrecarga (>20h)"}
+                    {horas_semanales_asignadas_calculadas > 9
+                      ? `Meta Superada (≥9h/sem · Meta: 36 hrs/mes)`
+                      : horas_semanales_asignadas_calculadas === 9
+                      ? "Meta Cumplida (9h/sem · 36 hrs/mes)"
+                      : "Carga Parcial (<9h/sem · Meta: 36 hrs/mes)"}
                   </Badge>
                 </div>
 

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
 import {
   Dialog,
   DialogBody,
@@ -340,10 +341,9 @@ export function GestionTarifas() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs font-semibold">Vigente Desde (Fecha)</Label>
-                <Input
-                  type="date"
-                  value={vigente_desde}
-                  onChange={(e) => set_vigente_desde(e.target.value)}
+                <SeleccionadorFecha
+                  valorString={vigente_desde}
+                  alCambiarString={(val) => set_vigente_desde(val)}
                   className="mt-1 font-mono text-xs"
                 />
                 <span className="text-[10px] text-muted-foreground">
@@ -353,10 +353,9 @@ export function GestionTarifas() {
 
               <div>
                 <Label className="text-xs font-semibold">Vigente Hasta (Opcional)</Label>
-                <Input
-                  type="date"
-                  value={vigente_hasta}
-                  onChange={(e) => set_vigente_hasta(e.target.value)}
+                <SeleccionadorFecha
+                  valorString={vigente_hasta}
+                  alCambiarString={(val) => set_vigente_hasta(val)}
                   className="mt-1 font-mono text-xs"
                 />
                 <span className="text-[10px] text-muted-foreground">

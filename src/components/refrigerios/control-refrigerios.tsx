@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -25,6 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -405,13 +406,13 @@ export function ControlRefrigerios() {
           <div>
             <div class="firma-linea">
               <strong>${reg.responsable_entrega}</strong><br/>
-              Supervisor / Responsable de Entrega
+              Supervisor / Responsable de Entrega (Trazabilidad en Sistema)
             </div>
           </div>
           <div>
             <div class="firma-linea">
               <strong>Lic. Administración y Finanzas</strong><br/>
-              Firma y Sello de Autorización
+              Revisión y Autorización en Sistema
             </div>
           </div>
         </div>
@@ -485,11 +486,9 @@ export function ControlRefrigerios() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <Label className="text-xs font-semibold">Fecha de Entrega</Label>
-                    <Input
-                      type="date"
-                      value={nueva_fecha}
-                      onChange={(e) => set_nueva_fecha(e.target.value)}
-                      required
+                    <SeleccionadorFecha
+                      valorString={nueva_fecha}
+                      alCambiarString={(val) => set_nueva_fecha(val)}
                       className="h-9 text-xs border-[#E5E7EB]"
                     />
                   </div>
@@ -687,7 +686,7 @@ export function ControlRefrigerios() {
           <div className="text-3xl font-bold font-display text-amber-600">
             <ContadorRodilloAnimado valor={raciones_pendientes} sufijo=" planillas" />
           </div>
-          <p className="text-[11px] text-amber-700 font-medium">Requieren descargo y firma</p>
+          <p className="text-[11px] text-amber-700 font-medium">Requieren descargo y revisión</p>
         </TarjetaSpotlight>
       </div>
 

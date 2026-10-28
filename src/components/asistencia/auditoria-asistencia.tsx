@@ -34,6 +34,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -328,29 +329,29 @@ export interface HorasMensualesBecario {
 }
 
 export const REGISTROS_HORAS_MENSUALES_INICIALES: HorasMensualesBecario[] = [
-  { id: 1, becario_id: 1, nombre: "Adai Belen Huayta Cardozo", ci: "13696496", carrera: "Estadística", sede: "Oficina Central Bloque B", mes: "2026-10", horas_realizadas: 39.5, meta_horas: 40.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 2, becario_id: 2, nombre: "Daniel Davalos Quiñonez", ci: "9107373", carrera: "Informática", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 40.0, meta_horas: 40.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 3, becario_id: 3, nombre: "Edgar Elías Alarcon Huanca", ci: "9160054", carrera: "Medicina", sede: "Consultorio Médico San Lucas", mes: "2026-10", horas_realizadas: 38.0, meta_horas: 40.0, dias_asistidos: 9, tardanzas_viernes: 1, multas_acumuladas_bs: 20, estado_meta: "en_progreso" },
-  { id: 4, becario_id: 4, nombre: "Nilda Amalia Churata Paye", ci: "10028341", carrera: "Educación Parvularia", sede: "Centro Infantil Sagrada Familia", mes: "2026-10", horas_realizadas: 42.0, meta_horas: 40.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 5, becario_id: 5, nombre: "Alejandro Roberth Paredes Tarquino", ci: "10064956", carrera: "Comunicación Social", sede: "Sucursal Juan Pablo II", mes: "2026-10", horas_realizadas: 37.5, meta_horas: 40.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "en_progreso" },
-  { id: 6, becario_id: 6, nombre: "Aydee Ruth Ali Condori", ci: "9952878", carrera: "Contaduría Pública", sede: "Agencia Villa Dolores", mes: "2026-10", horas_realizadas: 41.0, meta_horas: 40.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 7, becario_id: 7, nombre: "Carlos Oscar Luna Lizarraga", ci: "9943280", carrera: "Economía", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 34.0, meta_horas: 40.0, dias_asistidos: 8, tardanzas_viernes: 1, multas_acumuladas_bs: 20, estado_meta: "en_riesgo" },
-  { id: 8, becario_id: 8, nombre: "Isaías Daniel Herrera Mamani", ci: "10920862", carrera: "Arquitectura", sede: "Oficina Central Bloque B", mes: "2026-10", horas_realizadas: 38.5, meta_horas: 40.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "en_progreso" },
-  { id: 9, becario_id: 9, nombre: "José Marcos Suñagua Quispe", ci: "14378720", carrera: "Informática", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 40.5, meta_horas: 40.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 10, becario_id: 10, nombre: "Mariela Dayana Jimenez Chambi", ci: "12959656", carrera: "Contaduría Pública", sede: "Agencia Villa Dolores", mes: "2026-10", horas_realizadas: 36.0, meta_horas: 40.0, dias_asistidos: 9, tardanzas_viernes: 1, multas_acumuladas_bs: 10, estado_meta: "en_progreso" },
-  { id: 11, becario_id: 11, nombre: "Mayherli Alejandra Loza Villalobos", ci: "9925727", carrera: "Contaduría Pública", sede: "Sucursal Villa Adela", mes: "2026-10", horas_realizadas: 39.0, meta_horas: 40.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 12, becario_id: 12, nombre: "Noemi Callisaya Alvarez", ci: "7093658", carrera: "Psicomotricidad y Deportes", sede: "Centro Infantil Sagrada Familia", mes: "2026-10", horas_realizadas: 40.0, meta_horas: 40.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 13, becario_id: 13, nombre: "Ronald Mauricio Quiquijana Mayta", ci: "6172054", carrera: "Ingeniería en Telecomunicaciones", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 42.5, meta_horas: 40.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 14, becario_id: 14, nombre: "Ruddy Flores Tapia", ci: "9974211", carrera: "Informática", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 38.0, meta_horas: 40.0, dias_asistidos: 9, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "en_progreso" },
-  { id: 15, becario_id: 15, nombre: "Gonzalo Valencia Laura", ci: "8416501", carrera: "Contaduría Pública", sede: "Agencia Villa Dolores", mes: "2026-10", horas_realizadas: 35.0, meta_horas: 40.0, dias_asistidos: 9, tardanzas_viernes: 1, multas_acumuladas_bs: 30, estado_meta: "en_riesgo" },
-  { id: 16, becario_id: 16, nombre: "Gustavo Ariel Condori Montaño", ci: "13088041", carrera: "Contaduría Pública", sede: "Oficina Central Bloque B", mes: "2026-10", horas_realizadas: 39.0, meta_horas: 40.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 17, becario_id: 17, nombre: "Lisbeth Pacasi Machaca", ci: "13603536", carrera: "Bioquímica y Farmacia", sede: "Consultorio Médico San Lucas", mes: "2026-10", horas_realizadas: 41.5, meta_horas: 40.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 18, becario_id: 18, nombre: "Selena Fernanda Pillco Mamani", ci: "13693151", carrera: "Economía", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 40.0, meta_horas: 40.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 19, becario_id: 19, nombre: "Milenka Quispe Coarite", ci: "14155448", carrera: "Administración de Empresas", sede: "Sucursal Juan Pablo II", mes: "2026-10", horas_realizadas: 37.0, meta_horas: 40.0, dias_asistidos: 9, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "en_progreso" },
-  { id: 20, becario_id: 20, nombre: "Joselin Wara Huanca Paucara", ci: "12604724", carrera: "Contaduría Pública", sede: "Agencia Villa Dolores", mes: "2026-10", horas_realizadas: 38.5, meta_horas: 40.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "en_progreso" },
-  { id: 21, becario_id: 21, nombre: "Johan Ludving Misme Flores", ci: "9208456", carrera: "Informática", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 39.0, meta_horas: 40.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 22, becario_id: 22, nombre: "Matias Jose Uri Flores", ci: "13627440", carrera: "Lingüística e Idiomas", sede: "Oficina Central Bloque B", mes: "2026-10", horas_realizadas: 40.0, meta_horas: 40.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 23, becario_id: 23, nombre: "Mateo Miguel Cussi Flores", ci: "8411610", carrera: "Informática", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 38.5, meta_horas: 40.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "en_progreso" },
+  { id: 1, becario_id: 1, nombre: "Adai Belen Huayta Cardozo", ci: "13696496", carrera: "Estadística", sede: "Oficina Central Bloque B", mes: "2026-10", horas_realizadas: 39.5, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
+  { id: 2, becario_id: 2, nombre: "Daniel Davalos Quiñonez", ci: "9107373", carrera: "Informática", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 40.0, meta_horas: 36.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
+  { id: 3, becario_id: 3, nombre: "Edgar Elías Alarcon Huanca", ci: "9160054", carrera: "Medicina", sede: "Consultorio Médico San Lucas", mes: "2026-10", horas_realizadas: 38.0, meta_horas: 36.0, dias_asistidos: 9, tardanzas_viernes: 1, multas_acumuladas_bs: 20, estado_meta: "cumplido" },
+  { id: 4, becario_id: 4, nombre: "Nilda Amalia Churata Paye", ci: "10028341", carrera: "Educación Parvularia", sede: "Centro Infantil Sagrada Familia", mes: "2026-10", horas_realizadas: 42.0, meta_horas: 36.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
+  { id: 5, becario_id: 5, nombre: "Alejandro Roberth Paredes Tarquino", ci: "10064956", carrera: "Comunicación Social", sede: "Sucursal Juan Pablo II", mes: "2026-10", horas_realizadas: 37.5, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
+  { id: 6, becario_id: 6, nombre: "Aydee Ruth Ali Condori", ci: "9952878", carrera: "Contaduría Pública", sede: "Agencia Villa Dolores", mes: "2026-10", horas_realizadas: 41.0, meta_horas: 36.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
+  { id: 7, becario_id: 7, nombre: "Carlos Oscar Luna Lizarraga", ci: "9943280", carrera: "Economía", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 34.0, meta_horas: 36.0, dias_asistidos: 8, tardanzas_viernes: 1, multas_acumuladas_bs: 20, estado_meta: "en_progreso" },
+  { id: 8, becario_id: 8, nombre: "Isaías Daniel Herrera Mamani", ci: "10920862", carrera: "Arquitectura", sede: "Oficina Central Bloque B", mes: "2026-10", horas_realizadas: 38.5, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
+  { id: 9, becario_id: 9, nombre: "José Marcos Suñagua Quispe", ci: "14378720", carrera: "Informática", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 40.5, meta_horas: 36.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
+  { id: 10, becario_id: 10, nombre: "Mariela Dayana Jimenez Chambi", ci: "12959656", carrera: "Contaduría Pública", sede: "Agencia Villa Dolores", mes: "2026-10", horas_realizadas: 36.0, meta_horas: 36.0, dias_asistidos: 9, tardanzas_viernes: 1, multas_acumuladas_bs: 10, estado_meta: "cumplido" },
+  { id: 11, becario_id: 11, nombre: "Mayherli Alejandra Loza Villalobos", ci: "9925727", carrera: "Contaduría Pública", sede: "Sucursal Villa Adela", mes: "2026-10", horas_realizadas: 39.0, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
+  { id: 12, becario_id: 12, nombre: "Noemi Callisaya Alvarez", ci: "7093658", carrera: "Psicomotricidad y Deportes", sede: "Centro Infantil Sagrada Familia", mes: "2026-10", horas_realizadas: 40.0, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
+  { id: 13, becario_id: 13, nombre: "Ronald Mauricio Quiquijana Mayta", ci: "6172054", carrera: "Ingeniería en Telecomunicaciones", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 42.5, meta_horas: 36.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
+  { id: 14, becario_id: 14, nombre: "Ruddy Flores Tapia", ci: "9974211", carrera: "Informática", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 38.0, meta_horas: 36.0, dias_asistidos: 9, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
+  { id: 15, becario_id: 15, nombre: "Gonzalo Valencia Laura", ci: "8416501", carrera: "Contaduría Pública", sede: "Agencia Villa Dolores", mes: "2026-10", horas_realizadas: 35.0, meta_horas: 36.0, dias_asistidos: 9, tardanzas_viernes: 1, multas_acumuladas_bs: 30, estado_meta: "en_progreso" },
+  { id: 16, becario_id: 16, nombre: "Gustavo Ariel Condori Montaño", ci: "13088041", carrera: "Contaduría Pública", sede: "Oficina Central Bloque B", mes: "2026-10", horas_realizadas: 39.0, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
+  { id: 17, becario_id: 17, nombre: "Lisbeth Pacasi Machaca", ci: "13603536", carrera: "Bioquímica y Farmacia", sede: "Consultorio Médico San Lucas", mes: "2026-10", horas_realizadas: 41.5, meta_horas: 36.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
+  { id: 18, becario_id: 18, nombre: "Selena Fernanda Pillco Mamani", ci: "13693151", carrera: "Economía", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 40.0, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
+  { id: 19, becario_id: 19, nombre: "Milenka Quispe Coarite", ci: "14155448", carrera: "Administración de Empresas", sede: "Sucursal Juan Pablo II", mes: "2026-10", horas_realizadas: 37.0, meta_horas: 36.0, dias_asistidos: 9, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
+  { id: 20, becario_id: 20, nombre: "Joselin Wara Huanca Paucara", ci: "12604724", carrera: "Contaduría Pública", sede: "Agencia Villa Dolores", mes: "2026-10", horas_realizadas: 38.5, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
+  { id: 21, becario_id: 21, nombre: "Johan Ludving Misme Flores", ci: "9208456", carrera: "Informática", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 39.0, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
+  { id: 22, becario_id: 22, nombre: "Matias Jose Uri Flores", ci: "13627440", carrera: "Lingüística e Idiomas", sede: "Oficina Central Bloque B", mes: "2026-10", horas_realizadas: 40.0, meta_horas: 36.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
+  { id: 23, becario_id: 23, nombre: "Mateo Miguel Cussi Flores", ci: "8411610", carrera: "Informática", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 38.5, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
 ];
 
 interface AuditoriaAsistenciaProps {
@@ -438,14 +439,16 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             sede: item.becario?.lugar_practica?.nombre || item.sede || "Sede Diaconía",
             mes: mes_seleccionado,
             horas_realizadas: Number(item.horas_realizadas || item.total_horas || 0),
-            meta_horas: Number(item.meta_horas || 40.0),
+            meta_horas: Number(item.meta_horas || 36.0),
             dias_asistidos: Number(item.dias_asistidos || 10),
             tardanzas_viernes: Number(item.tardanzas_viernes || 0),
             multas_acumuladas_bs: Number(item.multas_acumuladas_bs || 0),
             estado_meta: (item.estado_meta ||
-              (Number(item.horas_realizadas || 0) >= Number(item.meta_horas || 40)
+              (Number(item.horas_realizadas || 0) >= Number(item.meta_horas || 36)
                 ? "cumplido"
-                : "en_progreso")) as any,
+                : Number(item.horas_realizadas || 0) >= 27
+                ? "en_progreso"
+                : "en_riesgo")) as any,
           }));
         }
       } catch {
@@ -1260,7 +1263,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   decimales={1}
                 />
               </div>
-              <p className="text-[11px] text-emerald-700 font-medium">Meta estándar: 40.0 hrs/mes</p>
+              <p className="text-[11px] text-emerald-700 font-medium">Meta estándar: 36.0 hrs/mes (9h/sem flexibles)</p>
             </TarjetaSpotlight>
 
             <TarjetaSpotlight
@@ -1327,9 +1330,9 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                 </SelectTrigger>
                 <SelectContent className="bg-white border-[#E5E7EB] z-[100]">
                   <SelectItem value="todos">Todos los Estados</SelectItem>
-                  <SelectItem value="cumplido">Meta Cumplida (≥40 hrs)</SelectItem>
-                  <SelectItem value="en_progreso">En Progreso (80% a 99%)</SelectItem>
-                  <SelectItem value="en_riesgo">En Riesgo (&lt;80%)</SelectItem>
+                  <SelectItem value="cumplido">Meta Cumplida (≥36 hrs)</SelectItem>
+                  <SelectItem value="en_progreso">En Progreso (27 a 35.9 hrs)</SelectItem>
+                  <SelectItem value="en_riesgo">En Riesgo (&lt;27 hrs)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1386,10 +1389,11 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                         return coincide && estado;
                       })
                       .map((item) => {
-                        const porcentaje = Math.min(
-                          100,
-                          Math.round((item.horas_realizadas / item.meta_horas) * 100)
+                        const porcentaje_real = Math.round(
+                          (item.horas_realizadas / item.meta_horas) * 100
                         );
+                        const porcentaje_barra = Math.min(100, porcentaje_real);
+                        const excedente_horas = item.horas_realizadas - item.meta_horas;
                         return (
                           <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                             <td className="py-3.5 px-4">
@@ -1421,10 +1425,10 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                                     {item.horas_realizadas.toFixed(1)} hrs
                                   </span>
                                   <span className="text-muted-foreground">
-                                    / {item.meta_horas.toFixed(1)} hrs ({porcentaje}%)
+                                    / {item.meta_horas.toFixed(1)} hrs ({porcentaje_real}%)
                                   </span>
                                 </div>
-                                <Progress value={porcentaje} className="h-2 bg-slate-100" />
+                                <Progress value={porcentaje_barra} className="h-2 bg-slate-100" />
                               </div>
                             </td>
                             <td className="py-3.5 px-3 font-mono font-bold text-center text-[#035683]">
@@ -1446,17 +1450,21 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                               )}
                             </td>
                             <td className="py-3.5 px-3 text-center">
-                              {item.estado_meta === "cumplido" ? (
+                              {excedente_horas > 0 ? (
                                 <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-[10px]">
-                                  CUMPLIDO
+                                  Meta Superada (+{excedente_horas.toFixed(1)} hrs)
                                 </Badge>
-                              ) : item.estado_meta === "en_progreso" ? (
+                              ) : item.horas_realizadas === item.meta_horas ? (
+                                <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-[10px]">
+                                  Meta Cumplida (36.0 hrs)
+                                </Badge>
+                              ) : item.horas_realizadas >= 27 ? (
                                 <Badge className="bg-amber-100 text-amber-800 border-amber-300 font-bold text-[10px]">
-                                  EN PROGRESO
+                                  En Progreso
                                 </Badge>
                               ) : (
                                 <Badge className="bg-rose-100 text-rose-800 border-rose-300 font-bold text-[10px]">
-                                  EN RIESGO
+                                  En Riesgo (&lt;27 hrs)
                                 </Badge>
                               )}
                             </td>
@@ -1520,7 +1528,13 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                     <div>
                       <span className="text-muted-foreground block">Horas Realizadas:</span>
                       <strong className="text-[#035683] text-sm">
-                        {becario_detalle_mensual.horas_realizadas.toFixed(1)} hrs
+                        {becario_detalle_mensual.horas_realizadas.toFixed(1)} hrs (
+                        {Math.round(
+                          (becario_detalle_mensual.horas_realizadas /
+                            becario_detalle_mensual.meta_horas) *
+                            100
+                        )}
+                        %)
                       </strong>
                     </div>
                     <div>
@@ -1535,6 +1549,39 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                         Bs {becario_detalle_mensual.multas_acumuladas_bs.toFixed(2)}
                       </strong>
                     </div>
+                  </div>
+                  <div className="pt-2 space-y-1.5">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-muted-foreground font-medium">Cumplimiento de Meta (9h/sem flexibles):</span>
+                      {becario_detalle_mensual.horas_realizadas > becario_detalle_mensual.meta_horas ? (
+                        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-[10px]">
+                          Meta Superada (+{(becario_detalle_mensual.horas_realizadas - becario_detalle_mensual.meta_horas).toFixed(1)} hrs)
+                        </Badge>
+                      ) : becario_detalle_mensual.horas_realizadas === becario_detalle_mensual.meta_horas ? (
+                        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-[10px]">
+                          Meta Cumplida (36.0 hrs)
+                        </Badge>
+                      ) : becario_detalle_mensual.horas_realizadas >= 27 ? (
+                        <Badge className="bg-amber-100 text-amber-800 border-amber-300 font-bold text-[10px]">
+                          En Progreso
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-rose-100 text-rose-800 border-rose-300 font-bold text-[10px]">
+                          En Riesgo (&lt;27 hrs)
+                        </Badge>
+                      )}
+                    </div>
+                    <Progress
+                      value={Math.min(
+                        100,
+                        Math.round(
+                          (becario_detalle_mensual.horas_realizadas /
+                            becario_detalle_mensual.meta_horas) *
+                            100
+                        )
+                      )}
+                      className="h-2 bg-slate-200"
+                    />
                   </div>
                 </div>
 
@@ -1651,7 +1698,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
               onClick={manejarConvalidar}
               className="bg-[#035683] hover:bg-[#035683]/90 text-white rounded-xl font-bold text-xs shadow-sm"
             >
-              Firmar Convalidación
+              Confirmar Convalidación
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2080,11 +2127,10 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                 <Label htmlFor="manual-fecha" className="font-bold text-[#035683] text-xs">
                   Fecha
                 </Label>
-                <Input
+                <SeleccionadorFecha
                   id="manual-fecha"
-                  type="date"
-                  value={manual_fecha}
-                  onChange={(e) => set_manual_fecha(e.target.value)}
+                  valorString={manual_fecha}
+                  alCambiarString={(val) => set_manual_fecha(val)}
                   className="h-10 text-xs rounded-xl border-[#E5E7EB]"
                 />
               </div>

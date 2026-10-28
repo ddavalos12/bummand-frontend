@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -57,6 +57,7 @@ import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { RafagaCelebracion } from "@/components/animaciones";
 import { RegistroRecorrido } from "./registro-recorrido";
 import { GestionTarifas } from "./gestion-tarifas";
+import { HistorialParadasEstudiante } from "./historial-paradas-estudiante";
 
 export interface RecorridoItem {
   id: number;
@@ -89,7 +90,6 @@ export interface SolicitudPasajeVista {
   monto_devolucion_centavos: number;
   estado: "pendiente" | "aprobado" | "rechazado";
   observaciones?: string;
-  firma_supervisor?: string | null;
   fecha_envio: string;
   recorridos: RecorridoItem[];
 }
@@ -212,16 +212,12 @@ export function AprobacionPasajes() {
   const [modal_declarar_abierto, set_modal_declarar_abierto] = useState(false);
   const [texto_observacion, set_texto_observacion] = useState("");
   const [error_rechazo, set_error_rechazo] = useState("");
-  const [dialogo_firma_abierto, set_dialogo_firma_abierto] = useState(false);
-  const [dibujando, set_dibujando] = useState(false);
   const [celebrando, set_celebrando] = useState(false);
-  const [subpestana, set_subpestana] = useState<"planillas" | "detalle" | "tarifario">("planillas");
+  const [subpestana, set_subpestana] = useState<"planillas" | "detalle" | "tarifario" | "historial_paradas">("planillas");
   const [filtro_estado, set_filtro_estado] = useState<"todos" | "pendientes" | "aprobados">("todos");
   const [subpestaña_detalle, set_subpestaña_detalle] = useState<"recorridos" | "firma">("recorridos");
   const [vista_dividida, set_vista_dividida] = useState<boolean>(false);
   const [descargando_pdf, set_descargando_pdf] = useState<boolean>(false);
-
-  const canvas_ref = useRef<HTMLCanvasElement | null>(null);
 
   const descargarExpedientePdf = async (item: SolicitudPasajeVista) => {
     try {
@@ -352,7 +348,6 @@ export function AprobacionPasajes() {
             ? {
                 ...s,
                 estado: "aprobado",
-                firma_supervisor: "HASH_VERIFICADO_SUPERVISOR_2026",
                 observaciones: "Aprobado conforme por tutor",
               }
             : s
@@ -402,91 +397,6 @@ export function AprobacionPasajes() {
       description: `Se registró la observación institucional para ${solicitud_activa?.becario_nombre || ""}.`,
     });
     set_modal_observacion(false);
-  };
-
-  // --- LÓGICA DE FIRMA DIGITAL EN CANVAS ---
-  const obtenerCoordenadas = (
-    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
-  ) => {
-    const canvas = canvas_ref.current;
-    if (!canvas) return { x: 0, y: 0 };
-    const rect = canvas.getBoundingClientRect();
-    if ("touches" in e) {
-      return {
-        x: e.touches[0].clientX - rect.left,
-        y: e.touches[0].clientY - rect.top,
-      };
-    }
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    };
-  };
-
-  const empezarDibujo = (
-    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
-  ) => {
-    const canvas = canvas_ref.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const { x, y } = obtenerCoordenadas(e);
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineWidth = 2.2;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = "#035683";
-    set_dibujando(true);
-  };
-
-  const dibujar = (
-    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
-  ) => {
-    if (!dibujando) return;
-    const canvas = canvas_ref.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const { x, y } = obtenerCoordenadas(e);
-    ctx.lineTo(x, y);
-    ctx.stroke();
-  };
-
-  const terminarDibujo = () => {
-    set_dibujando(false);
-  };
-
-  const limpiarFirma = () => {
-    const canvas = canvas_ref.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  };
-
-  const guardarFirmaModal = () => {
-    if (!solicitud_activa) return;
-    const canvas = canvas_ref.current;
-    if (!canvas) return;
-    const data_url = canvas.toDataURL("image/png");
-
-    set_solicitudes_locales((prev) =>
-      prev.map((s) =>
-        s.id === solicitud_activa.id
-          ? {
-              ...s,
-              firma_supervisor: data_url,
-              estado: "aprobado",
-            }
-          : s
-      )
-    );
-
-    set_dialogo_firma_abierto(false);
-    set_celebrando(true);
-    toast.success("Firma digital registrada y planilla aprobada", {
-      description: "Hash biométrico convalidado e incrustado en el expediente mensual.",
-    });
   };
 
   const renderizarDetalleCard = (con_boton_volver = true) => !solicitud_activa ? (
@@ -573,6 +483,18 @@ export function AprobacionPasajes() {
               <span>Expediente PDF</span>
             </Button>
 
+            {/* Acceso directo a Historial de Paradas e Intervalo */}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => set_subpestana("historial_paradas")}
+              className="h-8 px-2.5 text-xs font-bold border-[#00ABBD] text-[#00808E] hover:bg-[#00ABBD]/10 rounded-xl gap-1.5 shadow-2xs"
+              title="Ver el historial cronológico de paradas del estudiante en intervalos de tiempo"
+            >
+              <Bus className="w-3.5 h-3.5 text-[#00ABBD]" />
+              <span>Ver Paradas</span>
+            </Button>
+
             {solicitud_activa.estado === "pendiente" ? (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#FBF4E4] text-[#92400E] border border-[#FDE68A]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
@@ -655,9 +577,9 @@ export function AprobacionPasajes() {
                 : "border-transparent text-slate-500 hover:text-slate-800"
             }`}
           >
-            <PenTool className="w-3.5 h-3.5 text-[#00ABBD]" />
-            <span>Ficha y Firma Digital</span>
-            {solicitud_activa.firma_supervisor ? (
+            <FileText className="w-3.5 h-3.5 text-[#00ABBD]" />
+            <span>Ficha de Revisión</span>
+            {solicitud_activa.estado === "aprobado" ? (
               <Badge className="bg-emerald-100 text-emerald-800 font-mono text-[10px] ml-1">
                 Convalidado
               </Badge>
@@ -719,20 +641,20 @@ export function AprobacionPasajes() {
               </div>
             </div>
 
-            {/* Sección de Firma Digital */}
+            {/* Trazabilidad de Revisión y Aprobación en Sistema */}
             <div className="space-y-2">
               <Label className="text-xs font-semibold text-slate-600">
-                Firma digital del supervisor / tutor
+                Trazabilidad de Revisión y Aprobación en Sistema
               </Label>
 
-              {solicitud_activa.firma_supervisor ? (
+              {solicitud_activa.estado === "aprobado" ? (
                 <div className="w-full p-4 rounded-xl border border-emerald-300 bg-emerald-50/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                   <div className="flex items-center gap-2 text-emerald-800">
                     <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                     <div>
-                      <p className="font-bold">Firma convalidada digitalmente</p>
+                      <p className="font-bold">Planilla revisada y aprobada en sistema</p>
                       <p className="text-[10px] text-emerald-600 font-mono">
-                        Hash institucional: {solicitud_activa.firma_supervisor.slice(0, 24)}...
+                        Responsable: {solicitud_activa.responsable_mentor} · Registro de auditoría institucional
                       </p>
                     </div>
                   </div>
@@ -742,26 +664,21 @@ export function AprobacionPasajes() {
                   </Badge>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  <button
-                    type="button"
-                    onClick={() => set_dialogo_firma_abierto(true)}
-                    className="w-full h-24 rounded-xl border-2 border-dashed border-slate-300 hover:border-[#00ABBD] bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col items-center justify-center gap-1.5 text-slate-400 hover:text-[#035683] cursor-pointer group"
-                  >
-                    <PenTool className="w-4 h-4 text-slate-400 group-hover:text-[#00ABBD] transition-colors" />
-                    <span className="text-xs font-mono font-medium">Toca para asentar rúbrica digital</span>
-                  </button>
-
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => manejarAprobar(solicitud_activa.id)}
-                      className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold py-2 px-4 rounded-xl shadow-xs"
-                    >
-                      <Check className="w-3.5 h-3.5 mr-1.5" />
-                      Aprobar Planilla Directamente
-                    </Button>
+                <div className="p-4 rounded-xl border border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="text-xs space-y-0.5">
+                    <p className="font-bold text-slate-800">Pendiente de revisión por el tutor / supervisor</p>
+                    <p className="text-slate-500">
+                      Al aprobar, se registrará la trazabilidad institucional del usuario en sistema para habilitar la devolución del 80%.
+                    </p>
                   </div>
+                  <Button
+                    size="sm"
+                    onClick={() => manejarAprobar(solicitud_activa.id)}
+                    className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold py-2 px-4 rounded-xl shadow-xs shrink-0"
+                  >
+                    <Check className="w-3.5 h-3.5 mr-1.5" />
+                    Confirmar y Aprobar Planilla en Sistema
+                  </Button>
                 </div>
               )}
             </div>
@@ -876,6 +793,22 @@ export function AprobacionPasajes() {
               <Route className="w-3.5 h-3.5" />
               <span>Tarifario Regulado</span>
             </button>
+
+            <button
+              type="button"
+              onClick={() => set_subpestana("historial_paradas")}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
+                subpestana === "historial_paradas"
+                  ? "bg-[#035683] text-white shadow-xs"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+              }`}
+            >
+              <Bus className="w-3.5 h-3.5" />
+              <span>Historial de Paradas</span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-[#00ABBD]/20 text-[#00808E]">
+                Intervalo
+              </span>
+            </button>
           </div>
 
           <div className="flex items-center gap-2 self-start sm:self-auto">
@@ -895,7 +828,9 @@ export function AprobacionPasajes() {
         </div>
       )}
 
-      {subpestana === "tarifario" ? (
+      {subpestana === "historial_paradas" ? (
+        <HistorialParadasEstudiante becario_id_inicial={solicitud_activa?.becario_id || 1} />
+      ) : subpestana === "tarifario" ? (
         <GestionTarifas />
       ) : subpestana === "detalle" ? (
         renderizarDetalleCard(true)
@@ -1111,72 +1046,6 @@ export function AprobacionPasajes() {
           {vista_dividida && renderizarDetalleCard(false)}
         </div>
       )}
-
-      {/* ============================================================== */}
-      {/* DIÁLOGO MODAL: CANVAS PARA FIRMA DIGITAL DEL SUPERVISOR        */}
-      {/* ============================================================== */}
-      <Dialog open={dialogo_firma_abierto} onOpenChange={set_dialogo_firma_abierto}>
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-2xl bg-white border border-[#E5E7EB]">
-          <DialogHeader className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA]">
-            <DialogTitle className="font-display text-base text-[#035683] flex items-center gap-2">
-              <PenTool className="w-4 h-4 text-[#00ABBD]" />
-              Firma Digital de Aprobación
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              Asiente su rúbrica para certificar la liquidación del 80% correspondiente a {solicitud_activa?.becario_nombre || "la solicitud"}.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="p-5 space-y-4">
-            <div className="rounded-xl border border-dashed border-[#00ABBD] bg-slate-50/50 p-2 overflow-hidden flex justify-center">
-              <canvas
-                ref={canvas_ref}
-                width={360}
-                height={160}
-                onMouseDown={empezarDibujo}
-                onMouseMove={dibujar}
-                onMouseUp={terminarDibujo}
-                onMouseLeave={terminarDibujo}
-                onTouchStart={empezarDibujo}
-                onTouchMove={dibujar}
-                onTouchEnd={terminarDibujo}
-                className="bg-white rounded-lg cursor-crosshair shadow-inner touch-none w-full max-w-[360px] h-[160px]"
-              />
-            </div>
-
-            <div className="flex justify-between items-center text-xs text-muted-foreground">
-              <span className="font-mono text-[10px]">Trazado vectorial biométrico</span>
-              <button
-                type="button"
-                onClick={limpiarFirma}
-                className="text-xs text-[#E2694B] hover:text-[#c9573b] font-semibold flex items-center gap-1"
-              >
-                <RotateCcw className="w-3 h-3" />
-                Limpiar trazo
-              </button>
-            </div>
-          </div>
-
-          <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-slate-50 flex sm:justify-between items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => set_dialogo_firma_abierto(false)}
-              className="text-xs border-[#E5E7EB]"
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="button"
-              onClick={guardarFirmaModal}
-              className="text-xs font-bold rounded-xl bg-[#007BBE] hover:bg-[#035683] text-white shadow-xs"
-            >
-              <Check className="w-3.5 h-3.5 mr-1" />
-              Convalidar y Aprobar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* ============================================================== */}
       {/* DIÁLOGO MODAL: CONFIRMACIÓN DE RECHAZO CON OBSERVACIÓN         */}

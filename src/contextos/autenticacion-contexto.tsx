@@ -4,10 +4,18 @@ import { createContext, useContext, useState, useEffect, useCallback, ReactNode 
 import { useRouter } from "next/navigation";
 import { clienteApi } from "@/lib/cliente-api";
 
+export interface CorreoAdicionalUsuario {
+  id?: number;
+  correo: string;
+  etiqueta?: string | null;
+}
+
 export interface Usuario {
   id: number;
   nombre: string;
   correo: string;
+  correo_alternativo?: string | null;
+  correos_adicionales?: CorreoAdicionalUsuario[];
   rol: "administrador" | "supervisor" | "becario" | string;
   becario_id?: number | null;
 }
@@ -17,6 +25,7 @@ export interface ContextoAutenticacionTipo {
   token: string | null;
   cargando: boolean;
   iniciarSesion: (nuevo_token: string, nuevo_usuario: Usuario) => void;
+  actualizarUsuarioSesion: (datos_parciales: Partial<Usuario>) => void;
   cerrarSesion: () => void;
   renovarSesion: () => Promise<boolean>;
   estaAutenticado: boolean;
@@ -119,14 +128,68 @@ export function ProveedorAutenticacion({ children }: { children: ReactNode }) {
   }, [token, renovarSesion]);
 
   const iniciarSesion = (nuevo_token: string, nuevo_usuario: Usuario) => {
-    set_token(nuevo_token);
-    set_usuario(nuevo_usuario);
+    let usuario_enriquecido: Usuario = { ...nuevo_usuario };
     if (typeof window !== "undefined") {
+      try {
+        const mapa_raw = localStorage.getItem("bumand_correos_usuarios_mapa");
+        if (mapa_raw) {
+          const mapa = JSON.parse(mapa_raw) as Record<
+            string,
+            { correo_alternativo?: string | null; correos_adicionales?: CorreoAdicionalUsuario[] }
+          >;
+          const clave_id = `id_${nuevo_usuario.id}`;
+          const clave_correo = (nuevo_usuario.correo || "").toLowerCase().trim();
+          const guardado = mapa[clave_id] || mapa[clave_correo];
+          if (guardado) {
+            usuario_enriquecido = {
+              ...usuario_enriquecido,
+              correo_alternativo:
+                usuario_enriquecido.correo_alternativo ?? guardado.correo_alternativo ?? null,
+              correos_adicionales:
+                usuario_enriquecido.correos_adicionales &&
+                usuario_enriquecido.correos_adicionales.length > 0
+                  ? usuario_enriquecido.correos_adicionales
+                  : guardado.correos_adicionales || [],
+            };
+          }
+        }
+      } catch {
+        // Ignorar errores de lectura de localStorage
+      }
       localStorage.setItem("bumand_token", nuevo_token);
-      localStorage.setItem("bumand_usuario", JSON.stringify(nuevo_usuario));
+      localStorage.setItem("bumand_usuario", JSON.stringify(usuario_enriquecido));
     }
+    set_token(nuevo_token);
+    set_usuario(usuario_enriquecido);
     enrutador.push("/");
   };
+
+  const actualizarUsuarioSesion = useCallback((datos_parciales: Partial<Usuario>) => {
+    set_usuario((prev) => {
+      if (!prev) return prev;
+      const actualizado: Usuario = { ...prev, ...datos_parciales };
+      if (typeof window !== "undefined") {
+        localStorage.setItem("bumand_usuario", JSON.stringify(actualizado));
+        try {
+          const mapa_raw = localStorage.getItem("bumand_correos_usuarios_mapa");
+          const mapa = mapa_raw ? JSON.parse(mapa_raw) : {};
+          const datos_correo = {
+            correo_principal: actualizado.correo,
+            correo_alternativo: actualizado.correo_alternativo ?? null,
+            correos_adicionales: actualizado.correos_adicionales || [],
+          };
+          mapa[`id_${actualizado.id}`] = datos_correo;
+          if (actualizado.correo) {
+            mapa[actualizado.correo.toLowerCase().trim()] = datos_correo;
+          }
+          localStorage.setItem("bumand_correos_usuarios_mapa", JSON.stringify(mapa));
+        } catch {
+          // Ignorar errores de persistencia auxiliar
+        }
+      }
+      return actualizado;
+    });
+  }, []);
 
   return (
     <AutenticacionContexto.Provider
@@ -135,6 +198,7 @@ export function ProveedorAutenticacion({ children }: { children: ReactNode }) {
         token,
         cargando,
         iniciarSesion,
+        actualizarUsuarioSesion,
         cerrarSesion,
         renovarSesion,
         estaAutenticado: !!token,

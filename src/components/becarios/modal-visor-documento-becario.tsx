@@ -354,11 +354,11 @@ export function ModalVisorDocumentoBecario({
                     </div>
                   </div>
 
-                  {/* Pie con firma digital */}
+                  {/* Pie con verificación institucional */}
                   <div className="pt-2 flex items-center justify-between text-[10px] text-slate-500 font-mono">
                     <div className="flex items-center gap-1.5">
                       <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                      <span>Firma Digital Certificada por Vicerrectorado Académico</span>
+                      <span>Acreditación Certificada por Vicerrectorado Académico</span>
                     </div>
                     <span>CÓDIGO: BUMAND-KDX-2026</span>
                   </div>

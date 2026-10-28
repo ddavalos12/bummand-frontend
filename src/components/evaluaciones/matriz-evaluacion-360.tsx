@@ -1,10 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -18,7 +19,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { FormularioF03 } from "./formulario-f03";
-import { FirmaDigital } from "./firma-digital";
 import { CriteriosEvaluacionTabla } from "./criterios-evaluacion-tabla";
 import { CuestionarioBienestarModal } from "./cuestionario-bienestar-modal";
 import { FormularioMentorModal } from "./formulario-mentor-modal";
@@ -114,7 +114,7 @@ export function MatrizEvaluacion360() {
   const es_admin = usuario?.rol === "administrador";
 
   const [modulos, set_modulos] = useState<ModuloPonderado[]>(MODULOS_INICIALES_BASE_20);
-  const [firma_supervisor, set_firma_supervisor] = useState<string | null>(null);
+  const [evaluacion_convalidada, set_evaluacion_convalidada] = useState<boolean>(false);
 
   // Estados de modales para inspeccionar las 5 áreas
   const [modal_f03_abierto, set_modal_f03_abierto] = useState<boolean>(false);
@@ -297,21 +297,17 @@ export function MatrizEvaluacion360() {
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-1">
                             <Label className="text-xs font-semibold">Fecha de Inicio</Label>
-                            <Input
-                              type="date"
-                              value={fecha_inicio_semestre}
-                              onChange={(e) => set_fecha_inicio_semestre(e.target.value)}
-                              required
+                            <SeleccionadorFecha
+                              valorString={fecha_inicio_semestre}
+                              alCambiarString={(val) => set_fecha_inicio_semestre(val)}
                               className="h-9 text-xs border-[#E5E7EB]"
                             />
                           </div>
                           <div className="space-y-1">
                             <Label className="text-xs font-semibold">Fecha de Cierre</Label>
-                            <Input
-                              type="date"
-                              value={fecha_fin_semestre}
-                              onChange={(e) => set_fecha_fin_semestre(e.target.value)}
-                              required
+                            <SeleccionadorFecha
+                              valorString={fecha_fin_semestre}
+                              alCambiarString={(val) => set_fecha_fin_semestre(val)}
                               className="h-9 text-xs border-[#E5E7EB]"
                             />
                           </div>
@@ -546,21 +542,21 @@ export function MatrizEvaluacion360() {
           </CardContent>
         </Card>
 
-        {/* Tarjeta 4: Firma de Conformidad */}
+        {/* Tarjeta 4: Convalidación en Sistema */}
         <Card className="border-[#E5E7EB] bg-white rounded-xl shadow-sm">
           <CardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-[11px] font-mono text-muted-foreground uppercase font-bold">
-                Firma de Conformidad
+                Convalidación en Sistema
               </p>
               <div className="mt-1">
-                {firma_supervisor ? (
+                {evaluacion_convalidada ? (
                   <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-xs py-1">
-                    <CheckCircle className="w-3.5 h-3.5 mr-1" /> Tutor Firmante
+                    <CheckCircle className="w-3.5 h-3.5 mr-1" /> Convalidado
                   </Badge>
                 ) : (
                   <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50 font-bold text-xs py-1">
-                    Firma Pendiente
+                    Pendiente
                   </Badge>
                 )}
               </div>
@@ -569,7 +565,7 @@ export function MatrizEvaluacion360() {
               </p>
             </div>
             <div className="p-3 bg-amber-500/10 rounded-xl">
-              <PenTool className="w-8 h-8 text-amber-600" />
+              <ShieldCheck className="w-8 h-8 text-amber-600" />
             </div>
           </CardContent>
         </Card>
@@ -688,33 +684,27 @@ export function MatrizEvaluacion360() {
             </div>
           ))}
 
-          {/* Sección de Firma Digital */}
+          {/* Sección de Convalidación Institucional en Sistema */}
           <div className="mt-6 pt-4 border-t border-[#E5E7EB]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h4 className="text-sm font-bold text-[#035683]">Acreditación con Firma Digital</h4>
+              <h4 className="text-sm font-bold text-[#035683]">Convalidación Institucional en Sistema</h4>
               <p className="text-xs text-muted-foreground">
-                El tutor o supervisor responsable debe asentar su rúbrica para cerrar la evaluación semestral.
+                El tutor o supervisor responsable acredita el cierre de la evaluación semestral con trazabilidad de sistema.
               </p>
             </div>
 
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="h-10 px-5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl flex items-center gap-2">
-                  <PenTool className="w-4 h-4 text-[#FFB600]" />
-                  {firma_supervisor ? "Modificar Firma" : "Firmar Evaluación"}
-                </Button>
-              </DialogTrigger>
-              <DialogContent showCloseButton={false} className="sm:max-w-[460px] max-h-[90vh] p-0 border-none bg-transparent shadow-none">
-                <FirmaDigital
-                  alFirmar={(b64) => {
-                    set_firma_supervisor(b64);
-                    toast.success("Firma registrada exitosamente", {
-                      description: "La evaluación ha sido acreditada formalmente.",
-                    });
-                  }}
-                />
-              </DialogContent>
-            </Dialog>
+            <Button
+              onClick={() => {
+                set_evaluacion_convalidada(true);
+                toast.success("Evaluación convalidada en sistema", {
+                  description: "La evaluación semestral ha sido acreditada formalmente.",
+                });
+              }}
+              className="h-10 px-5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl flex items-center gap-2"
+            >
+              <ShieldCheck className="w-4 h-4 text-[#FFB600]" />
+              {evaluacion_convalidada ? "Evaluación Convalidada" : "Convalidar Evaluación"}
+            </Button>
           </div>
         </CardContent>
       </Card>

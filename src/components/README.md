@@ -8,7 +8,6 @@ Esta carpeta contiene los componentes de negocio específicos extraídos del pro
 Maneja la lógica visual del Módulo 2 (Digitalización F-03 y Autoevaluaciones).
 - **`EvaluacionList.tsx`**: Componente de lista que obtiene las evaluaciones pendientes y completadas desde la API de NestJS (`/evaluaciones/becario/:id`). Muestra el estado (Aprobado, Borrador, etc.) mediante badges estilizados.
 - **`FormularioF03.tsx`**: Componente de formulario basado en `Card` que implementa el checklist interactivo ("Siempre", "Casi Siempre", etc.) usando un `RadioGroup` modificado visualmente como "pills". Se comunica directamente con `POST /evaluaciones`.
-- **`FirmaDigital.tsx`**: Componente con un `canvas` nativo de HTML5 para capturar la firma biométrica/táctil del supervisor, guardando el trazo suavizado en Base64 para adjuntar al PDF de aprobación (F-03).
 
 ### `recorridos/`
 Maneja la lógica visual del Módulo 1 (Sistema de Pasajes y Geocercas).

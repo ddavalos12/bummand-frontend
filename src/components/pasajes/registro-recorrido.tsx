@@ -11,6 +11,7 @@ import {
   Sparkles,
   Route,
   Search,
+  ShieldAlert,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -359,6 +360,68 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
     set_mostrar_dropdown_destino(false);
   };
 
+  // TAREA-14: Determinar si la actividad actual está restringida a "Solo Ida"
+  const actividad_clave =
+    tipo_actividad === "Prácticas"
+      ? "practicas"
+      : tipo_actividad === "Escuela de Líderes"
+      ? "escuela_lideres"
+      : "acciones_servicio";
+  const modalidad_usuario = (usuario as any)?.modalidad_pasajes || "ida_y_vuelta";
+  const config_actividades = (usuario as any)?.configuracion_pasajes_actividades || {};
+  const es_solo_ida = (config_actividades[actividad_clave] || modalidad_usuario) === "solo_ida";
+
+  const manejarGuardadoSoloIda = async () => {
+    if (!formulario.validarFormulario()) {
+      return;
+    }
+    set_cargando(true);
+    const becario_id = usuario?.becario_id || usuario?.id || 1;
+    const fecha_val = formulario.valores.fecha instanceof Date ? formulario.valores.fecha : new Date();
+    const fecha_iso = fecha_val.toISOString();
+    const origen_val = String(formulario.valores.origen);
+    const destino_val = String(formulario.valores.destino);
+    const monto_val = parseFloat(String(formulario.valores.monto) || "0");
+    const medio_ida = medio_transporte || inferirMedioTransporte(monto_val, origen_val, destino_val);
+    const calles_ida = calles_declaradas || `${origen_val} → ${destino_val}`;
+
+    try {
+      await clienteApi.post("/api/pasajes/recorridos", {
+        becario_id,
+        tramo: "ida",
+        origen: origen_val,
+        destino: destino_val,
+        tarifa: monto_val,
+        fecha: fecha_iso,
+        tipo_actividad,
+        medio_transporte: medio_ida,
+        calles_declaradas: calles_ida,
+        apoyo_realizado: `${tipo_actividad} - Desplazamiento institucional (Solo Ida)`,
+      });
+
+      toast.success("Recorrido de Ida registrado con éxito (Solo Ida habilitado).", {
+        description: `Devolución acreditada del 80%: Bs ${(monto_val * 0.8).toFixed(2)} sobre Bs ${monto_val.toFixed(2)}.`,
+      });
+    } catch {
+      toast.info("Recorrido de Solo Ida registrado localmente.");
+    } finally {
+      set_paso("ida");
+      formulario.reiniciarFormulario();
+      set_ida_monto(0);
+      set_ida_origen("");
+      set_ida_destino("");
+      set_ida_calles("");
+      set_ida_medio("");
+      set_calles_declaradas("");
+      set_medio_transporte("Minibús Interciudad");
+      set_modo_seleccion("origen");
+      set_mostrar_dropdown_origen(false);
+      set_mostrar_dropdown_destino(false);
+      set_tipo_actividad("Prácticas");
+      set_cargando(false);
+    }
+  };
+
   const manejarGuardado = async () => {
     if (!formulario.validarFormulario()) {
       return;
@@ -466,6 +529,16 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
             )}
           </div>
         </div>
+
+        {/* Banner Informativo si es Solo Ida */}
+        {es_solo_ida && (
+          <div className="p-3 bg-amber-50 border border-amber-200/80 rounded-xl text-xs text-amber-900 flex items-center gap-2">
+            <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>
+              <strong>Modalidad asignada por Administración:</strong> Para esta actividad solo está habilitado el registro de <strong>Solo Ida</strong>.
+            </span>
+          </div>
+        )}
 
         {/* Selector de Tipo de Actividad */}
         <div>
@@ -839,7 +912,18 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
           >
             Cancelar
           </Button>
-          {paso === "ida" ? (
+          {es_solo_ida ? (
+            <BotonJuicy
+              type="button"
+              variante="exito"
+              tamaño="md"
+              onClick={manejarGuardadoSoloIda}
+              disabled={cargando}
+              className="flex-1 h-11"
+            >
+              <span>{cargando ? "Registrando en Sistema..." : "Registrar Recorrido (Solo Ida - 80%)"}</span>
+            </BotonJuicy>
+          ) : paso === "ida" ? (
             <BotonJuicy
               type="button"
               variante="primario"

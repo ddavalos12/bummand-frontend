@@ -4,10 +4,10 @@ import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { BotonSolicitudVerificacion } from "./boton-solicitud-verificacion";
 import {
   Dialog,
   DialogContent,
@@ -133,20 +133,33 @@ const SUPERVISORES_INSTITUCIONALES = [
 
 /**
  * Función de determinación de pertenencia de becario a un supervisor institucional.
- * Comprueba id numérico de supervisor, coincidencia de correo o prefijo, o nombre de tutor.
+ * Comprueba id numérico de supervisor, coincidencia de correo principal o correos alternativos/adicionales, o nombre de tutor.
  */
 export function esBecarioDeSupervisor(becario: BecarioVista, usuarioActual: any): boolean {
   if (!usuarioActual) return false;
   if (becario.supervisor_id && Number(becario.supervisor_id) === Number(usuarioActual.id)) {
     return true;
   }
-  if (usuarioActual.correo && becario.tutor_correo) {
-    const c_usr = String(usuarioActual.correo).toLowerCase().trim();
+  if (becario.tutor_correo) {
     const c_tut = String(becario.tutor_correo).toLowerCase().trim();
-    if (c_usr === c_tut) return true;
-    const p_usr = c_usr.split("@")[0];
     const p_tut = c_tut.split("@")[0];
-    if (p_usr && p_tut && p_usr === p_tut) return true;
+    const correos_supervisor: string[] = [
+      usuarioActual.correo,
+      usuarioActual.correo_alternativo,
+      ...(Array.isArray(usuarioActual.correos_adicionales)
+        ? usuarioActual.correos_adicionales.map((item: any) =>
+            typeof item === "string" ? item : item?.correo
+          )
+        : []),
+    ]
+      .filter(Boolean)
+      .map((c) => String(c).toLowerCase().trim());
+
+    for (const c_usr of correos_supervisor) {
+      if (c_usr === c_tut) return true;
+      const p_usr = c_usr.split("@")[0];
+      if (p_usr && p_tut && p_usr === p_tut) return true;
+    }
   }
   if (usuarioActual.nombre && becario.tutor_nombre) {
     const n_usr = String(usuarioActual.nombre).toLowerCase().trim();
@@ -181,11 +194,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "rodrigo.solorzano@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 39.5,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 39.5, meta_horas: 40.0, porcentaje: 99, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 42.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 39.5, meta_horas: 36.0, porcentaje: 110, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 42.0, meta_horas: 36.0, porcentaje: 117, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
     ],
   },
   {
@@ -210,11 +223,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "angel.ali@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 40.0,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 41.5, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 41.5, meta_horas: 36.0, porcentaje: 115, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
     ],
   },
   {
@@ -239,11 +252,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "claudia.cabrera@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 38.0,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 38.0, meta_horas: 40.0, porcentaje: 95, estado: "en_progreso" },
-      { mes: "Septiembre 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 39.0, meta_horas: 40.0, porcentaje: 98, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 38.0, meta_horas: 36.0, porcentaje: 106, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 39.0, meta_horas: 36.0, porcentaje: 108, estado: "cumplido" },
     ],
   },
   {
@@ -268,11 +281,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "angel.ali@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 42.0,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 42.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 43.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 41.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 42.0, meta_horas: 36.0, porcentaje: 117, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 43.0, meta_horas: 36.0, porcentaje: 119, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 41.0, meta_horas: 36.0, porcentaje: 114, estado: "cumplido" },
     ],
   },
   {
@@ -297,11 +310,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "monica.valenzuela@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 37.5,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 37.5, meta_horas: 40.0, porcentaje: 94, estado: "en_progreso" },
-      { mes: "Septiembre 2026", horas_realizadas: 39.0, meta_horas: 40.0, porcentaje: 98, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 38.0, meta_horas: 40.0, porcentaje: 95, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 37.5, meta_horas: 36.0, porcentaje: 104, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 39.0, meta_horas: 36.0, porcentaje: 108, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 38.0, meta_horas: 36.0, porcentaje: 106, estado: "cumplido" },
     ],
   },
   {
@@ -326,11 +339,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "claudia.cabrera@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 41.0,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 41.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 40.5, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 41.0, meta_horas: 36.0, porcentaje: 114, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 40.5, meta_horas: 36.0, porcentaje: 113, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
     ],
   },
   {
@@ -355,11 +368,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "angel.ali@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 34.0,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 34.0, meta_horas: 40.0, porcentaje: 85, estado: "en_riesgo" },
-      { mes: "Septiembre 2026", horas_realizadas: 38.0, meta_horas: 40.0, porcentaje: 95, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 39.0, meta_horas: 40.0, porcentaje: 98, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 34.0, meta_horas: 36.0, porcentaje: 94, estado: "en_progreso" },
+      { mes: "Septiembre 2026", horas_realizadas: 38.0, meta_horas: 36.0, porcentaje: 106, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 39.0, meta_horas: 36.0, porcentaje: 108, estado: "cumplido" },
     ],
   },
   {
@@ -384,11 +397,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "rodrigo.solorzano@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 38.5,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 38.5, meta_horas: 40.0, porcentaje: 96, estado: "en_progreso" },
-      { mes: "Septiembre 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.5, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 38.5, meta_horas: 36.0, porcentaje: 107, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 40.5, meta_horas: 36.0, porcentaje: 113, estado: "cumplido" },
     ],
   },
   {
@@ -413,11 +426,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "angel.ali@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 40.5,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 40.5, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 41.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 40.5, meta_horas: 36.0, porcentaje: 113, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 41.0, meta_horas: 36.0, porcentaje: 114, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
     ],
   },
   {
@@ -442,11 +455,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "claudia.cabrera@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 36.0,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 36.0, meta_horas: 40.0, porcentaje: 90, estado: "en_progreso" },
-      { mes: "Septiembre 2026", horas_realizadas: 39.5, meta_horas: 40.0, porcentaje: 99, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 39.5, meta_horas: 36.0, porcentaje: 110, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
     ],
   },
   {
@@ -471,11 +484,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "monica.valenzuela@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 39.0,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 39.0, meta_horas: 40.0, porcentaje: 98, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 39.0, meta_horas: 36.0, porcentaje: 108, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
     ],
   },
   {
@@ -500,11 +513,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "angel.ali@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 40.0,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 41.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 39.5, meta_horas: 40.0, porcentaje: 99, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 41.0, meta_horas: 36.0, porcentaje: 114, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 39.5, meta_horas: 36.0, porcentaje: 110, estado: "cumplido" },
     ],
   },
   {
@@ -529,11 +542,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "angel.ali@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 42.5,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 42.5, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 43.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 42.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 42.5, meta_horas: 36.0, porcentaje: 118, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 43.0, meta_horas: 36.0, porcentaje: 119, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 42.0, meta_horas: 36.0, porcentaje: 117, estado: "cumplido" },
     ],
   },
   {
@@ -558,11 +571,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "angel.ali@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 38.0,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 38.0, meta_horas: 40.0, porcentaje: 95, estado: "en_progreso" },
-      { mes: "Septiembre 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 39.0, meta_horas: 40.0, porcentaje: 98, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 38.0, meta_horas: 36.0, porcentaje: 106, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 39.0, meta_horas: 36.0, porcentaje: 108, estado: "cumplido" },
     ],
   },
   {
@@ -587,11 +600,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "claudia.cabrera@diaconia.bo",
     estado: "pendiente_validacion",
     horas_mes_actual: 35.0,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 35.0, meta_horas: 40.0, porcentaje: 88, estado: "en_riesgo" },
-      { mes: "Septiembre 2026", horas_realizadas: 37.0, meta_horas: 40.0, porcentaje: 93, estado: "en_progreso" },
-      { mes: "Agosto 2026", horas_realizadas: 38.0, meta_horas: 40.0, porcentaje: 95, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 35.0, meta_horas: 36.0, porcentaje: 97, estado: "en_progreso" },
+      { mes: "Septiembre 2026", horas_realizadas: 37.0, meta_horas: 36.0, porcentaje: 103, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 38.0, meta_horas: 36.0, porcentaje: 106, estado: "cumplido" },
     ],
   },
   {
@@ -616,11 +629,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "rodrigo.solorzano@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 39.0,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 39.0, meta_horas: 40.0, porcentaje: 98, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 39.0, meta_horas: 40.0, porcentaje: 98, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 39.0, meta_horas: 36.0, porcentaje: 108, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 39.0, meta_horas: 36.0, porcentaje: 108, estado: "cumplido" },
     ],
   },
   {
@@ -645,11 +658,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "claudia.cabrera@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 41.5,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 41.5, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 42.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 41.5, meta_horas: 36.0, porcentaje: 115, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 42.0, meta_horas: 36.0, porcentaje: 117, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
     ],
   },
   {
@@ -674,11 +687,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "angel.ali@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 40.0,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 40.5, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 39.5, meta_horas: 40.0, porcentaje: 99, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 40.5, meta_horas: 36.0, porcentaje: 113, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 39.5, meta_horas: 36.0, porcentaje: 110, estado: "cumplido" },
     ],
   },
   {
@@ -703,11 +716,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "monica.valenzuela@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 37.0,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 37.0, meta_horas: 40.0, porcentaje: 93, estado: "en_progreso" },
-      { mes: "Septiembre 2026", horas_realizadas: 39.0, meta_horas: 40.0, porcentaje: 98, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 38.0, meta_horas: 40.0, porcentaje: 95, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 37.0, meta_horas: 36.0, porcentaje: 103, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 39.0, meta_horas: 36.0, porcentaje: 108, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 38.0, meta_horas: 36.0, porcentaje: 106, estado: "cumplido" },
     ],
   },
   {
@@ -732,11 +745,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "claudia.cabrera@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 38.5,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 38.5, meta_horas: 40.0, porcentaje: 96, estado: "en_progreso" },
-      { mes: "Septiembre 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 39.0, meta_horas: 40.0, porcentaje: 98, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 38.5, meta_horas: 36.0, porcentaje: 107, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 39.0, meta_horas: 36.0, porcentaje: 108, estado: "cumplido" },
     ],
   },
   {
@@ -761,11 +774,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "angel.ali@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 39.0,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 39.0, meta_horas: 40.0, porcentaje: 98, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 40.5, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 39.0, meta_horas: 36.0, porcentaje: 108, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 40.5, meta_horas: 36.0, porcentaje: 113, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
     ],
   },
   {
@@ -790,11 +803,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "rodrigo.solorzano@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 40.0,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 41.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 41.0, meta_horas: 36.0, porcentaje: 114, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
     ],
   },
   {
@@ -819,11 +832,11 @@ const BECARIOS_INICIALES: BecarioVista[] = [
     tutor_correo: "angel.ali@diaconia.bo",
     estado: "activo",
     horas_mes_actual: 38.5,
-    horas_meta_mes: 40.0,
+    horas_meta_mes: 36.0,
     historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 38.5, meta_horas: 40.0, porcentaje: 96, estado: "en_progreso" },
-      { mes: "Septiembre 2026", horas_realizadas: 39.5, meta_horas: 40.0, porcentaje: 99, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
+      { mes: "Octubre 2026", horas_realizadas: 38.5, meta_horas: 36.0, porcentaje: 107, estado: "cumplido" },
+      { mes: "Septiembre 2026", horas_realizadas: 39.5, meta_horas: 36.0, porcentaje: 110, estado: "cumplido" },
+      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
     ],
   },
 ];
@@ -882,12 +895,12 @@ function normalizarBecario(remoto: any): BecarioVista {
   const horas_mes_actual =
     typeof remoto.horas_mes_actual === "number"
       ? remoto.horas_mes_actual
-      : match_inicial?.horas_mes_actual ?? 40.0;
+      : match_inicial?.horas_mes_actual ?? 36.0;
 
   const horas_meta_mes =
     typeof remoto.horas_meta_mes === "number"
       ? remoto.horas_meta_mes
-      : match_inicial?.horas_meta_mes ?? 40.0;
+      : match_inicial?.horas_meta_mes ?? 36.0;
 
   const historial_horas_mes: HorasMesHistorico[] =
     Array.isArray(remoto.historial_horas_mes) && remoto.historial_horas_mes.length > 0
@@ -897,11 +910,16 @@ function normalizarBecario(remoto: any): BecarioVista {
             mes: "Octubre 2026",
             horas_realizadas: horas_mes_actual,
             meta_horas: horas_meta_mes,
-            porcentaje: Math.min(100, Math.round((horas_mes_actual / (horas_meta_mes || 40)) * 100)),
-            estado: horas_mes_actual >= horas_meta_mes ? "cumplido" : "en_progreso",
+            porcentaje: Math.round((horas_mes_actual / (horas_meta_mes || 36)) * 100),
+            estado:
+              horas_mes_actual >= horas_meta_mes
+                ? "cumplido"
+                : horas_mes_actual >= 27
+                ? "en_progreso"
+                : "en_riesgo",
           },
-          { mes: "Septiembre 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
-          { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 40.0, porcentaje: 100, estado: "cumplido" },
+          { mes: "Septiembre 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
+          { mes: "Agosto 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
         ];
 
   const estado: "activo" | "pendiente_validacion" =
@@ -1110,12 +1128,21 @@ export function GestionBecarios() {
   const [edit_supervisor, set_edit_supervisor] = useState(SUPERVISORES_INSTITUCIONALES[0].nombre);
   const [edit_estado, set_edit_estado] = useState<"activo" | "pendiente_validacion">("activo");
   const [edit_ceti, set_edit_ceti] = useState(1);
-  const [edit_horas_meta_mes, set_edit_horas_meta_mes] = useState(40);
+  const [edit_horas_meta_mes, set_edit_horas_meta_mes] = useState(36);
   const [edit_carnet_nombre, set_edit_carnet_nombre] = useState("");
   const [edit_carnet_url, set_edit_carnet_url] = useState("");
   const [edit_kardex_nombre, set_edit_kardex_nombre] = useState("");
   const [edit_kardex_url, set_edit_kardex_url] = useState("");
   const [guardando_edicion, set_guardando_edicion] = useState(false);
+
+  // Estados para Modal de Configuración de Pasajes (Solo Ida / Ida y Vuelta - TAREA-14)
+  const [modal_pasajes_abierto, set_modal_pasajes_abierto] = useState(false);
+  const [becario_pasajes, set_becario_pasajes] = useState<BecarioVista | null>(null);
+  const [modalidad_pasajes_gral, set_modalidad_pasajes_gral] = useState<"ida_y_vuelta" | "solo_ida">("ida_y_vuelta");
+  const [pasajes_practicas, set_pasajes_practicas] = useState<"ida_y_vuelta" | "solo_ida">("ida_y_vuelta");
+  const [pasajes_escuela, set_pasajes_escuela] = useState<"ida_y_vuelta" | "solo_ida">("ida_y_vuelta");
+  const [pasajes_servicio, set_pasajes_servicio] = useState<"ida_y_vuelta" | "solo_ida">("ida_y_vuelta");
+  const [guardando_config_pasajes, set_guardando_config_pasajes] = useState(false);
 
   // Estado del Visor de Documentos Oficiales
   const [documento_visor_seleccionado, set_documento_visor_seleccionado] = useState<{
@@ -1212,7 +1239,7 @@ export function GestionBecarios() {
   } = useConfirmacionDialogo();
 
   const becarios_en_riesgo = useMemo(() => {
-    return lista_para_rol.filter((b) => (b.horas_mes_actual ?? 0) < 35);
+    return lista_para_rol.filter((b) => (b.horas_mes_actual ?? 0) < 27);
   }, [lista_para_rol]);
 
   const becarios_pendientes = useMemo(() => {
@@ -1331,16 +1358,16 @@ export function GestionBecarios() {
         tutor_correo: SUPERVISORES_INSTITUCIONALES[0].correo,
         estado: nuevo_estado,
         horas_mes_actual: 0,
-        horas_meta_mes: 40.0,
+        horas_meta_mes: 36.0,
         url_carnet: nuevo_carnet_url || undefined,
         nombre_archivo_carnet: nuevo_carnet_nombre || undefined,
         url_kardex: nuevo_kardex_url || undefined,
         nombre_archivo_kardex: nuevo_kardex_nombre || undefined,
         fecha_subida_documentos: new Date().toISOString().split("T")[0],
         historial_horas_mes: [
-          { mes: "Octubre 2026", horas_realizadas: 0, meta_horas: 40.0, porcentaje: 0, estado: "en_riesgo" },
-          { mes: "Septiembre 2026", horas_realizadas: 0, meta_horas: 40.0, porcentaje: 0, estado: "en_riesgo" },
-          { mes: "Agosto 2026", horas_realizadas: 0, meta_horas: 40.0, porcentaje: 0, estado: "en_riesgo" },
+          { mes: "Octubre 2026", horas_realizadas: 0, meta_horas: 36.0, porcentaje: 0, estado: "en_riesgo" },
+          { mes: "Septiembre 2026", horas_realizadas: 0, meta_horas: 36.0, porcentaje: 0, estado: "en_riesgo" },
+          { mes: "Agosto 2026", horas_realizadas: 0, meta_horas: 36.0, porcentaje: 0, estado: "en_riesgo" },
         ],
         tiene_usuario: false,
         usuario_id: null,
@@ -1401,7 +1428,7 @@ export function GestionBecarios() {
     set_edit_supervisor(becario.tutor_nombre || SUPERVISORES_INSTITUCIONALES[0].nombre);
     set_edit_estado(becario.estado === "activo" ? "activo" : "pendiente_validacion");
     set_edit_ceti(becario.ceti ?? 1);
-    set_edit_horas_meta_mes(becario.horas_meta_mes ?? 40);
+    set_edit_horas_meta_mes(becario.horas_meta_mes ?? 36);
     set_edit_carnet_nombre(becario.nombre_archivo_carnet || "");
     set_edit_carnet_url(becario.url_carnet || "");
     set_edit_kardex_nombre(becario.nombre_archivo_kardex || "");
@@ -1544,27 +1571,59 @@ export function GestionBecarios() {
     set_becario_seleccionado(null);
   };
 
-  const manejarAlternarVerificacionMensual = (activar: boolean) => {
+  const abrirModalConfigurarPasajes = (becario: BecarioVista) => {
     if (!es_admin) {
-      toast.error("Solo el Administrador puede emitir órdenes de verificación mensual.");
+      toast.error("Acción restringida: Solo el Administrador puede configurar modalidades de pasaje.");
       return;
     }
+    set_becario_pasajes(becario);
+    const mod = (becario as any).modalidad_pasajes || "ida_y_vuelta";
+    const cfg = (becario as any).configuracion_pasajes_actividades || {};
+    set_modalidad_pasajes_gral(mod);
+    set_pasajes_practicas(cfg.practicas || mod);
+    set_pasajes_escuela(cfg.escuela_lideres || mod);
+    set_pasajes_servicio(cfg.acciones_servicio || mod);
+    set_modal_pasajes_abierto(true);
+  };
 
-    set_verificacion_mensual_activa(activar);
+  const guardarConfiguracionPasajes = async () => {
+    if (!becario_pasajes) return;
+    set_guardando_config_pasajes(true);
+    try {
+      await clienteApi.patch(`/becarios/${becario_pasajes.id}/configuracion-pasajes`, {
+        modalidad_pasajes: modalidad_pasajes_gral,
+        configuracion_pasajes_actividades: {
+          practicas: pasajes_practicas,
+          escuela_lideres: pasajes_escuela,
+          acciones_servicio: pasajes_servicio,
+        },
+      });
 
-    if (activar) {
       set_lista_becarios((prev) =>
-        prev.map((b) => ({ ...b, estado: "pendiente_validacion" }))
+        prev.map((b) =>
+          b.id === becario_pasajes.id
+            ? ({
+                ...b,
+                modalidad_pasajes: modalidad_pasajes_gral,
+                configuracion_pasajes_actividades: {
+                  practicas: pasajes_practicas,
+                  escuela_lideres: pasajes_escuela,
+                  acciones_servicio: pasajes_servicio,
+                },
+              } as any)
+            : b
+        )
       );
-      toast.success(
-        "Orden institucional emitida: Se solicitó verificación mensual a todos los becarios.",
-        {
-          description:
-            "El estado de los becarios ha cambiado a 'Pendiente Validación' hasta confirmación de documentos.",
-        }
-      );
-    } else {
-      toast.info("Verificación mensual cerrada o finalizada.");
+
+      toast.success(`Modalidad de pasajes actualizada para ${becario_pasajes.nombre}`, {
+        description: `Configuración: ${modalidad_pasajes_gral === "solo_ida" ? "Solo Ida" : "Ida y Vuelta"} guardada.`,
+      });
+      set_modal_pasajes_abierto(false);
+      set_becario_pasajes(null);
+    } catch {
+      toast.error("Error al actualizar configuración de pasajes");
+    } finally {
+      set_guardando_config_pasajes(false);
     }
   };
 
@@ -1713,7 +1772,7 @@ export function GestionBecarios() {
               {pestaña_activa === "horas" && (
                 <Badge variant="outline" className="h-10 px-3 bg-slate-50 border-[#E5E7EB] text-[#035683] text-xs font-semibold flex items-center gap-1.5">
                   <Award className="w-3.5 h-3.5 text-[#00ABBD]" />
-                  <span>Meta Reglamentaria: 40.0 hrs / mes</span>
+                  <span>Meta Reglamentaria: 36.0 hrs / mes (9.0 hrs / sem flexibles)</span>
                 </Badge>
               )}
 
@@ -1726,18 +1785,13 @@ export function GestionBecarios() {
 
               {pestaña_activa === "validaciones" && (
                 <div className="flex items-center gap-2">
-                  {es_admin && (
-                    <BotonSolicitudVerificacion
-                      total_becarios={lista_para_rol.length}
-                      confirmarAccionInstitucional={confirmarAccionInstitucional}
-                      alEmitirOrden={() => {
-                        set_verificacion_mensual_activa(true);
-                        set_lista_becarios((prev) =>
-                          prev.map((b) => ({ ...b, estado: "pendiente_validacion" }))
-                        );
-                      }}
-                    />
-                  )}
+                  <Badge
+                    variant="outline"
+                    className="h-10 px-3.5 bg-emerald-50 border-emerald-300 text-emerald-800 text-xs font-bold flex items-center gap-2 rounded-xl shadow-2xs"
+                  >
+                    <Sparkles className="w-4 h-4 text-emerald-600 animate-pulse" />
+                    <span>Ciclo Mensual Automático Activo</span>
+                  </Badge>
                   {es_admin && (
                     <Button
                       onClick={() => {
@@ -1900,6 +1954,17 @@ export function GestionBecarios() {
                               <Button
                                 size="sm"
                                 variant="ghost"
+                                onClick={() => abrirModalConfigurarPasajes(b)}
+                                className="h-8 w-8 p-0 text-[#007BBE] hover:text-[#035683] hover:bg-sky-50 rounded-lg cursor-pointer"
+                                title="Configurar modalidad de pasajes (Solo Ida / Ida y Vuelta)"
+                              >
+                                <Bus className="w-3.5 h-3.5" />
+                              </Button>
+                            )}
+                            {es_admin && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
                                 onClick={() => {
                                   confirmarEliminacionRegistro({
                                     titulo: "¿Eliminar registro de becario?",
@@ -1986,28 +2051,32 @@ export function GestionBecarios() {
                           <div className="space-y-1.5 min-w-[160px]">
                             <div className="flex items-center justify-between text-xs">
                               <span className="font-bold text-[#035683]">
-                                {(b.horas_mes_actual ?? 0).toFixed(1)} / {(b.horas_meta_mes ?? 40).toFixed(1)} hrs
+                                {(b.horas_mes_actual ?? 0).toFixed(1)} / {(b.horas_meta_mes ?? 36).toFixed(1)} hrs
                               </span>
                               <span className="text-[11px] font-semibold text-muted-foreground">
-                                {(b.horas_meta_mes ?? 0) > 0 ? Math.round(((b.horas_mes_actual ?? 0) / (b.horas_meta_mes || 40)) * 100) : 0}%
+                                {(b.horas_meta_mes ?? 0) > 0 ? Math.round(((b.horas_mes_actual ?? 0) / (b.horas_meta_mes || 36)) * 100) : 0}%
                               </span>
                             </div>
                             <Progress
-                              value={Math.min(100, (b.horas_meta_mes ?? 0) > 0 ? Math.round(((b.horas_mes_actual ?? 0) / (b.horas_meta_mes || 40)) * 100) : 0)}
+                              value={Math.min(100, (b.horas_meta_mes ?? 0) > 0 ? Math.round(((b.horas_mes_actual ?? 0) / (b.horas_meta_mes || 36)) * 100) : 0)}
                               className="h-1.5 bg-slate-100"
                             />
                             <div>
-                              {(b.horas_mes_actual ?? 0) >= (b.horas_meta_mes ?? 40) ? (
+                              {(b.horas_mes_actual ?? 0) > (b.horas_meta_mes ?? 36) ? (
+                                <span className="inline-flex items-center text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                                  Meta Superada (+{((b.horas_mes_actual ?? 0) - (b.horas_meta_mes ?? 36)).toFixed(1)} hrs)
+                                </span>
+                              ) : (b.horas_mes_actual ?? 0) === (b.horas_meta_mes ?? 36) ? (
                                 <span className="inline-flex items-center text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
                                   Meta Cumplida
                                 </span>
-                              ) : (b.horas_mes_actual ?? 0) >= 35 ? (
+                              ) : (b.horas_mes_actual ?? 0) >= 27 ? (
                                 <span className="inline-flex items-center text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
                                   En Progreso
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                                  En Riesgo
+                                  En Riesgo (&lt;27 hrs)
                                 </span>
                               )}
                             </div>
@@ -2147,6 +2216,18 @@ export function GestionBecarios() {
                               >
                                 <UserCog className="w-3.5 h-3.5" />
                                 <span>Supervisor</span>
+                              </Button>
+                            )}
+                            {es_admin && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => abrirModalConfigurarPasajes(b)}
+                                className="h-8 px-2.5 text-xs font-bold border-[#007BBE]/40 text-[#007BBE] hover:bg-sky-50 rounded-lg flex items-center gap-1 cursor-pointer"
+                                title="Configurar modalidad de pasajes (Solo Ida / Ida y Vuelta)"
+                              >
+                                <Bus className="w-3.5 h-3.5" />
+                                <span>Pasajes</span>
                               </Button>
                             )}
                             <Button
@@ -2639,7 +2720,7 @@ export function GestionBecarios() {
                     <p className="text-2xl font-bold font-mono text-[#035683]">
                       {(becario_horas_modal.horas_mes_actual ?? 0).toFixed(1)}{" "}
                       <span className="text-sm font-normal text-muted-foreground">
-                        / {(becario_horas_modal.horas_meta_mes ?? 40).toFixed(1)} hrs
+                        / {(becario_horas_modal.horas_meta_mes ?? 36).toFixed(1)} hrs
                       </span>
                     </p>
                   </div>
@@ -2647,7 +2728,7 @@ export function GestionBecarios() {
                     <span className="text-xs text-muted-foreground">Avance Global</span>
                     <p className="text-2xl font-bold font-mono text-[#00ABBD]">
                       {(becario_horas_modal.horas_meta_mes ?? 0) > 0
-                        ? Math.round(((becario_horas_modal.horas_mes_actual ?? 0) / (becario_horas_modal.horas_meta_mes || 40)) * 100)
+                        ? Math.round(((becario_horas_modal.horas_mes_actual ?? 0) / (becario_horas_modal.horas_meta_mes || 36)) * 100)
                         : 0}%
                     </p>
                   </div>
@@ -2678,7 +2759,7 @@ export function GestionBecarios() {
                               {(h.horas_realizadas ?? 0).toFixed(1)} hrs
                             </TableCell>
                             <TableCell className="font-mono text-xs text-muted-foreground">
-                              {(h.meta_horas ?? 40).toFixed(1)} hrs
+                              {(h.meta_horas ?? 36).toFixed(1)} hrs
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
@@ -2689,9 +2770,13 @@ export function GestionBecarios() {
                               </div>
                             </TableCell>
                             <TableCell className="text-right">
-                              {h.estado === "cumplido" ? (
+                              {(h.horas_realizadas ?? 0) > (h.meta_horas ?? 36) ? (
                                 <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-300 text-[10px] font-bold">
-                                  Cumplido
+                                  Meta Superada (+{((h.horas_realizadas ?? 0) - (h.meta_horas ?? 36)).toFixed(1)} hrs)
+                                </Badge>
+                              ) : h.estado === "cumplido" ? (
+                                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-300 text-[10px] font-bold">
+                                  Meta Cumplida
                                 </Badge>
                               ) : h.estado === "en_progreso" ? (
                                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300 text-[10px] font-bold">
@@ -2713,7 +2798,7 @@ export function GestionBecarios() {
                 <div className="p-3 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs text-muted-foreground flex items-center gap-2">
                   <Award className="w-4 h-4 text-[#00ABBD] shrink-0" />
                   <span>
-                    El cumplimiento mínimo reglamentario es de <strong>40.0 horas mensuales</strong> de práctica y servicio institucional en BUMAND.
+                    El cumplimiento mínimo reglamentario es de <strong>36.0 horas mensuales (9.0 horas semanales con horario flexible)</strong> de práctica y servicio institucional en BUMAND.
                   </span>
                 </div>
               </>
@@ -2910,14 +2995,14 @@ export function GestionBecarios() {
                     <div>
                       <span className="text-muted-foreground block text-[11px]">Horas Acumuladas Mes Actual</span>
                       <p className="font-mono font-bold text-[#035683]">
-                        {(becario_ficha_modal.horas_mes_actual ?? 0).toFixed(1)} / {(becario_ficha_modal.horas_meta_mes ?? 40).toFixed(1)} hrs
+                        {(becario_ficha_modal.horas_mes_actual ?? 0).toFixed(1)} / {(becario_ficha_modal.horas_meta_mes ?? 36).toFixed(1)} hrs
                       </p>
                     </div>
                     <div>
                       <span className="text-muted-foreground block text-[11px]">Porcentaje de Cumplimiento</span>
                       <p className="font-mono font-bold text-emerald-600">
                         {(becario_ficha_modal.horas_meta_mes ?? 0) > 0
-                          ? Math.round(((becario_ficha_modal.horas_mes_actual ?? 0) / (becario_ficha_modal.horas_meta_mes || 40)) * 100)
+                          ? Math.round(((becario_ficha_modal.horas_mes_actual ?? 0) / (becario_ficha_modal.horas_meta_mes || 36)) * 100)
                           : 0}%
                       </p>
                     </div>
@@ -3334,11 +3419,10 @@ export function GestionBecarios() {
                     <Label htmlFor="edit_nac" className="text-xs font-semibold text-[#122029]">
                       Fecha Nacimiento
                     </Label>
-                    <Input
+                    <SeleccionadorFecha
                       id="edit_nac"
-                      type="date"
-                      value={edit_fecha_nacimiento}
-                      onChange={(e) => set_edit_fecha_nacimiento(e.target.value)}
+                      valorString={edit_fecha_nacimiento}
+                      alCambiarString={(val) => set_edit_fecha_nacimiento(val)}
                       className="h-10 border-[#E5E7EB] text-xs"
                     />
                   </div>
@@ -3584,7 +3668,7 @@ export function GestionBecarios() {
                         max="80"
                         step="1"
                         value={edit_horas_meta_mes}
-                        onChange={(e) => set_edit_horas_meta_mes(Number(e.target.value) || 40)}
+                        onChange={(e) => set_edit_horas_meta_mes(Number(e.target.value) || 36)}
                         className="h-10 border-[#E5E7EB] font-mono text-xs"
                       />
                       <span className="text-xs font-bold text-muted-foreground">hrs / mes</span>
@@ -3735,6 +3819,187 @@ export function GestionBecarios() {
           tipo={documento_visor_seleccionado.tipo}
           becario={documento_visor_seleccionado.becario}
         />
+      )}
+
+      {/* Modal de Configuración de Pasajes (TAREA-14) */}
+      {modal_pasajes_abierto && becario_pasajes && (
+        <Dialog
+          open={modal_pasajes_abierto}
+          onOpenChange={(ab) => {
+            if (!ab) {
+              set_modal_pasajes_abierto(false);
+              set_becario_pasajes(null);
+            }
+          }}
+        >
+          <DialogContent
+            showCloseButton={false}
+            className="sm:max-w-[560px] max-h-[92vh] flex flex-col p-0 overflow-hidden bg-white rounded-2xl border-[#E5E7EB] shadow-2xl"
+          >
+            <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] bg-[#F8F9FA] shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-[#007BBE]/10 border border-[#007BBE]/20 flex items-center justify-center">
+                    <Bus className="w-5 h-5 text-[#007BBE]" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-base font-bold text-[#035683]">
+                      Configuración de Modalidad de Pasajes
+                    </DialogTitle>
+                    <DialogDescription className="text-xs text-muted-foreground">
+                      Define si {becario_pasajes.nombre} puede registrar &ldquo;Solo Ida&rdquo; o &ldquo;Ida y Vuelta&rdquo;
+                    </DialogDescription>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-xs font-mono bg-white border-[#E5E7EB] text-[#035683]">
+                  ID: #{becario_pasajes.id}
+                </Badge>
+              </div>
+            </DialogHeader>
+
+            <DialogBody className="p-6 space-y-5 overflow-y-auto">
+              <div className="p-4 bg-amber-50/70 border border-amber-200/80 rounded-xl text-xs text-amber-900 space-y-1">
+                <p className="font-bold flex items-center gap-1.5 text-amber-950">
+                  <ShieldAlert className="w-4 h-4 text-amber-700" />
+                  Regla Administrativa de Viáticos
+                </p>
+                <p>
+                  Si se restringe a <strong>&ldquo;Solo Ida&rdquo;</strong>, el becario no podrá registrar el tramo de retorno ni en la web ni en la aplicación móvil para las actividades configuradas.
+                </p>
+              </div>
+
+              {/* Modalidad General */}
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-[#035683]">
+                  Modalidad General de Pasajes
+                </Label>
+                <Select
+                  value={modalidad_pasajes_gral}
+                  onValueChange={(val) => {
+                    if (val) {
+                      const v = val as "ida_y_vuelta" | "solo_ida";
+                      set_modalidad_pasajes_gral(v);
+                      set_pasajes_practicas(v);
+                      set_pasajes_escuela(v);
+                      set_pasajes_servicio(v);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-10 rounded-xl border-[#E5E7EB] text-xs font-semibold">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="ida_y_vuelta">
+                      Ida y Vuelta (Permite registrar ambos tramos)
+                    </SelectItem>
+                    <SelectItem value="solo_ida">
+                      Solo Ida (Restringe registro únicamente a la ida)
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Desglose por Actividad */}
+              <div className="pt-2 border-t border-[#E5E7EB] space-y-3">
+                <h4 className="text-xs font-bold text-[#035683] uppercase tracking-wider">
+                  Configuración Específica por Actividad
+                </h4>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-[#E5E7EB]">
+                    <div>
+                      <p className="text-xs font-bold text-[#035683]">Prácticas Profesionales</p>
+                      <p className="text-[11px] text-muted-foreground">Lunes a viernes en sede o institución asignada</p>
+                    </div>
+                    <Select
+                      value={pasajes_practicas}
+                      onValueChange={(v) => {
+                        if (v) set_pasajes_practicas(v as "ida_y_vuelta" | "solo_ida");
+                      }}
+                    >
+                      <SelectTrigger className="w-36 h-8 text-xs font-semibold rounded-lg bg-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="ida_y_vuelta">Ida y Vuelta</SelectItem>
+                        <SelectItem value="solo_ida">Solo Ida</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-[#E5E7EB]">
+                    <div>
+                      <p className="text-xs font-bold text-[#035683]">Escuela de Líderes (Viernes)</p>
+                      <p className="text-[11px] text-muted-foreground">Talleres de formación presencial los viernes</p>
+                    </div>
+                    <Select
+                      value={pasajes_escuela}
+                      onValueChange={(v) => {
+                        if (v) set_pasajes_escuela(v as "ida_y_vuelta" | "solo_ida");
+                      }}
+                    >
+                      <SelectTrigger className="w-36 h-8 text-xs font-semibold rounded-lg bg-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="ida_y_vuelta">Ida y Vuelta</SelectItem>
+                        <SelectItem value="solo_ida">Solo Ida</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-[#E5E7EB]">
+                    <div>
+                      <p className="text-xs font-bold text-[#035683]">Acciones de Servicio (Viernes)</p>
+                      <p className="text-[11px] text-muted-foreground">Servicio diaconal y comunitario programado</p>
+                    </div>
+                    <Select
+                      value={pasajes_servicio}
+                      onValueChange={(v) => {
+                        if (v) set_pasajes_servicio(v as "ida_y_vuelta" | "solo_ida");
+                      }}
+                    >
+                      <SelectTrigger className="w-36 h-8 text-xs font-semibold rounded-lg bg-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="ida_y_vuelta">Ida y Vuelta</SelectItem>
+                        <SelectItem value="solo_ida">Solo Ida</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </DialogBody>
+
+            <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA] shrink-0 flex items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  set_modal_pasajes_abierto(false);
+                  set_becario_pasajes(null);
+                }}
+                className="h-9 border-[#E5E7EB] rounded-xl text-xs font-semibold"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                onClick={guardarConfiguracionPasajes}
+                disabled={guardando_config_pasajes}
+                className="h-9 bg-[#035683] hover:bg-[#024366] text-white rounded-xl text-xs font-bold gap-1.5 shadow-sm cursor-pointer"
+              >
+                {guardando_config_pasajes ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                )}
+                <span>Guardar Modalidad</span>
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
 
       {/* Diálogo de Confirmación Institucional */}

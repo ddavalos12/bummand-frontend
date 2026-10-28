@@ -31,6 +31,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -84,7 +85,7 @@ export interface JustificacionIncidencia {
   created_at: string;
 }
 
-const MUESTRA_RECETA_MEDICA_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" fill="none"><rect width="600" height="400" rx="16" fill="%23FFFFFF" stroke="%23CBD5E1" stroke-width="2"/><rect x="24" y="24" width="552" height="60" rx="8" fill="%23F0FDF4" stroke="%2386EFAC"/><text x="44" y="52" fill="%23166534" font-family="sans-serif" font-size="16" font-weight="bold">CAJA NACIONAL DE SALUD · SEGURO UNIVERSITARIO SSU</text><text x="44" y="70" fill="%2315803D" font-family="sans-serif" font-size="12">CERTIFICADO Y RECETA MÉDICA OFICIAL - ATENCIÓN ODONTOLÓGICA DE URGENCIA</text><line x1="24" y1="104" x2="576" y2="104" stroke="%23E2E8F0" stroke-width="1.5"/><text x="44" y="135" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">PACIENTE:</text><text x="130" y="135" fill="%230F172A" font-family="sans-serif" font-size="13">Nilda Amalia Churata Paye</text><text x="360" y="135" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">FECHA:</text><text x="430" y="135" fill="%230F172A" font-family="sans-serif" font-size="13">06/10/2026</text><text x="44" y="170" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">DIAGNÓSTICO:</text><text x="160" y="170" fill="%230F172A" font-family="sans-serif" font-size="13">Pulpitis irreversible aguda pieza 3.8. Exodoncia de urgencia.</text><text x="44" y="205" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">PRESCRIPCIÓN:</text><text x="160" y="205" fill="%230F172A" font-family="sans-serif" font-size="13">Amoxicilina 500mg c/8h + Ketorolaco 10mg SL. Reposo 24 horas.</text><rect x="44" y="240" width="512" height="70" rx="8" fill="%23F8FAFC" stroke="%23E2E8F0"/><text x="60" y="268" fill="%23475569" font-family="sans-serif" font-size="11">Sello y Firma Digital:</text><text x="60" y="288" fill="%23035683" font-family="sans-serif" font-size="12" font-weight="bold">Dra. Paola Meneses Vargas · Matrícula Profesional N° 4598-LP</text><circle cx="500" cy="275" r="24" fill="%23DC2626" fill-opacity="0.1" stroke="%23DC2626" stroke-dasharray="3 3"/><text x="480" y="280" fill="%23DC2626" font-family="sans-serif" font-size="11" font-weight="bold">VALIDADO</text></svg>`;
+const MUESTRA_RECETA_MEDICA_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" fill="none"><rect width="600" height="400" rx="16" fill="%23FFFFFF" stroke="%23CBD5E1" stroke-width="2"/><rect x="24" y="24" width="552" height="60" rx="8" fill="%23F0FDF4" stroke="%2386EFAC"/><text x="44" y="52" fill="%23166534" font-family="sans-serif" font-size="16" font-weight="bold">CAJA NACIONAL DE SALUD · SEGURO UNIVERSITARIO SSU</text><text x="44" y="70" fill="%2315803D" font-family="sans-serif" font-size="12">CERTIFICADO Y RECETA MÉDICA OFICIAL - ATENCIÓN ODONTOLÓGICA DE URGENCIA</text><line x1="24" y1="104" x2="576" y2="104" stroke="%23E2E8F0" stroke-width="1.5"/><text x="44" y="135" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">PACIENTE:</text><text x="130" y="135" fill="%230F172A" font-family="sans-serif" font-size="13">Nilda Amalia Churata Paye</text><text x="360" y="135" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">FECHA:</text><text x="430" y="135" fill="%230F172A" font-family="sans-serif" font-size="13">06/10/2026</text><text x="44" y="170" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">DIAGNÓSTICO:</text><text x="160" y="170" fill="%230F172A" font-family="sans-serif" font-size="13">Pulpitis irreversible aguda pieza 3.8. Exodoncia de urgencia.</text><text x="44" y="205" fill="%23334155" font-family="sans-serif" font-size="13" font-weight="bold">PRESCRIPCIÓN:</text><text x="160" y="205" fill="%230F172A" font-family="sans-serif" font-size="13">Amoxicilina 500mg c/8h + Ketorolaco 10mg SL. Reposo 24 horas.</text><rect x="44" y="240" width="512" height="70" rx="8" fill="%23F8FAFC" stroke="%23E2E8F0"/><text x="60" y="268" fill="%23475569" font-family="sans-serif" font-size="11">Sello y Validación Médica:</text><text x="60" y="288" fill="%23035683" font-family="sans-serif" font-size="12" font-weight="bold">Dra. Paola Meneses Vargas · Matrícula Profesional N° 4598-LP</text><circle cx="500" cy="275" r="24" fill="%23DC2626" fill-opacity="0.1" stroke="%23DC2626" stroke-dasharray="3 3"/><text x="480" y="280" fill="%23DC2626" font-family="sans-serif" font-size="11" font-weight="bold">VALIDADO</text></svg>`;
 
 const BECARIOS_OFICIALES = [
   { id: 101, nombre: "Nilda Amalia Churata Paye", carrera: "Educación Parvularia", sede: "Centro Infantil Sagrada Familia" },
@@ -949,11 +950,10 @@ export function BandejaJustificaciones() {
             </div>
 
             <div>
-              <Label className="text-xs font-semibold text-[#035683]">Fecha de Incidencia</Label>
-              <Input
-                type="date"
-                value={nueva_fecha}
-                onChange={(e) => set_nueva_fecha(e.target.value)}
+              <Label className="text-xs font-semibold text-[#035683] block mb-1">Fecha de Incidencia</Label>
+              <SeleccionadorFecha
+                valorString={nueva_fecha}
+                alCambiarString={(val) => set_nueva_fecha(val)}
                 className="mt-1 text-xs rounded-xl border-[#E5E7EB]"
               />
             </div>

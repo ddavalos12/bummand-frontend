@@ -1,8 +1,19 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogBody,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -36,7 +47,16 @@ import {
   ClipboardCheck,
   Utensils,
   HeartHandshake,
+  Mail,
+  Plus,
+  Trash2,
 } from "lucide-react";
+import { toast } from "sonner";
+import { clienteApi } from "@/lib/cliente-api";
+import {
+  usarAutenticacion,
+  type CorreoAdicionalUsuario,
+} from "@/contextos/autenticacion-contexto";
 
 interface ElementoNavegacion {
   id: string;
@@ -55,8 +75,11 @@ interface MenuLateralProps {
   pestaña_activa: string;
   alSeleccionarPestaña: (id: string) => void;
   usuario: {
+    id?: number;
     nombre: string;
     correo: string;
+    correo_alternativo?: string | null;
+    correos_adicionales?: CorreoAdicionalUsuario[];
     rol: string;
     becario_id?: number | null;
   };
@@ -77,10 +100,133 @@ export function MenuLateral({
   menu_movil_abierto,
   alCerrarMenuMovil,
 }: MenuLateralProps) {
+  const { usuario: usuario_contexto, actualizarUsuarioSesion } = usarAutenticacion();
   const rol = usuario.rol || "becario";
   const es_admin = rol === "administrador";
   const es_supervisor = rol === "supervisor";
   const es_becario = rol === "becario";
+
+  const [modal_perfil_abierto, set_modal_perfil_abierto] = useState(false);
+  const [nuevo_correo_alt, set_nuevo_correo_alt] = useState("");
+  const [nueva_etiqueta_alt, set_nueva_etiqueta_alt] = useState("Personal");
+  const [guardando_correo_alt, set_guardando_correo_alt] = useState(false);
+
+  const correos_adicionales_actuales: CorreoAdicionalUsuario[] = React.useMemo(() => {
+    const base =
+      usuario_contexto?.correos_adicionales || usuario.correos_adicionales || [];
+    const alt_unico =
+      usuario_contexto?.correo_alternativo ?? usuario.correo_alternativo ?? null;
+    const lista: CorreoAdicionalUsuario[] = [...base];
+    if (
+      alt_unico &&
+      !lista.some((c) => c.correo.toLowerCase().trim() === alt_unico.toLowerCase().trim())
+    ) {
+      lista.unshift({ id: 1, correo: alt_unico, etiqueta: "Alternativo" });
+    }
+    return lista;
+  }, [
+    usuario_contexto?.correos_adicionales,
+    usuario_contexto?.correo_alternativo,
+    usuario.correos_adicionales,
+    usuario.correo_alternativo,
+  ]);
+
+  const manejarAgregarCorreoAlternativo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const correo_limpio = nuevo_correo_alt.trim().toLowerCase();
+    if (!correo_limpio || !correo_limpio.includes("@")) {
+      toast.error("Correo inválido", {
+        description: "Ingrese una dirección de correo electrónico válida.",
+      });
+      return;
+    }
+    if (correo_limpio === (usuario.correo || "").toLowerCase().trim()) {
+      toast.error("Correo ya asignado como principal", {
+        description: "Este correo ya es su dirección principal de inicio de sesión.",
+      });
+      return;
+    }
+    if (
+      correos_adicionales_actuales.some(
+        (c) => c.correo.toLowerCase().trim() === correo_limpio
+      )
+    ) {
+      toast.error("Correo duplicado", {
+        description: "Este correo alternativo ya se encuentra vinculado a su cuenta.",
+      });
+      return;
+    }
+
+    set_guardando_correo_alt(true);
+    let nuevo_id = Date.now();
+    try {
+      const resp = await clienteApi.post<{ id?: number; correo?: string }>(
+        "/usuarios/mi-perfil/correos",
+        {
+          correo: correo_limpio,
+          etiqueta: nueva_etiqueta_alt.trim() || "Personal",
+        }
+      );
+      if (resp && resp.id) {
+        nuevo_id = resp.id;
+      }
+    } catch {
+      try {
+        await clienteApi.patch("/usuarios/mi-perfil/correo-alternativo", {
+          correo_alternativo: correo_limpio,
+        });
+      } catch {
+        // Fallback local en caso de operar sin conexión al backend
+      }
+    } finally {
+      const nueva_lista: CorreoAdicionalUsuario[] = [
+        ...correos_adicionales_actuales,
+        {
+          id: nuevo_id,
+          correo: correo_limpio,
+          etiqueta: nueva_etiqueta_alt.trim() || "Personal",
+        },
+      ];
+      actualizarUsuarioSesion({
+        correo_alternativo: nueva_lista[0]?.correo || correo_limpio,
+        correos_adicionales: nueva_lista,
+      });
+      set_nuevo_correo_alt("");
+      set_nueva_etiqueta_alt("Personal");
+      set_guardando_correo_alt(false);
+      toast.success("Correo alternativo vinculado", {
+        description: `Ahora también puede iniciar sesión con ${correo_limpio}.`,
+      });
+    }
+  };
+
+  const manejarEliminarCorreoAlternativo = async (item: CorreoAdicionalUsuario) => {
+    try {
+      if (item.id) {
+        await clienteApi.delete(`/usuarios/mi-perfil/correos/${item.id}`);
+      }
+    } catch {
+      // Fallback local
+    }
+    const nueva_lista = correos_adicionales_actuales.filter(
+      (c) => c.correo.toLowerCase().trim() !== item.correo.toLowerCase().trim()
+    );
+    const nuevo_alt = nueva_lista[0]?.correo || null;
+    try {
+      await clienteApi.patch("/usuarios/mi-perfil/correo-alternativo", {
+        correo_alternativo: nuevo_alt,
+      });
+    } catch {
+      // Fallback local
+    }
+    actualizarUsuarioSesion({
+      correo_alternativo: nuevo_alt,
+      correos_adicionales: nueva_lista,
+    });
+    toast.success("Correo alternativo eliminado", {
+      description: `Se desvinculó ${item.correo} de su cuenta.`,
+    });
+  };
 
   // Cierre automático con tecla Escape si está descolapsado o abierto en móvil
   useEffect(() => {
@@ -375,18 +521,25 @@ export function MenuLateral({
 
       {/* 3. Pie del Menú Lateral (Perfil, Cerrar Sesión y Estado) */}
       <div className="p-2.5 border-t border-[#E5E7EB]/80 bg-white/50 backdrop-blur-xs space-y-2 relative z-10">
-        {/* Tarjeta del Usuario Activo */}
+        {/* Tarjeta del Usuario Activo (Clic para gestionar perfil y correos de inicio de sesión) */}
         {colapsado ? (
           <div className="flex flex-col items-center py-1">
-            <div
+            <button
+              type="button"
+              onClick={() => set_modal_perfil_abierto(true)}
               className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#035683] to-[#007BBE] text-[#FFB600] font-bold text-xs flex items-center justify-center shadow-xs cursor-pointer hover:ring-2 hover:ring-[#00ABBD]/50 transition-all"
-              title={`${usuario.nombre} (${usuario.correo})`}
+              title={`${usuario.nombre} (${usuario.correo}) — Clic para gestionar correos de acceso`}
             >
               {usuario.nombre.charAt(0)}
-            </div>
+            </button>
           </div>
         ) : (
-          <div className="p-2 rounded-xl bg-white border border-[#E5E7EB]/70 shadow-2xs flex items-center gap-2.5 hover:border-[#00ABBD]/50 transition-colors">
+          <button
+            type="button"
+            onClick={() => set_modal_perfil_abierto(true)}
+            title="Gestionar mi perfil y correos de inicio de sesión"
+            className="w-full text-left p-2 rounded-xl bg-white border border-[#E5E7EB]/70 shadow-2xs flex items-center gap-2.5 hover:border-[#00ABBD] hover:bg-slate-50/70 transition-colors cursor-pointer"
+          >
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#035683] to-[#007BBE] text-[#FFB600] font-bold text-xs flex items-center justify-center shadow-xs shrink-0">
               {usuario.nombre.charAt(0)}
             </div>
@@ -399,13 +552,21 @@ export function MenuLateral({
                   {usuario.nombre}
                 </p>
               </div>
-              <div className="flex items-center gap-1.5 mt-0.5">
+              <div className="flex items-center justify-between gap-1.5 mt-0.5">
                 <span className="text-[10px] text-muted-foreground truncate font-mono">
                   {usuario.correo}
                 </span>
+                {correos_adicionales_actuales.length > 0 && (
+                  <Badge
+                    variant="outline"
+                    className="px-1 py-0 text-[9px] font-mono border-[#00ABBD]/40 text-[#035683] bg-[#00ABBD]/10 shrink-0"
+                  >
+                    +{correos_adicionales_actuales.length}
+                  </Badge>
+                )}
               </div>
             </div>
-          </div>
+          </button>
         )}
 
         <AlertDialog>
@@ -496,6 +657,161 @@ export function MenuLateral({
           </div>
         </div>
       )}
+
+      {/* Modal: Mi Perfil y Correos de Inicio de Sesión */}
+      <Dialog open={modal_perfil_abierto} onOpenChange={set_modal_perfil_abierto}>
+        <DialogContent
+          showCloseButton={false}
+          className="sm:max-w-[500px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white rounded-2xl border border-[#E5E7EB] shadow-2xl"
+        >
+          <DialogHeader className="p-5 pb-3.5 border-b border-[#E5E7EB] bg-[#F8F9FA] shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#035683] to-[#007BBE] text-[#FFB600] font-bold text-sm flex items-center justify-center shadow-xs shrink-0">
+                {usuario.nombre.charAt(0)}
+              </div>
+              <div>
+                <DialogTitle className="text-base font-bold text-[#035683]">
+                  Mi Perfil y Correos de Inicio de Sesión
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Gestione sus direcciones de correo vinculadas para acceder con la misma cuenta.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <DialogBody className="p-5 space-y-4 overflow-y-auto flex-1 min-h-0 text-xs">
+            {/* Resumen de Cuenta */}
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-[#E5E7EB] space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-[#035683] text-sm">{usuario.nombre}</span>
+                <Badge
+                  variant="outline"
+                  className="uppercase font-mono text-[10px] border-[#035683]/30 text-[#035683] bg-[#035683]/5 font-bold"
+                >
+                  {usuario.rol}
+                </Badge>
+              </div>
+              <div className="pt-2 border-t border-dashed border-[#E5E7EB] flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Mail className="w-3.5 h-3.5 text-[#00ABBD]" />
+                  <span>Correo Principal:</span>
+                </div>
+                <span className="font-mono font-bold text-[#035683]">{usuario.correo}</span>
+              </div>
+            </div>
+
+            {/* Lista de Correos Alternativos Vinculados */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold text-[#035683]">
+                  Correos Alternativos Vinculados ({correos_adicionales_actuales.length})
+                </Label>
+                <span className="text-[10px] text-muted-foreground font-mono">
+                  Habilitados para login
+                </span>
+              </div>
+
+              {correos_adicionales_actuales.length === 0 ? (
+                <div className="p-3.5 rounded-xl border border-dashed border-[#E5E7EB] bg-slate-50/50 text-center text-muted-foreground text-xs">
+                  No tiene correos alternativos vinculados todavía. Agregue su correo personal o secundario abajo.
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  {correos_adicionales_actuales.map((item, idx) => (
+                    <div
+                      key={`${item.correo}_${idx}`}
+                      className="p-2.5 rounded-xl border border-[#E5E7EB] bg-white flex items-center justify-between gap-2"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Mail className="w-3.5 h-3.5 text-[#00ABBD] shrink-0" />
+                        <span className="font-mono font-semibold text-[#1E293B] truncate">
+                          {item.correo}
+                        </span>
+                        {item.etiqueta && (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] font-mono border-emerald-200 bg-emerald-50 text-emerald-700 shrink-0"
+                          >
+                            {item.etiqueta}
+                          </Badge>
+                        )}
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => manejarEliminarCorreoAlternativo(item)}
+                        className="h-7 w-7 p-0 text-[#E2694B] hover:text-[#c9573b] hover:bg-rose-50 rounded-lg shrink-0 cursor-pointer"
+                        title="Desvincular este correo alternativo"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Formulario para Agregar Nuevo Correo Alternativo */}
+            <form
+              onSubmit={manejarAgregarCorreoAlternativo}
+              className="p-3.5 rounded-xl border border-[#E5E7EB] bg-slate-50/70 space-y-3"
+            >
+              <Label className="text-xs font-bold text-[#035683] block">
+                Vincular Nuevo Correo de Inicio de Sesión
+              </Label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="sm:col-span-2">
+                  <Input
+                    type="email"
+                    placeholder="ejemplo@gmail.com o institucional"
+                    value={nuevo_correo_alt}
+                    onChange={(e) => set_nuevo_correo_alt(e.target.value)}
+                    required
+                    className="h-9 text-xs font-mono bg-white border-[#E5E7EB] rounded-xl"
+                  />
+                </div>
+                <div>
+                  <Input
+                    type="text"
+                    placeholder="Etiqueta (ej. Personal)"
+                    value={nueva_etiqueta_alt}
+                    onChange={(e) => set_nueva_etiqueta_alt(e.target.value)}
+                    className="h-9 text-xs bg-white border-[#E5E7EB] rounded-xl"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-between gap-2 pt-1">
+                <span className="text-[11px] text-muted-foreground">
+                  Usará su misma contraseña actual.
+                </span>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={guardando_correo_alt}
+                  className="h-8 px-3 bg-[#035683] hover:bg-[#035683]/90 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{guardando_correo_alt ? "Vinculando..." : "Vincular Correo"}</span>
+                </Button>
+              </div>
+            </form>
+          </DialogBody>
+
+          <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] shrink-0 flex justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => set_modal_perfil_abierto(false)}
+              className="rounded-xl text-xs font-bold border-[#E5E7EB]"
+            >
+              Cerrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

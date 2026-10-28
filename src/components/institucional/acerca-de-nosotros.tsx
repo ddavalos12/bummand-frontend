@@ -379,10 +379,10 @@ export function AcercaDeNosotros({ rol_usuario = "becario" }: AcercaDeNosotrosPr
 
                 <div className="p-4 rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] space-y-2">
                   <span className="text-xs font-poppins font-bold text-[#00808E] block">
-                    3. Firma Digital y Actas Oficiales
+                    3. Trazabilidad en Sistema y Actas Oficiales
                   </span>
                   <p className="text-xs text-slate-700 leading-relaxed font-sans">
-                    Validación formal de horas con firma digital en canvas HTML5 para convalidación inmediata ante Recursos Humanos y la Autoridad de Supervisión (ASFI).
+                    Validación formal de horas con trazabilidad de usuario en sistema para convalidación inmediata ante Recursos Humanos y la Autoridad de Supervisión (ASFI).
                   </p>
                 </div>
               </div>
@@ -638,7 +638,7 @@ export function AcercaDeNosotros({ rol_usuario = "becario" }: AcercaDeNosotrosPr
                 Consolidación Institucional BUMAND y Auditoría de Gestión
               </h4>
               <p className="text-xs text-slate-700 font-sans leading-relaxed">
-                A la fecha presente, el ecosistema gestiona con éxito a los <strong>23 becarios oficiales</strong>, <strong>29 mentores</strong> y <strong>17 iglesias asociadas</strong>. Cero pérdidas de registros de horas, liquidación exacta de viáticos en centavos, reporte oficial de dos páginas con firma digital para ASFI y convalidación del Cuestionario de Bienestar Universitario de 26 preguntas.
+                A la fecha presente, el ecosistema gestiona con éxito a los <strong>23 becarios oficiales</strong>, <strong>29 mentores</strong> y <strong>17 iglesias asociadas</strong>. Cero pérdidas de registros de horas, liquidación exacta de viáticos en centavos, reporte oficial de dos páginas con trazabilidad en sistema para ASFI y convalidación del Cuestionario de Bienestar Universitario de 26 preguntas.
               </p>
             </div>
           </div>
@@ -791,7 +791,7 @@ export function AcercaDeNosotros({ rol_usuario = "becario" }: AcercaDeNosotrosPr
               51 a 69 puntos
             </span>
             <span className="text-[11px] font-semibold text-amber-700">
-              Condicionado (Firma de Compromiso)
+              Condicionado (Acta de Compromiso)
             </span>
           </div>
           <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200">

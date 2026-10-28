@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import { clienteApi } from "@/lib/cliente-api";
  * @component FormularioF03
  * @description Formulario ministerial F-03 del Pastor de la congregación con sus 3 secciones
  * canónicas completas (Datos pastor/iglesia, Preguntas 1 a 13 con pills y textareas, Declaración jurada
- * con C.I. y exportación a PDF oficial firmado).
+ * con C.I. y exportación a PDF oficial convalidado).
  */
 export function FormularioF03({
   becario_id,
@@ -114,7 +114,7 @@ export function FormularioF03({
     set_error_formulario(null);
     set_cargando(true);
     toast.info("Generando formulario F-03 en PDF oficial con Puppeteer...", {
-      description: "Compilando rúbrica ministerial y firma de conformidad.",
+      description: "Compilando rúbrica ministerial y acreditación en sistema.",
     });
 
     try {
@@ -522,7 +522,7 @@ export function FormularioF03({
           className="bg-[#FFB600] hover:bg-[#FFB600] text-[#3A2400] font-bold text-xs rounded-xl h-10 px-5 shadow-sm"
         >
           <Printer className="w-4 h-4 mr-2" />
-          Exportar PDF (F-03 firmado)
+          Exportar PDF (F-03 convalidado)
         </Button>
       </div>
     </Card>
