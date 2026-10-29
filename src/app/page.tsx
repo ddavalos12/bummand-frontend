@@ -38,7 +38,10 @@ import { GloboNotificaciones } from "@/components/notificaciones/globo-notificac
 
 import { AcercaDeNosotros } from "@/components/institucional/acerca-de-nosotros";
 import { ModalVersiculoDiario } from "@/components/devocionales/modal-versiculo-diario";
+import { RegistroDevocionales } from "@/components/devocionales/registro-devocionales";
 import { DialogoDocumentosBecario } from "@/components/becarios/dialogo-documentos-becario";
+import { GestionUsuariosAdmin } from "@/components/usuarios/gestion-usuarios-admin";
+import { MiPerfilCuenta } from "@/components/usuarios/mi-perfil-cuenta";
 import { 
   Bus, 
   FileText, 
@@ -108,9 +111,25 @@ function obtenerDetallesSeccion(seccion: string, rol: string, subpestaña?: stri
       return {
         titulo: "Centro Corporativo de Notificaciones",
       };
+    case "seguimiento":
+    case "devocionales":
+      return {
+        titulo: rol === "becario" ? "Seguimiento y Retroalimentación" : "Seguimiento y Retroalimentación de Supervisados",
+        subtitulo: "Acompañamiento pastoral, citas de seguimiento y bitácora devocional",
+      };
     case "refrigerios":
       return {
         titulo: "Control y Liquidación de Refrigerios Institucionales",
+      };
+    case "usuarios":
+      return {
+        titulo: "Administración de Usuarios, Contraseñas y Accesos",
+        subtitulo: "Control centralizado de cuentas, roles, correos de autenticación y credenciales institucionales",
+      };
+    case "mi_perfil":
+      return {
+        titulo: "Mi Perfil, Datos Personales y Seguridad de Cuenta",
+        subtitulo: "Gestión de datos institucionales, correos de acceso vinculados y cambio de contraseña",
       };
     case "acerca_de":
     case "acerca-de":
@@ -147,12 +166,18 @@ export default function PaginaInicio() {
   useEffect(() => {
     if (usuario) {
       if (usuario.rol === "becario") {
-        set_pestaña_activa("resumen");
+        set_pestaña_activa((prev) => (prev === "administracion" ? "resumen" : prev));
       } else {
-        set_pestaña_activa("administracion");
+        set_pestaña_activa((prev) => (prev === "resumen" ? "administracion" : prev));
       }
     }
-  }, [usuario?.rol]);
+  }, [usuario?.id, usuario?.rol]);
+
+  useEffect(() => {
+    if (es_admin && (pestaña_activa === "seguimiento" || pestaña_activa === "devocionales")) {
+      set_pestaña_activa("administracion");
+    }
+  }, [es_admin, pestaña_activa]);
 
   if (cargando) {
     return (
@@ -439,6 +464,13 @@ export default function PaginaInicio() {
               </TabsContent>
             )}
 
+            {/* Seguimiento y Retroalimentación exclusiva para Supervisor y Becarios */}
+            {(es_supervisor || es_becario) && !es_admin && (
+              <TabsContent value="seguimiento" className="m-0 border-none p-0 outline-none">
+                <RegistroDevocionales />
+              </TabsContent>
+            )}
+
             {/* SPRINT 2: Becarios (Admin y Supervisor) */}
             {(es_admin || es_supervisor) && (
               <TabsContent value="becarios" className="space-y-6">
@@ -508,6 +540,18 @@ export default function PaginaInicio() {
             {/* Módulo de Refrigerios Institucionales */}
             <TabsContent value="refrigerios" className="space-y-6">
               <ControlRefrigerios />
+            </TabsContent>
+
+            {/* Módulo de Administración de Usuarios, Contraseñas y Accesos (Exclusivo Administrador) */}
+            {es_admin && (
+              <TabsContent value="usuarios" className="space-y-6">
+                <GestionUsuariosAdmin />
+              </TabsContent>
+            )}
+
+            {/* Módulo de Mi Perfil, Datos Personales y Seguridad de Cuenta (Universal para todos los roles) */}
+            <TabsContent value="mi_perfil" className="space-y-6">
+              <MiPerfilCuenta />
             </TabsContent>
 
             {/* Módulo Institucional: Acerca de Nosotros (Universal para todos los roles) */}

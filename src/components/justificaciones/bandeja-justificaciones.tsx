@@ -21,6 +21,7 @@ import {
   Plus,
   Upload,
   Download,
+  ShieldCheck,
 } from "lucide-react";
 import { clienteApi } from "@/lib/cliente-api";
 import { useConsulta } from "@/hooks/useConsulta";
@@ -78,10 +79,14 @@ export interface JustificacionIncidencia {
   documento_adjunto?: string;
   archivo_prueba_url?: string;
   nombre_archivo_prueba?: string;
-  estado: "pendiente" | "aprobada" | "rechazada";
+  estado: "pendiente" | "revisado_supervisor" | "aprobado_administracion" | "aprobada" | "rechazada" | "observada";
   supervisor_nombre?: string | null;
   observacion_supervisor?: string | null;
+  fecha_revision_supervisor?: string | null;
+  administrador_nombre?: string | null;
+  observacion_admin?: string | null;
   fecha_resolucion?: string | null;
+  exime_multa_viernes?: boolean;
   created_at: string;
 }
 
@@ -144,7 +149,10 @@ const JUSTIFICACIONES_INICIALES: JustificacionIncidencia[] = [
       "Rendición del segundo examen parcial de Redes y Comunicaciones de 10:00 a 12:00 en la UPEA. Solicito convalidación del módulo de devocional matutino.",
     documento_adjunto: "Boleta_Examen_UPEA_Alarcon.pdf",
     nombre_archivo_prueba: "Boleta_Examen_UPEA_Alarcon.pdf",
-    estado: "pendiente",
+    estado: "revisado_supervisor",
+    supervisor_nombre: "Lic. Marcos Quispe",
+    observacion_supervisor: "Verificado rol oficial de exámenes de la facultad. Se eleva a Administración.",
+    fecha_revision_supervisor: "2026-10-03 09:30",
     created_at: "2026-10-02 18:05",
   },
   {
@@ -153,16 +161,19 @@ const JUSTIFICACIONES_INICIALES: JustificacionIncidencia[] = [
     becario_nombre: "Adai Belen Huayta Cardozo",
     carrera: "Contaduría Pública",
     sede_nombre: "Agencia Villa Dolores",
-    tipo_incidencia: "asistencia_practicas",
+    tipo_incidencia: "escuela_lideres",
     fecha_incidencia: "2026-09-29",
     motivo: "Bloqueo y suspensión del transporte en autopista",
     descripcion:
-      "Paro de choferes en el peaje de la autopista imposibilitó el arribo a tiempo a la sede de práctica. Se registraron 45 minutos de retraso involuntario.",
-    estado: "aprobada",
+      "Paro de choferes en el peaje de la autopista imposibilitó el arribo a tiempo a la sesión de Escuela de Líderes.",
+    estado: "aprobado_administracion",
     supervisor_nombre: "Lic. Marcos Quispe",
-    observacion_supervisor:
-      "Incidencia de fuerza mayor corroborada en reportes de tránsito. Se convalidan las horas de servicio.",
+    observacion_supervisor: "Incidencia de fuerza mayor corroborada en reportes de tránsito.",
+    fecha_revision_supervisor: "2026-09-29 14:00",
+    administrador_nombre: "Lic. Juan Pérez (Administración)",
+    observacion_admin: "Permiso convalidado oficialmente con exención total de multa de viernes.",
     fecha_resolucion: "2026-09-30 09:15",
+    exime_multa_viernes: true,
     created_at: "2026-09-29 11:40",
   },
   {
@@ -240,6 +251,8 @@ export function BandejaJustificaciones() {
     cargarBecarios();
   }, []);
 
+  const es_admin = usuario?.rol === "administrador";
+  const es_supervisor = usuario?.rol === "supervisor" || (!es_admin && usuario?.rol !== "becario");
   const es_becario = usuario?.rol === "becario";
   const [modal_crear_abierto, set_modal_crear_abierto] = useState(false);
   const [nuevo_tipo, set_nuevo_tipo] = useState<JustificacionIncidencia["tipo_incidencia"]>("asistencia_practicas");
@@ -349,10 +362,14 @@ export function BandejaJustificaciones() {
           documento_adjunto: item.documento_adjunto || item.nombre_archivo_prueba,
           archivo_prueba_url: item.archivo_prueba_url,
           nombre_archivo_prueba: item.nombre_archivo_prueba || item.documento_adjunto,
-          estado: (item.estado || "pendiente").toLowerCase() as "pendiente" | "aprobada" | "rechazada",
-          supervisor_nombre: item.supervisor?.nombre || null,
+          estado: (item.estado || "pendiente").toLowerCase() as JustificacionIncidencia["estado"],
+          supervisor_nombre: item.supervisor?.nombre || item.supervisor_nombre || null,
           observacion_supervisor: item.observacion_supervisor || null,
+          fecha_revision_supervisor: item.fecha_revision_supervisor ? String(item.fecha_revision_supervisor) : null,
+          administrador_nombre: item.administrador?.nombre || item.administrador_nombre || null,
+          observacion_admin: item.observacion_admin || null,
           fecha_resolucion: item.fecha_resolucion ? String(item.fecha_resolucion) : null,
+          exime_multa_viernes: Boolean(item.exime_multa_viernes || item.tipo_incidencia === "escuela_lideres"),
           created_at: item.created_at ? String(item.created_at) : "2026-10-01",
         }));
       }
@@ -373,6 +390,9 @@ export function BandejaJustificaciones() {
 
   const contarPorEstado = (_est: string) => {
     if (_est === "todos") return justificaciones.length;
+    if (_est === "aprobada") {
+      return justificaciones.filter((j) => j.estado === "aprobada" || j.estado === "aprobado_administracion").length;
+    }
     return justificaciones.filter((j) => j.estado === _est).length;
   };
 
@@ -392,6 +412,13 @@ export function BandejaJustificaciones() {
       clase_contador_activo: "bg-white text-amber-700 font-bold shadow-xs",
     },
     {
+      id: "revisado_supervisor",
+      etiqueta: "Revisado por Supervisor",
+      contador: contarPorEstado("revisado_supervisor"),
+      clase_contador: "bg-sky-100 text-sky-800 border border-sky-200",
+      clase_contador_activo: "bg-white text-sky-700 font-bold shadow-xs",
+    },
+    {
       id: "aprobada",
       etiqueta: "Aprobadas",
       contador: contarPorEstado("aprobada"),
@@ -408,7 +435,12 @@ export function BandejaJustificaciones() {
   ];
 
   const justificaciones_filtradas = justificaciones.filter((j) => {
-    const coincide_estado = filtro_estado === "todos" || j.estado === filtro_estado;
+    let coincide_estado = true;
+    if (filtro_estado === "aprobada") {
+      coincide_estado = j.estado === "aprobada" || j.estado === "aprobado_administracion";
+    } else if (filtro_estado !== "todos") {
+      coincide_estado = j.estado === filtro_estado;
+    }
     const busqueda = termino_busqueda.toLowerCase().trim();
     const coincide_busqueda =
       !busqueda ||
@@ -418,6 +450,83 @@ export function BandejaJustificaciones() {
       j.sede_nombre.toLowerCase().includes(busqueda);
     return coincide_estado && coincide_busqueda;
   });
+
+  const manejarRevisarSupervisor = async (_id: number) => {
+    const fecha_actual = format(new Date(), "yyyy-MM-dd HH:mm");
+    const nombre_sup = usuario?.nombre || "Supervisor Diaconía";
+    try {
+      await clienteApi.patch(`/api/justificaciones/${_id}/revisar-supervisor`, {
+        supervisor_id: usuario?.id || 1,
+        observacion_supervisor: "Permiso revisado y verificado técnicamente por Supervisor.",
+      });
+      invalidar();
+    } catch {
+      try {
+        await clienteApi.patch(`/api/justificaciones/${_id}/resolver`, {
+          estado: "revisado_supervisor",
+          observacion_supervisor: "Permiso revisado y verificado técnicamente por Supervisor.",
+        });
+        invalidar();
+      } catch {
+        // Fallback local
+      }
+    }
+    set_justificaciones_locales((prev) =>
+      prev.map((j) =>
+        j.id === _id
+          ? {
+              ...j,
+              estado: "revisado_supervisor",
+              supervisor_nombre: nombre_sup,
+              observacion_supervisor: "Permiso revisado y verificado técnicamente por Supervisor.",
+              fecha_revision_supervisor: fecha_actual,
+            }
+          : j
+      )
+    );
+    toast.success("Permiso marcado como Revisado por Supervisor", {
+      description: "Nivel 1 completado. La solicitud ha sido remitida a la bandeja de Aprobación por Administración.",
+    });
+  };
+
+  const manejarAprobarAdministracion = async (_id: number) => {
+    const fecha_actual = format(new Date(), "yyyy-MM-dd HH:mm");
+    const nombre_admin = usuario?.nombre || "Administración Central";
+    try {
+      await clienteApi.patch(`/api/justificaciones/${_id}/aprobar-administracion`, {
+        administrador_id: usuario?.id || 1,
+        observacion_admin: "Aprobación definitiva concedida por Administración con exención oficial de multa de viernes.",
+      });
+      invalidar();
+    } catch {
+      try {
+        await clienteApi.patch(`/api/justificaciones/${_id}/resolver`, {
+          estado: "aprobado_administracion",
+          observacion_supervisor: "Aprobación definitiva concedida por Administración con exención oficial de multa de viernes.",
+        });
+        invalidar();
+      } catch {
+        // Fallback local
+      }
+    }
+    set_justificaciones_locales((prev) =>
+      prev.map((j) =>
+        j.id === _id
+          ? {
+              ...j,
+              estado: "aprobado_administracion",
+              administrador_nombre: nombre_admin,
+              observacion_admin: "Aprobación definitiva concedida por Administración con exención oficial de multa de viernes.",
+              fecha_resolucion: fecha_actual,
+              exime_multa_viernes: true,
+            }
+          : j
+      )
+    );
+    toast.success("Permiso Aprobado por Administración", {
+      description: "Nivel 2 completado. Se convalidó la justificación con exención de multa para este viernes.",
+    });
+  };
 
   const manejarAprobacionRapida = async (_id: number) => {
     const fecha_actual = format(new Date(), "yyyy-MM-dd HH:mm");
@@ -563,20 +672,25 @@ export function BandejaJustificaciones() {
         ) : (
           justificaciones_filtradas.map((just) => {
             const es_pendiente = just.estado === "pendiente";
-            const es_aprobada = just.estado === "aprobada";
+            const es_revisado = just.estado === "revisado_supervisor";
+            const es_aprobada = just.estado === "aprobada" || just.estado === "aprobado_administracion";
             const es_rechazada = just.estado === "rechazada";
 
-            // Badges de Shadcn con colores normados:
-            // Pendiente: amarillo, Aprobada: esmeralda, Rechazada: rojo
+            // Badges de Shadcn con colores normados
             const badge_estado = es_pendiente ? (
               <Badge className="bg-amber-50 text-amber-700 border-amber-300 gap-1 text-[11px]">
                 <Clock className="w-3 h-3 text-amber-600" />
                 Pendiente de Dictamen
               </Badge>
+            ) : es_revisado ? (
+              <Badge className="bg-sky-50 text-sky-800 border-sky-300 gap-1 text-[11px]">
+                <CheckCircle2 className="w-3 h-3 text-sky-600" />
+                Revisado por Supervisor
+              </Badge>
             ) : es_aprobada ? (
               <Badge className="bg-emerald-50 text-emerald-700 border-emerald-300 gap-1 text-[11px]">
                 <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                Justificación Aprobada
+                Aprobado por Administración
               </Badge>
             ) : (
               <Badge className="bg-rose-50 text-rose-700 border-rose-300 gap-1 text-[11px]">
@@ -593,7 +707,7 @@ export function BandejaJustificaciones() {
                 <CardContent className="p-5">
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     {/* Información del Becario y la Incidencia */}
-                    <div className="space-y-2 flex-1 min-w-0">
+                    <div className="space-y-2.5 flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-bold text-sm text-[#035683]">{just.becario_nombre}</span>
                         <span className="text-xs text-muted-foreground font-mono">({just.carrera})</span>
@@ -604,18 +718,70 @@ export function BandejaJustificaciones() {
                         </span>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600">
+                      <div className="flex flex-wrap items-center gap-2.5 text-xs text-slate-600">
                         <span className="font-mono text-[11px] font-semibold text-[#007BBE] px-2 py-0.5 rounded-md bg-[#E3F9FA] border border-[#00ABBD]/20">
                           {formatearTipoIncidencia(just.tipo_incidencia)}
                         </span>
                         <span className="flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
                           <Calendar className="w-3 h-3 text-slate-400" />
-                          Fecha del incidente: {just.fecha_incidencia}
+                          Fecha: {just.fecha_incidencia}
                         </span>
                         <span className="text-slate-300">·</span>
                         <span className="text-[11px] text-muted-foreground">
                           Registrado: {just.created_at}
                         </span>
+
+                        {/* Badge destacado Sin Multa si está aprobado por Administración */}
+                        {(just.tipo_incidencia === "escuela_lideres" || just.exime_multa_viernes || just.tipo_incidencia === "asistencia_evento") && es_aprobada && (
+                          <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 gap-1 text-[10px] font-bold shadow-2xs">
+                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                            Sin Multa (Permiso Aprobado)
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Línea de Progreso Canónica de los 2 Niveles */}
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
+                        <div className="flex items-center justify-between text-[11px] mb-1.5 font-semibold">
+                          <span className="text-[#035683]">Flujo Institucional de Aprobación (2 Niveles):</span>
+                          <span className="font-mono text-[10px] text-muted-foreground">
+                            {es_aprobada
+                              ? "Completado · Dictamen Definitivo"
+                              : es_revisado
+                              ? "Nivel 1 Listo · En espera de Admin"
+                              : es_rechazada
+                              ? "Dictamen emitido (Rechazado)"
+                              : "En espera de Nivel 1 (Supervisor)"}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-center text-[10.5px]">
+                          <div className={`p-1.5 rounded-lg border flex items-center justify-center gap-1 ${
+                            !es_rechazada ? "bg-emerald-50 border-emerald-200 text-emerald-800 font-bold" : "bg-slate-100 border-slate-200 text-slate-500"
+                          }`}>
+                            <Check className="w-3 h-3 text-emerald-600" />
+                            <span>1. Radicado</span>
+                          </div>
+                          <div className={`p-1.5 rounded-lg border flex items-center justify-center gap-1 ${
+                            (es_revisado || es_aprobada)
+                              ? "bg-sky-50 border-sky-300 text-sky-800 font-bold"
+                              : es_rechazada
+                              ? "bg-slate-100 border-slate-200 text-slate-400"
+                              : "bg-amber-50 border-amber-200 text-amber-700"
+                          }`}>
+                            {(es_revisado || es_aprobada) ? <Check className="w-3 h-3 text-sky-600" /> : <Clock className="w-3 h-3 text-amber-500" />}
+                            <span>2. Supervisor</span>
+                          </div>
+                          <div className={`p-1.5 rounded-lg border flex items-center justify-center gap-1 ${
+                            es_aprobada
+                              ? "bg-emerald-100 border-emerald-300 text-emerald-900 font-bold"
+                              : es_rechazada
+                              ? "bg-rose-50 border-rose-200 text-rose-700 font-bold"
+                              : "bg-slate-100 border-slate-200 text-slate-400"
+                          }`}>
+                            {es_aprobada ? <ShieldCheck className="w-3 h-3 text-emerald-600" /> : es_rechazada ? <X className="w-3 h-3 text-rose-600" /> : <Clock className="w-3 h-3 text-slate-400" />}
+                            <span>3. Administración</span>
+                          </div>
+                        </div>
                       </div>
 
                       <div className="bg-[#F8F9FA] p-3 rounded-xl border border-[#E5E7EB]/60 text-xs">
@@ -631,16 +797,31 @@ export function BandejaJustificaciones() {
                         )}
                       </div>
 
-                      {/* Observación previa del supervisor si ya está dictaminado */}
+                      {/* Observación previa del supervisor si ya está revisado */}
                       {just.observacion_supervisor && (
                         <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-700">
                           <span className="font-semibold text-[#035683] block mb-0.5">
-                            Dictamen de Supervisión ({just.supervisor_nombre || "Supervisor"}):
+                            Revisión de Supervisión ({just.supervisor_nombre || "Supervisor"}):
                           </span>
                           <p className="italic">{just.observacion_supervisor}</p>
+                          {just.fecha_revision_supervisor && (
+                            <span className="text-[10px] text-muted-foreground font-mono block mt-1">
+                              Fecha revisión supervisor: {just.fecha_revision_supervisor}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Dictamen final de administración */}
+                      {just.observacion_admin && (
+                        <div className="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-200 text-xs text-emerald-800">
+                          <span className="font-semibold text-[#035683] block mb-0.5">
+                            Dictamen de Administración ({just.administrador_nombre || "Administración"}):
+                          </span>
+                          <p className="italic">{just.observacion_admin}</p>
                           {just.fecha_resolucion && (
                             <span className="text-[10px] text-muted-foreground font-mono block mt-1">
-                              Fecha de dictamen: {just.fecha_resolucion}
+                              Fecha resolución admin: {just.fecha_resolucion}
                             </span>
                           )}
                         </div>
@@ -651,7 +832,7 @@ export function BandejaJustificaciones() {
                     <div className="flex flex-col sm:flex-row lg:flex-col items-start lg:items-end justify-between gap-3 shrink-0">
                       <div>{badge_estado}</div>
 
-                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -662,19 +843,19 @@ export function BandejaJustificaciones() {
                           Detalles
                         </Button>
 
-                        {es_pendiente && !es_becario && (
+                        {/* ACCIONES SUPERVISOR: Nivel 1 */}
+                        {es_pendiente && es_supervisor && !es_admin && (
                           <>
-                            {/* Aprobación rápida */}
                             <Button
                               size="sm"
-                              onClick={() => manejarAprobacionRapida(just.id)}
-                              className="h-8 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 gap-1 shadow-xs"
+                              onClick={() => manejarRevisarSupervisor(just.id)}
+                              className="h-8 rounded-xl bg-[#007BBE] hover:bg-[#035683] text-white text-xs font-semibold px-3 gap-1 shadow-xs"
+                              title="Marcar Revisado por Supervisor para remitir a Administración"
                             >
-                              <Check className="w-3.5 h-3.5" />
-                              Aprobar
+                              <Check className="w-3.5 h-3.5 text-[#FFB600]" />
+                              <span>Marcar Revisado por Supervisor</span>
                             </Button>
 
-                            {/* Rechazo motivado con diálogo modal */}
                             <Button
                               size="sm"
                               variant="outline"
@@ -689,9 +870,44 @@ export function BandejaJustificaciones() {
                             </Button>
                           </>
                         )}
+
+                        {/* ACCIONES ADMINISTRACIÓN: Nivel 2 */}
+                        {(es_revisado || (es_pendiente && es_admin)) && es_admin && (
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={() => manejarAprobarAdministracion(just.id)}
+                              className="h-8 rounded-xl bg-[#035683] hover:bg-[#084885] text-white text-xs font-semibold px-3 gap-1 shadow-xs"
+                              title="Aprobar formalmente con exención de multa para este viernes"
+                            >
+                              <ShieldCheck className="w-3.5 h-3.5 text-[#FFB600]" />
+                              <span>Aprobar por Administración</span>
+                            </Button>
+
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                set_justificacion_rechazo(just);
+                                set_observacion_rechazo("");
+                              }}
+                              className="h-8 rounded-xl border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-semibold px-3 gap-1"
+                            >
+                              <X className="w-3.5 h-3.5 text-rose-600" />
+                              Rechazar
+                            </Button>
+                          </>
+                        )}
+
+                        {es_revisado && !es_admin && (
+                          <Badge variant="outline" className="text-sky-700 border-sky-300 bg-sky-50 text-[10px] font-mono">
+                            Elevado a Administración
+                          </Badge>
+                        )}
+
                         {es_pendiente && es_becario && (
                           <Badge variant="outline" className="text-amber-700 border-amber-300 bg-amber-50 text-[10px] font-medium">
-                            En revisión por tutor
+                            En revisión tutorial
                           </Badge>
                         )}
                       </div>

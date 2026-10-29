@@ -22,6 +22,7 @@ import { FormularioF03 } from "./formulario-f03";
 import { CriteriosEvaluacionTabla } from "./criterios-evaluacion-tabla";
 import { CuestionarioBienestarModal } from "./cuestionario-bienestar-modal";
 import { FormularioMentorModal } from "./formulario-mentor-modal";
+import { EscuelaLideresClassroom } from "./escuela-lideres-classroom";
 import { SabanaConsolidadoSemestral } from "./sabana-consolidado-semestral";
 import {
   Award,
@@ -121,6 +122,7 @@ export function MatrizEvaluacion360() {
   const [modal_academica_abierto, set_modal_academica_abierto] = useState<boolean>(false);
   const [modal_qr_abierto, set_modal_qr_abierto] = useState<boolean>(false);
   const [modal_lideres_abierto, set_modal_lideres_abierto] = useState<boolean>(false);
+  const [sub_vista_lideres, set_sub_vista_lideres] = useState<"tareas" | "asistencia">("tareas");
   const [modal_socioeconomica_abierto, set_modal_socioeconomica_abierto] = useState<boolean>(false);
   const [semaforo_socioeconomico, set_semaforo_socioeconomico] = useState<"verde" | "amarillo" | "rojo">("verde");
 
@@ -198,6 +200,16 @@ export function MatrizEvaluacion360() {
       prev.map((m) =>
         m.clave === "mentor"
           ? { ...m, puntaje_obtenido: Math.round((puntaje_20 / 20) * 100), estado: "completado" }
+          : m
+      )
+    );
+  };
+
+  const manejarLideresGuardado = (nota_20: number) => {
+    set_modulos((prev) =>
+      prev.map((m) =>
+        m.clave === "practicas"
+          ? { ...m, puntaje_obtenido: Math.round((nota_20 / 20) * 100), estado: "completado" }
           : m
       )
     );
@@ -879,79 +891,142 @@ export function MatrizEvaluacion360() {
         becario_id={1}
         nombre_becario="María Catunta Laime"
         unidad_agencia_inicial="Jefatura de Planificación, Control y Presupuesto"
+        evaluacion_inicial={{
+          mentor_nombre: "Mildrette Rojas Soliz",
+          unidad_agencia: "Jefatura de Planificación, Control y Presupuesto",
+          semestre_gestion: "Semestre II · 2026",
+          fecha: "2026-10-26",
+          calificaciones_1_18: {
+            1: 10, 2: 10, 3: 10, 4: 10, 5: 10, 6: 10, 7: 10, 8: 9, 9: 10,
+            10: 10, 11: 10, 12: 10, 13: 10, 14: 9, 15: 9, 16: 9, 17: 10, 18: 10
+          },
+          respuestas_abiertas: {
+            19: "Excelente apoyo muy agradecida, alta disposición de servicio.",
+            20: "En todas las tareas de digitalización y análisis cumplió con lo encomendado.",
+            21: "Que exista la opción de apoyo en periodos de vacaciones universitarias."
+          },
+          puntajes_abiertos: { 19: 3.33, 20: 3.33, 21: 3.34 },
+          nota_final_20: 19.8,
+          codigo_verificacion: "748920",
+          identidad_verificada: true,
+        }}
+        modalidad_llenado="perfil_supervisor"
         alGuardarExito={manejarMentorGuardado}
       />
 
       {/* ============================================================== */}
-      {/* MODAL 4: ESCUELA DE LÍDERES (VIERNES Y CONTROL DE MULTAS)       */}
+      {/* MODAL 4: ESCUELA DE LÍDERES (CLASSROOM CETI Y MULTAS VIERNES)  */}
       {/* ============================================================== */}
       <Dialog open={modal_lideres_abierto} onOpenChange={set_modal_lideres_abierto}>
         <DialogContent
           showCloseButton={false}
-          className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl bg-white border border-[#E5E7EB] shadow-2xl"
+          className="sm:max-w-4xl max-h-[92vh] flex flex-col p-0 overflow-hidden rounded-2xl bg-white border border-[#E5E7EB] shadow-2xl"
         >
           <DialogHeader className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA] shrink-0">
-            <DialogTitle className="font-display text-lg text-[#035683]">
-              Módulo 4 · Escuela de Líderes (Viernes y Control de Multas)
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              Sesiones obligatorias de formación diaconal (Viernes 18:30 a 20:30).
-            </DialogDescription>
-          </DialogHeader>
-          <DialogBody className="p-6 space-y-5 flex-1 overflow-y-auto">
-            {/* Escala oficial de multas */}
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683] flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-[#00ABBD]" />
-                Escala Institucional de Multas por Impuntualidad (Viernes)
-              </h4>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                <div className="p-3 rounded-xl border border-amber-200 bg-amber-50 text-center">
-                  <span className="text-muted-foreground text-[10px] block">1 a 10 min</span>
-                  <span className="font-mono font-bold text-amber-900 text-sm">Bs 10.00</span>
-                </div>
-                <div className="p-3 rounded-xl border border-orange-200 bg-orange-50 text-center">
-                  <span className="text-muted-foreground text-[10px] block">11 a 30 min</span>
-                  <span className="font-mono font-bold text-orange-900 text-sm">Bs 20.00</span>
-                </div>
-                <div className="p-3 rounded-xl border border-rose-200 bg-rose-50 text-center">
-                  <span className="text-muted-foreground text-[10px] block">31 a 60 min</span>
-                  <span className="font-mono font-bold text-rose-900 text-sm">Bs 30.00</span>
-                </div>
-                <div className="p-3 rounded-xl border border-red-300 bg-red-100 text-center">
-                  <span className="text-muted-foreground text-[10px] block">&gt; 60 min / Falta</span>
-                  <span className="font-mono font-bold text-red-950 text-sm">Bs 50.00</span>
-                </div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <DialogTitle className="font-display text-lg text-[#035683] flex items-center gap-2">
+                  <Users className="w-5 h-5 text-[#00ABBD]" />
+                  Módulo 4 · Escuela de Líderes y Formación Teológica CETI
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Gestión pedagógica de las 12 tareas canónicas y registro oficial de asistencia presencial.
+                </DialogDescription>
               </div>
-            </div>
 
-            {/* Historial de la Estudiante */}
-            <div className="p-4 rounded-xl border border-[#E5E7EB] bg-slate-50 space-y-3 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-[#035683]">Historial del Semestre Actual:</span>
-                <Badge className="bg-emerald-100 text-emerald-800 font-mono text-[10px]">
-                  94% Asistencia Cumplida
-                </Badge>
-              </div>
-              <div className="space-y-1.5 text-muted-foreground">
-                <div className="flex justify-between py-1 border-b border-[#E5E7EB]/60">
-                  <span>Sesiones realizadas en el semestre:</span>
-                  <strong className="text-slate-800 font-mono">16 sesiones</strong>
-                </div>
-                <div className="flex justify-between py-1 border-b border-[#E5E7EB]/60">
-                  <span>Asistencias puntuales:</span>
-                  <strong className="text-emerald-700 font-mono">15 sesiones</strong>
-                </div>
-                <div className="flex justify-between py-1 border-b border-[#E5E7EB]/60">
-                  <span>Retrasos registrados:</span>
-                  <strong className="text-amber-700 font-mono">1 retraso (14 min el 08/08/2026)</strong>
-                </div>
-                <div className="flex justify-between py-1">
-                  <span>Total multas liquidadas:</span>
-                  <strong className="text-emerald-800 font-mono">Bs 20.00 (Cancelado en caja)</strong>
-                </div>
+              {/* Selector de sub-vista interna */}
+              <div className="flex items-center gap-1 bg-slate-200/80 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => set_sub_vista_lideres("tareas")}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                    sub_vista_lideres === "tareas"
+                      ? "bg-[#035683] text-white shadow-xs"
+                      : "text-slate-700 hover:text-[#035683]"
+                  }`}
+                >
+                  12 Tareas CETI (Classroom)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => set_sub_vista_lideres("asistencia")}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                    sub_vista_lideres === "asistencia"
+                      ? "bg-[#035683] text-white shadow-xs"
+                      : "text-slate-700 hover:text-[#035683]"
+                  }`}
+                >
+                  Asistencia y Multas (Viernes)
+                </button>
               </div>
             </div>
+          </DialogHeader>
+
+          <DialogBody className="p-6 space-y-5 flex-1 overflow-y-auto">
+            {sub_vista_lideres === "tareas" ? (
+              <EscuelaLideresClassroom
+                becario_id_actual={1}
+                nombre_becario_actual="María Catunta Laime"
+                es_supervisor_o_admin={true}
+                alActualizarNotaModulo4={manejarLideresGuardado}
+              />
+            ) : (
+              <div className="space-y-5">
+                {/* Escala oficial de multas */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683] flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-[#00ABBD]" />
+                    Escala Institucional de Multas por Impuntualidad (Viernes)
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                    <div className="p-3 rounded-xl border border-amber-200 bg-amber-50 text-center">
+                      <span className="text-muted-foreground text-[10px] block">1 a 10 min</span>
+                      <span className="font-mono font-bold text-amber-900 text-sm">Bs 10.00</span>
+                    </div>
+                    <div className="p-3 rounded-xl border border-orange-200 bg-orange-50 text-center">
+                      <span className="text-muted-foreground text-[10px] block">11 a 30 min</span>
+                      <span className="font-mono font-bold text-orange-900 text-sm">Bs 20.00</span>
+                    </div>
+                    <div className="p-3 rounded-xl border border-rose-200 bg-rose-50 text-center">
+                      <span className="text-muted-foreground text-[10px] block">31 a 60 min</span>
+                      <span className="font-mono font-bold text-rose-900 text-sm">Bs 30.00</span>
+                    </div>
+                    <div className="p-3 rounded-xl border border-red-300 bg-red-100 text-center">
+                      <span className="text-muted-foreground text-[10px] block">&gt; 60 min / Falta</span>
+                      <span className="font-mono font-bold text-red-950 text-sm">Bs 50.00</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Historial de la Estudiante */}
+                <div className="p-4 rounded-xl border border-[#E5E7EB] bg-slate-50 space-y-3 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#035683]">Historial del Semestre Actual:</span>
+                    <Badge className="bg-emerald-100 text-emerald-800 font-mono text-[10px]">
+                      94% Asistencia Cumplida
+                    </Badge>
+                  </div>
+                  <div className="space-y-1.5 text-muted-foreground">
+                    <div className="flex justify-between py-1 border-b border-[#E5E7EB]/60">
+                      <span>Sesiones realizadas en el semestre:</span>
+                      <strong className="text-slate-800 font-mono">16 sesiones</strong>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-[#E5E7EB]/60">
+                      <span>Asistencias puntuales:</span>
+                      <strong className="text-emerald-700 font-mono">15 sesiones</strong>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-[#E5E7EB]/60">
+                      <span>Retrasos registrados:</span>
+                      <strong className="text-amber-700 font-mono">1 retraso (14 min el 08/08/2026)</strong>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span>Total multas liquidadas:</span>
+                      <strong className="text-emerald-800 font-mono">Bs 20.00 (Cancelado en caja)</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </DialogBody>
           <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] flex justify-end shrink-0">
             <Button

@@ -36,6 +36,8 @@ import {
   ExternalLink,
   FileUp,
   FileCheck,
+  Info,
+  Clock,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -78,6 +80,8 @@ import { EvaluacionSocioeconomicaVista } from "./evaluacion-socioeconomica-vista
 import { FormularioCargaNotasEstudiante } from "./formulario-carga-notas-estudiante";
 import { BandejaPreEvaluacionSupervisor } from "./bandeja-pre-evaluacion-supervisor";
 import { BandejaConvalidacionAdministracion } from "./bandeja-convalidacion-administracion";
+import { FormularioMentorModal, EvaluacionInicialMentor } from "./formulario-mentor-modal";
+import { EscuelaLideresClassroom } from "./escuela-lideres-classroom";
 import {
   BECARIOS_SEMESTRE_II,
   CATALOGO_IGLESIAS_INSTITUCIONALES,
@@ -262,6 +266,108 @@ const DOCUMENTOS_ACADEMICOS_INICIALES: DocumentoAcademicoSemestral[] = [
   },
 ];
 
+export interface BecarioAsignadoMentor {
+  id: number;
+  nombre: string;
+  carrera: string;
+  universidad: string;
+  unidad_agencia: string;
+  estado: "pendiente" | "evaluado";
+  nota_final_20?: number;
+  fecha_evaluacion?: string;
+  evaluacion_datos?: EvaluacionInicialMentor;
+}
+
+const BECARIOS_ASIGNADOS_MENTOR_INICIALES: BecarioAsignadoMentor[] = [
+  {
+    id: 1,
+    nombre: "Ruddy Flores Tapia",
+    carrera: "Contaduría Pública",
+    universidad: "UMSA",
+    unidad_agencia: "Jefatura de Planificación, Control y Presupuesto",
+    estado: "evaluado",
+    nota_final_20: 19.8,
+    fecha_evaluacion: "2026-10-26",
+    evaluacion_datos: {
+      mentor_nombre: "Mildrette Rojas Soliz",
+      unidad_agencia: "Jefatura de Planificación, Control y Presupuesto",
+      semestre_gestion: "Semestre II · 2026",
+      fecha: "2026-10-26",
+      calificaciones_1_18: {
+        1: 10, 2: 10, 3: 10, 4: 10, 5: 10, 6: 10, 7: 10, 8: 9, 9: 10,
+        10: 10, 11: 10, 12: 10, 13: 10, 14: 9, 15: 9, 16: 9, 17: 10, 18: 10
+      },
+      respuestas_abiertas: {
+        19: "Excelente apoyo muy agradecida, alta disposición de servicio.",
+        20: "En todas las tareas de digitalización y análisis cumplió con lo encomendado.",
+        21: "Que exista la opción de apoyo en periodos de vacaciones universitarias."
+      },
+      puntajes_abiertos: { 19: 3.33, 20: 3.33, 21: 3.34 },
+      nota_final_20: 19.8,
+      codigo_verificacion: "748920",
+      identidad_verificada: true
+    }
+  },
+  {
+    id: 2,
+    nombre: "Joel David Alarcón Ticona",
+    carrera: "Ingeniería de Sistemas",
+    universidad: "UPEA",
+    unidad_agencia: "Gerencia Nacional de Tecnologías y Sistemas",
+    estado: "evaluado",
+    nota_final_20: 18.5,
+    fecha_evaluacion: "2026-10-25",
+    evaluacion_datos: {
+      mentor_nombre: "Ing. Carlos Mendoza",
+      unidad_agencia: "Gerencia Nacional de Tecnologías y Sistemas",
+      semestre_gestion: "Semestre II · 2026",
+      fecha: "2026-10-25",
+      nota_final_20: 18.5,
+      codigo_verificacion: "839102",
+      identidad_verificada: true
+    }
+  },
+  {
+    id: 3,
+    nombre: "Mariana Huayta Quispe",
+    carrera: "Bioquímica y Farmacia",
+    universidad: "UMSA",
+    unidad_agencia: "Agencia Villa Fátima (Operaciones)",
+    estado: "pendiente",
+    nota_final_20: undefined,
+    fecha_evaluacion: undefined,
+  },
+  {
+    id: 4,
+    nombre: "Brayan Christian Paredes Choque",
+    carrera: "Contaduría Pública",
+    universidad: "UMSA",
+    unidad_agencia: "Agencia El Alto Central",
+    estado: "pendiente",
+    nota_final_20: undefined,
+    fecha_evaluacion: undefined,
+  },
+  {
+    id: 5,
+    nombre: "Noemí Rocío Condori Mamani",
+    carrera: "Enfermería",
+    universidad: "UPEA",
+    unidad_agencia: "Subgerencia de Bienestar Social",
+    estado: "evaluado",
+    nota_final_20: 19.0,
+    fecha_evaluacion: "2026-10-24",
+    evaluacion_datos: {
+      mentor_nombre: "Lic. Miriam Colque",
+      unidad_agencia: "Subgerencia de Bienestar Social",
+      semestre_gestion: "Semestre II · 2026",
+      fecha: "2026-10-24",
+      nota_final_20: 19.0,
+      codigo_verificacion: "192847",
+      identidad_verificada: true
+    }
+  }
+];
+
 interface EvaluacionesVistaProps {
   pestaña_inicial?: string;
 }
@@ -269,18 +375,25 @@ interface EvaluacionesVistaProps {
 export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: EvaluacionesVistaProps) {
   const { usuario } = usarAutenticacion();
   const es_admin = usuario?.rol === "administrador";
-  const es_supervisor = usuario?.rol === "supervisor";
+  const es_supervisor = usuario?.rol === "supervisor" || (!es_admin && usuario?.rol !== "becario");
 
-  const [pestaña_activa, set_pestaña_activa] = useState<string>(pestaña_inicial);
+  const [pestaña_activa, set_pestaña_activa] = useState<string>(() => {
+    if (es_supervisor && !es_admin && (!pestaña_inicial || pestaña_inicial === "consolidado")) {
+      return "mentor";
+    }
+    return pestaña_inicial || "consolidado";
+  });
   const [sub_pestana_academica, set_sub_pestana_academica] = useState<
     "estudiante" | "supervisor" | "administracion"
-  >(es_supervisor ? "supervisor" : es_admin ? "administracion" : "estudiante");
+  >(es_admin ? "administracion" : "estudiante");
 
   useEffect(() => {
-    if (pestaña_inicial) {
+    if (pestaña_inicial && pestaña_inicial !== "consolidado") {
       set_pestaña_activa(pestaña_inicial);
+    } else if (es_supervisor && !es_admin) {
+      set_pestaña_activa("mentor");
     }
-  }, [pestaña_inicial]);
+  }, [pestaña_inicial, es_supervisor, es_admin]);
 
   // Periodos Semestrales
   const [periodos, set_periodos] = useState<PeriodoSemestral[]>([
@@ -322,6 +435,29 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
   const [modal_preview_lideres_abierto, set_modal_preview_lideres_abierto] = useState<boolean>(false);
   const [modal_preview_socioeconomica_abierto, set_modal_preview_socioeconomica_abierto] = useState<boolean>(false);
   const [modal_qr_mentor_abierto, set_modal_qr_mentor_abierto] = useState<boolean>(false);
+
+  // TAREA-02: Estados para Evaluación de Supervisor (Módulo 3) desde su propio perfil web
+  const [becarios_asignados_modulo3, set_becarios_asignados_modulo3] = useState<BecarioAsignadoMentor[]>(
+    BECARIOS_ASIGNADOS_MENTOR_INICIALES
+  );
+  const [modal_formulario_mentor_abierto, set_modal_formulario_mentor_abierto] = useState<boolean>(false);
+  const [becario_mentor_seleccionado, set_becario_mentor_seleccionado] = useState<BecarioAsignadoMentor | null>(null);
+
+  useEffect(() => {
+    async function cargarBecariosAsignadosModulo3() {
+      try {
+        const respuesta = await clienteApi.get<BecarioAsignadoMentor[]>(
+          "/api/evaluaciones/modulo-3/becarios-asignados"
+        );
+        if (respuesta && Array.isArray(respuesta) && respuesta.length > 0) {
+          set_becarios_asignados_modulo3(respuesta);
+        }
+      } catch (_e) {
+        // Fallback en lista inicial
+      }
+    }
+    cargarBecariosAsignadosModulo3();
+  }, []);
 
   // Estados de Carga y Recepción Activa de Documentos Académicos
   const [documentos_academicos, set_documentos_academicos] = useState<DocumentoAcademicoSemestral[]>(DOCUMENTOS_ACADEMICOS_INICIALES);
@@ -581,6 +717,11 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
           >
             <QrCode className="w-3.5 h-3.5 text-[#00ABBD]" />
             <span>3. Mentor (QR)</span>
+            {es_supervisor && !es_admin && (
+              <Badge className="bg-[#FFB600] text-[#035683] text-[9px] font-bold px-1.5 py-0 shadow-none border-none">
+                Asignado
+              </Badge>
+            )}
           </button>
 
           <button
@@ -1041,7 +1182,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               }`}
             >
               <UserCheck className="w-4 h-4 text-[#00ABBD]" />
-              2. Pre-Evaluación y Edición (Supervisor)
+              2. Revisión / Edición Tutorial (Opcional)
             </Button>
 
             <Button
@@ -1056,9 +1197,24 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               }`}
             >
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              3. Convalidación Central (Administración)
+              3. Convalidación Central Directa (Administración)
             </Button>
           </div>
+
+          {/* Banner Informativo de Deslinde de Responsabilidad para el Supervisor */}
+          {es_supervisor && !es_admin && (
+            <div className="p-4 bg-sky-50 border border-sky-200 rounded-2xl flex items-start gap-3">
+              <Info className="w-5 h-5 text-[#007BBE] shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-[#035683]">
+                  Aviso Operativo para Supervisores — Convalidación Académica Centralizada
+                </p>
+                <p className="text-xs text-slate-700 leading-relaxed">
+                  Los expedientes académicos y Kárdex radicados por los becarios son convalidados directamente por Administración central. La revisión tutorial (Pestaña 2) es de carácter complementario si el becario requiere apoyo. Su responsabilidad primordial asignada como evaluador está concentrada en el <strong>Módulo 3: Mentoría en Terreno (Rúbrica QR)</strong>.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* FASE 1: Formulario Estudiante */}
           {sub_pestana_academica === "estudiante" && (
@@ -1354,6 +1510,146 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
       {/* ============================================================== */}
       {pestaña_activa === "mentor" && (
         <div className="space-y-6">
+          {/* TAREA-02: TABLA "MIS BECARIOS ASIGNADOS — EVALUACIÓN DE SUPERVISOR (MÓDULO 3)" */}
+          <Card className="border-[#00ABBD]/40 bg-white rounded-2xl shadow-xs overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-[#035683]/5 via-[#00ABBD]/5 to-white border-b border-slate-100 pb-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-[#035683] text-white font-bold text-[10px]">
+                    Perfil Web del Supervisor
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">Módulo 03 · 20% Oficial BUMAND</span>
+                </div>
+                <CardTitle className="text-base font-bold text-[#035683] flex items-center gap-2 mt-1">
+                  <UserCheck className="w-5 h-5 text-[#00ABBD]" />
+                  Mis Becarios Asignados — Evaluación de Supervisor (Módulo 3)
+                </CardTitle>
+                <CardDescription className="text-xs text-muted-foreground">
+                  Llene o edite las calificaciones de desempeño diaconal de sus becarios asignados con validación obligatoria de identidad vía código OTP.
+                </CardDescription>
+              </div>
+
+              <Badge variant="outline" className="border-[#035683] text-[#035683] font-mono text-xs font-bold px-3 py-1">
+                {becarios_asignados_modulo3.filter((b) => b.estado === "evaluado").length} / {becarios_asignados_modulo3.length} Evaluados
+              </Badge>
+            </CardHeader>
+
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-slate-50/70">
+                  <TableRow>
+                    <TableHead className="w-12 text-center text-xs font-bold text-slate-600">#</TableHead>
+                    <TableHead className="text-xs font-bold text-slate-600">Becario y Universidad</TableHead>
+                    <TableHead className="text-xs font-bold text-slate-600">Unidad o Agencia Asignada</TableHead>
+                    <TableHead className="text-center text-xs font-bold text-slate-600">Estado Módulo 3</TableHead>
+                    <TableHead className="text-center text-xs font-bold text-slate-600">Nota (/20 Pts)</TableHead>
+                    <TableHead className="text-right text-xs font-bold text-slate-600 pr-5">Acción Directa</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {becarios_asignados_modulo3.map((bec, idx) => {
+                    const esta_evaluado = bec.estado === "evaluado";
+
+                    return (
+                      <TableRow key={bec.id} className="hover:bg-slate-50/60">
+                        <TableCell className="text-center font-mono text-xs text-slate-500 font-semibold">
+                          {idx + 1}
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="text-xs font-bold text-[#035683]">{bec.nombre}</p>
+                            <p className="text-[11px] text-muted-foreground">
+                              {bec.carrera} · <span className="font-semibold">{bec.universidad}</span>
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-xs font-medium text-slate-700 flex items-center gap-1.5">
+                            <Building2 className="w-3.5 h-3.5 text-[#00ABBD]" />
+                            {bec.unidad_agencia}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {esta_evaluado ? (
+                            <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-[10px] gap-1">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Evaluado
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-800 font-bold text-[10px] gap-1">
+                              <Clock className="w-3 h-3 text-amber-600" /> Pendiente
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {esta_evaluado && bec.nota_final_20 !== undefined ? (
+                            <span className="text-xs font-mono font-black text-[#035683] bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
+                              {bec.nota_final_20.toFixed(1)} / 20 pts
+                            </span>
+                          ) : (
+                            <span className="text-[11px] font-mono text-slate-400 italic">-- / 20</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right pr-5">
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => {
+                              set_becario_mentor_seleccionado(bec);
+                              set_modal_formulario_mentor_abierto(true);
+                            }}
+                            className={`h-8 px-3 rounded-xl font-bold text-xs gap-1.5 shadow-2xs ${
+                              esta_evaluado
+                                ? "bg-white hover:bg-slate-50 text-[#035683] border border-[#035683]/40"
+                                : "bg-[#035683] hover:bg-[#024063] text-white"
+                            }`}
+                          >
+                            <UserCheck className="w-3.5 h-3.5 text-[#FFB600]" />
+                            {esta_evaluado
+                              ? "Editar Evaluación (Módulo 3)"
+                              : "Llenar Evaluación (Módulo 3)"}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          {/* Modal Oficial de Evaluación del Supervisor / Mentor */}
+          {becario_mentor_seleccionado && (
+            <FormularioMentorModal
+              abierto={modal_formulario_mentor_abierto}
+              alCambiarAbierto={set_modal_formulario_mentor_abierto}
+              becario_id={becario_mentor_seleccionado.id}
+              nombre_becario={becario_mentor_seleccionado.nombre}
+              unidad_agencia_inicial={becario_mentor_seleccionado.unidad_agencia}
+              evaluacion_inicial={becario_mentor_seleccionado.evaluacion_datos}
+              modalidad_llenado="perfil_supervisor"
+              alGuardarExito={(nota) => {
+                set_becarios_asignados_modulo3((prev) =>
+                  prev.map((b) =>
+                    b.id === becario_mentor_seleccionado.id
+                      ? {
+                          ...b,
+                          estado: "evaluado",
+                          nota_final_20: nota,
+                          fecha_evaluacion: new Date().toISOString().substring(0, 10),
+                          evaluacion_datos: {
+                            ...b.evaluacion_datos,
+                            nota_final_20: nota,
+                            fecha: new Date().toISOString().substring(0, 10),
+                            identidad_verificada: true,
+                          },
+                        }
+                      : b
+                  )
+                );
+              }}
+            />
+          )}
+
           <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs">
             <CardHeader className="border-b border-[#E5E7EB]/60 bg-slate-50/50 pb-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1501,100 +1797,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
       {/* TAB 5: ESTRUCTURA ESCUELA DE LÍDERES / CETI (12 TAREAS)        */}
       {/* ============================================================== */}
       {pestaña_activa === "lideres" && (
-        <div className="space-y-6">
-          <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs">
-            <CardHeader className="border-b border-[#E5E7EB]/60 bg-slate-50/50 pb-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="border-[#00ABBD] text-[#035683] font-bold text-[10px]">
-                      Módulo 04 · 20% Oficial
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">Evaluador: Coordinación CETI y Asistencia</span>
-                  </div>
-                  <CardTitle className="text-lg font-bold text-[#035683] flex items-center gap-2">
-                    <Users className="w-5 h-5 text-[#00ABBD]" />
-                    Gobernanza de Escuela de Líderes y Formación Teológica CETI
-                  </CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground">
-                    Catálogo de las 12 tareas teológicas, ponderación individual y baremo de asistencia de los viernes.
-                  </CardDescription>
-                </div>
-
-                <Button
-                  onClick={() => set_modal_preview_lideres_abierto(true)}
-                  className="h-10 px-4 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs shrink-0"
-                >
-                  <Eye className="w-4 h-4 text-[#FFB600]" />
-                  Vista Previa Registro CETI
-                </Button>
-              </div>
-            </CardHeader>
-
-            <CardContent className="p-6 space-y-6">
-              {/* Reglas de Asistencia de Viernes */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                  <h4 className="text-xs font-bold text-[#035683]">Asistencia Presencial a Reuniones de Viernes</h4>
-                  <p className="text-xs text-muted-foreground">
-                    Reuniones formativas obligatorias. Tolerancia máxima de 1 inasistencia justificada por semestre. Más de 1 falta sin justificación anula la nota del módulo.
-                  </p>
-                </div>
-
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                  <h4 className="text-xs font-bold text-[#035683]">Ponderación de las 12 Tareas CETI</h4>
-                  <p className="text-xs text-muted-foreground">
-                    Cada tarea representa un 8.33% de la nota teológica. El promedio general escalado al 20% aporta la nota semestral oficial.
-                  </p>
-                </div>
-              </div>
-
-              {/* Catálogo de las 12 Tareas Teológicas */}
-              <div className="space-y-3">
-                <Label className="text-xs font-mono uppercase font-bold text-slate-600">
-                  Catálogo Canónico de Tareas Semestrales (12 Módulos)
-                </Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                  {TAREAS_CETI_CATALOGO.map((t) => (
-                    <div key={t.numero} className="p-3 bg-white rounded-xl border border-slate-200 text-xs flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-[#035683]/10 text-[#035683] font-mono font-bold flex items-center justify-center text-[10px]">
-                          {t.numero}
-                        </span>
-                        <span className="text-slate-800 font-medium">{t.tema}</span>
-                      </div>
-                      <Badge variant="outline" className="border-slate-300 font-mono text-[10px] shrink-0">
-                        {t.ponderacion}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Diálogo Modal de Vista Previa CETI */}
-          <Dialog open={modal_preview_lideres_abierto} onOpenChange={set_modal_preview_lideres_abierto}>
-            <DialogContent className="sm:max-w-2xl p-6 bg-white rounded-2xl">
-              <DialogHeader className="pb-2 border-b border-slate-200">
-                <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-[#00ABBD]" />
-                  Vista Previa: Registro de Tareas y Asistencias CETI
-                </DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground">
-                  Pantalla donde el coordinador asienta las calificaciones individuales de cada entrega teológica.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-3 py-3">
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
-                  <span className="font-bold text-[#035683]">Total Tareas Registradas: 12 / 12</span>
-                  <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold">100 Pts Promedio</Badge>
-                </div>
-                <p className="text-xs text-muted-foreground">Permite marcar entregas, cargar observaciones y calcular multas por inasistencias no justificadas.</p>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <EscuelaLideresClassroom es_supervisor_o_admin={es_supervisor || es_admin} />
       )}
 
       {/* ============================================================== */}

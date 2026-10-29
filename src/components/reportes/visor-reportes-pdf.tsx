@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
 import {
   FileText,
   Download,
@@ -26,6 +27,10 @@ import {
   Bus,
   MapPin,
   User,
+  Coffee,
+  Coins,
+  Receipt,
+  FileCheck2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
@@ -33,7 +38,14 @@ import { clienteApi } from "@/lib/cliente-api";
 interface ReporteItem {
   id: number;
   titulo: string;
-  tipo: "evaluacion_semestral_ii" | "asistencia" | "pasajes" | "evaluacion_f03" | "evento";
+  tipo:
+    | "evaluacion_semestral_ii"
+    | "asistencia"
+    | "pasajes"
+    | "evaluacion_f03"
+    | "evento"
+    | "refrigerios"
+    | "consolidado-auditoria";
   periodo: string;
   fecha_generacion: string;
   becario_nombre: string;
@@ -141,6 +153,28 @@ const REPORTES_DISPONIBLES: ReporteItem[] = [
     endpoint: "/pdf/corte-asistencia?tipo=escuela_lideres",
     nombre_archivo: "Corte_Asistencia_Escuela_Lideres.pdf",
   },
+  {
+    id: 8,
+    titulo: "Reporte de Refrigerios (Devolución 100% y Duplas)",
+    tipo: "refrigerios",
+    periodo: "Gestión 2026",
+    fecha_generacion: "2026-10-24 16:00",
+    becario_nombre: "Nómina de Duplas y Rendiciones (23 Becarios)",
+    tamano_kb: 295,
+    endpoint: "/pdf/refrigerios",
+    nombre_archivo: "Reporte_Oficial_Refrigerios_Diaconia.pdf",
+  },
+  {
+    id: 9,
+    titulo: "Consolidado Integral de Auditoría BUMAND (Multas, Horas, Refrigerios y Pasajes)",
+    tipo: "consolidado-auditoria",
+    periodo: "Octubre 2026",
+    fecha_generacion: "2026-10-25 18:00",
+    becario_nombre: "Auditoría Financiera y Operativa General",
+    tamano_kb: 512,
+    endpoint: "/pdf/consolidado-auditoria",
+    nombre_archivo: "Consolidado_Auditoria_General_BUMAND.pdf",
+  },
 ];
 
 export function VisorReportesPdf() {
@@ -150,6 +184,12 @@ export function VisorReportesPdf() {
   // Estados para exportación individual por estudiante
   const [estudiante_seleccionado_id, set_estudiante_seleccionado_id] = useState<number>(7);
   const [mes_individual, set_mes_individual] = useState<string>("2026-10");
+
+  // Estados para panel de auditoría por intervalo de fechas
+  const [modulo_auditoria, set_modulo_auditoria] = useState<string>("refrigerios");
+  const [fecha_inicio_auditoria, set_fecha_inicio_auditoria] = useState<string>("2026-10-01");
+  const [fecha_fin_auditoria, set_fecha_fin_auditoria] = useState<string>("2026-10-31");
+  const [descargando_auditoria, set_descargando_auditoria] = useState<boolean>(false);
 
   const estudiante_actual =
     LISTA_23_BECARIOS_REPORTES.find((b) => b.id === estudiante_seleccionado_id) ||
@@ -184,9 +224,192 @@ export function VisorReportesPdf() {
     }
   };
 
+  const descargarReporteAuditoriaIntervalo = async (modulo_forzado?: string) => {
+    const mod = modulo_forzado || modulo_auditoria;
+    try {
+      set_descargando_auditoria(true);
+      let ruta_base = "/pdf/refrigerios";
+      let nombre_doc = "Refrigerios";
+
+      if (mod === "asistencia") {
+        ruta_base = "/pdf/corte-asistencia";
+        nombre_doc = "Corte_Asistencia";
+      } else if (mod === "pasajes") {
+        ruta_base = "/pdf/recorridos-estudiante/todos";
+        nombre_doc = "Expediente_Pasajes";
+      } else if (mod === "evaluaciones") {
+        ruta_base = "/pdf/evaluacion-semestral";
+        nombre_doc = "Evaluaciones_Semestrales";
+      } else if (mod === "consolidado-auditoria") {
+        ruta_base = "/pdf/consolidado-auditoria";
+        nombre_doc = "Consolidado_Auditoria_BUMAND";
+      }
+
+      const separador = ruta_base.includes("?") ? "&" : "?";
+      const ruta_completa = `${ruta_base}${separador}fecha_inicio=${fecha_inicio_auditoria}&fecha_fin=${fecha_fin_auditoria}`;
+      const nombre_archivo = `Reporte_Auditoria_${nombre_doc}_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
+
+      toast.info(`Generando Reporte de Auditoría (${nombre_doc}) en PDF...`, {
+        description: `Rango: ${fecha_inicio_auditoria} a ${fecha_fin_auditoria}.`,
+      });
+
+      const blob = await clienteApi.descargarBlob(ruta_completa);
+      const url = window.URL.createObjectURL(blob);
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      enlace.download = nombre_archivo;
+      document.body.appendChild(enlace);
+      enlace.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(enlace);
+
+      toast.success("Reporte PDF para auditoría generado exitosamente", {
+        description: `Archivo "${nombre_archivo}" listo.`,
+      });
+    } catch (_error) {
+      toast.error("Error al extraer reporte PDF para auditoría", {
+        description: "Verifique los parámetros de fecha o el servicio backend.",
+      });
+    } finally {
+      set_descargando_auditoria(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Botones de Emisión Inmediata de Reportes con Puppeteer */}
+      {/* ============================================================== */}
+      {/* PANEL DESTACADO: EXTRACCIÓN DE REPORTES POR INTERVALO DE FECHA */}
+      {/* ============================================================== */}
+      <Card className="border-[#00ABBD]/40 shadow-sm bg-gradient-to-r from-white via-slate-50 to-[#00ABBD]/5 rounded-2xl overflow-hidden ring-1 ring-[#00ABBD]/20">
+        <CardHeader className="pb-3 border-b border-[#E5E7EB]/80 bg-[#035683]/5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <CardTitle className="text-base font-bold font-display text-[#035683] flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-[#00ABBD]" />
+                Extracción de Reportes PDF por Intervalos de Fecha para Auditoría
+              </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                Emisión de informes institucionales certificados filtrados por un intervalo exacto (fecha_inicio a fecha_fin) para auditoría interna y financiera.
+              </CardDescription>
+            </div>
+            <Badge className="bg-[#035683] text-[#FFB600] border-none text-[11px] font-mono self-start sm:self-center">
+              AUDITORÍA OFICIAL
+            </Badge>
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-5 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            {/* Selector de Tipo de Reporte */}
+            <div className="space-y-1.5 md:col-span-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                <FileCheck2 className="w-3.5 h-3.5 text-[#00ABBD]" />
+                Tipo de Reporte Institucional para Auditoría
+              </label>
+              <Select value={modulo_auditoria} onValueChange={(val) => val && set_modulo_auditoria(val)}>
+                <SelectTrigger className="h-10 text-xs font-semibold border-[#E5E7EB] bg-white rounded-xl">
+                  <SelectValue placeholder="Seleccione reporte para auditar" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-[#E5E7EB]">
+                  <SelectItem value="refrigerios">
+                    🥟 Reporte de Refrigerios (Devolución 100% y Duplas)
+                  </SelectItem>
+                  <SelectItem value="asistencia">
+                    ⏱️ Auditoría de Asistencia y Puntualidad (Corte Institucional)
+                  </SelectItem>
+                  <SelectItem value="pasajes">
+                    🚌 Expediente Consolidado de Recorridos y Pasajes
+                  </SelectItem>
+                  <SelectItem value="evaluaciones">
+                    📋 Evaluaciones Semestrales Institucionales
+                  </SelectItem>
+                  <SelectItem value="consolidado-auditoria">
+                    📊 Consolidado Integral de Auditoría BUMAND
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Fecha Inicio */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-[#00ABBD]" />
+                Fecha Inicio
+              </label>
+              <SeleccionadorFecha
+                valorString={fecha_inicio_auditoria}
+                alCambiarString={(val) => set_fecha_inicio_auditoria(val)}
+                className="h-10 text-xs border-[#E5E7EB] bg-white rounded-xl"
+              />
+            </div>
+
+            {/* Fecha Fin */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-[#00ABBD]" />
+                Fecha Fin
+              </label>
+              <SeleccionadorFecha
+                valorString={fecha_fin_auditoria}
+                alCambiarString={(val) => set_fecha_fin_auditoria(val)}
+                className="h-10 text-xs border-[#E5E7EB] bg-white rounded-xl"
+              />
+            </div>
+          </div>
+
+          {/* Botones de acción de auditoría */}
+          <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-200">
+            <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="font-semibold text-slate-700">Acceso Rápido:</span>
+              <button
+                type="button"
+                onClick={() => descargarReporteAuditoriaIntervalo("refrigerios")}
+                className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-[#00ABBD]/10 text-[#035683] font-bold text-[11px] transition-all cursor-pointer"
+              >
+                Refrigerios (PDF)
+              </button>
+              <button
+                type="button"
+                onClick={() => descargarReporteAuditoriaIntervalo("asistencia")}
+                className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-[#00ABBD]/10 text-[#035683] font-bold text-[11px] transition-all cursor-pointer"
+              >
+                Asistencia (PDF)
+              </button>
+              <button
+                type="button"
+                onClick={() => descargarReporteAuditoriaIntervalo("pasajes")}
+                className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-[#00ABBD]/10 text-[#035683] font-bold text-[11px] transition-all cursor-pointer"
+              >
+                Pasajes (PDF)
+              </button>
+              <button
+                type="button"
+                onClick={() => descargarReporteAuditoriaIntervalo("consolidado-auditoria")}
+                className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-[#00ABBD]/10 text-[#035683] font-bold text-[11px] transition-all cursor-pointer"
+              >
+                Consolidado Integral
+              </button>
+            </div>
+
+            <Button
+              disabled={descargando_auditoria}
+              onClick={() => descargarReporteAuditoriaIntervalo()}
+              className="h-10 px-5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl shadow-sm gap-2 shrink-0 cursor-pointer"
+            >
+              {descargando_auditoria ? (
+                <Loader2 className="w-4 h-4 animate-spin text-[#FFB600]" />
+              ) : (
+                <Printer className="w-4 h-4 text-[#FFB600]" />
+              )}
+              <span>Extraer Reporte PDF para Auditoría</span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ============================================================== */}
+      {/* BOTONES DE EMISIÓN INMEDIATA CON PUPPETEER                     */}
+      {/* ============================================================== */}
       <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl">
         <CardHeader className="pb-3 border-b border-[#E5E7EB]/60">
           <div>
@@ -201,7 +424,7 @@ export function VisorReportesPdf() {
         </CardHeader>
 
         <CardContent className="p-4 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             {/* Botón 1: Evaluación Semestre II */}
             <Button
               disabled={descargando_id !== null}
@@ -219,7 +442,7 @@ export function VisorReportesPdf() {
               ) : (
                 <Printer className="w-4 h-4 text-[#FFB600]" />
               )}
-              <span>Descargar PDF Semestre II (2 Páginas)</span>
+              <span>Semestre II (2 Páginas)</span>
             </Button>
 
             {/* Botón 2: Corte de Horas */}
@@ -240,10 +463,31 @@ export function VisorReportesPdf() {
               ) : (
                 <FileText className="w-4 h-4 text-[#00ABBD]" />
               )}
-              <span>Descargar Planilla Horas</span>
+              <span>Planilla Horas</span>
             </Button>
 
-            {/* Botón 3: Formulario F-03 */}
+            {/* Botón 3: Reporte Refrigerios 100% */}
+            <Button
+              disabled={descargando_id !== null}
+              onClick={() =>
+                descargarReportePuppeteer(
+                  "refrigerios",
+                  "/pdf/refrigerios",
+                  "Reporte_Oficial_Refrigerios.pdf"
+                )
+              }
+              variant="outline"
+              className="h-11 border-emerald-300 text-emerald-800 bg-emerald-50/50 hover:bg-emerald-100 font-bold text-xs rounded-xl flex items-center gap-2 justify-center"
+            >
+              {descargando_id === "refrigerios" ? (
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+              ) : (
+                <Coffee className="w-4 h-4 text-emerald-600" />
+              )}
+              <span>Refrigerios (100% Devolución)</span>
+            </Button>
+
+            {/* Botón 4: Formulario F-03 */}
             <Button
               disabled={descargando_id !== null}
               onClick={() =>
@@ -261,10 +505,10 @@ export function VisorReportesPdf() {
               ) : (
                 <ShieldCheck className="w-4 h-4 text-amber-600" />
               )}
-              <span>Descargar Formulario F-03</span>
+              <span>Formulario F-03</span>
             </Button>
 
-            {/* Botón 4: Acta de Evento */}
+            {/* Botón 5: Acta de Evento */}
             <Button
               disabled={descargando_id !== null}
               onClick={() =>
@@ -282,13 +526,15 @@ export function VisorReportesPdf() {
               ) : (
                 <Sparkles className="w-4 h-4 text-[#00ABBD]" />
               )}
-              <span>Descargar Acta de Evento</span>
+              <span>Acta de Evento</span>
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Módulo Especial: Exportación Individual por Estudiante (Puppeteer) */}
+      {/* ============================================================== */}
+      {/* MÓDULO ESPECIAL: EXPORTACIÓN INDIVIDUAL POR ESTUDIANTE         */}
+      {/* ============================================================== */}
       <Card className="border-[#035683]/30 shadow-md bg-white rounded-xl overflow-hidden ring-1 ring-[#035683]/10">
         <CardHeader className="pb-3 border-b border-[#E5E7EB]/80 bg-gradient-to-r from-[#035683]/5 via-white to-[#00ABBD]/5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -382,7 +628,7 @@ export function VisorReportesPdf() {
                   descargarReportePuppeteer(
                     `recorridos_${estudiante_actual.id}`,
                     `/pdf/recorridos-estudiante/${estudiante_actual.id}?mes=${mes_individual}`,
-                    `Expediente_Recorridos_${estudiante_actual.nombre.replace(/\s+/g, '_')}_${mes_individual}.pdf`
+                    `Expediente_Recorridos_${estudiante_actual.nombre.replace(/\s+/g, "_")}_${mes_individual}.pdf`
                   )
                 }
                 className="h-9 px-3.5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl shadow-xs gap-1.5"
@@ -404,7 +650,7 @@ export function VisorReportesPdf() {
                   descargarReportePuppeteer(
                     `asistencia_${estudiante_actual.id}`,
                     `/pdf/asistencia-estudiante/${estudiante_actual.id}?mes=${mes_individual}`,
-                    `Asistencia_Mensual_${estudiante_actual.nombre.replace(/\s+/g, '_')}_${mes_individual}.pdf`
+                    `Asistencia_Mensual_${estudiante_actual.nombre.replace(/\s+/g, "_")}_${mes_individual}.pdf`
                   )
                 }
                 className="h-9 px-3.5 border-[#035683] text-[#035683] hover:bg-slate-100 font-bold text-xs rounded-xl shadow-2xs gap-1.5"
@@ -421,7 +667,9 @@ export function VisorReportesPdf() {
         </CardContent>
       </Card>
 
-      {/* Historial de Documentos Oficiales Disponibles */}
+      {/* ============================================================== */}
+      {/* HISTORIAL DE DOCUMENTOS OFICIALES DISPONIBLES                  */}
+      {/* ============================================================== */}
       <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl">
         <CardHeader className="pb-3 border-b border-[#E5E7EB]/60">
           <CardTitle className="text-base font-bold font-display text-[#035683]">
@@ -450,7 +698,15 @@ export function VisorReportesPdf() {
                     <TableCell className="font-semibold text-[#1E293B]">
                       <div className="flex items-center gap-2">
                         <div className="p-1.5 rounded-lg bg-[#035683]/5 text-[#035683]">
-                          <FileText className="w-4 h-4" />
+                          {r.tipo === "refrigerios" ? (
+                            <Coffee className="w-4 h-4 text-emerald-600" />
+                          ) : r.tipo === "pasajes" ? (
+                            <Bus className="w-4 h-4 text-[#00ABBD]" />
+                          ) : r.tipo === "consolidado-auditoria" ? (
+                            <ShieldCheck className="w-4 h-4 text-[#035683]" />
+                          ) : (
+                            <FileText className="w-4 h-4" />
+                          )}
                         </div>
                         <span>{r.titulo}</span>
                       </div>

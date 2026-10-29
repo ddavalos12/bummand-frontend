@@ -52,17 +52,35 @@ export const FondoOndasLiquidas: React.FC<PropiedadesFondoOndasLiquidas> = ({
     const contenedor = contenedor_ref.current;
     if (!contenedor) return;
 
+    // Comprobación de disponibilidad de contexto WebGL
+    try {
+      const lienzo_prueba = document.createElement("canvas");
+      const gl = lienzo_prueba.getContext("webgl") || lienzo_prueba.getContext("experimental-webgl");
+      if (!gl) {
+        console.warn("FondoOndasLiquidas: WebGL no está disponible en este entorno.");
+        return;
+      }
+    } catch (_) {
+      return;
+    }
+
     // Escena principal y escena de simulación física (GPGPU Ping-Pong)
     const escena_principal = new THREE.Scene();
     const escena_simulacion = new THREE.Scene();
     const camara = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-    const renderizador = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true,
-      preserveDrawingBuffer: true,
-      powerPreference: "high-performance",
-    });
+    let renderizador: THREE.WebGLRenderer;
+    try {
+      renderizador = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+        preserveDrawingBuffer: true,
+        powerPreference: "high-performance",
+      });
+    } catch (e) {
+      console.warn("FondoOndasLiquidas: Error instanciando WebGLRenderer:", e);
+      return;
+    }
     renderizador.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderizador.setSize(window.innerWidth, window.innerHeight);
     renderizador.domElement.style.position = "absolute";

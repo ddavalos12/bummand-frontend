@@ -253,10 +253,22 @@ export function MenuLateral({
               icono: LayoutDashboard,
             },
             {
+              id: "seguimiento",
+              etiqueta: "Seguimiento y Retroalimentación",
+              descripcion: "Citas y reflexiones espirituales",
+              icono: HeartHandshake,
+            },
+            {
               id: "sedes",
               etiqueta: "Mi Sede",
               descripcion: "Ubicación y radio geodésico",
               icono: MapPin,
+            },
+            {
+              id: "mi_perfil",
+              etiqueta: "Mi Perfil y Cuenta",
+              descripcion: "Mis datos, correos y seguridad",
+              icono: UserCheck,
             },
           ],
         },
@@ -320,11 +332,37 @@ export function MenuLateral({
               descripcion: "72 sedes georreferenciadas",
               icono: MapPin,
             },
+            ...(es_admin
+              ? [
+                  {
+                    id: "usuarios",
+                    etiqueta: "Usuarios y Contraseñas",
+                    descripcion: "Cuentas, roles, correos y claves",
+                    icono: ShieldCheck,
+                  },
+                ]
+              : []),
+            {
+              id: "mi_perfil",
+              etiqueta: "Mi Perfil y Cuenta",
+              descripcion: "Mis datos, correos y claves",
+              icono: UserCheck,
+            },
           ],
         },
         {
           titulo: "Seguimiento y Control",
           elementos: [
+            ...(es_supervisor
+              ? [
+                  {
+                    id: "seguimiento",
+                    etiqueta: "Seguimiento y Retroalimentación",
+                    descripcion: "Citas y retroalimentación de supervisados",
+                    icono: HeartHandshake,
+                  },
+                ]
+              : []),
             {
               id: "eventos",
               etiqueta: "Acciones de Servicio",
@@ -799,7 +837,18 @@ export function MenuLateral({
             </form>
           </DialogBody>
 
-          <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] shrink-0 flex justify-end">
+          <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+            <Button
+              type="button"
+              onClick={() => {
+                set_modal_perfil_abierto(false);
+                alSeleccionarPestaña("mi_perfil");
+              }}
+              className="bg-[#007BBE] hover:bg-[#035683] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+            >
+              <UserCheck className="w-3.5 h-3.5" />
+              <span>Ir a Mi Página Completa de Perfil y Contraseña</span>
+            </Button>
             <Button
               type="button"
               variant="outline"

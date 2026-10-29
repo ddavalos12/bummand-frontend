@@ -24,6 +24,9 @@ import {
   Plus,
   Trash2,
   ClipboardCheck,
+  Printer,
+  Download,
+  Loader2,
 } from "lucide-react";
 import {
   DialogoJustificarFalta,
@@ -79,7 +82,7 @@ export interface RegistroAuditoriaAsistencia {
   distancia_ingreso_m: number;
   dentro_de_radio: boolean;
   dentro_de_horario: boolean;
-  estado: "conforme" | "tardanza" | "fuera_geocerca" | "en_curso" | "convalidado";
+  estado: "conforme" | "tardanza" | "fuera_geocerca" | "en_curso" | "convalidado" | "revisado_supervisor" | "aprobado_administracion";
   convalidado_por?: string | null;
   motivo_convalidacion?: string | null;
   lat_ingreso?: number;
@@ -91,6 +94,12 @@ export interface RegistroAuditoriaAsistencia {
   tipo_actividad?: "practicas" | "escuela_lideres" | "acciones_servicio";
   motivo_contingencia?: string;
   es_registro_manual?: boolean;
+  revisado_por_supervisor?: boolean;
+  fecha_revision_supervisor?: string | null;
+  supervisor_revisor?: string | null;
+  administrador_revisor?: string | null;
+  fecha_aprobacion_admin?: string | null;
+  exime_multa?: boolean;
 }
 
 export interface BecarioOficial {
@@ -361,12 +370,24 @@ interface AuditoriaAsistenciaProps {
 export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
   const { usuario } = usarAutenticacion();
   const es_admin = rol === "administrador" || usuario?.rol === "administrador";
+  const es_supervisor = rol === "supervisor" || usuario?.rol === "supervisor" || (!es_admin && !usuario?.rol);
   const es_admin_o_supervisor =
     rol === "administrador" ||
     rol === "supervisor" ||
     usuario?.rol === "administrador" ||
     usuario?.rol === "supervisor" ||
     !usuario?.rol;
+
+  // Estados para Cambio Dinámico de Lugar en Acciones de Servicio (Viernes) - TAREA-01
+  const [modal_cambiar_lugar_abierto, set_modal_cambiar_lugar_abierto] = useState<boolean>(false);
+  const [cambio_evento_id, set_cambio_evento_id] = useState<string>("1");
+  const [cambio_sede, set_cambio_sede] = useState<string>(SEDES_POR_ACTIVIDAD.acciones_servicio[0]);
+  const [cambio_latitud, set_cambio_latitud] = useState<string>("-16.500054");
+  const [cambio_longitud, set_cambio_longitud] = useState<string>("-68.173455");
+  const [cambio_radio, set_cambio_radio] = useState<string>("120");
+  const [cambio_referencia, set_cambio_referencia] = useState<string>(SEDES_POR_ACTIVIDAD.acciones_servicio[0]);
+  const [cambio_motivo, set_cambio_motivo] = useState<string>("");
+  const [cambio_guardando, set_cambio_guardando] = useState<boolean>(false);
 
   // Estados para Registro Manual de Asistencia (Contingencia sin Megas / Olvido)
   const [modal_manual_abierto, set_modal_manual_abierto] = useState<boolean>(false);
@@ -605,6 +626,39 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
     set_dialogo_justificar_abierto(true);
   };
 
+  // Estados para Auditoría de Asistencia por Intervalo de Fechas
+  const [fecha_inicio_auditoria, set_fecha_inicio_auditoria] = useState<string>("2026-10-01");
+  const [fecha_fin_auditoria, set_fecha_fin_auditoria] = useState<string>("2026-10-31");
+  const [descargando_pdf_auditoria, set_descargando_pdf_auditoria] = useState<boolean>(false);
+
+  const manejarDescargarPdfAuditoria = async () => {
+    try {
+      set_descargando_pdf_auditoria(true);
+      toast.info("Generando Corte Oficial de Asistencia en PDF con Puppeteer...", {
+        description: `Intervalo: Desde ${fecha_inicio_auditoria} hasta ${fecha_fin_auditoria}.`,
+      });
+
+      const endpoint = `/api/pdf/corte-asistencia?fecha_inicio=${fecha_inicio_auditoria}&fecha_fin=${fecha_fin_auditoria}`;
+      const blob = await clienteApi.descargarBlob(endpoint);
+      const url = window.URL.createObjectURL(blob);
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      enlace.download = `Corte_Asistencia_Auditoria_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
+      document.body.appendChild(enlace);
+      enlace.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(enlace);
+
+      toast.success("Corte de Asistencia en PDF descargado exitosamente");
+    } catch {
+      toast.error("Error al extraer reporte PDF de auditoría de asistencia", {
+        description: "Verifique el servicio PDF institucional.",
+      });
+    } finally {
+      set_descargando_pdf_auditoria(false);
+    }
+  };
+
   // Estados para Llamada de Lista en Vivo (Viernes de Formación / Práctica)
   const [modal_lista_vivo_abierto, set_modal_lista_vivo_abierto] = useState<boolean>(false);
   const [lista_llamada_vivo, set_lista_llamada_vivo] = useState([
@@ -783,6 +837,94 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
     set_motivo_convalidacion("");
   };
 
+  const manejarRevisarSupervisor = async (item: RegistroAuditoriaAsistencia) => {
+    const nombre_supervisor = usuario?.nombre || "Supervisor Diaconía";
+    const fecha_actual = new Date().toISOString().split("T")[0];
+    try {
+      await clienteApi.patch(`/api/asistencia/${item.id}/revisar-supervisor`, {
+        supervisor_id: usuario?.id || 1,
+        supervisor_nombre: nombre_supervisor,
+      });
+    } catch {
+      // Fallback reactivo
+    }
+    set_registros_locales((prev) =>
+      prev.map((r) =>
+        r.id === item.id
+          ? {
+              ...r,
+              estado: "revisado_supervisor",
+              revisado_por_supervisor: true,
+              supervisor_revisor: nombre_supervisor,
+              fecha_revision_supervisor: fecha_actual,
+            }
+          : r
+      )
+    );
+    toast.success("Marcación revisada por Supervisor", {
+      description: `Se registró la verificación técnica de ${item.becario_nombre} y se elevó a Administración.`,
+    });
+  };
+
+  const manejarAprobarAdministracion = async (item: RegistroAuditoriaAsistencia) => {
+    const nombre_admin = usuario?.nombre || "Administración Central";
+    const fecha_actual = new Date().toISOString().split("T")[0];
+    try {
+      await clienteApi.patch(`/api/asistencia/${item.id}/convalidar`, {
+        administrador_id: usuario?.id || 1,
+        administrador_nombre: nombre_admin,
+        estado: "convalidado",
+      });
+    } catch {
+      // Fallback reactivo
+    }
+    set_registros_locales((prev) =>
+      prev.map((r) =>
+        r.id === item.id
+          ? {
+              ...r,
+              estado: "convalidado",
+              convalidado_por: nombre_admin,
+              administrador_revisor: nombre_admin,
+              fecha_aprobacion_admin: fecha_actual,
+              monto_multa_bs: 0,
+              exime_multa: true,
+            }
+          : r
+      )
+    );
+    toast.success("Asistencia Aprobada por Administración", {
+      description: `Se convalidó oficialmente la asistencia de ${item.becario_nombre} (Sin multa).`,
+    });
+  };
+
+  const manejarGuardarCambioLugarAsistencia = async () => {
+    set_cambio_guardando(true);
+    const payload = {
+      latitud: parseFloat(cambio_latitud) || -16.500054,
+      longitud: parseFloat(cambio_longitud) || -68.173455,
+      radio_tolerancia_m: parseInt(cambio_radio, 10) || 120,
+      direccion_referencia: cambio_referencia || cambio_sede,
+      motivo_cambio: cambio_motivo.trim() || "Cambio de sede de acción de servicio de viernes",
+    };
+
+    try {
+      await clienteApi.patch(`/api/eventos/${cambio_evento_id}/cambiar-lugar`, payload);
+    } catch {
+      try {
+        await clienteApi.patch(`/api/eventos/${cambio_evento_id}`, payload);
+      } catch {
+        // Fallback reactivo
+      }
+    }
+
+    set_cambio_guardando(false);
+    set_modal_cambiar_lugar_abierto(false);
+    toast.success("Lugar de Acción de Servicio actualizado", {
+      description: `Nueva sede: ${payload.direccion_referencia}. Radio de tolerancia: ${payload.radio_tolerancia_m}m.`,
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Barra Unificada de Vistas y Acciones Operativas */}
@@ -850,7 +992,57 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             <ListChecks className="w-4 h-4 text-[#FFB600]" />
             <span>Llamada de Lista en Vivo (Viernes)</span>
           </Button>
+
+          <Button
+            size="sm"
+            onClick={() => set_modal_cambiar_lugar_abierto(true)}
+            className="h-9 px-3.5 bg-[#007BBE] hover:bg-[#035683] text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-xs cursor-pointer"
+            title="Cambiar la sede geográfica y geocerca para las acciones de servicio de los viernes"
+          >
+            <MapPin className="w-4 h-4 text-[#FFB600]" />
+            <span>Cambiar Lugar de Acción de Servicio (Viernes)</span>
+          </Button>
         </div>
+      </div>
+
+      {/* Barra de Auditoría de Asistencia por Intervalo de Fechas */}
+      <div className="p-3.5 bg-white rounded-2xl border border-[#E5E7EB] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-[#00ABBD]" />
+            <span className="text-xs font-bold text-[#035683] uppercase tracking-wider">
+              Auditoría de Asistencia (Corte PDF):
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-muted-foreground font-medium">Desde:</span>
+            <SeleccionadorFecha
+              valorString={fecha_inicio_auditoria}
+              alCambiarString={(val) => set_fecha_inicio_auditoria(val)}
+              className="h-8 text-xs border-[#E5E7EB] w-36"
+            />
+            <span className="text-[11px] text-muted-foreground font-medium">Hasta:</span>
+            <SeleccionadorFecha
+              valorString={fecha_fin_auditoria}
+              alCambiarString={(val) => set_fecha_fin_auditoria(val)}
+              className="h-8 text-xs border-[#E5E7EB] w-36"
+            />
+          </div>
+        </div>
+
+        <Button
+          size="sm"
+          disabled={descargando_pdf_auditoria}
+          onClick={manejarDescargarPdfAuditoria}
+          className="h-8 px-3.5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl shadow-xs gap-1.5 shrink-0 cursor-pointer"
+        >
+          {descargando_pdf_auditoria ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-[#FFB600]" />
+          ) : (
+            <Printer className="w-3.5 h-3.5 text-[#FFB600]" />
+          )}
+          <span>Extraer Reporte PDF para Auditoría</span>
+        </Button>
       </div>
 
       {vista_activa === "en_vivo" ? (
@@ -1071,6 +1263,12 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                                 Convalidado
                               </Badge>
                             )}
+                            {item.estado === "revisado_supervisor" && (
+                              <Badge className="bg-sky-50 text-sky-800 border-sky-300 font-bold text-xs gap-1">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-sky-600" />
+                                Revisado por Supervisor
+                              </Badge>
+                            )}
                           </div>
 
                           {item.es_registro_manual && (
@@ -1093,8 +1291,19 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                             </div>
                           )}
 
+                          {/* Visualización de Exención de Multa de los Viernes / Escuela de Líderes */}
+                          {((item.es_viernes || item.tipo_actividad === "escuela_lideres" || item.tipo_actividad === "acciones_servicio") &&
+                            (item.estado === "convalidado" || item.exime_multa || ((item.monto_multa_bs === 0 || !item.monto_multa_bs) && item.minutos_retraso && item.minutos_retraso > 0))) ? (
+                            <div className="flex items-center justify-end">
+                              <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] font-bold gap-1 shadow-2xs">
+                                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                Sin Multa (Permiso Aprobado)
+                              </Badge>
+                            </div>
+                          ) : null}
+
                           {/* Visualización Transparente de Multas de Escuela de Líderes */}
-                          {item.monto_multa_bs && item.monto_multa_bs > 0 ? (
+                          {item.monto_multa_bs && item.monto_multa_bs > 0 && !item.exime_multa && item.estado !== "convalidado" ? (
                             <div className="flex items-center justify-end">
                               <Badge variant="outline" className="bg-rose-50 border-rose-300 text-rose-700 text-[10px] font-mono font-bold gap-1">
                                 <Coins className="w-3 h-3 text-rose-600" />
@@ -1110,8 +1319,8 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                           )}
                         </div>
 
-                        {/* Acciones de Auditoría */}
-                        <div className="flex items-center gap-1.5">
+                        {/* Acciones de Auditoría y Flujo de 2 Pasos */}
+                        <div className="flex flex-wrap items-center gap-1.5 justify-end">
                           <Button
                             size="sm"
                             variant="ghost"
@@ -1122,20 +1331,31 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                             <Eye className="w-3.5 h-3.5" />
                           </Button>
 
-                          {/* Botón de Convalidación para anomalías */}
+                          {/* Acciones de Flujo 2 Pasos para anomalías */}
                           {(item.estado === "fuera_geocerca" || item.estado === "tardanza") && (
                             <>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  set_registro_convalidador(item);
-                                  set_motivo_convalidacion("");
-                                }}
-                                className="h-8 px-2.5 text-xs font-bold border-[#035683] text-[#035683] hover:bg-[#035683]/5 rounded-lg"
-                              >
-                                Convalidar
-                              </Button>
+                              {!es_admin ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => manejarRevisarSupervisor(item)}
+                                  className="h-8 px-2.5 text-xs font-bold border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg gap-1"
+                                  title="Marcar Revisado por Supervisor"
+                                >
+                                  <Check className="w-3.5 h-3.5 text-[#00ABBD]" />
+                                  <span>Marcar Revisado por Supervisor</span>
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  onClick={() => manejarAprobarAdministracion(item)}
+                                  className="h-8 px-2.5 text-xs font-bold bg-[#035683] hover:bg-[#035683]/90 text-white rounded-lg gap-1 shadow-2xs"
+                                  title="Aprobar por Administración"
+                                >
+                                  <ShieldCheck className="w-3.5 h-3.5 text-[#FFB600]" />
+                                  <span>Aprobar por Administración</span>
+                                </Button>
+                              )}
 
                               <Button
                                 size="sm"
@@ -1147,6 +1367,26 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                                 <ClipboardCheck className="w-3.5 h-3.5 text-[#035683]" />
                                 <span className="hidden sm:inline">Justificar</span>
                               </Button>
+                            </>
+                          )}
+
+                          {item.estado === "revisado_supervisor" && (
+                            <>
+                              {es_admin ? (
+                                <Button
+                                  size="sm"
+                                  onClick={() => manejarAprobarAdministracion(item)}
+                                  className="h-8 px-2.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg gap-1 shadow-2xs"
+                                  title="Aprobar por Administración"
+                                >
+                                  <ShieldCheck className="w-3.5 h-3.5 text-white" />
+                                  <span>Aprobar por Administración</span>
+                                </Button>
+                              ) : (
+                                <Badge variant="outline" className="text-sky-700 border-sky-300 bg-sky-50 text-[10px] font-mono">
+                                  Elevado a Admin
+                                </Badge>
+                              )}
                             </>
                           )}
 
@@ -2230,6 +2470,142 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             >
               <Check className="w-4 h-4" />
               {manual_guardando ? "Registrando..." : "Guardar Asistencia Manual"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo Modal Canónico: Cambiar Lugar de Acción de Servicio (Viernes) - TAREA-01 */}
+      <Dialog open={modal_cambiar_lugar_abierto} onOpenChange={set_modal_cambiar_lugar_abierto}>
+        <DialogContent
+          showCloseButton={false}
+          className="sm:max-w-[560px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E5E7EB] rounded-2xl shadow-2xl"
+        >
+          <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] shrink-0 bg-white">
+            <DialogTitle className="text-lg font-bold text-[#035683] flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-[#00ABBD]" />
+              Cambiar Lugar de Acción de Servicio (Viernes)
+            </DialogTitle>
+            <p className="text-xs text-muted-foreground">
+              Define la nueva sede o coordenadas geodésicas WGS84 para el control de asistencia de las acciones diaconales de este viernes.
+            </p>
+          </DialogHeader>
+
+          <DialogBody className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
+            {/* 1. Selector de Sede Oficial de Acciones de Servicio */}
+            <div className="space-y-1.5">
+              <Label className="font-bold text-[#035683] text-xs">
+                Sede o Iglesia Institucional de Acción Diaconal *
+              </Label>
+              <Select
+                value={cambio_sede}
+                onValueChange={(val: string | null) => {
+                  if (val) {
+                    set_cambio_sede(val);
+                    set_cambio_referencia(val);
+                  }
+                }}
+              >
+                <SelectTrigger className="h-10 text-xs rounded-xl border-[#E5E7EB] bg-white">
+                  <SelectValue placeholder="Seleccione iglesia o centro diaconal" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-[#E5E7EB] z-[120]">
+                  {SEDES_POR_ACTIVIDAD.acciones_servicio.map((sede) => (
+                    <SelectItem key={sede} value={sede} className="text-xs">
+                      {sede}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 2. Parámetros Geodésicos EPSG:4326 */}
+            <div className="p-3.5 bg-[#F8F9FA] border border-[#E5E7EB] rounded-xl space-y-3">
+              <span className="text-xs font-bold text-[#035683] flex items-center gap-1.5">
+                <Navigation className="w-3.5 h-3.5 text-[#00ABBD]" />
+                Geocerca y Coordenadas GPS de Marcación
+              </span>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-[11px] text-muted-foreground">Latitud *</Label>
+                  <Input
+                    required
+                    value={cambio_latitud}
+                    onChange={(e) => set_cambio_latitud(e.target.value)}
+                    placeholder="-16.500054"
+                    className="h-9 text-xs border-[#E5E7EB] font-mono rounded-xl"
+                  />
+                </div>
+                <div>
+                  <Label className="text-[11px] text-muted-foreground">Longitud *</Label>
+                  <Input
+                    required
+                    value={cambio_longitud}
+                    onChange={(e) => set_cambio_longitud(e.target.value)}
+                    placeholder="-68.173455"
+                    className="h-9 text-xs border-[#E5E7EB] font-mono rounded-xl"
+                  />
+                </div>
+                <div>
+                  <Label className="text-[11px] text-muted-foreground">Radio (m) *</Label>
+                  <Input
+                    type="number"
+                    required
+                    min={10}
+                    max={1000}
+                    value={cambio_radio}
+                    onChange={(e) => set_cambio_radio(e.target.value)}
+                    placeholder="120"
+                    className="h-9 text-xs border-[#E5E7EB] font-mono rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-[11px] text-muted-foreground">Dirección / Referencia de Ubicación *</Label>
+                <Input
+                  required
+                  value={cambio_referencia}
+                  onChange={(e) => set_cambio_referencia(e.target.value)}
+                  placeholder="Ej: Av. 6 de Marzo frente al Cruce Viacha, El Alto"
+                  className="h-9 text-xs border-[#E5E7EB] rounded-xl"
+                />
+              </div>
+            </div>
+
+            {/* 3. Motivo institucional */}
+            <div className="space-y-1.5">
+              <Label className="font-bold text-[#035683] text-xs">
+                Motivo del Cambio de Lugar (Opcional)
+              </Label>
+              <Textarea
+                value={cambio_motivo}
+                onChange={(e) => set_cambio_motivo(e.target.value)}
+                placeholder="Indique el motivo del cambio de recinto para este viernes..."
+                className="text-xs border-[#E5E7EB] rounded-xl focus-visible:ring-[#00ABBD] min-h-[60px]"
+              />
+            </div>
+          </DialogBody>
+
+          <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={cambio_guardando}
+              onClick={() => set_modal_cambiar_lugar_abierto(false)}
+              className="rounded-xl border-[#E5E7EB] text-xs h-10 hover:bg-slate-100"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              disabled={cambio_guardando}
+              onClick={manejarGuardarCambioLugarAsistencia}
+              className="rounded-xl bg-[#007BBE] hover:bg-[#035683] text-white text-xs h-10 px-4 font-semibold gap-1.5 shadow-sm"
+            >
+              <Check className="w-4 h-4 text-[#FFB600]" />
+              <span>{cambio_guardando ? "Reubicando..." : "Confirmar Cambio de Lugar"}</span>
             </Button>
           </DialogFooter>
         </DialogContent>

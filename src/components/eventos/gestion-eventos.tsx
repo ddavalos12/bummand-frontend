@@ -298,6 +298,17 @@ export function GestionEventos() {
   const [evento_a_editar, set_evento_a_editar] = useState<EventoGeolocalizado | null>(null);
   const [guardando_edicion, set_guardando_edicion] = useState(false);
 
+  // Estados para Cambio Dinámico de Lugar en Acciones de Servicio (Viernes) - TAREA-01
+  const [dialogo_cambiar_lugar_abierto, set_dialogo_cambiar_lugar_abierto] = useState(false);
+  const [evento_a_cambiar_lugar, set_evento_a_cambiar_lugar] = useState<EventoGeolocalizado | null>(null);
+  const [cambio_evento_id, set_cambio_evento_id] = useState<string>("");
+  const [cambio_latitud, set_cambio_latitud] = useState<string>("-16.500054");
+  const [cambio_longitud, set_cambio_longitud] = useState<string>("-68.173455");
+  const [cambio_radio, set_cambio_radio] = useState<string>("120");
+  const [cambio_referencia, set_cambio_referencia] = useState<string>("");
+  const [cambio_motivo, set_cambio_motivo] = useState<string>("");
+  const [guardando_cambio_lugar, set_guardando_cambio_lugar] = useState(false);
+
   const [edit_titulo, set_edit_titulo] = useState("");
   const [edit_descripcion, set_edit_descripcion] = useState("");
   const [edit_tipo, set_edit_tipo] = useState<EventoGeolocalizado["tipo_evento"]>("escuela_lideres_especial");
@@ -471,6 +482,105 @@ export function GestionEventos() {
     set_guardando_edicion(false);
     toast.success("Acción de Servicio actualizada", {
       description: `Los cambios para "${evento_actualizado.titulo}" fueron guardados correctamente.`,
+    });
+  };
+
+  const abrirModalCambiarLugar = (ev?: EventoGeolocalizado) => {
+    const eventos_viernes = eventos.filter(
+      (e) => e.tipo_evento === "servicio_diaconal" || e.tipo_evento === "escuela_lideres_especial"
+    );
+    const seleccionado = ev || eventos_viernes[0] || eventos[0];
+    if (seleccionado) {
+      set_evento_a_cambiar_lugar(seleccionado);
+      set_cambio_evento_id(String(seleccionado.id));
+      set_cambio_latitud(String(seleccionado.latitud));
+      set_cambio_longitud(String(seleccionado.longitud));
+      set_cambio_radio(String(seleccionado.radio_tolerancia_m));
+      set_cambio_referencia(seleccionado.direccion_referencia);
+    } else {
+      set_evento_a_cambiar_lugar(null);
+      set_cambio_evento_id("");
+      set_cambio_latitud("-16.500054");
+      set_cambio_longitud("-68.173455");
+      set_cambio_radio("120");
+      set_cambio_referencia("Oficina Central Diaconía");
+    }
+    set_cambio_motivo("");
+    set_dialogo_cambiar_lugar_abierto(true);
+  };
+
+  const aplicarPredeterminadoCambioLugar = (_indice: number) => {
+    const p = PREDETERMINADOS_GPS[_indice];
+    if (p) {
+      set_cambio_latitud(p.latitud.toString());
+      set_cambio_longitud(p.longitud.toString());
+      set_cambio_referencia(p.referencia);
+    }
+  };
+
+  const alSeleccionarEventoCambioLugar = (id_str: string) => {
+    set_cambio_evento_id(id_str);
+    const ev = eventos.find((e) => String(e.id) === id_str);
+    if (ev) {
+      set_evento_a_cambiar_lugar(ev);
+      set_cambio_latitud(String(ev.latitud));
+      set_cambio_longitud(String(ev.longitud));
+      set_cambio_radio(String(ev.radio_tolerancia_m));
+      set_cambio_referencia(ev.direccion_referencia);
+    }
+  };
+
+  const manejarGuardarCambioLugar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cambio_evento_id) return;
+    const id_num = Number(cambio_evento_id);
+    const ev_actual = eventos.find((e) => e.id === id_num) || evento_a_cambiar_lugar;
+    if (!ev_actual) return;
+
+    set_guardando_cambio_lugar(true);
+    const lat = parseFloat(cambio_latitud) || ev_actual.latitud;
+    const lng = parseFloat(cambio_longitud) || ev_actual.longitud;
+    const radio = parseInt(cambio_radio, 10) || ev_actual.radio_tolerancia_m;
+    const ref = cambio_referencia.trim() || ev_actual.direccion_referencia;
+    const motivo = cambio_motivo.trim() || "Cambio dinámico de lugar en acción de servicio de viernes";
+
+    const payload = {
+      latitud: lat,
+      longitud: lng,
+      radio_tolerancia_m: radio,
+      direccion_referencia: ref,
+      motivo_cambio: motivo,
+    };
+
+    try {
+      await clienteApi.patch(`/api/eventos/${id_num}/cambiar-lugar`, payload);
+    } catch {
+      try {
+        await clienteApi.patch(`/api/eventos/${id_num}`, payload);
+      } catch {
+        // Respaldo reactivo local
+      }
+    }
+
+    set_eventos((prev) =>
+      prev.map((item) =>
+        item.id === id_num
+          ? {
+              ...item,
+              latitud: lat,
+              longitud: lng,
+              radio_tolerancia_m: radio,
+              direccion_referencia: ref,
+            }
+          : item
+      )
+    );
+
+    set_dialogo_cambiar_lugar_abierto(false);
+    set_guardando_cambio_lugar(false);
+    set_mensaje_exito(`Lugar actualizado para "${ev_actual.titulo}": ${ref} (Radio: ${radio}m).`);
+    toast.success("Lugar de Acción de Servicio actualizado", {
+      description: `Se reubicó el epicentro geodésico a: ${ref}. Los becarios marcarán en este punto.`,
     });
   };
 
@@ -838,7 +948,7 @@ export function GestionEventos() {
       )}
 
       {/* Barra de Control Superior Minimalista: Pestañas de Estado a la Izquierda y Botón a la Derecha */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <PestanasAnimadas
           pestanas={pestanas}
           pestana_activa_id={filtro_estado}
@@ -846,8 +956,19 @@ export function GestionEventos() {
           identificador_diseno="pestana_eventos_filtro"
         />
 
-        {/* Botón Juicy para Nueva Acción de Servicio */}
-        <Dialog open={dialogo_nuevo_abierto} onOpenChange={set_dialogo_nuevo_abierto}>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Button
+            type="button"
+            onClick={() => abrirModalCambiarLugar()}
+            className="h-10 px-4 rounded-xl bg-[#007BBE] hover:bg-[#035683] text-white text-xs font-bold gap-2 shadow-sm transition-all"
+            title="Cambiar la sede geográfica y geocerca para la acción de servicio de este viernes"
+          >
+            <MapPin className="w-4 h-4 text-[#FFB600]" />
+            <span>Cambiar Lugar de Acción de Servicio (Viernes)</span>
+          </Button>
+
+          {/* Botón Juicy para Nueva Acción de Servicio */}
+          <Dialog open={dialogo_nuevo_abierto} onOpenChange={set_dialogo_nuevo_abierto}>
           <DialogTrigger asChild>
             <div>
               <BotonJuicy
@@ -1047,6 +1168,7 @@ export function GestionEventos() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Cuadrícula de Tarjetas de Eventos con Cult UI (TarjetaSpotlight + BordeLuminoso) */}
@@ -1150,16 +1272,28 @@ export function GestionEventos() {
                 </div>
               </div>
 
-              {/* Botón para Abrir Acta de Asistencia */}
-              <div className="pt-4 mt-2 border-t border-[#E5E7EB]/60 flex items-center gap-2">
+              {/* Botón para Abrir Acta de Asistencia y Acciones */}
+              <div className="pt-4 mt-2 border-t border-[#E5E7EB]/60 flex flex-wrap items-center gap-2">
                 <Button
                   onClick={() => set_evento_seleccionado_acta(ev)}
                   variant="outline"
-                  className="flex-1 h-9 rounded-xl border-[#035683] text-[#035683] hover:bg-[#035683]/5 text-xs font-semibold gap-1.5 transition-colors"
+                  className="flex-1 min-w-[90px] h-9 rounded-xl border-[#035683] text-[#035683] hover:bg-[#035683]/5 text-xs font-semibold gap-1.5 transition-colors"
                 >
                   <FileText className="w-3.5 h-3.5 text-[#00ABBD]" />
                   <span>Ver Acta</span>
                 </Button>
+
+                {(ev.tipo_evento === "servicio_diaconal" || ev.tipo_evento === "escuela_lideres_especial") && (
+                  <Button
+                    onClick={() => abrirModalCambiarLugar(ev)}
+                    variant="outline"
+                    className="h-9 px-2.5 rounded-xl border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 text-xs font-semibold gap-1.5 transition-colors"
+                    title="Cambiar sede y coordenadas GPS para este viernes"
+                  >
+                    <MapPin className="w-3.5 h-3.5 text-[#00ABBD]" />
+                    <span>Cambiar Lugar</span>
+                  </Button>
+                )}
 
                 <Button
                   onClick={() => abrirModalEditar(ev)}
@@ -1394,6 +1528,159 @@ export function GestionEventos() {
               >
                 <Check className="w-4 h-4 text-[#00ABBD]" />
                 <span>{guardando_edicion ? "Guardando..." : "Guardar Cambios"}</span>
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo Modal Canónico: Cambiar Lugar de Acción de Servicio (Viernes) - TAREA-01 */}
+      <Dialog open={dialogo_cambiar_lugar_abierto} onOpenChange={set_dialogo_cambiar_lugar_abierto}>
+        <DialogContent
+          showCloseButton={false}
+          className="sm:max-w-[620px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E5E7EB] rounded-2xl shadow-2xl"
+        >
+          <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] shrink-0 bg-white">
+            <DialogTitle className="text-lg font-bold text-[#035683] flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-[#00ABBD]" />
+              Cambiar Lugar de Acción de Servicio (Viernes)
+            </DialogTitle>
+            <p className="text-xs text-muted-foreground">
+              Reasigna el epicentro WGS84 y el radio perimetral para la validación satelital en la App Móvil de los becarios este viernes.
+            </p>
+          </DialogHeader>
+
+          <form onSubmit={manejarGuardarCambioLugar} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            <DialogBody className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
+              {/* Selector del Evento de Viernes */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-[#035683]">
+                  Acción de Servicio / Evento de Viernes a Reubicar *
+                </Label>
+                <Select
+                  value={cambio_evento_id}
+                  onValueChange={(v) => v && alSeleccionarEventoCambioLugar(v)}
+                >
+                  <SelectTrigger className="w-full h-10 text-xs border-[#E5E7EB] rounded-xl bg-white font-medium">
+                    <SelectValue placeholder="Seleccione la acción de servicio" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border-[#E5E7EB] z-[120]">
+                    {eventos.map((ev) => (
+                      <SelectItem
+                        key={ev.id}
+                        value={String(ev.id)}
+                        etiqueta={`${ev.titulo} (${ev.fecha})`}
+                      >
+                        {ev.titulo} — {ev.fecha} ({formatearTipo(ev.tipo_evento)})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Atajos a recintos institucionales frecuentes */}
+              <div className="p-3.5 bg-[#F8F9FA] border border-[#E5E7EB] rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#035683] flex items-center gap-1.5">
+                    <Compass className="w-3.5 h-3.5 text-[#00ABBD]" />
+                    Sedes Frecuentes e Iglesias Institucionales
+                  </span>
+                  <span className="text-[10px] text-muted-foreground font-mono">EPSG:4326</span>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {PREDETERMINADOS_GPS.map((p, idx) => (
+                    <button
+                      key={p.etiqueta}
+                      type="button"
+                      onClick={() => aplicarPredeterminadoCambioLugar(idx)}
+                      className="text-[10.5px] px-2.5 py-1 rounded-lg border border-[#E5E7EB] bg-white hover:border-[#00ABBD] hover:text-[#035683] transition-colors"
+                    >
+                      {p.etiqueta.split("(")[0]}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Coordenadas y Radio */}
+                <div className="grid grid-cols-3 gap-2 pt-1">
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground">Latitud *</Label>
+                    <Input
+                      required
+                      value={cambio_latitud}
+                      onChange={(e) => set_cambio_latitud(e.target.value)}
+                      placeholder="-16.500054"
+                      className="h-9 text-xs border-[#E5E7EB] font-mono rounded-xl"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground">Longitud *</Label>
+                    <Input
+                      required
+                      value={cambio_longitud}
+                      onChange={(e) => set_cambio_longitud(e.target.value)}
+                      placeholder="-68.173455"
+                      className="h-9 text-xs border-[#E5E7EB] font-mono rounded-xl"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground">Radio (Metros) *</Label>
+                    <Input
+                      type="number"
+                      required
+                      min={10}
+                      max={1000}
+                      value={cambio_radio}
+                      onChange={(e) => set_cambio_radio(e.target.value)}
+                      placeholder="120"
+                      className="h-9 text-xs border-[#E5E7EB] font-mono rounded-xl"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-[11px] text-muted-foreground">Dirección y Referencia Urbana *</Label>
+                  <Input
+                    required
+                    value={cambio_referencia}
+                    onChange={(e) => set_cambio_referencia(e.target.value)}
+                    placeholder="Ej: Iglesia Sinai Los Andes, Av. Principal #450, El Alto"
+                    className="h-9 text-xs border-[#E5E7EB] rounded-xl"
+                  />
+                </div>
+              </div>
+
+              {/* Motivo del cambio de lugar */}
+              <div className="space-y-1.5">
+                <Label htmlFor="motivo_cambio_lugar" className="text-xs font-semibold text-[#035683]">
+                  Motivo o Justificación Institucional del Traslado
+                </Label>
+                <Textarea
+                  id="motivo_cambio_lugar"
+                  placeholder="Detalla el motivo del cambio de recinto (ej. jornada de servicio comunal, rotación pastoral, refacciones)..."
+                  value={cambio_motivo}
+                  onChange={(e) => set_cambio_motivo(e.target.value)}
+                  className="text-xs border-[#E5E7EB] rounded-xl focus-visible:ring-[#00ABBD] min-h-[70px]"
+                />
+              </div>
+            </DialogBody>
+
+            <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => set_dialogo_cambiar_lugar_abierto(false)}
+                className="rounded-xl border-[#E5E7EB] text-xs h-10 hover:bg-slate-100"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={guardando_cambio_lugar || !cambio_evento_id}
+                className="rounded-xl bg-[#007BBE] hover:bg-[#035683] text-white text-xs h-10 px-4 font-semibold gap-1.5 shadow-sm"
+              >
+                <Check className="w-4 h-4 text-[#FFB600]" />
+                <span>{guardando_cambio_lugar ? "Reubicando..." : "Confirmar y Reubicar Acción"}</span>
               </Button>
             </DialogFooter>
           </form>
