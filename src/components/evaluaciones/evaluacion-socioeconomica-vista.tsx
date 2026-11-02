@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -169,8 +169,8 @@ export function EvaluacionSocioeconomicaVista() {
     NOMINA_INICIAL_SOCIOECONOMICA
   );
 
-  // Pestaña activa (solo para Admin/Supervisor)
-  const [pestaña_activa, set_pestaña_activa] = useState<string>("cuestionario");
+  // Pestaña activa (inicia en la Nómina de Becarios para auditar)
+  const [pestaña_activa, set_pestaña_activa] = useState<string>("nomina");
 
   // Becario seleccionado actualmente en la Pestaña 1
   const [becario_seleccionado_id, set_becario_seleccionado_id] = useState<number>(100);
@@ -575,13 +575,13 @@ export function EvaluacionSocioeconomicaVista() {
           <Tabs value={pestaña_activa} onValueChange={set_pestaña_activa} className="space-y-6">
             <div className="bg-white p-2 rounded-2xl border border-[#E5E7EB] shadow-2xs overflow-x-auto">
               <TabsList className="bg-slate-100 p-1 rounded-xl w-full sm:w-auto inline-flex">
-                <TabsTrigger value="cuestionario" className="text-xs font-bold rounded-lg px-4 py-2">
-                  <FileText className="w-3.5 h-3.5 mr-1.5 text-[#00ABBD]" />
-                  Cuestionario de Bienestar ({preguntas.length} Preguntas)
-                </TabsTrigger>
                 <TabsTrigger value="nomina" className="text-xs font-bold rounded-lg px-4 py-2">
                   <Users className="w-3.5 h-3.5 mr-1.5 text-[#035683]" />
                   Nómina Oficial de Becarios (21/23 Becarios)
+                </TabsTrigger>
+                <TabsTrigger value="cuestionario" className="text-xs font-bold rounded-lg px-4 py-2">
+                  <Eye className="w-3.5 h-3.5 mr-1.5 text-[#00ABBD]" />
+                  Respuestas del Becario ({preguntas.length} Preguntas)
                 </TabsTrigger>
                 <TabsTrigger value="configuracion" className="text-xs font-bold rounded-lg px-4 py-2">
                   <Settings className="w-3.5 h-3.5 mr-1.5 text-amber-600" />
@@ -590,8 +590,23 @@ export function EvaluacionSocioeconomicaVista() {
               </TabsList>
             </div>
 
-            {/* PESTAÑA 1: CUESTIONARIO DE BIENESTAR (26 PREGUNTAS) */}
+            {/* PESTAÑA 1: RESPUESTAS DEL BECARIO (26 PREGUNTAS - SOLO LECTURA INSTITUCIONAL) */}
             <TabsContent value="cuestionario" className="space-y-6">
+              {/* Banner Informativo de Respuestas */}
+              <div className="p-4 bg-sky-50 border border-sky-200 rounded-2xl flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#035683] text-white flex items-center justify-center shrink-0 mt-0.5">
+                  <Eye className="w-4 h-4 text-[#00ABBD]" />
+                </div>
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-bold text-[#035683] uppercase tracking-wider">
+                    Visualización Exclusiva de Respuestas del Becario (Solo Lectura)
+                  </h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    El Cuestionario de Bienestar Universitario (26 preguntas) es respondido directamente por el estudiante becario a través de la <strong>aplicación móvil BUMAND</strong>. En este portal institucional únicamente se visualizan y auditan las respuestas registradas y la calificación ponderada correspondiente.
+                  </p>
+                </div>
+              </div>
+
               {/* Barra de Control del Becario Evaluado, Progreso y Semáforo */}
               <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs">
                 <CardContent className="p-5 space-y-4">
@@ -599,7 +614,7 @@ export function EvaluacionSocioeconomicaVista() {
                     {/* Selector de Becario */}
                     <div className="space-y-1.5 flex-1 max-w-xl">
                       <Label className="text-xs font-mono uppercase font-bold text-[#035683]">
-                        Seleccionar Becario Evaluado (21/23 Becarios Activos)
+                        Seleccionar Becario para Auditar Respuestas (21/23 Becarios Activos)
                       </Label>
                       <select
                         value={becario_seleccionado_id}
@@ -626,19 +641,13 @@ export function EvaluacionSocioeconomicaVista() {
                       </div>
 
                       <Badge className="bg-[#035683] text-white font-mono text-xs font-bold px-3.5 py-2 rounded-xl shadow-xs">
-                        Puntaje Calculado: {puntaje_calculado_20.toFixed(1)} / 20 pts
+                        Puntaje Oficial: {puntaje_calculado_20.toFixed(1)} / 20 pts
                       </Badge>
 
-                      <Button
-                        onClick={manejarGuardarEvaluacionSocioeconomica}
-                        disabled={guardando_evaluacion}
-                        className="h-10 px-5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs flex items-center gap-2 shadow-xs"
-                      >
-                        <Save className="w-4 h-4 text-[#FFB600]" />
-                        {guardando_evaluacion
-                          ? "Guardando..."
-                          : "Guardar Evaluación Socioeconómica (/20 pts)"}
-                      </Button>
+                      <Badge className="bg-emerald-600 text-white font-mono text-xs font-bold px-3.5 py-2 rounded-xl shadow-xs flex items-center gap-1.5">
+                        <CheckCircle className="w-3.5 h-3.5 text-white" />
+                        Respondido en App Móvil
+                      </Badge>
                     </div>
                   </div>
 
@@ -717,14 +726,12 @@ export function EvaluacionSocioeconomicaVista() {
                           {p.opciones.map((op) => {
                             const esta_seleccionada = seleccion === op.inciso;
                             return (
-                              <button
+                              <div
                                 key={op.inciso}
-                                type="button"
-                                onClick={() => seleccionarInciso(p.numero, op.inciso)}
-                                className={`p-3 rounded-xl border text-xs text-left transition-all flex items-start justify-between gap-2 cursor-pointer ${
+                                className={`p-3 rounded-xl border text-xs text-left transition-all flex items-start justify-between gap-2 ${
                                   esta_seleccionada
                                     ? "bg-[#035683] text-white border-[#035683] shadow-xs font-medium"
-                                    : "bg-slate-50/70 text-slate-700 border-[#E5E7EB] hover:bg-slate-100/80"
+                                    : "bg-slate-50/50 text-slate-400 border-slate-200/80 opacity-60"
                                 }`}
                               >
                                 <div className="flex items-start gap-2.5">
@@ -732,23 +739,30 @@ export function EvaluacionSocioeconomicaVista() {
                                     className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${
                                       esta_seleccionada
                                         ? "bg-[#FFB600] text-[#035683]"
-                                        : "bg-white text-slate-600 border border-[#E5E7EB]"
+                                        : "bg-white text-slate-400 border border-slate-200"
                                     }`}
                                   >
                                     {op.inciso}
                                   </span>
                                   <span className="leading-snug pt-0.5">{op.texto}</span>
                                 </div>
-                                <span
-                                  className={`font-mono text-[10px] px-1.5 py-0.5 rounded shrink-0 ${
-                                    esta_seleccionada
-                                      ? "bg-white/15 text-[#00ABBD]"
-                                      : "text-slate-400"
-                                  }`}
-                                >
-                                  {op.puntaje.toFixed(2)} pts
-                                </span>
-                              </button>
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  {esta_seleccionada && (
+                                    <span className="text-[10px] bg-white/20 text-white font-bold px-2 py-0.5 rounded-md font-mono">
+                                      ✓ Respuesta Becario
+                                    </span>
+                                  )}
+                                  <span
+                                    className={`font-mono text-[10px] px-1.5 py-0.5 rounded ${
+                                      esta_seleccionada
+                                        ? "bg-white/15 text-[#00ABBD] font-bold"
+                                        : "text-slate-400"
+                                    }`}
+                                  >
+                                    {op.puntaje.toFixed(2)} pts
+                                  </span>
+                                </div>
+                              </div>
                             );
                           })}
                         </div>
@@ -758,25 +772,30 @@ export function EvaluacionSocioeconomicaVista() {
                 })}
               </div>
 
-              {/* Pie de Guardado */}
+              {/* Pie de Auditoría Institucional */}
               <div className="p-4 rounded-2xl bg-white border border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
                 <div className="flex items-center gap-3 text-xs">
                   <Sparkles className="w-4 h-4 text-[#00ABBD] shrink-0" />
                   <span>
-                    Becario en evaluación: <strong className="text-[#035683]">{becario_actual.nombre_completo}</strong> · Nota calculada:{" "}
+                    Becario auditado: <strong className="text-[#035683]">{becario_actual.nombre_completo}</strong> · Calificación oficial:{" "}
                     <strong className="font-mono text-[#035683]">{puntaje_calculado_20.toFixed(1)} / 20 pts</strong>
                   </span>
                 </div>
-                <Button
-                  onClick={manejarGuardarEvaluacionSocioeconomica}
-                  disabled={guardando_evaluacion}
-                  className="h-10 px-6 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs flex items-center gap-2"
-                >
-                  <CheckCircle className="w-4 h-4 text-[#00ABBD]" />
-                  {guardando_evaluacion
-                    ? "Guardando..."
-                    : "Guardar Evaluación Socioeconómica (/20 pts)"}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-xs px-3 py-1.5 gap-1.5">
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                    Sincronizado desde App Móvil
+                  </Badge>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => set_pestaña_activa("nomina")}
+                    className="h-9 px-4 border-[#035683] text-[#035683] font-bold rounded-xl text-xs hover:bg-[#035683]/5"
+                  >
+                    Volver a la Nómina
+                  </Button>
+                </div>
               </div>
             </TabsContent>
 
@@ -844,9 +863,10 @@ export function EvaluacionSocioeconomicaVista() {
                                 seleccionarBecario(becario.id);
                                 set_pestaña_activa("cuestionario");
                               }}
-                              className="h-8 px-3 border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg text-xs font-bold"
+                              className="h-8 px-3 border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg text-xs font-bold inline-flex items-center gap-1.5"
                             >
-                              Ver / Editar Cuestionario
+                              <Eye className="w-3.5 h-3.5 text-[#00ABBD]" />
+                              Ver Respuestas del Becario
                             </Button>
                           </td>
                         </tr>

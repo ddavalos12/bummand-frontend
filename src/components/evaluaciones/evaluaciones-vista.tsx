@@ -38,6 +38,7 @@ import {
   FileCheck,
   Info,
   Clock,
+  Lock,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -272,9 +273,11 @@ export interface BecarioAsignadoMentor {
   carrera: string;
   universidad: string;
   unidad_agencia: string;
-  estado: "pendiente" | "evaluado";
+  estado: "pendiente" | "evaluado" | "aprobado";
   nota_final_20?: number;
   fecha_evaluacion?: string;
+  fecha_aprobacion?: string;
+  aprobado_por?: string;
   evaluacion_datos?: EvaluacionInicialMentor;
 }
 
@@ -437,11 +440,51 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
   const [modal_qr_mentor_abierto, set_modal_qr_mentor_abierto] = useState<boolean>(false);
 
   // TAREA-02: Estados para Evaluación de Supervisor (Módulo 3) desde su propio perfil web
-  const [becarios_asignados_modulo3, set_becarios_asignados_modulo3] = useState<BecarioAsignadoMentor[]>(
-    BECARIOS_ASIGNADOS_MENTOR_INICIALES
-  );
+  const [modal_modo_lectura, set_modal_modo_lectura] = useState<boolean>(false);
+  const [becarios_asignados_modulo3, set_becarios_asignados_modulo3] = useState<BecarioAsignadoMentor[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const guardado = localStorage.getItem("bumand_modulo3_becarios_asignados");
+        if (guardado) {
+          const parseado = JSON.parse(guardado);
+          if (Array.isArray(parseado) && parseado.length > 0) return parseado;
+        }
+      } catch {}
+    }
+    return BECARIOS_ASIGNADOS_MENTOR_INICIALES;
+  });
   const [modal_formulario_mentor_abierto, set_modal_formulario_mentor_abierto] = useState<boolean>(false);
   const [becario_mentor_seleccionado, set_becario_mentor_seleccionado] = useState<BecarioAsignadoMentor | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && becarios_asignados_modulo3.length > 0) {
+      try {
+        localStorage.setItem("bumand_modulo3_becarios_asignados", JSON.stringify(becarios_asignados_modulo3));
+      } catch {}
+    }
+  }, [becarios_asignados_modulo3]);
+
+  const manejarAprobarEvaluacion = (becario_id: number) => {
+    set_becarios_asignados_modulo3((prev) =>
+      prev.map((b) => {
+        if (b.id === becario_id) {
+          const hoy = new Date().toISOString().substring(0, 10);
+          return {
+            ...b,
+            estado: "aprobado",
+            fecha_aprobacion: hoy,
+            aprobado_por: "Administración Central BUMAND",
+          };
+        }
+        return b;
+      })
+    );
+
+    const bec = becarios_asignados_modulo3.find((b) => b.id === becario_id);
+    toast.success("Evaluación de Módulo 3 Aprobada", {
+      description: `La calificación de ${bec?.nombre || "el becario"} (${bec?.nota_final_20 || 20}/20 pts) ha sido convalidada oficialmente por Administración.`,
+    });
+  };
 
   useEffect(() => {
     async function cargarBecariosAsignadosModulo3() {
@@ -453,7 +496,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
           set_becarios_asignados_modulo3(respuesta);
         }
       } catch (_e) {
-        // Fallback en lista inicial
+        // Fallback en lista inicial o localStorage
       }
     }
     cargarBecariosAsignadosModulo3();
@@ -1516,7 +1559,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               <div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-[#035683] text-white font-bold text-[10px]">
-                    Perfil Web del Supervisor
+                    {es_admin ? "Bandeja de Aprobación de Administración" : "Perfil Web del Supervisor"}
                   </Badge>
                   <span className="text-xs text-muted-foreground">Módulo 03 · 20% Oficial BUMAND</span>
                 </div>
@@ -1525,13 +1568,21 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                   Mis Becarios Asignados — Evaluación de Supervisor (Módulo 3)
                 </CardTitle>
                 <CardDescription className="text-xs text-muted-foreground">
-                  Llene o edite las calificaciones de desempeño diaconal de sus becarios asignados con validación obligatoria de identidad vía código OTP.
+                  {es_admin
+                    ? "Revise y apruebe las calificaciones emitidas por los supervisores diaconales. El supervisor edita la rúbrica y la administración efectúa la aprobación final."
+                    : "Llene o edite las calificaciones de desempeño diaconal de sus becarios asignados con validación obligatoria de identidad vía código OTP."}
                 </CardDescription>
               </div>
 
-              <Badge variant="outline" className="border-[#035683] text-[#035683] font-mono text-xs font-bold px-3 py-1">
-                {becarios_asignados_modulo3.filter((b) => b.estado === "evaluado").length} / {becarios_asignados_modulo3.length} Evaluados
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="border-emerald-600 bg-emerald-50 text-emerald-800 font-mono text-xs font-bold px-3 py-1 gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  {becarios_asignados_modulo3.filter((b) => b.estado === "aprobado").length} / {becarios_asignados_modulo3.length} Aprobados
+                </Badge>
+                <Badge variant="outline" className="border-[#035683] text-[#035683] font-mono text-xs font-bold px-3 py-1">
+                  {becarios_asignados_modulo3.filter((b) => b.estado === "evaluado").length} Por Aprobar
+                </Badge>
+              </div>
             </CardHeader>
 
             <CardContent className="p-0">
@@ -1548,8 +1599,6 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                 </TableHeader>
                 <TableBody>
                   {becarios_asignados_modulo3.map((bec, idx) => {
-                    const esta_evaluado = bec.estado === "evaluado";
-
                     return (
                       <TableRow key={bec.id} className="hover:bg-slate-50/60">
                         <TableCell className="text-center font-mono text-xs text-slate-500 font-semibold">
@@ -1570,19 +1619,27 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                           </span>
                         </TableCell>
                         <TableCell className="text-center">
-                          {esta_evaluado ? (
-                            <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-[10px] gap-1">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Evaluado
+                          {bec.estado === "aprobado" ? (
+                            <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white font-bold text-[10px] gap-1 shadow-2xs">
+                              <ShieldCheck className="w-3 h-3 text-white" /> Aprobado por Adm.
+                            </Badge>
+                          ) : bec.estado === "evaluado" ? (
+                            <Badge className="bg-sky-100 text-[#035683] border-sky-300 font-bold text-[10px] gap-1">
+                              <CheckCircle2 className="w-3 h-3 text-[#00ABBD]" /> Evaluado (Por Aprobar)
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-800 font-bold text-[10px] gap-1">
-                              <Clock className="w-3 h-3 text-amber-600" /> Pendiente
+                              <Clock className="w-3 h-3 text-amber-600" /> Pendiente Llenado
                             </Badge>
                           )}
                         </TableCell>
                         <TableCell className="text-center">
-                          {esta_evaluado && bec.nota_final_20 !== undefined ? (
-                            <span className="text-xs font-mono font-black text-[#035683] bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
+                          {bec.nota_final_20 !== undefined ? (
+                            <span className={`text-xs font-mono font-black px-2 py-0.5 rounded-lg border ${
+                              bec.estado === "aprobado"
+                                ? "text-emerald-800 bg-emerald-50 border-emerald-300"
+                                : "text-[#035683] bg-sky-50 border-sky-200"
+                            }`}>
                               {bec.nota_final_20.toFixed(1)} / 20 pts
                             </span>
                           ) : (
@@ -1590,24 +1647,111 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                           )}
                         </TableCell>
                         <TableCell className="text-right pr-5">
-                          <Button
-                            type="button"
-                            size="sm"
-                            onClick={() => {
-                              set_becario_mentor_seleccionado(bec);
-                              set_modal_formulario_mentor_abierto(true);
-                            }}
-                            className={`h-8 px-3 rounded-xl font-bold text-xs gap-1.5 shadow-2xs ${
-                              esta_evaluado
-                                ? "bg-white hover:bg-slate-50 text-[#035683] border border-[#035683]/40"
-                                : "bg-[#035683] hover:bg-[#024063] text-white"
-                            }`}
-                          >
-                            <UserCheck className="w-3.5 h-3.5 text-[#FFB600]" />
-                            {esta_evaluado
-                              ? "Editar Evaluación (Módulo 3)"
-                              : "Llenar Evaluación (Módulo 3)"}
-                          </Button>
+                          {es_admin ? (
+                            /* VISTA DEL ADMINISTRADOR: APRUEBA Y REVISA (NO EDITA) */
+                            <div className="flex items-center justify-end gap-1.5">
+                              {bec.estado === "aprobado" && (
+                                <>
+                                  <Badge variant="outline" className="border-emerald-500 bg-emerald-50 text-emerald-800 text-[11px] font-bold py-1 px-2.5">
+                                    ✓ Aprobada
+                                  </Badge>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      set_modal_modo_lectura(true);
+                                      set_becario_mentor_seleccionado(bec);
+                                      set_modal_formulario_mentor_abierto(true);
+                                    }}
+                                    className="h-8 px-2.5 rounded-xl text-xs font-semibold text-[#035683] border-[#035683]/30 hover:bg-slate-50 gap-1"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                    Ver Rúbrica
+                                  </Button>
+                                </>
+                              )}
+
+                              {bec.estado === "evaluado" && (
+                                <>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      set_modal_modo_lectura(true);
+                                      set_becario_mentor_seleccionado(bec);
+                                      set_modal_formulario_mentor_abierto(true);
+                                    }}
+                                    className="h-8 px-2.5 rounded-xl text-xs font-semibold text-[#035683] border-[#035683]/30 hover:bg-slate-50 gap-1"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                    Revisar Rúbrica
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    onClick={() => manejarAprobarEvaluacion(bec.id)}
+                                    className="h-8 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs gap-1.5 shadow-2xs"
+                                  >
+                                    <ShieldCheck className="w-3.5 h-3.5 text-white" />
+                                    Aprobar Evaluación
+                                  </Button>
+                                </>
+                              )}
+
+                              {bec.estado === "pendiente" && (
+                                <Badge variant="outline" className="border-slate-300 bg-slate-50 text-slate-500 text-[11px] font-medium py-1 px-2.5">
+                                  Esperando Llenado del Supervisor
+                                </Badge>
+                              )}
+                            </div>
+                          ) : (
+                            /* VISTA DEL SUPERVISOR: EDITA Y LLENA (NO APRUEBA) */
+                            <div className="flex items-center justify-end gap-1.5">
+                              {bec.estado === "aprobado" ? (
+                                <>
+                                  <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] font-bold gap-1 py-1 px-2">
+                                    <Lock className="w-3 h-3 text-emerald-700" /> Aprobada (Cerrada)
+                                  </Badge>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      set_modal_modo_lectura(true);
+                                      set_becario_mentor_seleccionado(bec);
+                                      set_modal_formulario_mentor_abierto(true);
+                                    }}
+                                    className="h-8 px-2.5 rounded-xl text-xs font-semibold text-[#035683] border-[#035683]/30 hover:bg-slate-50 gap-1"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                    Ver Rúbrica
+                                  </Button>
+                                </>
+                              ) : (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  onClick={() => {
+                                    set_modal_modo_lectura(false);
+                                    set_becario_mentor_seleccionado(bec);
+                                    set_modal_formulario_mentor_abierto(true);
+                                  }}
+                                  className={`h-8 px-3 rounded-xl font-bold text-xs gap-1.5 shadow-2xs ${
+                                    bec.estado === "evaluado"
+                                      ? "bg-white hover:bg-slate-50 text-[#035683] border border-[#035683]/40"
+                                      : "bg-[#035683] hover:bg-[#024063] text-white"
+                                  }`}
+                                >
+                                  <UserCheck className="w-3.5 h-3.5 text-[#FFB600]" />
+                                  {bec.estado === "evaluado"
+                                    ? "Editar Evaluación (Módulo 3)"
+                                    : "Llenar Evaluación (Módulo 3)"}
+                                </Button>
+                              )}
+                            </div>
+                          )}
                         </TableCell>
                       </TableRow>
                     );
@@ -1627,6 +1771,9 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               unidad_agencia_inicial={becario_mentor_seleccionado.unidad_agencia}
               evaluacion_inicial={becario_mentor_seleccionado.evaluacion_datos}
               modalidad_llenado="perfil_supervisor"
+              solo_lectura={modal_modo_lectura}
+              estado_actual={becario_mentor_seleccionado.estado}
+              alAprobar={() => manejarAprobarEvaluacion(becario_mentor_seleccionado.id)}
               alGuardarExito={(nota) => {
                 set_becarios_asignados_modulo3((prev) =>
                   prev.map((b) =>
@@ -1805,83 +1952,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
       {/* ============================================================== */}
       {pestaña_activa === "socioeconomica" && (
         <div className="space-y-6">
-          <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs">
-            <CardHeader className="border-b border-[#E5E7EB]/60 bg-slate-50/50 pb-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="border-[#00ABBD] text-[#035683] font-bold text-[10px]">
-                      Módulo 05 · 20% Oficial
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">Evaluador: Área de Trabajo Social</span>
-                  </div>
-                  <CardTitle className="text-lg font-bold text-[#035683] flex items-center gap-2">
-                    <HeartHandshake className="w-5 h-5 text-[#00ABBD]" />
-                    Gobernanza del Cuestionario de Bienestar Universitario (26 Preguntas)
-                  </CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground">
-                    Catálogo oficial de reactivos del diagnóstico socioeconómico y bienestar estudiantil.
-                  </CardDescription>
-                </div>
-
-                <Button
-                  onClick={() => set_modal_preview_socioeconomica_abierto(true)}
-                  className="h-10 px-4 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs shrink-0"
-                >
-                  <Eye className="w-4 h-4 text-[#FFB600]" />
-                  Vista Previa Cuestionario 26P
-                </Button>
-              </div>
-            </CardHeader>
-
-            <CardContent className="p-6 space-y-6">
-              
-
-              {/* Muestra de las 26 Preguntas */}
-              <div className="space-y-3">
-                <Label className="text-xs font-mono uppercase font-bold text-slate-600">
-                  Banco de Preguntas Canónicas de Bienestar Personal, Social y Universitario (26 Reactivos)
-                </Label>
-                <div className="space-y-2">
-                  {PREGUNTAS_BIENESTAR_INICIALES.slice(0, 6).map((p) => (
-                    <div key={p.id} className="p-3 bg-white rounded-xl border border-slate-200 text-xs flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-[#035683]/10 text-[#035683] font-mono font-bold flex items-center justify-center text-[10px]">
-                          {p.numero}
-                        </span>
-                        <div>
-                          <p className="font-bold text-slate-800">{p.titulo}</p>
-                          <p className="text-[11px] text-muted-foreground">{p.enunciado}</p>
-                        </div>
-                      </div>
-                      <Badge variant="outline" className="border-slate-300 font-mono text-[10px] shrink-0">
-                        {p.opciones.length} Opciones
-                      </Badge>
-                    </div>
-                  ))}
-                  <p className="text-[11px] text-center text-muted-foreground italic">+ 20 preguntas estructuradas en el instrumento oficial</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Diálogo Modal de Vista Previa Socioeconómica */}
-          <Dialog open={modal_preview_socioeconomica_abierto} onOpenChange={set_modal_preview_socioeconomica_abierto}>
-            <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto p-4 bg-white rounded-2xl">
-              <DialogHeader className="pb-2 border-b border-slate-200">
-                <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-[#00ABBD]" />
-                  Vista Previa Interactiva: Cuestionario de Bienestar (26 Preguntas)
-                </DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground">
-                  Instrumento completo que el estudiante responde semestralmente con evaluación de Trabajo Social.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="pt-2">
-                <EvaluacionSocioeconomicaVista />
-              </div>
-            </DialogContent>
-          </Dialog>
+          <EvaluacionSocioeconomicaVista />
         </div>
       )}
 

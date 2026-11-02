@@ -64,7 +64,10 @@ interface FormularioMentorModalProps {
   unidad_agencia_inicial?: string;
   evaluacion_inicial?: EvaluacionInicialMentor;
   modalidad_llenado?: "perfil_supervisor" | "celular_estudiante";
+  solo_lectura?: boolean;
+  estado_actual?: "pendiente" | "evaluado" | "aprobado";
   alGuardarExito?: (puntaje_20: number) => void;
+  alAprobar?: () => void;
 }
 
 const CALIFICACIONES_DEFAULT_18: Record<number, number> = {
@@ -108,7 +111,10 @@ export function FormularioMentorModal({
   unidad_agencia_inicial = "Jefatura de Planificación, Control y Presupuesto",
   evaluacion_inicial,
   modalidad_llenado = "perfil_supervisor",
+  solo_lectura = false,
+  estado_actual = "pendiente",
   alGuardarExito,
+  alAprobar,
 }: FormularioMentorModalProps) {
   // Datos de Cabecera Oficial
   const [mentor_nombre, set_mentor_nombre] = useState<string>("Mildrette Rojas Soliz");
@@ -291,6 +297,10 @@ export function FormularioMentorModal({
   };
 
   const intentarCerrarModal = () => {
+    if (solo_lectura) {
+      alCambiarAbierto(false);
+      return;
+    }
     confirmarCierreSinCompletar(
       hay_modificaciones,
       () => {
@@ -373,32 +383,44 @@ export function FormularioMentorModal({
                     variant="outline"
                     className="border-[#035683]/30 text-[#035683] text-[9px] font-semibold"
                   >
-                    {modalidad_llenado === "perfil_supervisor"
+                    {solo_lectura
+                      ? estado_actual === "aprobado"
+                        ? "Aprobado por Administración"
+                        : "Revisión de Administración"
+                      : modalidad_llenado === "perfil_supervisor"
                       ? "Perfil Web Supervisor"
                       : "Móvil Estudiante"}
                   </Badge>
                 </div>
                 <DialogTitle className="font-display text-lg font-bold text-[#035683]">
-                  {evaluacion_inicial
+                  {solo_lectura
+                    ? estado_actual === "aprobado"
+                      ? "Evaluación de Supervisor Aprobada (Módulo 3)"
+                      : "Revisar y Convalidar Evaluación de Supervisor (Módulo 3)"
+                    : evaluacion_inicial
                     ? "Editar Evaluación de Desempeño Diaconal (Módulo 3)"
                     : "Llenar Evaluación de Desempeño Diaconal (Módulo 3)"}
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
-                  Programa BUMAND · 18 Preguntas Escala 1-10 + 3 Preguntas Abiertas · Calificación Definitiva /20 Pts
+                  {solo_lectura
+                    ? "Solo el supervisor edita la rúbrica diaconal y solo el administrador aprueba la calificación institucional definitiva."
+                    : "Programa BUMAND · 18 Preguntas Escala 1-10 + 3 Preguntas Abiertas · Calificación Definitiva /20 Pts"}
                 </DialogDescription>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => set_qr_visible(!qr_visible)}
-                className="h-8 px-2.5 border-[#00ABBD] text-[#035683] rounded-lg text-xs font-bold flex items-center gap-1.5"
-              >
-                <QrCode className="w-3.5 h-3.5" />
-                {qr_visible ? "Ocultar QR" : "Ver Código QR"}
-              </Button>
+              {!solo_lectura && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => set_qr_visible(!qr_visible)}
+                  className="h-8 px-2.5 border-[#00ABBD] text-[#035683] rounded-lg text-xs font-bold flex items-center gap-1.5"
+                >
+                  <QrCode className="w-3.5 h-3.5" />
+                  {qr_visible ? "Ocultar QR" : "Ver Código QR"}
+                </Button>
+              )}
               <Badge className="bg-[#035683] text-white font-mono text-xs font-bold px-3 py-1">
                 NOTA FINAL: {nota_final_sobre_20} / 20 PUNTOS
               </Badge>
@@ -408,6 +430,49 @@ export function FormularioMentorModal({
 
         {/* Cuerpo del Formulario */}
         <DialogBody className="p-6 space-y-6 flex-1 overflow-y-auto">
+          {/* Banner de Auditoría y Aprobación Institucional */}
+          {solo_lectura && (
+            estado_actual === "aprobado" ? (
+              <div className="p-3.5 bg-emerald-50 border border-emerald-300 rounded-2xl flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <div>
+                    <p className="text-xs font-bold text-emerald-900">Evaluación Aprobada por Administración</p>
+                    <p className="text-[11px] text-emerald-700">Esta evaluación fue revisada y convalidada oficialmente. Se encuentra bloqueada para salvaguardar la integridad de las notas.</p>
+                  </div>
+                </div>
+                <Badge className="bg-emerald-600 text-white font-mono text-[10px] font-bold shrink-0">
+                  CERRADA
+                </Badge>
+              </div>
+            ) : (
+              <div className="p-3.5 bg-sky-50 border border-[#00ABBD]/40 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <ShieldCheck className="w-5 h-5 text-[#035683] shrink-0" />
+                  <div>
+                    <p className="text-xs font-bold text-[#035683]">Bandeja de Aprobación de Administración</p>
+                    <p className="text-[11px] text-slate-600">
+                      Solo el supervisor edita las notas y apreciaciones; el administrador valida y aprueba. Verifique la rúbrica antes de convalidar.
+                    </p>
+                  </div>
+                </div>
+                {alAprobar && (
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      alAprobar();
+                      alCambiarAbierto(false);
+                    }}
+                    className="h-8 px-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs shrink-0 flex items-center gap-1.5"
+                  >
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    Aprobar Evaluación Ahora
+                  </Button>
+                )}
+              </div>
+            )
+          )}
+
           {/* Panel Desplegable de Código QR */}
           {qr_visible && (
             <div className="p-4 bg-slate-50 border border-dashed border-[#00ABBD] rounded-2xl flex flex-col sm:flex-row items-center gap-4 text-xs">
@@ -431,100 +496,126 @@ export function FormularioMentorModal({
           )}
 
           {/* 1. SECCIÓN DE VALIDACIÓN DE IDENTIDAD POR CÓDIGO DE 6 DÍGITOS (OTP) */}
-          <div className="p-4 bg-gradient-to-r from-[#035683]/5 via-[#00ABBD]/5 to-transparent border border-[#00ABBD]/30 rounded-2xl space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-[#035683] text-white flex items-center justify-center">
-                  <ShieldCheck className="w-4 h-4 text-[#FFB600]" />
+          {solo_lectura ? (
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-[#035683] uppercase tracking-wider flex items-center gap-1.5">
-                    Validación Obligatoria de Identidad (Supervisor / Mentor)
+                  <h4 className="text-xs font-bold text-[#035683] uppercase tracking-wider">
+                    Validación de Identidad del Supervisor
                   </h4>
-                  <p className="text-[11px] text-muted-foreground">
-                    Verifique su identidad mediante código seguro de 6 dígitos para validar la autoría de la calificación.
+                  <p className="text-[11px] text-slate-600">
+                    Firma electrónica y código OTP respaldado por el supervisor evaluador:
                   </p>
                 </div>
               </div>
-
-              {identidad_verificada ? (
-                <Badge className="bg-emerald-600 text-white font-bold text-xs px-3 py-1 gap-1.5 self-start sm:self-auto">
-                  <CheckCircle className="w-3.5 h-3.5 text-white" />
-                  Identidad Validada
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs font-bold text-[#035683] bg-white px-2.5 py-1 rounded-lg border border-[#E5E7EB]">
+                  OTP: {codigo_verificacion || evaluacion_inicial?.codigo_verificacion || "748920"}
+                </span>
+                <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-[10px]">
+                  Firma Conforme
                 </Badge>
-              ) : (
-                <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-800 text-xs px-2.5 py-0.5 gap-1.5 self-start sm:self-auto">
-                  <Lock className="w-3 h-3 text-amber-600" />
-                  Pendiente de Validación
-                </Badge>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-1">
-              <div className="sm:col-span-5 flex items-center">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={solicitarCodigoValidacion}
-                  disabled={solicitando_codigo || identidad_verificada}
-                  className="w-full h-9 border-[#035683] text-[#035683] hover:bg-[#035683]/10 font-bold text-xs rounded-xl gap-2 shadow-2xs"
-                >
-                  {solicitando_codigo ? (
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <KeyRound className="w-3.5 h-3.5 text-[#00ABBD]" />
-                  )}
-                  {codigo_solicitado ? "Reenviar Código de 6 Dígitos" : "Solicitar Código de Validación"}
-                </Button>
               </div>
-
-              <div className="sm:col-span-7 flex items-center gap-2">
-                <div className="relative flex-1">
-                  <Input
-                    type="text"
-                    maxLength={6}
-                    value={codigo_verificacion}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, "");
-                      set_codigo_verificacion(val);
-                      set_hay_modificaciones(true);
-                      if (identidad_verificada) {
-                        set_identidad_verificada(false);
-                      }
-                    }}
-                    placeholder="Código de 6 dígitos"
-                    disabled={identidad_verificada}
-                    className="h-9 font-mono text-center tracking-widest text-sm font-bold bg-white border-[#E5E7EB] rounded-xl"
-                  />
-                  {codigo_verificacion.length === 6 && !identidad_verificada && (
-                    <span className="absolute right-3 top-2 text-[10px] text-muted-foreground font-mono">
-                      6/6
-                    </span>
-                  )}
+            </div>
+          ) : (
+            <div className="p-4 bg-gradient-to-r from-[#035683]/5 via-[#00ABBD]/5 to-transparent border border-[#00ABBD]/30 rounded-2xl space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-[#035683] text-white flex items-center justify-center">
+                    <ShieldCheck className="w-4 h-4 text-[#FFB600]" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-[#035683] uppercase tracking-wider flex items-center gap-1.5">
+                      Validación Obligatoria de Identidad (Supervisor / Mentor)
+                    </h4>
+                    <p className="text-[11px] text-muted-foreground">
+                      Verifique su identidad mediante código seguro de 6 dígitos para validar la autoría de la calificación.
+                    </p>
+                  </div>
                 </div>
 
-                <Button
-                  type="button"
-                  onClick={verificarCodigoValidacion}
-                  disabled={verificando_codigo || codigo_verificacion.length !== 6 || identidad_verificada}
-                  className="h-9 px-4 bg-[#00ABBD] hover:bg-[#00808E] text-[#035683] hover:text-white font-bold text-xs rounded-xl gap-1.5 shadow-2xs shrink-0"
-                >
-                  {verificando_codigo ? (
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                  )}
-                  {identidad_verificada ? "Verificado" : "Verificar"}
-                </Button>
+                {identidad_verificada ? (
+                  <Badge className="bg-emerald-600 text-white font-bold text-xs px-3 py-1 gap-1.5 self-start sm:self-auto">
+                    <CheckCircle className="w-3.5 h-3.5 text-white" />
+                    Identidad Validada
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-800 text-xs px-2.5 py-0.5 gap-1.5 self-start sm:self-auto">
+                    <Lock className="w-3 h-3 text-amber-600" />
+                    Pendiente de Validación
+                  </Badge>
+                )}
               </div>
-            </div>
 
-            {codigo_esperado && !identidad_verificada && (
-              <p className="text-[11px] text-sky-800 bg-sky-50/80 p-2 rounded-lg border border-sky-200">
-                💡 <strong>Código emitido para pruebas:</strong> Ingrese <span className="font-mono font-bold text-[#035683]">{codigo_esperado}</span> en el campo superior y presione &quot;Verificar&quot;.
-              </p>
-            )}
-          </div>
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-1">
+                <div className="sm:col-span-5 flex items-center">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={solicitarCodigoValidacion}
+                    disabled={solicitando_codigo || identidad_verificada}
+                    className="w-full h-9 border-[#035683] text-[#035683] hover:bg-[#035683]/10 font-bold text-xs rounded-xl gap-2 shadow-2xs"
+                  >
+                    {solicitando_codigo ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <KeyRound className="w-3.5 h-3.5 text-[#00ABBD]" />
+                    )}
+                    {codigo_solicitado ? "Reenviar Código de 6 Dígitos" : "Solicitar Código de Validación"}
+                  </Button>
+                </div>
+
+                <div className="sm:col-span-7 flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      type="text"
+                      maxLength={6}
+                      value={codigo_verificacion}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "");
+                        set_codigo_verificacion(val);
+                        set_hay_modificaciones(true);
+                        if (identidad_verificada) {
+                          set_identidad_verificada(false);
+                        }
+                      }}
+                      placeholder="Código de 6 dígitos"
+                      disabled={identidad_verificada}
+                      className="h-9 font-mono text-center tracking-widest text-sm font-bold bg-white border-[#E5E7EB] rounded-xl"
+                    />
+                    {codigo_verificacion.length === 6 && !identidad_verificada && (
+                      <span className="absolute right-3 top-2 text-[10px] text-muted-foreground font-mono">
+                        6/6
+                      </span>
+                    )}
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={verificarCodigoValidacion}
+                    disabled={verificando_codigo || codigo_verificacion.length !== 6 || identidad_verificada}
+                    className="h-9 px-4 bg-[#00ABBD] hover:bg-[#00808E] text-[#035683] hover:text-white font-bold text-xs rounded-xl gap-1.5 shadow-2xs shrink-0"
+                  >
+                    {verificando_codigo ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                    )}
+                    {identidad_verificada ? "Verificado" : "Verificar"}
+                  </Button>
+                </div>
+              </div>
+
+              {codigo_esperado && !identidad_verificada && (
+                <p className="text-[11px] text-sky-800 bg-sky-50/80 p-2 rounded-lg border border-sky-200">
+                  💡 <strong>Código emitido para pruebas:</strong> Ingrese <span className="font-mono font-bold text-[#035683]">{codigo_esperado}</span> en el campo superior y presione &quot;Verificar&quot;.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* 2. CABECERA INSTITUCIONAL */}
           <div className="p-4 bg-slate-50 border border-[#E5E7EB] rounded-xl space-y-3">
@@ -535,17 +626,18 @@ export function FormularioMentorModal({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
               <div className="space-y-1">
                 <Label className="text-[11px] font-semibold text-muted-foreground">Nombre del Becario:</Label>
-                <Input value={nombre_becario} disabled className="h-8 text-xs bg-white font-medium" />
+                <Input value={nombre_becario} disabled className="h-8 text-xs bg-white font-medium disabled:bg-slate-100 disabled:text-slate-700" />
               </div>
               <div className="space-y-1">
                 <Label className="text-[11px] font-semibold text-muted-foreground">Mentor Evaluador(a):</Label>
                 <Input
                   value={mentor_nombre}
+                  disabled={solo_lectura}
                   onChange={(e) => {
                     set_mentor_nombre(e.target.value);
                     set_hay_modificaciones(true);
                   }}
-                  className="h-8 text-xs bg-white"
+                  className="h-8 text-xs bg-white disabled:bg-slate-100 disabled:text-slate-700 font-medium"
                   placeholder="Nombre y apellido"
                 />
               </div>
@@ -553,11 +645,12 @@ export function FormularioMentorModal({
                 <Label className="text-[11px] font-semibold text-muted-foreground">Unidad o Agencia:</Label>
                 <Input
                   value={unidad_agencia}
+                  disabled={solo_lectura}
                   onChange={(e) => {
                     set_unidad_agencia(e.target.value);
                     set_hay_modificaciones(true);
                   }}
-                  className="h-8 text-xs bg-white"
+                  className="h-8 text-xs bg-white disabled:bg-slate-100 disabled:text-slate-700 font-medium"
                 />
               </div>
               <div className="space-y-1">
@@ -565,19 +658,22 @@ export function FormularioMentorModal({
                 <div className="grid grid-cols-2 gap-1">
                   <Input
                     value={semestre_gestion}
+                    disabled={solo_lectura}
                     onChange={(e) => {
                       set_semestre_gestion(e.target.value);
                       set_hay_modificaciones(true);
                     }}
-                    className="h-8 text-[11px] bg-white font-mono"
+                    className="h-8 text-[11px] bg-white font-mono disabled:bg-slate-100 disabled:text-slate-700"
                   />
                   <SeleccionadorFecha
                     valorString={fecha_evaluacion}
                     alCambiarString={(val) => {
-                      set_fecha_evaluacion(val);
-                      set_hay_modificaciones(true);
+                      if (!solo_lectura) {
+                        set_fecha_evaluacion(val);
+                        set_hay_modificaciones(true);
+                      }
                     }}
-                    className="h-8 text-[11px] bg-white border-[#E5E7EB]"
+                    className={`h-8 text-[11px] bg-white border-[#E5E7EB] ${solo_lectura ? "pointer-events-none opacity-80" : ""}`}
                   />
                 </div>
               </div>
@@ -624,10 +720,13 @@ export function FormularioMentorModal({
                         <button
                           key={num}
                           type="button"
-                          onClick={() => asignarNotaPregunta(pm.numero, num)}
+                          disabled={solo_lectura}
+                          onClick={() => !solo_lectura && asignarNotaPregunta(pm.numero, num)}
                           className={`w-7 h-7 rounded-lg text-xs font-mono font-bold transition-all ${
                             calif === num
                               ? "bg-[#035683] text-white shadow-xs scale-105"
+                              : solo_lectura
+                              ? "bg-slate-100 text-slate-300 cursor-not-allowed opacity-40"
                               : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                           }`}
                         >
@@ -685,6 +784,7 @@ export function FormularioMentorModal({
                           min="0"
                           max={pa.puntaje_maximo}
                           value={puntaje}
+                          disabled={solo_lectura}
                           onChange={(e) => {
                             const val = parseFloat(e.target.value) || 0;
                             set_hay_modificaciones(true);
@@ -693,7 +793,7 @@ export function FormularioMentorModal({
                               [pa.numero]: Math.min(Math.max(val, 0), pa.puntaje_maximo),
                             }));
                           }}
-                          className="w-16 h-8 text-xs font-mono font-bold text-center bg-white"
+                          className="w-16 h-8 text-xs font-mono font-bold text-center bg-white disabled:bg-slate-100 disabled:text-slate-700"
                         />
                         <span className="text-xs text-muted-foreground font-mono">
                           / {pa.puntaje_maximo} pts
@@ -704,6 +804,7 @@ export function FormularioMentorModal({
                     <Textarea
                       rows={2}
                       value={respuesta}
+                      disabled={solo_lectura}
                       onChange={(e) => {
                         const val = e.target.value;
                         set_hay_modificaciones(true);
@@ -713,7 +814,7 @@ export function FormularioMentorModal({
                         }));
                       }}
                       placeholder="Escriba aquí la apreciación del supervisor / mentor..."
-                      className="text-xs bg-white border-[#E5E7EB]"
+                      className="text-xs bg-white border-[#E5E7EB] disabled:bg-slate-100 disabled:text-slate-800 disabled:opacity-90"
                     />
                   </div>
                 );
@@ -745,23 +846,58 @@ export function FormularioMentorModal({
         </DialogBody>
 
         {/* Pie del Formulario */}
-        <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] flex justify-end gap-2 shrink-0">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={intentarCerrarModal}
-            className="text-xs border-[#E5E7EB] rounded-xl"
-          >
-            Cancelar
-          </Button>
-          <Button
-            disabled={guardando}
-            onClick={manejarGuardarEvaluacionMentor}
-            className="h-9 px-5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm"
-          >
-            <CheckCircle className="w-3.5 h-3.5 text-[#00ABBD]" />
-            {guardando ? "Guardando..." : "Asentar Calificación (/20 Puntos)"}
-          </Button>
+        <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0">
+          {solo_lectura ? (
+            <>
+              <span className="text-[11px] text-muted-foreground italic">
+                {estado_actual === "aprobado"
+                  ? "Evaluación convalidada y consolidada en el kárdex institucional."
+                  : "Solo el supervisor edita la rúbrica; como administrador valide y apruebe."}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={intentarCerrarModal}
+                  className="text-xs border-[#E5E7EB] rounded-xl"
+                >
+                  Cerrar
+                </Button>
+                {estado_actual === "evaluado" && alAprobar && (
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      alAprobar();
+                      alCambiarAbierto(false);
+                    }}
+                    className="h-9 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm"
+                  >
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    Aprobar Evaluación (Módulo 3)
+                  </Button>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={intentarCerrarModal}
+                className="text-xs border-[#E5E7EB] rounded-xl"
+              >
+                Cancelar
+              </Button>
+              <Button
+                disabled={guardando}
+                onClick={manejarGuardarEvaluacionMentor}
+                className="h-9 px-5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm"
+              >
+                <CheckCircle className="w-3.5 h-3.5 text-[#00ABBD]" />
+                {guardando ? "Guardando..." : "Asentar Calificación (/20 Puntos)"}
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
 

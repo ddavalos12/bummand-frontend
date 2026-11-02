@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -31,6 +31,7 @@ import {
   Sparkles,
   Trash2,
   Edit3,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
@@ -296,8 +297,8 @@ export function CuestionarioBienestarModal({
           >
             <TabsList className="bg-slate-100 p-1 rounded-xl">
               <TabsTrigger value="cuestionario" className="text-xs font-bold rounded-lg px-4">
-                <FileText className="w-3.5 h-3.5 mr-1.5" />
-                Llenado del Cuestionario (26 Preguntas)
+                <Eye className="w-3.5 h-3.5 mr-1.5" />
+                Respuestas del Becario (26 Preguntas)
               </TabsTrigger>
               {es_admin && (
                 <TabsTrigger value="configuracion" className="text-xs font-bold rounded-lg px-4 text-[#035683]">
@@ -317,9 +318,9 @@ export function CuestionarioBienestarModal({
               <div className="p-3.5 bg-sky-50 border border-sky-200 rounded-xl text-xs text-sky-900 flex items-start gap-2.5">
                 <Sparkles className="w-4 h-4 text-[#00ABBD] shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
-                  <p className="font-bold">Instrucción Oficial de Llenado:</p>
+                  <p className="font-bold text-[#035683]">Respuestas Registradas por el Becario (Solo Lectura):</p>
                   <p className="text-slate-600 leading-relaxed">
-                    Marque una sola opción por pregunta, según su situación actual. La calificación ponderada se calcula automáticamente sobre <strong>20 puntos</strong> para el registro integral de bienestar universitario.
+                    El Cuestionario de Bienestar Universitario (26 preguntas) es respondido directamente por el becario en la <strong>aplicación móvil BUMAND</strong>. En este modal se auditan las respuestas emitidas y el puntaje oficial ponderado sobre 20 puntos.
                   </p>
                 </div>
               </div>
@@ -353,27 +354,32 @@ export function CuestionarioBienestarModal({
                         {p.opciones.map((op) => {
                           const esta_seleccionada = seleccion === op.inciso;
                           return (
-                            <button
+                            <div
                               key={op.inciso}
-                              type="button"
-                              onClick={() => seleccionarOpcion(p.numero, op.inciso)}
-                              className={`p-2.5 rounded-lg border text-xs text-left transition-all flex items-start gap-2 ${
+                              className={`p-2.5 rounded-lg border text-xs text-left transition-all flex items-start justify-between gap-2 ${
                                 esta_seleccionada
                                   ? "bg-[#035683] text-white border-[#035683] shadow-xs font-medium"
-                                  : "bg-white text-slate-700 border-[#E5E7EB] hover:bg-slate-50"
+                                  : "bg-white/60 text-slate-400 border-[#E5E7EB] opacity-60"
                               }`}
                             >
-                              <span
-                                className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${
-                                  esta_seleccionada
-                                    ? "bg-[#00ABBD] text-[#035683]"
-                                    : "bg-slate-100 text-slate-600 border border-[#E5E7EB]"
-                                }`}
-                              >
-                                {op.inciso}
-                              </span>
-                              <span className="leading-snug pt-0.5">{op.texto}</span>
-                            </button>
+                              <div className="flex items-start gap-2">
+                                <span
+                                  className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${
+                                    esta_seleccionada
+                                      ? "bg-[#00ABBD] text-[#035683]"
+                                      : "bg-slate-100 text-slate-400 border border-[#E5E7EB]"
+                                  }`}
+                                >
+                                  {op.inciso}
+                                </span>
+                                <span className="leading-snug pt-0.5">{op.texto}</span>
+                              </div>
+                              {esta_seleccionada && (
+                                <span className="text-[10px] bg-white/20 text-white font-bold px-1.5 py-0.5 rounded font-mono shrink-0">
+                                  ✓ Elegida
+                                </span>
+                              )}
+                            </div>
                           );
                         })}
                       </div>
@@ -533,14 +539,10 @@ export function CuestionarioBienestarModal({
                 Guardar Configuración Institucional
               </Button>
             ) : (
-              <Button
-                disabled={guardando}
-                onClick={manejarGuardarRespuestas}
-                className="h-9 px-5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs flex items-center gap-1.5"
-              >
-                <CheckCircle className="w-3.5 h-3.5 text-[#00ABBD]" />
-                {guardando ? "Guardando..." : "Guardar Evaluación Socioeconómica (/20)"}
-              </Button>
+              <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-xs px-3 py-1.5 gap-1.5">
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                Respuestas registradas en App Móvil
+              </Badge>
             )}
           </div>
         </DialogFooter>

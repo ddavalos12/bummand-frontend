@@ -66,6 +66,7 @@ import { useConsulta } from "@/hooks/useConsulta";
 import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { toast } from "sonner";
+import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 
 export interface HorasMesHistorico {
   mes: string;
@@ -978,18 +979,15 @@ export function GestionBecarios() {
   const descargarExpedienteRecorridosEstudiante = async (becario_id: number, nombre: string) => {
     try {
       set_descargando_pdf_estudiante('recorridos_' + becario_id);
-      toast.info('Generando expediente mensual de recorridos con Puppeteer...', {
+      toast.info('Generando expediente mensual de recorridos...', {
         description: 'Estudiante: ' + nombre,
       });
-      const blob = await clienteApi.descargarBlob('/pdf/recorridos-estudiante/' + becario_id + '?mes=2026-10');
-      const url = window.URL.createObjectURL(blob);
-      const enlace = document.createElement('a');
-      enlace.href = url;
-      enlace.download = 'Expediente_Recorridos_' + nombre.replace(/\s+/g, '_') + '_2026_10.pdf';
-      document.body.appendChild(enlace);
-      enlace.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(enlace);
+      await descargarPdfConResiliencia(
+        '/pdf/recorridos-estudiante/' + becario_id + '?mes=2026-10',
+        'Expediente_Recorridos_' + nombre.replace(/\s+/g, '_') + '_2026_10.pdf',
+        'recorridos_estudiante',
+        { becario_id, mes: '2026-10' }
+      );
       toast.success('Expediente de recorridos descargado exitosamente');
     } catch (_e) {
       toast.error('Error al exportar el expediente de recorridos en PDF');
@@ -1001,18 +999,15 @@ export function GestionBecarios() {
   const descargarAsistenciaMensualEstudiante = async (becario_id: number, nombre: string) => {
     try {
       set_descargando_pdf_estudiante('asistencia_' + becario_id);
-      toast.info('Generando kárdex de asistencia mensual con Puppeteer...', {
+      toast.info('Generando kárdex de asistencia mensual...', {
         description: 'Estudiante: ' + nombre,
       });
-      const blob = await clienteApi.descargarBlob('/pdf/asistencia-estudiante/' + becario_id + '?mes=2026-10');
-      const url = window.URL.createObjectURL(blob);
-      const enlace = document.createElement('a');
-      enlace.href = url;
-      enlace.download = 'Asistencia_Mensual_' + nombre.replace(/\s+/g, '_') + '_2026_10.pdf';
-      document.body.appendChild(enlace);
-      enlace.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(enlace);
+      await descargarPdfConResiliencia(
+        '/pdf/asistencia-estudiante/' + becario_id + '?mes=2026-10',
+        'Asistencia_Mensual_' + nombre.replace(/\s+/g, '_') + '_2026_10.pdf',
+        'asistencia_estudiante',
+        { becario_id, mes: '2026-10' }
+      );
       toast.success('Kárdex de asistencia mensual descargado exitosamente');
     } catch (_e) {
       toast.error('Error al exportar la asistencia mensual en PDF');

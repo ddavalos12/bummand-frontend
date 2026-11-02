@@ -964,7 +964,7 @@ export function GestionEventos() {
             title="Cambiar la sede geográfica y geocerca para la acción de servicio de este viernes"
           >
             <MapPin className="w-4 h-4 text-[#FFB600]" />
-            <span>Cambiar Lugar de Acción de Servicio (Viernes)</span>
+            <span>Cambio de Lugar, Escuela de Líderes</span>
           </Button>
 
           {/* Botón Juicy para Nueva Acción de Servicio */}
@@ -1543,7 +1543,7 @@ export function GestionEventos() {
           <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] shrink-0 bg-white">
             <DialogTitle className="text-lg font-bold text-[#035683] flex items-center gap-2">
               <MapPin className="w-5 h-5 text-[#00ABBD]" />
-              Cambiar Lugar de Acción de Servicio (Viernes)
+              Cambio de Lugar, Escuela de Líderes
             </DialogTitle>
             <p className="text-xs text-muted-foreground">
               Reasigna el epicentro WGS84 y el radio perimetral para la validación satelital en la App Móvil de los becarios este viernes.

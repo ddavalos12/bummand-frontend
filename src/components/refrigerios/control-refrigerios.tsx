@@ -19,7 +19,6 @@ import {
   UserCheck,
   Sparkles,
   Trash2,
-  Dices,
   ChefHat,
   ShoppingBag,
   Users,
@@ -27,6 +26,7 @@ import {
   AlertCircle,
   Loader2,
   ArrowRight,
+  X,
 } from "lucide-react";
 import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -41,6 +41,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
   DialogBody,
   DialogFooter,
@@ -60,6 +61,7 @@ import {
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { clienteApi } from "@/lib/cliente-api";
 import { toast } from "sonner";
+import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 
 export type ModalidadPreparacionRefrigerio =
   | "cocina_diaconia"
@@ -155,45 +157,8 @@ const REGISTROS_REFRIGERIOS_INICIALES: RegistroRacionRefrigerio[] = [
     bloque: "Bloque B (Auditorio)",
     responsable_entrega: "Angel Javier Ali Paz",
     estado_reposicion: "rendido_pendiente",
-    ingredientes_detalle: [
-      {
-        id: "ins-1",
-        insumo: "Pan marraqueta fresco (23 unidades)",
-        cantidad: "23 un",
-        costo_bs: 23.0,
-        pagado_por_becario: "Adai Belen Huayta Cardozo",
-      },
-      {
-        id: "ins-2",
-        insumo: "Huevos de granja",
-        cantidad: "1 maple (30 un)",
-        costo_bs: 35.0,
-        pagado_por_becario: "Adai Belen Huayta Cardozo",
-      },
-      {
-        id: "ins-3",
-        insumo: "Té surtido, café soluble y azúcar",
-        cantidad: "1 paquete",
-        costo_bs: 30.0,
-        pagado_por_becario: "Alejandro Roberth Paredes Tarquino",
-      },
-      {
-        id: "ins-4",
-        insumo: "Tomates y lechuga fresca",
-        cantidad: "1.5 kg",
-        costo_bs: 20.0,
-        pagado_por_becario: "Alejandro Roberth Paredes Tarquino",
-      },
-      {
-        id: "ins-5",
-        insumo: "Insumos adicionales y aceite para cocina",
-        cantidad: "1 botella",
-        costo_bs: 30.0,
-        pagado_por_becario: "Alejandro Roberth Paredes Tarquino",
-      },
-    ],
     observaciones:
-      "Sándwiches de huevo caliente con tomate y lechuga preparados en la cocina de Diaconía. Infusión caliente.",
+      "Refrigerio preparado para la jornada de Escuela de Líderes.",
   },
   {
     id: 2,
@@ -220,24 +185,8 @@ const REGISTROS_REFRIGERIOS_INICIALES: RegistroRacionRefrigerio[] = [
     bloque: "Bloque A (Administración)",
     responsable_entrega: "Claudia Cabrera",
     estado_reposicion: "aprobado_administracion",
-    ingredientes_detalle: [
-      {
-        id: "ins-21",
-        insumo: "Ingredientes para queques caseros de plátano",
-        cantidad: "2 moldes",
-        costo_bs: 68.0,
-        pagado_por_becario: "Aydee Ruth Ali Condori",
-      },
-      {
-        id: "ins-22",
-        insumo: "Yogurt probiótico y vasos térmicos",
-        cantidad: "2 litros + vasos",
-        costo_bs: 70.0,
-        pagado_por_becario: "Carlos Oscar Luna Lizarraga",
-      },
-    ],
     observaciones:
-      "Queque casero preparado en casa por los becarios y servido con yogurt probiótico.",
+      "Refrigerio casero preparado para los becarios y servido puntualmente.",
   },
   {
     id: 3,
@@ -260,23 +209,7 @@ const REGISTROS_REFRIGERIOS_INICIALES: RegistroRacionRefrigerio[] = [
     bloque: "Bloque B (Auditorio)",
     responsable_entrega: "Angel Javier Ali Paz",
     estado_reposicion: "revisado_supervisor",
-    ingredientes_detalle: [
-      {
-        id: "ins-31",
-        insumo: "Empanadas de queso horneadas (23 unidades)",
-        cantidad: "23 un",
-        costo_bs: 80.5,
-        pagado_por_becario: "Daniel Davalos Quiñoñez",
-      },
-      {
-        id: "ins-32",
-        insumo: "Jugo natural pasteurizado en sachets",
-        cantidad: "23 sachets",
-        costo_bs: 46.0,
-        pagado_por_becario: "Nilda Amalia Churata Paye",
-      },
-    ],
-    observaciones: "Empanadas horneadas adquiridas en panadería de convenio y jugos naturales.",
+    observaciones: "Refrigerio adquirido y distribuido a los becarios.",
   },
   {
     id: 4,
@@ -327,12 +260,11 @@ export function ControlRefrigerios() {
 
   const [lista_becarios, set_lista_becarios] = useState<string[]>(BECARIOS_OFICIALES);
 
-  // Estados para el sorteo de duplas
+  // Estados para la asignación de duplas por directiva
   const [sorteo_viernes_fecha, set_sorteo_viernes_fecha] = useState("2026-10-30");
   const [sorteo_evento, set_sorteo_evento] = useState("Escuela de Líderes (Viernes Formativo)");
   const [sorteo_encargado_1, set_sorteo_encargado_1] = useState(BECARIOS_OFICIALES[0]);
   const [sorteo_encargado_2, set_sorteo_encargado_2] = useState(BECARIOS_OFICIALES[1]);
-  const [sorteando_animado, set_sorteando_animado] = useState(false);
 
   // Estados para auditoría por intervalo de fechas
   const [fecha_inicio_auditoria, set_fecha_inicio_auditoria] = useState("2026-10-01");
@@ -359,130 +291,43 @@ export function ControlRefrigerios() {
     cargarBecarios();
   }, []);
 
-  // Formulario nuevo refrigerio
+  // Formulario nuevo refrigerio (Escuela de Líderes - Dupla del Viernes)
   const [nueva_fecha, set_nueva_fecha] = useState("2026-10-23");
   const [nuevo_evento, set_nuevo_evento] = useState("Escuela de Líderes (Viernes Formativo)");
-  const [nuevo_encargado_1, set_nuevo_encargado_1] = useState(BECARIOS_OFICIALES[0]);
-  const [nuevo_encargado_2, set_nuevo_encargado_2] = useState(BECARIOS_OFICIALES[1]);
-  const [nueva_modalidad, set_nueva_modalidad] =
-    useState<ModalidadPreparacionRefrigerio>("cocina_diaconia");
+  const [nuevo_encargado_1, set_nuevo_encargado_1] = useState(
+    BECARIOS_OFICIALES[0] || "Adai Belen Huayta Cardozo"
+  );
+  const [nuevo_encargado_2, set_nuevo_encargado_2] = useState(
+    BECARIOS_OFICIALES[1] || "Alejandro Roberth Paredes Tarquino"
+  );
   const [nueva_cantidad, set_nueva_cantidad] = useState("23");
-  const [nuevo_costo_unitario, set_nuevo_costo_unitario] = useState("6.00");
   const [nuevo_costo_total, set_nuevo_costo_total] = useState("138.00");
+  const [nuevo_costo_unitario, set_nuevo_costo_unitario] = useState("6.00");
   const [nueva_sede, set_nueva_sede] = useState("Oficina Central El Alto");
-  const [nuevo_bloque, set_nuevo_bloque] = useState("Bloque B (Auditorio)");
-  const [nuevo_responsable, set_nuevo_responsable] = useState(
-    usuario?.nombre || "Angel Javier Ali Paz"
-  );
-  const [nuevas_observaciones, set_nuevas_observaciones] = useState("");
-
-  // Lista dinámica de insumos en el formulario
-  const [insumos_formulario, set_insumos_formulario] = useState<InsumoRefrigerio[]>([
-    {
-      id: "1",
-      insumo: "Pan fresco para raciones",
-      cantidad: "23 un",
-      costo_bs: 23.0,
-      pagado_por_becario: BECARIOS_OFICIALES[0],
-    },
-    {
-      id: "2",
-      insumo: "Huevos o relleno nutritivo",
-      cantidad: "1 maple",
-      costo_bs: 35.0,
-      pagado_por_becario: BECARIOS_OFICIALES[0],
-    },
-    {
-      id: "3",
-      insumo: "Bebida caliente / Té / Café / Azúcar",
-      cantidad: "1 paquete",
-      costo_bs: 40.0,
-      pagado_por_becario: BECARIOS_OFICIALES[1],
-    },
-    {
-      id: "4",
-      insumo: "Verduras frescas / Acompañamiento",
-      cantidad: "1 kg",
-      costo_bs: 40.0,
-      pagado_por_becario: BECARIOS_OFICIALES[1],
-    },
-  ]);
-
-  // Manejo de insumos dinámicos
-  const agregarInsumoFormulario = () => {
-    const nuevo_id = String(Date.now());
-    set_insumos_formulario((prev) => [
-      ...prev,
-      {
-        id: nuevo_id,
-        insumo: "",
-        cantidad: "1 porción",
-        costo_bs: 0,
-        pagado_por_becario: nuevo_encargado_1,
-      },
-    ]);
-  };
-
-  const eliminarInsumoFormulario = (id: string) => {
-    set_insumos_formulario((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const actualizarInsumoFormulario = (
-    id: string,
-    campo: keyof InsumoRefrigerio,
-    valor: string | number
-  ) => {
-    set_insumos_formulario((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [campo]: valor } : item))
-    );
-  };
-
-  // Cálculo en tiempo real de insumos
-  const total_insumos_calculado = insumos_formulario.reduce(
-    (acc, item) => acc + (Number(item.costo_bs) || 0),
-    0
-  );
-  const total_insumos_encargado_1 = insumos_formulario
-    .filter((item) => item.pagado_por_becario === nuevo_encargado_1)
-    .reduce((acc, item) => acc + (Number(item.costo_bs) || 0), 0);
-  const total_insumos_encargado_2 = insumos_formulario
-    .filter((item) => item.pagado_por_becario === nuevo_encargado_2)
-    .reduce((acc, item) => acc + (Number(item.costo_bs) || 0), 0);
-
-  const sincronizarTotalDesdeInsumos = () => {
-    set_nuevo_costo_total(total_insumos_calculado.toFixed(2));
-    const cant = parseFloat(nueva_cantidad) || 23;
-    if (cant > 0) {
-      set_nuevo_costo_unitario((total_insumos_calculado / cant).toFixed(2));
-    }
-    toast.success(
-      `Costo total sincronizado con los insumos: Bs ${total_insumos_calculado.toFixed(2)}`
-    );
-  };
+  const [nuevo_bloque, set_nuevo_bloque] = useState("Bloque A (Administración)");
 
   const resetearFormularioRefrigerio = () => {
     set_nueva_fecha("2026-10-23");
     set_nuevo_evento("Escuela de Líderes (Viernes Formativo)");
-    set_nuevo_encargado_1(BECARIOS_OFICIALES[0]);
-    set_nuevo_encargado_2(BECARIOS_OFICIALES[1]);
-    set_nueva_modalidad("cocina_diaconia");
+    set_nuevo_encargado_1(BECARIOS_OFICIALES[0] || "Adai Belen Huayta Cardozo");
+    set_nuevo_encargado_2(BECARIOS_OFICIALES[1] || "Alejandro Roberth Paredes Tarquino");
     set_nueva_cantidad("23");
-    set_nuevo_costo_unitario("6.00");
     set_nuevo_costo_total("138.00");
+    set_nuevo_costo_unitario("6.00");
     set_nueva_sede("Oficina Central El Alto");
-    set_nuevo_bloque("Bloque B (Auditorio)");
-    set_nuevas_observaciones("");
+    set_nuevo_bloque("Bloque A (Administración)");
   };
 
   const tiene_cambios_refrigerio =
     nueva_fecha !== "2026-10-23" ||
     nuevo_evento !== "Escuela de Líderes (Viernes Formativo)" ||
-    nuevo_encargado_1 !== BECARIOS_OFICIALES[0] ||
-    nuevo_encargado_2 !== BECARIOS_OFICIALES[1] ||
+    nuevo_encargado_1 !== (BECARIOS_OFICIALES[0] || "Adai Belen Huayta Cardozo") ||
+    nuevo_encargado_2 !== (BECARIOS_OFICIALES[1] || "Alejandro Roberth Paredes Tarquino") ||
     nueva_cantidad !== "23" ||
-    nuevo_costo_unitario !== "6.00" ||
     nuevo_costo_total !== "138.00" ||
-    nuevas_observaciones.trim() !== "";
+    nuevo_costo_unitario !== "6.00" ||
+    nueva_sede !== "Oficina Central El Alto" ||
+    nuevo_bloque !== "Bloque A (Administración)";
 
   const intentarCerrarModalRefrigerio = () => {
     confirmarCierreSinCompletar(
@@ -495,82 +340,31 @@ export function ControlRefrigerios() {
     );
   };
 
-  const manejarCambioCantidad = (valor_str: string) => {
-    set_nueva_cantidad(valor_str);
-    const cant = parseFloat(valor_str);
-    const total = parseFloat(nuevo_costo_total);
-    if (!isNaN(cant) && cant > 0 && !isNaN(total) && total > 0) {
+  const manejarCambioCantidad = (val: string) => {
+    set_nueva_cantidad(val);
+    const cant = parseFloat(val) || 0;
+    const unitario = parseFloat(nuevo_costo_unitario) || 0;
+    if (cant > 0 && unitario > 0) {
+      set_nuevo_costo_total((cant * unitario).toFixed(2));
+    }
+  };
+
+  const manejarCambioCostoTotal = (val: string) => {
+    set_nuevo_costo_total(val);
+    const total = parseFloat(val) || 0;
+    const cant = parseFloat(nueva_cantidad) || 0;
+    if (cant > 0) {
       set_nuevo_costo_unitario((total / cant).toFixed(2));
     }
   };
 
-  const manejarCambioCostoTotal = (valor_str: string) => {
-    set_nuevo_costo_total(valor_str);
-    const total = parseFloat(valor_str);
-    const cant = parseFloat(nueva_cantidad);
-    if (!isNaN(total) && total >= 0 && !isNaN(cant) && cant > 0) {
-      set_nuevo_costo_unitario((total / cant).toFixed(2));
+  const manejarCambioCostoUnitario = (val: string) => {
+    set_nuevo_costo_unitario(val);
+    const unitario = parseFloat(val) || 0;
+    const cant = parseFloat(nueva_cantidad) || 0;
+    if (cant > 0) {
+      set_nuevo_costo_total((cant * unitario).toFixed(2));
     }
-  };
-
-  const manejarCambioCostoUnitario = (valor_str: string) => {
-    set_nuevo_costo_unitario(valor_str);
-    const unit = parseFloat(valor_str);
-    const cant = parseFloat(nueva_cantidad);
-    if (!isNaN(unit) && unit >= 0 && !isNaN(cant) && cant > 0) {
-      set_nuevo_costo_total((cant * unit).toFixed(2));
-    }
-  };
-
-  // Sorteo aleatorio sin repetición
-  const ejecutarSorteoAleatorio = async () => {
-    set_sorteando_animado(true);
-    try {
-      // Intenta llamar al endpoint institucional si existe
-      const res = await clienteApi.post<any>("/api/refrigerios/sortear-dupla", {
-        fecha: sorteo_viernes_fecha,
-      });
-      if (res && res.becario_encargado_1_nombre && res.becario_encargado_2_nombre) {
-        set_sorteo_encargado_1(res.becario_encargado_1_nombre);
-        set_sorteo_encargado_2(res.becario_encargado_2_nombre);
-        toast.success("¡Dupla sorteada exitosamente por el servidor!", {
-          description: `Encargados: ${res.becario_encargado_1_nombre} y ${res.becario_encargado_2_nombre}`,
-        });
-        set_sorteando_animado(false);
-        return;
-      }
-    } catch {
-      // Algoritmo de respaldo local sin repetición
-    }
-
-    // Identificar becarios que ya han sido encargados en los registros existentes
-    const encargados_previos = new Set<string>();
-    registros.forEach((r) => {
-      if (r.becario_encargado_1) encargados_previos.add(r.becario_encargado_1);
-      if (r.becario_encargado_2) encargados_previos.add(r.becario_encargado_2);
-    });
-
-    let disponibles = lista_becarios.filter((b) => !encargados_previos.has(b));
-    if (disponibles.length < 2) {
-      // Si la ronda ya cubrió a la mayoría, reiniciamos el grupo disponible
-      disponibles = [...lista_becarios];
-    }
-
-    // Selección aleatoria estricta de 2 becarios distintos
-    const indice_1 = Math.floor(Math.random() * disponibles.length);
-    const becario_1 = disponibles[indice_1];
-    const restantes = disponibles.filter((b) => b !== becario_1);
-    const indice_2 = Math.floor(Math.random() * restantes.length);
-    const becario_2 = restantes[indice_2];
-
-    setTimeout(() => {
-      set_sorteo_encargado_1(becario_1);
-      set_sorteo_encargado_2(becario_2);
-      set_sorteando_animado(false);
-      toast.success("¡Dupla del viernes sorteada sin repetición!", {
-        description: `1. ${becario_1} · 2. ${becario_2}`,
-      });
-    }, 400);
   };
 
   const confirmarProgramacionDupla = () => {
@@ -597,57 +391,69 @@ export function ControlRefrigerios() {
       bloque: "Bloque B (Auditorio)",
       responsable_entrega: usuario?.nombre || "Angel Javier Ali Paz",
       estado_reposicion: "sorteado_programado",
-      observaciones: "Dupla oficial sorteada para este viernes. Presupuesto asignado Bs 138.00.",
+      observaciones: "Dupla oficial designada por la Directiva para este viernes. Presupuesto asignado Bs 138.00.",
     };
 
     set_registros([nuevo_refrigerio, ...registros]);
     set_modal_sorteo_abierto(false);
     toast.success("Viernes de refrigerio programado exitosamente", {
-      description: `Dupla asignada: ${sorteo_encargado_1} y ${sorteo_encargado_2} para el ${sorteo_viernes_fecha}.`,
+      description: `Dupla designada por Directiva: ${sorteo_encargado_1} y ${sorteo_encargado_2} para el ${sorteo_viernes_fecha}.`,
     });
   };
 
-  // Guardar nuevo registro con desglose
+  // Guardar nuevo registro de entrega de raciones de refrigerio
   const manejarGuardarRefrigerio = (e: React.FormEvent) => {
     e.preventDefault();
-    if (nuevo_encargado_1 === nuevo_encargado_2) {
-      toast.error("Debes seleccionar dos compañeros distintos en la dupla.");
-      return;
-    }
 
     const cant = parseInt(nueva_cantidad, 10) || 23;
-    const precio_u = parseFloat(nuevo_costo_unitario) || 6.0;
-    const costo_t = parseFloat(nuevo_costo_total) || cant * precio_u;
+    const costo_t = parseFloat(nuevo_costo_total) || 138.0;
+    const precio_u = parseFloat(nuevo_costo_unitario) || (cant > 0 ? costo_t / cant : 6.0);
+    const evento_final = nuevo_evento.trim() || "Escuela de Líderes (Viernes Formativo)";
 
     const nuevo: RegistroRacionRefrigerio = {
       id: Date.now(),
       fecha: nueva_fecha,
-      evento_o_jornada: nuevo_evento || "Escuela de Líderes (Viernes Formativo)",
+      evento_o_jornada: evento_final,
       tipo_refrigerio: "refrigerio_tarde",
       becario_encargado: `${nuevo_encargado_1} y ${nuevo_encargado_2}`,
       becario_encargado_1: nuevo_encargado_1,
       becario_encargado_2: nuevo_encargado_2,
-      modalidad_preparacion: nueva_modalidad,
       cantidad_raciones: cant,
       costo_unitario_bs: precio_u,
       costo_total_bs: costo_t,
       presupuesto_referencial_bs: 138.0,
       porcentaje_devolucion: 100,
       monto_devolucion_bs: costo_t,
-      ingredientes_detalle: insumos_formulario,
       sede_nombre: nueva_sede,
       bloque: nuevo_bloque,
-      responsable_entrega: nuevo_responsable,
+      responsable_entrega: `${nuevo_encargado_1} y ${nuevo_encargado_2}`,
       estado_reposicion: "rendido_pendiente",
-      observaciones: nuevas_observaciones,
+      observaciones: "Rendición de refrigerio por la dupla para devolución íntegra al 100%.",
     };
 
     set_registros([nuevo, ...registros]);
     resetearFormularioRefrigerio();
     set_modal_nuevo_abierto(false);
     toast.success(`Rendición de refrigerio registrada para ${cant} raciones.`, {
-      description: `Dupla: ${nuevo_encargado_1} y ${nuevo_encargado_2}. Devolución calculada al 100%: Bs ${costo_t.toFixed(2)}.`,
+      description: `Dupla: ${nuevo_encargado_1} y ${nuevo_encargado_2}. Costo total: Bs ${costo_t.toFixed(2)}.`,
     });
+
+    try {
+      clienteApi
+        .post("/api/refrigerios", {
+          fecha: nueva_fecha,
+          descripcion: evento_final,
+          cantidad_raciones: cant,
+          costo_unitario_bs: precio_u,
+          costo_total_bs: costo_t,
+          responsable_id: usuario?.id || 1,
+          becario_nombre: `${nuevo_encargado_1} y ${nuevo_encargado_2}`,
+          estado_reposicion: "rendido_pendiente",
+        })
+        .catch(() => {});
+    } catch {
+      // Fallback local
+    }
   };
 
   // Flujo de 2 pasos: Nivel 1 - Revisado por Supervisor
@@ -735,36 +541,32 @@ export function ControlRefrigerios() {
     set_item_para_devolucion(null);
   };
 
-  // Descarga del PDF oficial real
+  // Descarga del PDF oficial real con resiliencia
   const manejarDescargarPlanillaPdf = async (reg: RegistroRacionRefrigerio) => {
     try {
       set_descargando_pdf_id(reg.id);
       toast.info("Generando Reporte Oficial de Refrigerio en PDF...", {
-        description: `Procesando descargo del ${reg.fecha} con Puppeteer.`,
+        description: `Procesando descargo del ${reg.fecha}.`,
       });
 
-      const blob = await clienteApi.descargarBlob(`/api/pdf/refrigerios/${reg.id}`);
-      const url = window.URL.createObjectURL(blob);
-      const enlace = document.createElement("a");
-      enlace.href = url;
-      enlace.download = `Reporte_Refrigerio_${reg.id}_${reg.fecha}.pdf`;
-      document.body.appendChild(enlace);
-      enlace.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(enlace);
+      await descargarPdfConResiliencia(
+        `/api/pdf/refrigerios/${reg.id}`,
+        `Reporte_Refrigerio_${reg.id}_${reg.fecha}.pdf`,
+        "refrigerios",
+        { becario_id: reg.id, fecha_inicio: reg.fecha, fecha_fin: reg.fecha }
+      );
 
       toast.success("Reporte de Refrigerio en PDF descargado exitosamente");
     } catch {
-      toast.error("No se pudo conectar al endpoint de generación PDF", {
-        description:
-          "Verifique la conexión con el backend de BUMAND o intente nuevamente.",
+      toast.error("No se pudo generar el PDF de refrigerio", {
+        description: "Ocurrió un problema al procesar el archivo.",
       });
     } finally {
       set_descargando_pdf_id(null);
     }
   };
 
-  // Extracción de Reporte PDF por Intervalo de Fechas para Auditoría
+  // Extracción de Reporte PDF por Intervalo de Fechas para Auditoría con resiliencia
   const manejarDescargarPdfAuditoria = async () => {
     try {
       set_descargando_pdf_auditoria(true);
@@ -773,20 +575,18 @@ export function ControlRefrigerios() {
       });
 
       const endpoint = `/api/pdf/refrigerios?fecha_inicio=${fecha_inicio_auditoria}&fecha_fin=${fecha_fin_auditoria}`;
-      const blob = await clienteApi.descargarBlob(endpoint);
-      const url = window.URL.createObjectURL(blob);
-      const enlace = document.createElement("a");
-      enlace.href = url;
-      enlace.download = `Reporte_Refrigerios_Auditoria_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
-      document.body.appendChild(enlace);
-      enlace.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(enlace);
+      const nombre_archivo = `Reporte_Refrigerios_Auditoria_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
+
+      await descargarPdfConResiliencia(endpoint, nombre_archivo, "auditoria", {
+        modulo: "refrigerios",
+        fecha_inicio: fecha_inicio_auditoria,
+        fecha_fin: fecha_fin_auditoria,
+      });
 
       toast.success("Reporte de Auditoría de Refrigerios descargado exitosamente");
     } catch {
       toast.error("Error al extraer reporte PDF de auditoría de refrigerios", {
-        description: "Verifique el servicio PDF institucional.",
+        description: "Ocurrió un problema al procesar el documento.",
       });
     } finally {
       set_descargando_pdf_auditoria(false);
@@ -855,7 +655,7 @@ export function ControlRefrigerios() {
                 ¡Eres el encargado del refrigerio de este viernes junto a {companero_dupla}!
               </h3>
               <p className="text-xs text-white/90 leading-relaxed">
-                El presupuesto institucional asignado es de <strong>Bs 5.50 a Bs 6.00 por ración</strong> (presupuesto estimado de <strong>Bs 125.00 a Bs 150.00</strong> para 23 raciones). Pueden cocinar en la cocina de Diaconía, preparar en casa o adquirir compra directa, registrando los insumos para su <strong>devolución íntegra al 100%</strong>.
+                El presupuesto institucional asignado es de <strong>Bs 5.50 a Bs 6.00 por ración</strong> (presupuesto estimado de <strong>Bs 125.00 a Bs 150.00</strong> para 23 raciones), con su respectiva <strong>devolución íntegra al 100%</strong>.
               </p>
             </div>
 
@@ -869,7 +669,7 @@ export function ControlRefrigerios() {
                 className="bg-[#FFB600] hover:bg-[#FFB600]/90 text-[#035683] font-bold text-xs h-10 px-4 rounded-xl shadow-sm gap-2"
               >
                 <ChefHat className="w-4 h-4 text-[#035683]" />
-                <span>Registrar Ingredientes y Modalidad</span>
+                <span>Registrar Raciones de Refrigerio</span>
               </Button>
             </div>
           </div>
@@ -888,19 +688,19 @@ export function ControlRefrigerios() {
             </h2>
           </div>
           <p className="text-xs text-muted-foreground">
-            Gestión de duplas de los viernes, registro de ingredientes con devolución al 100% y fiscalización de raciones.
+            Gestión de duplas de los viernes, asignación de raciones y devolución íntegra al 100%.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          {/* Botón: Sortear Dupla del Viernes */}
+          {/* Botón: Asignar Dupla del Viernes */}
           <Button
             onClick={() => set_modal_sorteo_abierto(true)}
             variant="outline"
             className="border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 font-bold rounded-xl text-xs h-10 px-3.5 gap-2 shadow-2xs"
           >
-            <Dices className="w-4 h-4 text-[#00ABBD]" />
-            <span>🎲 Sortear Dupla del Viernes</span>
+            <Users className="w-4 h-4 text-[#00ABBD]" />
+            <span>👥 Asignar Dupla del Viernes</span>
           </Button>
 
           {/* Botón: Registrar Raciones e Ingredientes */}
@@ -918,31 +718,44 @@ export function ControlRefrigerios() {
               <div>
                 <BotonJuicy variante="primario" tamaño="md">
                   <Plus className="w-4 h-4" />
-                  <span>Registrar Entrega de Refrigerios</span>
+                  <span>Registrar Raciones de Refrigerio</span>
                 </BotonJuicy>
               </div>
             </DialogTrigger>
 
             <DialogContent
               showCloseButton={false}
-              className="sm:max-w-[620px] max-h-[92vh] flex flex-col p-0 overflow-hidden bg-white border-[#E5E7EB] rounded-2xl shadow-2xl"
+              className="sm:max-w-[620px] max-h-[92vh] flex flex-col p-0 overflow-hidden bg-white border border-[#E5E7EB] rounded-2xl shadow-2xl"
             >
               <DialogHeader
                 showCloseButton={false}
-                className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA]"
+                className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA] flex flex-row items-center justify-between"
               >
-                <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
-                  <Utensils className="w-5 h-5 text-[#00ABBD]" />
-                  Registrar Raciones, Modalidad e Ingredientes
-                </DialogTitle>
-                <CardDescription className="text-xs text-muted-foreground">
-                  Descargo oficial de la dupla del viernes: insumos adquiridos y modalidad de preparación.
-                </CardDescription>
+                <div>
+                  <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+                    <Utensils className="w-5 h-5 text-[#00ABBD]" />
+                    <span>Registrar Raciones de Refrigerio</span>
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                    Descargo oficial de la dupla del viernes para devolución íntegra al 100%.
+                  </DialogDescription>
+                </div>
+                {/* Botón X de cierre solicitado por el usuario */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={intentarCerrarModalRefrigerio}
+                  className="h-8 w-8 rounded-full text-slate-500 hover:text-slate-800 hover:bg-slate-200"
+                  aria-label="Cerrar modal"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
               </DialogHeader>
 
               <form onSubmit={manejarGuardarRefrigerio} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-                <DialogBody className="p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
-                  {/* Fila 1: Fecha y Evento */}
+                <DialogBody className="p-5 space-y-4 overflow-y-auto flex-1 min-h-0 bg-white">
+                  {/* Fila 1: Fecha de Entrega (Viernes) y Evento o Jornada Vinculada */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <Label className="text-xs font-semibold">Fecha de Entrega (Viernes)</Label>
@@ -964,7 +777,7 @@ export function ControlRefrigerios() {
                     </div>
                   </div>
 
-                  {/* Fila 2: Dupla de 2 Becarios Encargados */}
+                  {/* Fila 2: Dupla de Becarios Encargados del Viernes */}
                   <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2.5">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-[#035683]">
                       <Users className="w-4 h-4 text-[#00ABBD]" />
@@ -1011,31 +824,7 @@ export function ControlRefrigerios() {
                     </div>
                   </div>
 
-                  {/* Fila 3: Modalidad de Preparación */}
-                  <div className="space-y-1">
-                    <Label className="text-xs font-semibold">Modalidad de Preparación</Label>
-                    <Select
-                      value={nueva_modalidad}
-                      onValueChange={(val) => val && set_nueva_modalidad(val as ModalidadPreparacionRefrigerio)}
-                    >
-                      <SelectTrigger className="h-9 text-xs border-[#E5E7EB]">
-                        <SelectValue placeholder="Seleccione modalidad" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cocina_diaconia">
-                          🍳 Preparado en cocina de Diaconía
-                        </SelectItem>
-                        <SelectItem value="traido_de_casa">
-                          🏠 Preparado en casa por los becarios
-                        </SelectItem>
-                        <SelectItem value="compra_directa">
-                          🛒 Compra directa (alimentos ya preparados)
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Fila 4: Raciones y Presupuesto Real (23 raciones · Bs 5.50 - 6.00) */}
+                  {/* Fila 3: Cantidad de Raciones, Costo Total y Costo Unitario */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="space-y-1">
                       <Label className="text-xs font-semibold">Cantidad de Raciones</Label>
@@ -1074,13 +863,13 @@ export function ControlRefrigerios() {
                     </div>
                   </div>
 
-                  {/* Fila 5: Sede y Bloque */}
-                  <div className="grid grid-cols-2 gap-3">
+                  {/* Fila 4: Sede Institucional y Bloque */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <Label className="text-xs font-semibold">Sede Institucional</Label>
                       <Select value={nueva_sede} onValueChange={(val) => val && set_nueva_sede(val)}>
                         <SelectTrigger className="h-9 text-xs border-[#E5E7EB]">
-                          <SelectValue placeholder="Sede" />
+                          <SelectValue placeholder="Oficina Central El Alto" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Oficina Central El Alto">Oficina Central El Alto</SelectItem>
@@ -1094,7 +883,7 @@ export function ControlRefrigerios() {
                       <Label className="text-xs font-semibold">Bloque</Label>
                       <Select value={nuevo_bloque} onValueChange={(val) => val && set_nuevo_bloque(val)}>
                         <SelectTrigger className="h-9 text-xs border-[#E5E7EB]">
-                          <SelectValue placeholder="Bloque" />
+                          <SelectValue placeholder="Bloque A (Administración)" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Bloque A (Administración)">Bloque A (Administración)</SelectItem>
@@ -1104,129 +893,9 @@ export function ControlRefrigerios() {
                       </Select>
                     </div>
                   </div>
-
-                  {/* Fila 6: Lista Dinámica de Ingredientes / Insumos Comprados */}
-                  <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-xs font-bold text-[#035683] flex items-center gap-1.5">
-                          <ShoppingBag className="w-3.5 h-3.5 text-[#00ABBD]" />
-                          Desglose de Ingredientes / Insumos Adquiridos
-                        </span>
-                        <p className="text-[10px] text-muted-foreground">
-                          Anota qué compró cada integrante para facilitar el arreglo de cuentas tras la devolución 100%.
-                        </p>
-                      </div>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={agregarInsumoFormulario}
-                        className="h-7 text-[11px] font-bold border-[#00ABBD] text-[#035683] rounded-lg"
-                      >
-                        <Plus className="w-3 h-3 mr-1" />
-                        Añadir Insumo
-                      </Button>
-                    </div>
-
-                    <div className="space-y-2">
-                      {insumos_formulario.map((ins, idx) => (
-                        <div
-                          key={ins.id || idx}
-                          className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2 rounded-lg bg-white border border-slate-200 text-xs"
-                        >
-                          <Input
-                            placeholder="Ej. Pan, Huevos, Café..."
-                            value={ins.insumo}
-                            onChange={(e) => actualizarInsumoFormulario(ins.id, "insumo", e.target.value)}
-                            className="h-8 text-xs flex-2 border-[#E5E7EB]"
-                            required
-                          />
-                          <Input
-                            placeholder="Cant. (ej. 23 un)"
-                            value={ins.cantidad}
-                            onChange={(e) => actualizarInsumoFormulario(ins.id, "cantidad", e.target.value)}
-                            className="h-8 text-xs w-24 border-[#E5E7EB]"
-                          />
-                          <div className="flex items-center gap-1 w-28">
-                            <span className="text-[11px] text-slate-500 font-mono">Bs</span>
-                            <Input
-                              type="number"
-                              step="0.50"
-                              placeholder="0.00"
-                              value={ins.costo_bs || ""}
-                              onChange={(e) =>
-                                actualizarInsumoFormulario(ins.id, "costo_bs", parseFloat(e.target.value) || 0)
-                              }
-                              className="h-8 text-xs font-mono font-bold text-[#035683] border-[#E5E7EB]"
-                              required
-                            />
-                          </div>
-                          <Select
-                            value={ins.pagado_por_becario}
-                            onValueChange={(val) => val && actualizarInsumoFormulario(ins.id, "pagado_por_becario", val)}
-                          >
-                            <SelectTrigger className="h-8 text-[11px] border-[#E5E7EB] flex-1">
-                              <SelectValue placeholder="Pagado por..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value={nuevo_encargado_1}>{nuevo_encargado_1.split(" ")[0]} (Encargado 1)</SelectItem>
-                              <SelectItem value={nuevo_encargado_2}>{nuevo_encargado_2.split(" ")[0]} (Encargado 2)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => eliminarInsumoFormulario(ins.id)}
-                            className="h-8 w-8 text-slate-400 hover:text-red-600 shrink-0"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Resumen de gasto por integrante */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-200 text-xs">
-                      <div className="space-y-0.5">
-                        <span className="font-bold text-emerald-950">Gasto declarado por integrante:</span>
-                        <p className="text-[11px] text-emerald-800">
-                          {nuevo_encargado_1.split(" ")[0]}: <strong>Bs {total_insumos_encargado_1.toFixed(2)}</strong> ·{" "}
-                          {nuevo_encargado_2.split(" ")[0]}: <strong>Bs {total_insumos_encargado_2.toFixed(2)}</strong>
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-sm text-[#035683]">
-                          Total: Bs {total_insumos_calculado.toFixed(2)}
-                        </span>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          onClick={sincronizarTotalDesdeInsumos}
-                          className="h-7 text-[10px] font-bold border-emerald-300 text-emerald-900 bg-white"
-                        >
-                          Usar este Total
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Fila 7: Observaciones y Menú */}
-                  <div className="space-y-1">
-                    <Label className="text-xs font-semibold">Observaciones / Menú Detallado</Label>
-                    <Textarea
-                      placeholder="Menú preparado, detalle nutritivo o particularidades del refrigerio..."
-                      value={nuevas_observaciones}
-                      onChange={(e) => set_nuevas_observaciones(e.target.value)}
-                      rows={2}
-                      className="text-xs border-[#E5E7EB] rounded-xl"
-                    />
-                  </div>
                 </DialogBody>
 
-                <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA]/90 flex justify-end gap-2 shrink-0">
+                <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA] flex justify-end gap-2 shrink-0">
                   <Button
                     type="button"
                     variant="outline"
@@ -1237,7 +906,7 @@ export function ControlRefrigerios() {
                   </Button>
                   <Button
                     type="submit"
-                    className="bg-[#035683] hover:bg-[#035683]/90 text-white rounded-xl text-xs h-9 font-bold shadow-sm"
+                    className="bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs h-9 shadow-sm"
                   >
                     Guardar Rendición
                   </Button>
@@ -1393,21 +1062,6 @@ export function ControlRefrigerios() {
                       <span className="font-bold text-sm text-[#035683]">
                         {item.evento_o_jornada}
                       </span>
-                      {item.modalidad_preparacion === "cocina_diaconia" && (
-                        <Badge className="bg-sky-50 text-sky-800 border-sky-200 text-[10px]">
-                          🍳 Cocina Diaconía
-                        </Badge>
-                      )}
-                      {item.modalidad_preparacion === "traido_de_casa" && (
-                        <Badge className="bg-amber-50 text-amber-800 border-amber-200 text-[10px]">
-                          🏠 Hecho en Casa
-                        </Badge>
-                      )}
-                      {item.modalidad_preparacion === "compra_directa" && (
-                        <Badge className="bg-purple-50 text-purple-800 border-purple-200 text-[10px]">
-                          🛒 Compra Directa
-                        </Badge>
-                      )}
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -1429,17 +1083,6 @@ export function ControlRefrigerios() {
                       </span>
                     </div>
 
-                    {/* Insumos Resumen */}
-                    {item.ingredientes_detalle && item.ingredientes_detalle.length > 0 && (
-                      <div className="text-[11px] text-slate-500 flex flex-wrap gap-1 items-center">
-                        <span className="font-medium text-slate-700">Insumos:</span>
-                        {item.ingredientes_detalle.map((ins, i) => (
-                          <span key={i} className="bg-slate-100 px-1.5 py-0.5 rounded text-[10.5px]">
-                            {ins.insumo} (Bs {ins.costo_bs.toFixed(2)})
-                          </span>
-                        ))}
-                      </div>
-                    )}
 
                     {item.observaciones && (
                       <p className="text-[11px] text-muted-foreground italic">{item.observaciones}</p>
@@ -1471,8 +1114,8 @@ export function ControlRefrigerios() {
                       </Badge>
                     ) : item.estado_reposicion === "sorteado_programado" ? (
                       <Badge className="bg-purple-100 text-purple-800 border-purple-300 font-bold text-xs gap-1 py-1 px-2.5">
-                        <Dices className="w-3.5 h-3.5 text-purple-700" />
-                        <span>Sorteado / Programado</span>
+                        <Users className="w-3.5 h-3.5 text-purple-700" />
+                        <span>Dupla Asignada</span>
                       </Badge>
                     ) : (
                       <Badge className="bg-amber-100 text-amber-800 border-amber-300 font-bold text-xs gap-1 py-1 px-2.5">
@@ -1563,7 +1206,7 @@ export function ControlRefrigerios() {
       </Card>
 
       {/* ============================================================== */}
-      {/* DIÁLOGO MODAL: SORTEO DE DUPLA DEL VIERNES                    */}
+      {/* DIÁLOGO MODAL: ASIGNACIÓN DE DUPLA DEL VIERNES (DIRECTIVA)    */}
       {/* ============================================================== */}
       <Dialog open={modal_sorteo_abierto} onOpenChange={set_modal_sorteo_abierto}>
         <DialogContent
@@ -1572,65 +1215,36 @@ export function ControlRefrigerios() {
         >
           <DialogHeader
             showCloseButton={false}
-            className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA]"
+            className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA] flex flex-row items-center justify-between"
           >
-            <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
-              <Dices className="w-5 h-5 text-[#00ABBD]" />
-              Sorteo y Asignación de Dupla del Viernes
-            </DialogTitle>
-            <CardDescription className="text-xs text-muted-foreground">
-              Elección aleatoria sin repetición de los 2 becarios encargados del refrigerio de la Escuela de Líderes.
-            </CardDescription>
+            <div>
+              <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+                <Users className="w-5 h-5 text-[#00ABBD]" />
+                Asignación de Dupla del Viernes
+              </DialogTitle>
+              <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                Registro oficial de los 2 becarios designados por la Directiva para el refrigerio de la Escuela de Líderes.
+              </CardDescription>
+            </div>
+            <button
+              type="button"
+              onClick={() => set_modal_sorteo_abierto(false)}
+              className="text-slate-400 hover:text-slate-600 rounded-lg p-1 transition-colors ml-2"
+              title="Cerrar"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </DialogHeader>
 
           <DialogBody className="p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
-            {/* Tarjeta de Acción: Ejecutar Sorteo */}
-            <div className="p-4 rounded-xl bg-gradient-to-r from-[#035683]/5 to-[#00ABBD]/10 border border-[#00ABBD]/30 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-[#035683] block">
-                    Motor Rotativo de Duplas
-                  </span>
-                  <p className="text-[11px] text-muted-foreground">
-                    Excluye automáticamente a quienes ya fueron asignados en la ronda actual.
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  onClick={ejecutarSorteoAleatorio}
-                  disabled={sorteando_animado}
-                  className="bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs h-9 px-3.5 rounded-xl gap-2 shadow-xs"
-                >
-                  {sorteando_animado ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-[#FFB600]" />
-                  ) : (
-                    <Dices className="w-4 h-4 text-[#FFB600]" />
-                  )}
-                  <span>🎲 Sortear Dupla Aleatoria</span>
-                </Button>
-              </div>
-
-              {/* Resultado del sorteo interactivo */}
-              <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-200">
-                <div className="p-2.5 rounded-lg bg-white border border-slate-200 text-xs">
-                  <span className="text-[10px] text-slate-500 font-bold block uppercase">Encargado 1</span>
-                  <span className="font-bold text-[#035683] truncate block">{sorteo_encargado_1}</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-white border border-slate-200 text-xs">
-                  <span className="text-[10px] text-slate-500 font-bold block uppercase">Encargado 2</span>
-                  <span className="font-bold text-[#035683] truncate block">{sorteo_encargado_2}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Ajuste / Selección manual */}
-            <div className="space-y-3 pt-1">
-              <Label className="text-xs font-bold text-slate-700">
-                Ajuste Manual de Integrantes (Si hubo permuta o cambio de turno):
+            {/* Selección de Integrantes Designados */}
+            <div className="space-y-3">
+              <Label className="text-xs font-bold text-[#035683]">
+                Becarios Designados por Directiva:
               </Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-[11px] text-slate-600">Becario Encargado 1</Label>
+                  <Label className="text-[11px] text-slate-600 font-semibold">Becario Encargado 1</Label>
                   <Select
                     value={sorteo_encargado_1}
                     onValueChange={(val) => val && set_sorteo_encargado_1(val)}
@@ -1649,7 +1263,7 @@ export function ControlRefrigerios() {
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-[11px] text-slate-600">Becario Encargado 2</Label>
+                  <Label className="text-[11px] text-slate-600 font-semibold">Becario Encargado 2</Label>
                   <Select
                     value={sorteo_encargado_2}
                     onValueChange={(val) => val && set_sorteo_encargado_2(val)}
@@ -1669,7 +1283,7 @@ export function ControlRefrigerios() {
               </div>
             </div>
 
-            {/* Fecha del Viernes */}
+            {/* Fecha del Viernes y Evento */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs font-semibold">Fecha del Viernes</Label>
@@ -1696,7 +1310,7 @@ export function ControlRefrigerios() {
                 Presupuesto Oficial de Escuela de Líderes:
               </span>
               <p className="text-[11px] text-slate-600">
-                23 raciones × Bs 6.00 = <strong>Bs 138.00</strong> (presupuesto estimado de <strong>Bs 125.00 a Bs 150.00</strong>). Al rendir la compra de insumos, se procesará la <strong>devolución íntegra del 100%</strong>.
+                23 raciones × Bs 6.00 = <strong>Bs 138.00</strong> (presupuesto estimado de <strong>Bs 125.00 a Bs 150.00</strong>). Al rendir la entrega del refrigerio, se procesará la <strong>devolución íntegra del 100%</strong>.
               </p>
             </div>
           </DialogBody>
@@ -1779,7 +1393,7 @@ export function ControlRefrigerios() {
                     ¿A cuál de los 2 becarios encargados se realiza la devolución total (100% — Bs {item_para_devolucion.costo_total_bs.toFixed(2)})?
                   </Label>
                   <p className="text-[11px] text-slate-600">
-                    Por normativa institucional, el monto total se transfiere a un único integrante de la dupla, quien luego concilia internamente con su compañero según los insumos aportados.
+                    Por normativa institucional, el monto total se transfiere a un único integrante de la dupla, quien luego concilia internamente con su compañero según los gastos realizados.
                   </p>
                 </div>
 
@@ -1939,39 +1553,9 @@ export function ControlRefrigerios() {
                       Bs {planilla_seleccionada.costo_unitario_bs.toFixed(2)}
                     </strong>
                   </div>
-                  <div>
-                    <span className="text-slate-500 block">Modalidad:</span>
-                    <strong className="text-slate-800 capitalize">
-                      {planilla_seleccionada.modalidad_preparacion?.replace("_", " ") || "Cocina Diaconía"}
-                    </strong>
-                  </div>
                 </div>
               </div>
 
-              {/* Detalle de Insumos */}
-              {planilla_seleccionada.ingredientes_detalle &&
-                planilla_seleccionada.ingredientes_detalle.length > 0 && (
-                  <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-2">
-                    <span className="font-bold text-slate-800 block text-xs">
-                      Detalle de Insumos y Quién Pagó Cada Gasto:
-                    </span>
-                    <div className="space-y-1 text-[11px]">
-                      {planilla_seleccionada.ingredientes_detalle.map((ins, i) => (
-                        <div key={i} className="flex items-center justify-between py-1 border-b border-slate-100">
-                          <span>
-                            {ins.insumo} ({ins.cantidad || "1 un"})
-                          </span>
-                          <span className="font-mono font-medium text-slate-600">
-                            Bs {ins.costo_bs.toFixed(2)} ·{" "}
-                            <span className="text-[#035683] font-bold">
-                              {ins.pagado_por_becario ? ins.pagado_por_becario.split(" ")[0] : "Dupla"}
-                            </span>
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
               {/* Tarjeta de Importe Total al 100% */}
               <div className="p-4 rounded-xl bg-gradient-to-r from-[#035683] to-[#00808E] text-white flex items-center justify-between">

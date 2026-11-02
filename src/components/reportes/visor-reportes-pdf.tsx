@@ -34,6 +34,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
+import {
+  descargarPdfConResiliencia,
+  BECARIOS_EXPEDIENTES_COMPLETOS,
+} from "@/lib/generador-pdf-cliente";
 
 interface ReporteItem {
   id: number;
@@ -54,26 +58,7 @@ interface ReporteItem {
   nombre_archivo: string;
 }
 
-export const LISTA_23_BECARIOS_REPORTES = [
-  { id: 1, nombre: "Adai Belen Huayta Cardozo", ci: "13696496", carrera: "Estadística", sede: "Sede Central Blq. A" },
-  { id: 2, nombre: "Daniel Davalos Quiñonez", ci: "9107373", carrera: "Informática", sede: "Seguridad Física" },
-  { id: 3, nombre: "Edgar Elías Alarcon Huanca", ci: "9160054", carrera: "Medicina", sede: "Consultorio Médico" },
-  { id: 4, nombre: "Nilda Amalia Churata Paye", ci: "10028341", carrera: "Educación Parvularia", sede: "Seguridad Física" },
-  { id: 5, nombre: "Alejandro Roberth Paredes Tarquino", ci: "10064956", carrera: "Comunicación Social", sede: "Marketing y Comunicación" },
-  { id: 6, nombre: "Aydee Ruth Ali Condori", ci: "9952878", carrera: "Contaduría Pública", sede: "Finanzas y Tesorería" },
-  { id: 7, nombre: "Carlos Oscar Luna Lizarraga", ci: "9943280", carrera: "Economía", sede: "Auditoría Interna" },
-  { id: 8, nombre: "Isaías Daniel Herrera Mamani", ci: "10920862", carrera: "Arquitectura", sede: "Administración" },
-  { id: 9, nombre: "José Marcos Suñagua Quispe", ci: "14378720", carrera: "Informática", sede: "Riesgos" },
-  { id: 10, nombre: "Mariela Dayana Jimenez Chambi", ci: "12959656", carrera: "Contaduría Pública", sede: "Seguros" },
-  { id: 11, nombre: "Mayherli Alejandra Loza Villalobos", ci: "9925727", carrera: "Contaduría Pública", sede: "Finanzas y Tesorería" },
-  { id: 12, nombre: "Noemi Callisaya Alvarez", ci: "7093658", carrera: "Psicomotricidad y Deportes", sede: "Consultorio Médico" },
-  { id: 13, nombre: "Ronald Mauricio Quiquijana Mayta", ci: "6172054", carrera: "Telecomunicaciones", sede: "Seguridad de la Información" },
-  { id: 14, nombre: "Ruddy Flores Tapia", ci: "9974211", carrera: "Informática", sede: "Planificación" },
-  { id: 15, nombre: "Gonzalo Valencia Laura", ci: "8416501", carrera: "Contaduría Pública", sede: "Contabilidad" },
-  { id: 16, nombre: "Gustavo Ariel Condori Montaño", ci: "13088041", carrera: "Contaduría Pública", sede: "Captaciones" },
-  { id: 17, nombre: "Lisbeth Pacasi Machaca", ci: "13603536", carrera: "Bioquímica y Farmacia", sede: "Consultorio Médico" },
-  { id: 18, nombre: "Selena Fernanda Pillco Mamani", ci: "13693151", carrera: "Economía", sede: "Captaciones" },
-];
+export const LISTA_23_BECARIOS_REPORTES = BECARIOS_EXPEDIENTES_COMPLETOS;
 
 const REPORTES_DISPONIBLES: ReporteItem[] = [
   {
@@ -195,29 +180,53 @@ export function VisorReportesPdf() {
     LISTA_23_BECARIOS_REPORTES.find((b) => b.id === estudiante_seleccionado_id) ||
     LISTA_23_BECARIOS_REPORTES[0];
 
-  const descargarReportePuppeteer = async (clave: string, endpoint: string, nombre_archivo: string) => {
+  const descargarReportePuppeteer = async (
+    clave: string,
+    endpoint: string,
+    nombre_archivo: string,
+    tipo?:
+      | "evaluacion_semestral_ii"
+      | "horas"
+      | "refrigerios"
+      | "f03"
+      | "evento"
+      | "recorridos_estudiante"
+      | "asistencia_estudiante"
+      | "auditoria",
+    params?: {
+      becario_id?: number;
+      mes?: string;
+      fecha_inicio?: string;
+      fecha_fin?: string;
+      modulo?: string;
+    }
+  ) => {
     try {
       set_descargando_id(clave);
-      toast.info("Generando informe oficial con Puppeteer en el servidor...", {
-        description: `Procesando "${nombre_archivo}" en formato PDF.`,
+      toast.info("Generando informe oficial certificado en PDF...", {
+        description: `Procesando "${nombre_archivo}".`,
       });
 
-      const blob = await clienteApi.descargarBlob(endpoint);
-      const url = window.URL.createObjectURL(blob);
-      const enlace = document.createElement("a");
-      enlace.href = url;
-      enlace.download = nombre_archivo;
-      document.body.appendChild(enlace);
-      enlace.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(enlace);
+      let tipo_final = tipo;
+      if (!tipo_final) {
+        if (endpoint.includes("evaluacion-semestral")) tipo_final = "evaluacion_semestral_ii";
+        else if (endpoint.includes("corte-asistencia")) tipo_final = "horas";
+        else if (endpoint.includes("refrigerios")) tipo_final = "refrigerios";
+        else if (endpoint.includes("evaluacion/")) tipo_final = "f03";
+        else if (endpoint.includes("evento/")) tipo_final = "evento";
+        else if (endpoint.includes("recorridos-estudiante")) tipo_final = "recorridos_estudiante";
+        else if (endpoint.includes("asistencia-estudiante")) tipo_final = "asistencia_estudiante";
+        else tipo_final = "auditoria";
+      }
 
-      toast.success("Documento PDF descargado exitosamente", {
-        description: `Archivo "${nombre_archivo}" generado con Puppeteer.`,
+      await descargarPdfConResiliencia(endpoint, nombre_archivo, tipo_final, params);
+
+      toast.success("Documento PDF generado y descargado exitosamente", {
+        description: `Archivo "${nombre_archivo}" listo.`,
       });
     } catch (_error) {
-      toast.error("Error al descargar PDF con Puppeteer", {
-        description: "Verifique que el backend de BUMAND esté en ejecución.",
+      toast.error("Error al procesar el archivo PDF", {
+        description: "Ocurrió un inconveniente al generar el documento.",
       });
     } finally {
       set_descargando_id(null);
@@ -253,22 +262,18 @@ export function VisorReportesPdf() {
         description: `Rango: ${fecha_inicio_auditoria} a ${fecha_fin_auditoria}.`,
       });
 
-      const blob = await clienteApi.descargarBlob(ruta_completa);
-      const url = window.URL.createObjectURL(blob);
-      const enlace = document.createElement("a");
-      enlace.href = url;
-      enlace.download = nombre_archivo;
-      document.body.appendChild(enlace);
-      enlace.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(enlace);
+      await descargarPdfConResiliencia(ruta_completa, nombre_archivo, "auditoria", {
+        modulo: mod,
+        fecha_inicio: fecha_inicio_auditoria,
+        fecha_fin: fecha_fin_auditoria,
+      });
 
       toast.success("Reporte PDF para auditoría generado exitosamente", {
         description: `Archivo "${nombre_archivo}" listo.`,
       });
     } catch (_error) {
       toast.error("Error al extraer reporte PDF para auditoría", {
-        description: "Verifique los parámetros de fecha o el servicio backend.",
+        description: "Ocurrió un inconveniente al procesar el documento.",
       });
     } finally {
       set_descargando_auditoria(false);
@@ -432,7 +437,8 @@ export function VisorReportesPdf() {
                 descargarReportePuppeteer(
                   "semestre_ii",
                   "/pdf/evaluacion-semestral?periodo=II_2026",
-                  "Evaluacion_Semestre_II_2026.pdf"
+                  "Evaluacion_Semestre_II_2026.pdf",
+                  "evaluacion_semestral_ii"
                 )
               }
               className="h-11 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl flex items-center gap-2 justify-center shadow-sm"
@@ -452,7 +458,8 @@ export function VisorReportesPdf() {
                 descargarReportePuppeteer(
                   "horas",
                   "/pdf/corte-asistencia?tipo=todas",
-                  "Corte_Oficial_Horas_Practicas.pdf"
+                  "Corte_Oficial_Horas_Practicas.pdf",
+                  "horas"
                 )
               }
               variant="outline"
@@ -473,7 +480,8 @@ export function VisorReportesPdf() {
                 descargarReportePuppeteer(
                   "refrigerios",
                   "/pdf/refrigerios",
-                  "Reporte_Oficial_Refrigerios.pdf"
+                  "Reporte_Oficial_Refrigerios.pdf",
+                  "refrigerios"
                 )
               }
               variant="outline"
@@ -494,7 +502,9 @@ export function VisorReportesPdf() {
                 descargarReportePuppeteer(
                   "f03",
                   "/pdf/evaluacion/1",
-                  "Formulario_F03_Pastoral.pdf"
+                  "Formulario_F03_Pastoral.pdf",
+                  "f03",
+                  { becario_id: 1 }
                 )
               }
               variant="outline"
@@ -515,7 +525,9 @@ export function VisorReportesPdf() {
                 descargarReportePuppeteer(
                   "evento",
                   "/pdf/evento/1",
-                  "Acta_Asistencia_Evento.pdf"
+                  "Acta_Asistencia_Evento.pdf",
+                  "evento",
+                  { becario_id: 1 }
                 )
               }
               variant="outline"
@@ -628,7 +640,9 @@ export function VisorReportesPdf() {
                   descargarReportePuppeteer(
                     `recorridos_${estudiante_actual.id}`,
                     `/pdf/recorridos-estudiante/${estudiante_actual.id}?mes=${mes_individual}`,
-                    `Expediente_Recorridos_${estudiante_actual.nombre.replace(/\s+/g, "_")}_${mes_individual}.pdf`
+                    `Expediente_Recorridos_${estudiante_actual.nombre.replace(/\s+/g, "_")}_${mes_individual}.pdf`,
+                    "recorridos_estudiante",
+                    { becario_id: estudiante_actual.id, mes: mes_individual }
                   )
                 }
                 className="h-9 px-3.5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl shadow-xs gap-1.5"
@@ -650,7 +664,9 @@ export function VisorReportesPdf() {
                   descargarReportePuppeteer(
                     `asistencia_${estudiante_actual.id}`,
                     `/pdf/asistencia-estudiante/${estudiante_actual.id}?mes=${mes_individual}`,
-                    `Asistencia_Mensual_${estudiante_actual.nombre.replace(/\s+/g, "_")}_${mes_individual}.pdf`
+                    `Asistencia_Mensual_${estudiante_actual.nombre.replace(/\s+/g, "_")}_${mes_individual}.pdf`,
+                    "asistencia_estudiante",
+                    { becario_id: estudiante_actual.id, mes: mes_individual }
                   )
                 }
                 className="h-9 px-3.5 border-[#035683] text-[#035683] hover:bg-slate-100 font-bold text-xs rounded-xl shadow-2xs gap-1.5"
@@ -723,7 +739,24 @@ export function VisorReportesPdf() {
                         size="sm"
                         variant="outline"
                         disabled={descargando_id !== null}
-                        onClick={() => descargarReportePuppeteer(String(r.id), r.endpoint, r.nombre_archivo)}
+                        onClick={() => {
+                          const mapaTipos: Record<string, any> = {
+                            evaluacion_semestral_ii: "evaluacion_semestral_ii",
+                            asistencia: "horas",
+                            pasajes: "recorridos_estudiante",
+                            evaluacion_f03: "f03",
+                            evento: "evento",
+                            refrigerios: "refrigerios",
+                            "consolidado-auditoria": "auditoria",
+                          };
+                          descargarReportePuppeteer(
+                            String(r.id),
+                            r.endpoint,
+                            r.nombre_archivo,
+                            mapaTipos[r.tipo] || "evaluacion_semestral_ii",
+                            { becario_id: r.id, mes: "2026-10" }
+                          );
+                        }}
                         className="h-8 px-3 border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg text-xs font-bold inline-flex items-center gap-1.5"
                       >
                         {en_descarga ? (

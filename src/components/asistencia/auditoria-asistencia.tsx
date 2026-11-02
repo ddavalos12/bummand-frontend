@@ -68,6 +68,7 @@ import { useTiempoReal } from "@/hooks/useTiempoReal";
 import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { toast } from "sonner";
+import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 
 export interface RegistroAuditoriaAsistencia {
   id: number;
@@ -634,25 +635,23 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
   const manejarDescargarPdfAuditoria = async () => {
     try {
       set_descargando_pdf_auditoria(true);
-      toast.info("Generando Corte Oficial de Asistencia en PDF con Puppeteer...", {
+      toast.info("Generando Corte Oficial de Asistencia en PDF...", {
         description: `Intervalo: Desde ${fecha_inicio_auditoria} hasta ${fecha_fin_auditoria}.`,
       });
 
       const endpoint = `/api/pdf/corte-asistencia?fecha_inicio=${fecha_inicio_auditoria}&fecha_fin=${fecha_fin_auditoria}`;
-      const blob = await clienteApi.descargarBlob(endpoint);
-      const url = window.URL.createObjectURL(blob);
-      const enlace = document.createElement("a");
-      enlace.href = url;
-      enlace.download = `Corte_Asistencia_Auditoria_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
-      document.body.appendChild(enlace);
-      enlace.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(enlace);
+      const nombre_archivo = `Corte_Asistencia_Auditoria_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
+
+      await descargarPdfConResiliencia(endpoint, nombre_archivo, "horas", {
+        modulo: "asistencia",
+        fecha_inicio: fecha_inicio_auditoria,
+        fecha_fin: fecha_fin_auditoria,
+      });
 
       toast.success("Corte de Asistencia en PDF descargado exitosamente");
     } catch {
       toast.error("Error al extraer reporte PDF de auditoría de asistencia", {
-        description: "Verifique el servicio PDF institucional.",
+        description: "Ocurrió un inconveniente al generar el documento.",
       });
     } finally {
       set_descargando_pdf_auditoria(false);
@@ -1000,7 +999,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             title="Cambiar la sede geográfica y geocerca para las acciones de servicio de los viernes"
           >
             <MapPin className="w-4 h-4 text-[#FFB600]" />
-            <span>Cambiar Lugar de Acción de Servicio (Viernes)</span>
+            <span>Cambio de Lugar, Escuela de Líderes</span>
           </Button>
         </div>
       </div>
@@ -2484,7 +2483,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
           <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] shrink-0 bg-white">
             <DialogTitle className="text-lg font-bold text-[#035683] flex items-center gap-2">
               <MapPin className="w-5 h-5 text-[#00ABBD]" />
-              Cambiar Lugar de Acción de Servicio (Viernes)
+              Cambio de Lugar, Escuela de Líderes
             </DialogTitle>
             <p className="text-xs text-muted-foreground">
               Define la nueva sede o coordenadas geodésicas WGS84 para el control de asistencia de las acciones diaconales de este viernes.
