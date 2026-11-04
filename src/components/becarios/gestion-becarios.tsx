@@ -109,6 +109,12 @@ export interface BecarioVista {
   url_kardex?: string;
   nombre_archivo_kardex?: string;
   fecha_subida_documentos?: string;
+  modalidad_pasajes?: "solo_ida" | "ida_y_vuelta";
+  configuracion_pasajes_actividades?: {
+    practicas?: "solo_ida" | "ida_y_vuelta";
+    escuela_lideres?: "solo_ida" | "ida_y_vuelta";
+    acciones_servicio?: "solo_ida" | "ida_y_vuelta";
+  };
 }
 
 // Terminaciones y extensiones departamentales oficiales de Cédula de Identidad en Bolivia (SEGIP)
@@ -969,6 +975,12 @@ function normalizarBecario(remoto: any): BecarioVista {
     url_kardex: remoto.url_kardex || match_inicial?.url_kardex,
     nombre_archivo_kardex: remoto.nombre_archivo_kardex || match_inicial?.nombre_archivo_kardex || `Kardex_2026_${remoto.universidad || match_inicial?.universidad || "UMSA"}.pdf`,
     fecha_subida_documentos: remoto.fecha_subida_documentos || match_inicial?.fecha_subida_documentos || "2026-02-15",
+    modalidad_pasajes: (remoto.modalidad_pasajes as any) || (match_inicial as any)?.modalidad_pasajes || "ida_y_vuelta",
+    configuracion_pasajes_actividades: (remoto.configuracion_pasajes_actividades as any) || (match_inicial as any)?.configuracion_pasajes_actividades || {
+      practicas: "ida_y_vuelta",
+      escuela_lideres: "ida_y_vuelta",
+      acciones_servicio: "ida_y_vuelta",
+    },
   };
 }
 
@@ -1032,7 +1044,7 @@ export function GestionBecarios() {
   const [becario_ficha_modal, set_becario_ficha_modal] = useState<BecarioVista | null>(null);
 
   // Consulta API con datos precargados y normalización defensiva
-  const { datos: becarios_remotos } = useConsulta<BecarioVista[]>(
+  const { datos: becarios_remotos, invalidar } = useConsulta<BecarioVista[]>(
     `lista_becarios_${usuario?.id || "global"}`,
     async () => {
       try {
@@ -1386,6 +1398,7 @@ export function GestionBecarios() {
       toast.success(`Becario ${nuevo.nombre} pre-registrado exitosamente en nómina.`, {
         description: `El C.I. ${nuevo.ci} ${nuevo.expedicion} ha sido habilitado para el becario.`,
       });
+      await invalidar();
     } catch (err: any) {
       toast.error(`Error al registrar becario: ${err?.message || "Ocurrió un error inesperado"}`);
     } finally {
@@ -1521,6 +1534,7 @@ export function GestionBecarios() {
       });
       set_modal_editar_abierto(false);
       set_becario_a_editar(null);
+      await invalidar();
     } catch {
       toast.error("Error al actualizar becario", {
         description: "No se pudieron guardar los cambios en el expediente.",
@@ -1615,6 +1629,7 @@ export function GestionBecarios() {
       });
       set_modal_pasajes_abierto(false);
       set_becario_pasajes(null);
+      await invalidar();
     } catch {
       toast.error("Error al actualizar configuración de pasajes");
     } finally {

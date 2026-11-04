@@ -268,22 +268,99 @@ export function PasajesVista() {
     }
   };
 
+  // Catálogo de paradas georreferenciadas para cálculo de proximidad Haversine (<= 150m)
+  const PARADAS_OFICIALES_COORDENADAS = [
+    { nombre: "La Ceja - Calle 1", latitud: -16.5085, longitud: -68.1633 },
+    { nombre: "Cruce Viacha", latitud: -16.5350, longitud: -68.1750 },
+    { nombre: "Pérez Velasco", latitud: -16.4955, longitud: -68.1370 },
+    { nombre: "Plaza San Francisco", latitud: -16.4962, longitud: -68.1384 },
+    { nombre: "San Pedro - Plaza Sucre", latitud: -16.5020, longitud: -68.1375 },
+    { nombre: "Sopocachi - Plaza Abaroa", latitud: -16.5125, longitud: -68.1275 },
+    { nombre: "Miraflores - Estadio Hernando Siles", latitud: -16.5005, longitud: -68.1228 },
+    { nombre: "Plaza Triangular", latitud: -16.5080, longitud: -68.1195 },
+    { nombre: "Villa Fátima - Plaza del Maestro", latitud: -16.4795, longitud: -68.1180 },
+    { nombre: "Estación Teleférico Rojo", latitud: -16.4910, longitud: -68.1430 },
+    { nombre: "Estación Teleférico Amarillo", latitud: -16.5190, longitud: -68.1465 },
+    { nombre: "Estación Teleférico Morado", latitud: -16.5115, longitud: -68.1565 },
+    { nombre: "Río Seco", latitud: -16.4865, longitud: -68.1932 },
+    { nombre: "Calacoto - Calle 21", latitud: -16.5410, longitud: -68.0850 },
+  ];
+
+  const calcularDistanciaHaversineMetros = (
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ): number => {
+    const R = 6371e3;
+    const rad = Math.PI / 180;
+    const dLat = (lat2 - lat1) * rad;
+    const dLon = (lon2 - lon1) * rad;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return Math.round(R * c);
+  };
+
+  const resolverUbicacionGpsReal = async (lat: number, lng: number): Promise<string> => {
+    // 1. Proximidad a parada oficial <= 150m
+    let parada_cercana: { nombre: string; distancia: number } | null = null;
+    for (const p of PARADAS_OFICIALES_COORDENADAS) {
+      const d = calcularDistanciaHaversineMetros(lat, lng, p.latitud, p.longitud);
+      if (!parada_cercana || d < parada_cercana.distancia) {
+        parada_cercana = { nombre: p.nombre, distancia: d };
+      }
+    }
+
+    if (parada_cercana && parada_cercana.distancia <= 150) {
+      return `Parada ${parada_cercana.nombre} (a ${parada_cercana.distancia} m)`;
+    }
+
+    // 2. Geocodificación inversa Nominatim para calle/avenida real (> 150m)
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4000);
+      const resp = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+        { signal: controller.signal, headers: { "Accept-Language": "es" } }
+      );
+      clearTimeout(timeout);
+      if (resp.ok) {
+        const data = await resp.json();
+        const addr = data.address || {};
+        const calle =
+          addr.road || addr.pedestrian || addr.footway || addr.street || addr.neighbourhood || addr.suburb || "Av. Principal";
+        const zona =
+          addr.suburb || addr.city_district || addr.neighbourhood || addr.quarter || addr.city || "Ubicación en vivo";
+        return `${calle}, ${zona} (Ubicación en vivo)`;
+      }
+    } catch (_e) {
+      // Fallback
+    }
+
+    return `Ubicación GPS (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+  };
+
   const capturarGpsParada = (seccion: "ida" | "vuelta", id_parada: string) => {
     if (typeof window !== "undefined" && navigator.geolocation) {
+      toast.info("Obteniendo coordenadas GPS de alta precisión...");
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const lat = pos.coords.latitude.toFixed(4);
-          const lng = pos.coords.longitude.toFixed(4);
-          const texto_gps = `GPS (${lat}, ${lng}) - Parada Registrada`;
-          actualizarNombreParada(seccion, id_parada, texto_gps);
-          toast.success("Coordenadas GPS capturadas con precisión");
+        async (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          const ubicacion = await resolverUbicacionGpsReal(lat, lng);
+          actualizarNombreParada(seccion, id_parada, ubicacion);
+          toast.success("Ubicación en tiempo real asignada", {
+            description: ubicacion,
+          });
         },
         () => {
-          const lugar_simulado = seccion === "ida" ? "Villa Adela, El Alto" : "Pérez Velasco, La Paz";
+          const lugar_simulado = seccion === "ida" ? "Villa Adela, El Alto (Ubicación aproximada)" : "Pérez Velasco, La Paz (Ubicación aproximada)";
           actualizarNombreParada(seccion, id_parada, lugar_simulado);
           toast.info(`Ubicación asignada: ${lugar_simulado}`);
         },
-        { timeout: 3000 }
+        { timeout: 5000, enableHighAccuracy: true }
       );
     } else {
       actualizarNombreParada(seccion, id_parada, "Ceja El Alto (Estación Central)");
@@ -370,6 +447,20 @@ export function PasajesVista() {
     if (nombres_ida.length < 2 || total_ida <= 0) {
       toast.error("Complete al menos origen, destino y tarifa de la ida.");
       return;
+    }
+
+    // Validación TAREA-01: Dos puntos consecutivos del mismo tramo no pueden ser iguales
+    for (let i = 0; i < nombres_ida.length - 1; i++) {
+      if (nombres_ida[i].trim().toLowerCase() === nombres_ida[i + 1].trim().toLowerCase()) {
+        toast.error("El punto de origen y destino no pueden ser la misma ubicación o parada");
+        return;
+      }
+    }
+    for (let i = 0; i < nombres_vuelta.length - 1; i++) {
+      if (nombres_vuelta[i].trim().toLowerCase() === nombres_vuelta[i + 1].trim().toLowerCase()) {
+        toast.error("El punto de origen y destino no pueden ser la misma ubicación o parada");
+        return;
+      }
     }
 
     let descripcion = nombres_ida.join(" – ");

@@ -396,13 +396,17 @@ export function MenuLateral({
               descripcion: "Matriz integral y Socioeconómica",
               icono: Award,
             },
-            {
-              id: "refrigerios",
-              etiqueta: "Refrigerios Institucionales",
-              descripcion: "Raciones y reposición",
-              icono: Utensils,
-              badge: "Diaconía",
-            },
+            ...(!es_supervisor
+              ? [
+                  {
+                    id: "refrigerios",
+                    etiqueta: "Refrigerios Institucionales",
+                    descripcion: "Raciones y reposición",
+                    icono: Utensils,
+                    badge: "Diaconía",
+                  },
+                ]
+              : []),
           ],
         },
         {

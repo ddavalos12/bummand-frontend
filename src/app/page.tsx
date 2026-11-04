@@ -538,9 +538,11 @@ export default function PaginaInicio() {
             </TabsContent>
 
             {/* Módulo de Refrigerios Institucionales */}
-            <TabsContent value="refrigerios" className="space-y-6">
-              <ControlRefrigerios />
-            </TabsContent>
+            {!es_supervisor && (
+              <TabsContent value="refrigerios" className="space-y-6">
+                <ControlRefrigerios />
+              </TabsContent>
+            )}
 
             {/* Módulo de Administración de Usuarios, Contraseñas y Accesos (Exclusivo Administrador) */}
             {es_admin && (

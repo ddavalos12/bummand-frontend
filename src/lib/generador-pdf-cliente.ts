@@ -306,17 +306,17 @@ export function generarPdfRefrigerios(): Blob {
   doc.setFontSize(7.5);
   doc.setTextColor(...COLOR_TEXTO_OSCURO);
   doc.text(
-    "23 raciones × Bs 6.00 = Bs 138.00 por jornada. Fondo rotativo administrado por las duplas con reembolso del 100%.",
+    "23 raciones × Bs 5.00 = Bs 115.00 por jornada. Fondo rotativo administrado por las duplas con reembolso del 100%.",
     18,
     47
   );
 
   const duplas = [
-    ["1", "23/10/2026", "Adai Belen Huayta y Alejandro Roberth Paredes", "23", "Bs 138.00", "Adai Belen Huayta", "100% Devuelto"],
-    ["2", "16/10/2026", "Aydee Ruth Ali y Carlos Oscar Luna", "23", "Bs 138.00", "Aydee Ruth Ali", "100% Devuelto"],
-    ["3", "09/10/2026", "Daniel Davalos y Nilda Amalia Churata", "23", "Bs 138.00", "Daniel Davalos", "100% Devuelto"],
-    ["4", "02/10/2026", "Edgar Elias Alarcon y Christian David Mamani", "23", "Bs 138.00", "Edgar Elias Alarcon", "100% Devuelto"],
-    ["5", "30/10/2026", "Fernando Rene Yujra e Isaias Daniel Herrera", "23", "Bs 138.00", "Por rendir", "Dupla Asignada"],
+    ["1", "23/10/2026", "Adai Belen Huayta y Alejandro Roberth Paredes", "23", "Bs 115.00", "Adai Belen Huayta", "100% Devuelto"],
+    ["2", "16/10/2026", "Aydee Ruth Ali y Carlos Oscar Luna", "23", "Bs 115.00", "Aydee Ruth Ali", "100% Devuelto"],
+    ["3", "09/10/2026", "Daniel Davalos y Nilda Amalia Churata", "23", "Bs 115.00", "Daniel Davalos", "100% Devuelto"],
+    ["4", "02/10/2026", "Edgar Elias Alarcon y Christian David Mamani", "23", "Bs 115.00", "Edgar Elias Alarcon", "100% Devuelto"],
+    ["5", "30/10/2026", "Fernando Rene Yujra e Isaias Daniel Herrera", "23", "Bs 115.00", "Por rendir", "Dupla Asignada"],
   ];
 
   autoTable(doc, {
@@ -548,11 +548,15 @@ export function generarPdfExpedienteRecorridos(
     "15", "16", "19", "20", "21", "22", "23", "26", "27", "28",
   ];
 
+  const origen_declarado = "Av. Juan Pablo II (Zona 16 de Julio)";
+  const parada_intermedia = "Estación Teleférico Línea Azul";
+  const destino_declarado = `${becario.sede} (Diaconía)`;
+
   dias.forEach((dia, idx) => {
     jornadas.push([
       String(idx + 1),
       `${dia}/10/2026`,
-      "Domicilio -> Agencia Asignada (Ida)",
+      `${origen_declarado} → ${parada_intermedia} → ${destino_declarado} (Ida)`,
       "Minibús",
       "Bs 3.00",
       "Bs 2.40",
@@ -560,7 +564,7 @@ export function generarPdfExpedienteRecorridos(
     jornadas.push([
       "",
       `${dia}/10/2026`,
-      "Agencia Asignada -> Domicilio (Retorno)",
+      `${destino_declarado} → ${parada_intermedia} → ${origen_declarado} (Retorno)`,
       "Minibús",
       "Bs 3.00",
       "Bs 2.40",
@@ -665,8 +669,6 @@ export function generarPdfAsistenciaMensual(
     `${dia}/10/2026`,
     "08:00 AM",
     `07:5${Math.floor(Math.random() * 5 + 3)} AM`,
-    "12:00 PM",
-    `12:0${Math.floor(Math.random() * 4 + 2)} PM`,
     "4.0 hrs",
     "0 min",
     "PUNTUAL",
@@ -674,7 +676,7 @@ export function generarPdfAsistenciaMensual(
 
   autoTable(doc, {
     startY: 60,
-    head: [["#", "Fecha", "Prog. In.", "GPS In.", "Prog. Out.", "GPS Out.", "Horas", "Retraso", "Estado"]],
+    head: [["#", "Fecha", "Hora Prog.", "Hora GPS", "Horas", "Retraso", "Estado"]],
     body: filas,
     theme: "striped",
     headStyles: {
@@ -691,14 +693,12 @@ export function generarPdfAsistenciaMensual(
     },
     columnStyles: {
       0: { halign: "center", cellWidth: 8 },
-      1: { halign: "center", cellWidth: 22 },
-      2: { halign: "center", cellWidth: 20 },
-      3: { halign: "center", cellWidth: 20 },
-      4: { halign: "center", cellWidth: 20 },
-      5: { halign: "center", cellWidth: 20 },
-      6: { halign: "center", fontStyle: "bold", cellWidth: 18 },
-      7: { halign: "center", cellWidth: 18 },
-      8: { halign: "center", fontStyle: "bold", textColor: [16, 185, 129], cellWidth: 26 },
+      1: { halign: "center", cellWidth: 26 },
+      2: { halign: "center", cellWidth: 28 },
+      3: { halign: "center", cellWidth: 28 },
+      4: { halign: "center", fontStyle: "bold", cellWidth: 24 },
+      5: { halign: "center", cellWidth: 24 },
+      6: { halign: "center", fontStyle: "bold", textColor: [16, 185, 129], cellWidth: 32 },
     },
     margin: { left: 14, right: 14, bottom: 44 },
   });
@@ -798,6 +798,197 @@ export function generarPdfAuditoriaIntervalo(
 }
 
 // ============================================================================
+// 9. REPORTE GENERAL DE PASAJES (LIQUIDACIÓN 80%)
+// ============================================================================
+export function generarPdfPasajesGeneral(
+  fecha_inicio = "2026-10-01",
+  fecha_fin = "2026-10-31"
+): Blob {
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  agregarMembreteInstitucional(
+    doc,
+    "REPORTE GENERAL DE LIQUIDACIÓN DE PASAJES (80%)",
+    `Consolidado Institucional BUMAND · Intervalo: ${fecha_inicio} al ${fecha_fin}`,
+    true
+  );
+
+  const filas = BECARIOS_EXPEDIENTES_COMPLETOS.map((b, idx) => {
+    const tramos = 40;
+    const gasto_total = 120.0;
+    const subsidio_80 = 96.0;
+    const aporte_20 = 24.0;
+    return [
+      String(idx + 1),
+      b.nombre,
+      b.ci,
+      b.sede,
+      String(tramos),
+      `Bs ${gasto_total.toFixed(2)}`,
+      `Bs ${subsidio_80.toFixed(2)}`,
+      `Bs ${aporte_20.toFixed(2)}`,
+      "APROBADO ADMIN",
+    ];
+  });
+
+  autoTable(doc, {
+    startY: 38,
+    head: [["#", "Estudiante Becario", "C.I.", "Unidad Asignada", "Tramos", "Total Gasto", "Subsidio (80%)", "Aporte (20%)", "Estado"]],
+    body: filas,
+    theme: "striped",
+    headStyles: {
+      fillColor: COLOR_PRIMARIO,
+      textColor: [255, 255, 255],
+      fontStyle: "bold",
+      fontSize: 8,
+      halign: "center",
+    },
+    bodyStyles: {
+      fontSize: 7.5,
+      textColor: COLOR_TEXTO_OSCURO,
+      cellPadding: 2,
+    },
+    columnStyles: {
+      0: { halign: "center", cellWidth: 10 },
+      1: { fontStyle: "bold", cellWidth: 60 },
+      2: { halign: "center", cellWidth: 24 },
+      3: { cellWidth: 50 },
+      4: { halign: "center", cellWidth: 18 },
+      5: { halign: "right", cellWidth: 26 },
+      6: { halign: "right", fontStyle: "bold", textColor: COLOR_PRIMARIO, cellWidth: 28 },
+      7: { halign: "right", cellWidth: 24 },
+      8: { halign: "center", fontStyle: "bold", textColor: [16, 185, 129], cellWidth: 30 },
+    },
+    margin: { left: 14, right: 14, bottom: 28 },
+  });
+
+  agregarPiePaginaYFirmas(doc, true);
+  return doc.output("blob");
+}
+
+// ============================================================================
+// 10. REPORTE GENERAL DE PERMISOS Y JUSTIFICACIONES
+// ============================================================================
+export function generarPdfJustificacionesGeneral(
+  fecha_inicio = "2026-10-01",
+  fecha_fin = "2026-10-31"
+): Blob {
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  agregarMembreteInstitucional(
+    doc,
+    "REPORTE GENERAL DE PERMISOS Y JUSTIFICACIONES",
+    `Bandeja Oficial de Dictámenes Institucionales · Intervalo: ${fecha_inicio} al ${fecha_fin}`,
+    true
+  );
+
+  const incidencias_ejemplo = [
+    ["1", "Nilda Amalia Churata Paye", "06/10/2026", "Atención odontológica de urgencia SSU", "Prácticas", "Certificado Médico SSU", "APROBADA", "Exención 100% Multa"],
+    ["2", "Edgar Elias Alarcon Huanca", "02/10/2026", "Examen parcial universitario UPEA", "Escuela Líderes", "Boleta de Examen", "APROBADA", "Exención 100% Multa"],
+    ["3", "Adai Belen Huayta Cardozo", "16/10/2026", "Cruce académico de taller de grado", "Escuela Líderes", "Matrícula Universitaria", "APROBADA", "Exención 100% Multa"],
+    ["4", "Carlos Oscar Luna Lizarraga", "14/10/2026", "Trámite de titulación intermedia UMSA", "Prácticas", "Formulario UMSA", "APROBADA", "Sin Sanción"],
+    ["5", "Daniel Davalos Quiñoñez", "21/10/2026", "Baja médica ambulatoria", "Prácticas", "Receta Médica", "APROBADA", "Exención 100% Multa"],
+  ];
+
+  autoTable(doc, {
+    startY: 38,
+    head: [["#", "Becario", "Fecha", "Motivo de la Incidencia", "Actividad", "Prueba Adjunta", "Dictamen", "Resolución Multa"]],
+    body: incidencias_ejemplo,
+    theme: "striped",
+    headStyles: {
+      fillColor: COLOR_PRIMARIO,
+      textColor: [255, 255, 255],
+      fontStyle: "bold",
+      fontSize: 8,
+      halign: "center",
+    },
+    bodyStyles: {
+      fontSize: 7.5,
+      textColor: COLOR_TEXTO_OSCURO,
+      cellPadding: 2.2,
+    },
+    columnStyles: {
+      0: { halign: "center", cellWidth: 10 },
+      1: { fontStyle: "bold", cellWidth: 55 },
+      2: { halign: "center", cellWidth: 24 },
+      3: { cellWidth: 70 },
+      4: { halign: "center", cellWidth: 28 },
+      5: { cellWidth: 35 },
+      6: { halign: "center", fontStyle: "bold", textColor: [16, 185, 129], cellWidth: 26 },
+      7: { halign: "center", fontStyle: "bold", textColor: COLOR_PRIMARIO, cellWidth: 28 },
+    },
+    margin: { left: 14, right: 14, bottom: 28 },
+  });
+
+  agregarPiePaginaYFirmas(doc, true);
+  return doc.output("blob");
+}
+
+// ============================================================================
+// 11. REPORTE CONSOLIDADO DE ASISTENCIAS Y HORAS
+// ============================================================================
+export function generarPdfAsistenciaGeneral(
+  fecha_inicio = "2026-10-01",
+  fecha_fin = "2026-10-31"
+): Blob {
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  agregarMembreteInstitucional(
+    doc,
+    "REPORTE CONSOLIDADO DE ASISTENCIAS Y CÓMPUTO DE HORAS",
+    `Auditoría General de Marcaciones y Geocercas WGS84 · Intervalo: ${fecha_inicio} al ${fecha_fin}`,
+    true
+  );
+
+  const filas = BECARIOS_EXPEDIENTES_COMPLETOS.map((b, idx) => {
+    return [
+      String(idx + 1),
+      b.nombre,
+      b.ci,
+      b.carrera,
+      b.sede,
+      "80.0 hrs",
+      "16.0 hrs",
+      "96.0 hrs",
+      "0 min",
+      "100% CUMPLIDO",
+    ];
+  });
+
+  autoTable(doc, {
+    startY: 38,
+    head: [["#", "Estudiante Becario", "C.I.", "Carrera", "Sede Asignada", "Horas Práct.", "Esc. Líderes", "Total Horas", "Retraso", "Estado"]],
+    body: filas,
+    theme: "striped",
+    headStyles: {
+      fillColor: COLOR_PRIMARIO,
+      textColor: [255, 255, 255],
+      fontStyle: "bold",
+      fontSize: 8,
+      halign: "center",
+    },
+    bodyStyles: {
+      fontSize: 7.5,
+      textColor: COLOR_TEXTO_OSCURO,
+      cellPadding: 2,
+    },
+    columnStyles: {
+      0: { halign: "center", cellWidth: 10 },
+      1: { fontStyle: "bold", cellWidth: 55 },
+      2: { halign: "center", cellWidth: 22 },
+      3: { cellWidth: 42 },
+      4: { cellWidth: 45 },
+      5: { halign: "center", cellWidth: 22 },
+      6: { halign: "center", cellWidth: 22 },
+      7: { halign: "center", fontStyle: "bold", textColor: COLOR_PRIMARIO, cellWidth: 22 },
+      8: { halign: "center", cellWidth: 18 },
+      9: { halign: "center", fontStyle: "bold", textColor: [16, 185, 129], cellWidth: 26 },
+    },
+    margin: { left: 14, right: 14, bottom: 28 },
+  });
+
+  agregarPiePaginaYFirmas(doc, true);
+  return doc.output("blob");
+}
+
+// ============================================================================
 // FUNCIÓN UNIVERSAL DE DESCARGA: DESCARGA LOCAL O SERVIDOR CON RESILIENCIA
 // ============================================================================
 export async function descargarPdfConResiliencia(
@@ -811,6 +1002,9 @@ export async function descargarPdfConResiliencia(
     | "evento"
     | "recorridos_estudiante"
     | "asistencia_estudiante"
+    | "pasajes_general"
+    | "justificaciones_general"
+    | "asistencia_general"
     | "auditoria",
   params?: {
     becario_id?: number;
@@ -854,6 +1048,15 @@ export async function descargarPdfConResiliencia(
         break;
       case "asistencia_estudiante":
         blob = generarPdfAsistenciaMensual(params?.becario_id || 1, params?.mes || "2026-10");
+        break;
+      case "pasajes_general":
+        blob = generarPdfPasajesGeneral(params?.fecha_inicio, params?.fecha_fin);
+        break;
+      case "justificaciones_general":
+        blob = generarPdfJustificacionesGeneral(params?.fecha_inicio, params?.fecha_fin);
+        break;
+      case "asistencia_general":
+        blob = generarPdfAsistenciaGeneral(params?.fecha_inicio, params?.fecha_fin);
         break;
       case "auditoria":
         blob = generarPdfAuditoriaIntervalo(

@@ -230,7 +230,7 @@ export function FormularioMentorModal({
           }
         );
         if (respuesta && respuesta.codigo) {
-          codigo_oficial = respuesta.codigo;
+          codigo_oficial = String(respuesta.codigo);
         }
       } catch (_e) {
         // Fallback local con el código autogenerado institucional
@@ -262,14 +262,14 @@ export function FormularioMentorModal({
       let valido = false;
 
       try {
-        const respuesta = await clienteApi.post<{ valido?: boolean }>(
+        const respuesta = await clienteApi.post<{ valido?: boolean; verificado?: boolean }>(
           "/api/evaluaciones/tutor/verificar-codigo",
           {
             becario_id,
             codigo: codigo_verificacion.trim(),
           }
         );
-        if (respuesta && respuesta.valido) {
+        if (respuesta && (respuesta.valido === true || respuesta.verificado === true)) {
           valido = true;
         }
       } catch (_e) {

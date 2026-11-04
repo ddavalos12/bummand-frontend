@@ -166,6 +166,10 @@ export function VisorReportesPdf() {
   const [reportes] = useState<ReporteItem[]>(REPORTES_DISPONIBLES);
   const [descargando_id, set_descargando_id] = useState<string | null>(null);
 
+  // Filtro Global de Rango de Fechas
+  const [fecha_inicio_global, set_fecha_inicio_global] = useState<string>("2026-10-01");
+  const [fecha_fin_global, set_fecha_fin_global] = useState<string>("2026-10-31");
+
   // Estados para exportación individual por estudiante
   const [estudiante_seleccionado_id, set_estudiante_seleccionado_id] = useState<number>(7);
   const [mes_individual, set_mes_individual] = useState<string>("2026-10");
@@ -192,6 +196,9 @@ export function VisorReportesPdf() {
       | "evento"
       | "recorridos_estudiante"
       | "asistencia_estudiante"
+      | "pasajes_general"
+      | "justificaciones_general"
+      | "asistencia_general"
       | "auditoria",
     params?: {
       becario_id?: number;
@@ -216,6 +223,9 @@ export function VisorReportesPdf() {
         else if (endpoint.includes("evento/")) tipo_final = "evento";
         else if (endpoint.includes("recorridos-estudiante")) tipo_final = "recorridos_estudiante";
         else if (endpoint.includes("asistencia-estudiante")) tipo_final = "asistencia_estudiante";
+        else if (endpoint.includes("pasajes-general")) tipo_final = "pasajes_general";
+        else if (endpoint.includes("justificaciones-general")) tipo_final = "justificaciones_general";
+        else if (endpoint.includes("asistencia-general")) tipo_final = "asistencia_general";
         else tipo_final = "auditoria";
       }
 
@@ -282,6 +292,103 @@ export function VisorReportesPdf() {
 
   return (
     <div className="space-y-6">
+      {/* ============================================================== */}
+      {/* BARRA GLOBAL DE FILTRO POR RANGO DE FECHAS                    */}
+      {/* ============================================================== */}
+      <Card className="border-[#035683]/20 shadow-sm bg-gradient-to-r from-blue-50/40 via-white to-slate-50 rounded-2xl overflow-hidden ring-1 ring-[#035683]/10">
+        <CardContent className="p-4 sm:p-5">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-[#035683]" />
+                <span className="font-bold text-sm text-[#035683]">
+                  Filtro Global de Rango de Fechas para Emisión Oficial
+                </span>
+                <Badge variant="outline" className="text-[10px] text-[#00ABBD] border-[#00ABBD]/40 font-mono">
+                  PARAMÉTRICO
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Define el periodo que se aplicará a la emisión consolidada de pasajes, asistencias, justificaciones y exportaciones individuales.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-slate-600">Desde:</span>
+                <SeleccionadorFecha
+                  valorString={fecha_inicio_global}
+                  alCambiarString={(val) => {
+                    set_fecha_inicio_global(val);
+                    set_fecha_inicio_auditoria(val);
+                  }}
+                  className="h-9 w-36 text-xs bg-white border-slate-200 rounded-xl"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-slate-600">Hasta:</span>
+                <SeleccionadorFecha
+                  valorString={fecha_fin_global}
+                  alCambiarString={(val) => {
+                    set_fecha_fin_global(val);
+                    set_fecha_fin_auditoria(val);
+                  }}
+                  className="h-9 w-36 text-xs bg-white border-slate-200 rounded-xl"
+                />
+              </div>
+
+              {/* Botones rápidos */}
+              <div className="flex items-center gap-1.5 pl-2 border-l border-slate-200">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    set_fecha_inicio_global("2026-10-01");
+                    set_fecha_fin_global("2026-10-31");
+                    set_fecha_inicio_auditoria("2026-10-01");
+                    set_fecha_fin_auditoria("2026-10-31");
+                    set_mes_individual("2026-10");
+                  }}
+                  className="h-8 px-2.5 text-[11px] font-semibold border-slate-200 bg-white hover:bg-slate-100 cursor-pointer"
+                >
+                  Este Mes
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    set_fecha_inicio_global("2026-09-01");
+                    set_fecha_fin_global("2026-09-30");
+                    set_fecha_inicio_auditoria("2026-09-01");
+                    set_fecha_fin_auditoria("2026-09-30");
+                    set_mes_individual("2026-09");
+                  }}
+                  className="h-8 px-2.5 text-[11px] font-semibold border-slate-200 bg-white hover:bg-slate-100 cursor-pointer"
+                >
+                  Mes Anterior
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    set_fecha_inicio_global("2026-07-01");
+                    set_fecha_fin_global("2026-11-30");
+                    set_fecha_inicio_auditoria("2026-07-01");
+                    set_fecha_fin_auditoria("2026-11-30");
+                  }}
+                  className="h-8 px-2.5 text-[11px] font-semibold border-[#00ABBD]/40 bg-[#00ABBD]/5 text-[#035683] hover:bg-[#00ABBD]/15 cursor-pointer"
+                >
+                  Semestre II-2026
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* ============================================================== */}
       {/* PANEL DESTACADO: EXTRACCIÓN DE REPORTES POR INTERVALO DE FECHA */}
       {/* ============================================================== */}
@@ -429,7 +536,7 @@ export function VisorReportesPdf() {
         </CardHeader>
 
         <CardContent className="p-4 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {/* Botón 1: Evaluación Semestre II */}
             <Button
               disabled={descargando_id !== null}
@@ -441,7 +548,7 @@ export function VisorReportesPdf() {
                   "evaluacion_semestral_ii"
                 )
               }
-              className="h-11 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl flex items-center gap-2 justify-center shadow-sm"
+              className="h-11 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl flex items-center gap-2 justify-center shadow-sm cursor-pointer"
             >
               {descargando_id === "semestre_ii" ? (
                 <Loader2 className="w-4 h-4 animate-spin text-[#FFB600]" />
@@ -449,6 +556,75 @@ export function VisorReportesPdf() {
                 <Printer className="w-4 h-4 text-[#FFB600]" />
               )}
               <span>Semestre II (2 Páginas)</span>
+            </Button>
+
+            {/* Botón: Reporte General de Pasajes (Liquidación 80%) */}
+            <Button
+              disabled={descargando_id !== null}
+              onClick={() =>
+                descargarReportePuppeteer(
+                  "pasajes_general",
+                  `/pdf/pasajes-general?fecha_inicio=${fecha_inicio_global}&fecha_fin=${fecha_fin_global}`,
+                  `Reporte_General_Pasajes_${fecha_inicio_global}_al_${fecha_fin_global}.pdf`,
+                  "pasajes_general",
+                  { fecha_inicio: fecha_inicio_global, fecha_fin: fecha_fin_global }
+                )
+              }
+              variant="outline"
+              className="h-11 border-blue-300 text-blue-900 bg-blue-50/50 hover:bg-blue-100 font-bold text-xs rounded-xl flex items-center gap-2 justify-center cursor-pointer shadow-xs"
+            >
+              {descargando_id === "pasajes_general" ? (
+                <Loader2 className="w-4 h-4 animate-spin text-[#035683]" />
+              ) : (
+                <Bus className="w-4 h-4 text-[#035683]" />
+              )}
+              <span>Pasajes General (80%)</span>
+            </Button>
+
+            {/* Botón: Reporte de Permisos y Justificaciones */}
+            <Button
+              disabled={descargando_id !== null}
+              onClick={() =>
+                descargarReportePuppeteer(
+                  "justificaciones_general",
+                  `/pdf/justificaciones-general?fecha_inicio=${fecha_inicio_global}&fecha_fin=${fecha_fin_global}`,
+                  `Reporte_General_Justificaciones_${fecha_inicio_global}_al_${fecha_fin_global}.pdf`,
+                  "justificaciones_general",
+                  { fecha_inicio: fecha_inicio_global, fecha_fin: fecha_fin_global }
+                )
+              }
+              variant="outline"
+              className="h-11 border-amber-300 text-amber-900 bg-amber-50/50 hover:bg-amber-100 font-bold text-xs rounded-xl flex items-center gap-2 justify-center cursor-pointer shadow-xs"
+            >
+              {descargando_id === "justificaciones_general" ? (
+                <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
+              ) : (
+                <FileCheck2 className="w-4 h-4 text-amber-600" />
+              )}
+              <span>Permisos y Justificaciones</span>
+            </Button>
+
+            {/* Botón: Reporte Consolidado de Asistencias y Horas */}
+            <Button
+              disabled={descargando_id !== null}
+              onClick={() =>
+                descargarReportePuppeteer(
+                  "asistencia_general",
+                  `/pdf/asistencia-general?fecha_inicio=${fecha_inicio_global}&fecha_fin=${fecha_fin_global}`,
+                  `Reporte_Consolidado_Asistencias_${fecha_inicio_global}_al_${fecha_fin_global}.pdf`,
+                  "asistencia_general",
+                  { fecha_inicio: fecha_inicio_global, fecha_fin: fecha_fin_global }
+                )
+              }
+              variant="outline"
+              className="h-11 border-cyan-300 text-cyan-900 bg-cyan-50/50 hover:bg-cyan-100 font-bold text-xs rounded-xl flex items-center gap-2 justify-center cursor-pointer shadow-xs"
+            >
+              {descargando_id === "asistencia_general" ? (
+                <Loader2 className="w-4 h-4 animate-spin text-[#00ABBD]" />
+              ) : (
+                <Clock className="w-4 h-4 text-[#00ABBD]" />
+              )}
+              <span>Consolidado Asistencia</span>
             </Button>
 
             {/* Botón 2: Corte de Horas */}
@@ -463,7 +639,7 @@ export function VisorReportesPdf() {
                 )
               }
               variant="outline"
-              className="h-11 border-slate-300 text-[#035683] font-bold text-xs rounded-xl flex items-center gap-2 justify-center hover:bg-slate-50"
+              className="h-11 border-slate-300 text-[#035683] font-bold text-xs rounded-xl flex items-center gap-2 justify-center hover:bg-slate-50 cursor-pointer"
             >
               {descargando_id === "horas" ? (
                 <Loader2 className="w-4 h-4 animate-spin text-[#00ABBD]" />
@@ -485,7 +661,7 @@ export function VisorReportesPdf() {
                 )
               }
               variant="outline"
-              className="h-11 border-emerald-300 text-emerald-800 bg-emerald-50/50 hover:bg-emerald-100 font-bold text-xs rounded-xl flex items-center gap-2 justify-center"
+              className="h-11 border-emerald-300 text-emerald-800 bg-emerald-50/50 hover:bg-emerald-100 font-bold text-xs rounded-xl flex items-center gap-2 justify-center cursor-pointer"
             >
               {descargando_id === "refrigerios" ? (
                 <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
@@ -508,7 +684,7 @@ export function VisorReportesPdf() {
                 )
               }
               variant="outline"
-              className="h-11 border-slate-300 text-[#035683] font-bold text-xs rounded-xl flex items-center gap-2 justify-center hover:bg-slate-50"
+              className="h-11 border-slate-300 text-[#035683] font-bold text-xs rounded-xl flex items-center gap-2 justify-center hover:bg-slate-50 cursor-pointer"
             >
               {descargando_id === "f03" ? (
                 <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
@@ -531,7 +707,7 @@ export function VisorReportesPdf() {
                 )
               }
               variant="outline"
-              className="h-11 border-slate-300 text-[#035683] font-bold text-xs rounded-xl flex items-center gap-2 justify-center hover:bg-slate-50"
+              className="h-11 border-slate-300 text-[#035683] font-bold text-xs rounded-xl flex items-center gap-2 justify-center hover:bg-slate-50 cursor-pointer"
             >
               {descargando_id === "evento" ? (
                 <Loader2 className="w-4 h-4 animate-spin text-[#00ABBD]" />
@@ -639,13 +815,18 @@ export function VisorReportesPdf() {
                 onClick={() =>
                   descargarReportePuppeteer(
                     `recorridos_${estudiante_actual.id}`,
-                    `/pdf/recorridos-estudiante/${estudiante_actual.id}?mes=${mes_individual}`,
+                    `/pdf/recorridos-estudiante/${estudiante_actual.id}?mes=${mes_individual}&fecha_inicio=${fecha_inicio_global}&fecha_fin=${fecha_fin_global}`,
                     `Expediente_Recorridos_${estudiante_actual.nombre.replace(/\s+/g, "_")}_${mes_individual}.pdf`,
                     "recorridos_estudiante",
-                    { becario_id: estudiante_actual.id, mes: mes_individual }
+                    {
+                      becario_id: estudiante_actual.id,
+                      mes: mes_individual,
+                      fecha_inicio: fecha_inicio_global,
+                      fecha_fin: fecha_fin_global,
+                    }
                   )
                 }
-                className="h-9 px-3.5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl shadow-xs gap-1.5"
+                className="h-9 px-3.5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl shadow-xs gap-1.5 cursor-pointer"
               >
                 {descargando_id === `recorridos_${estudiante_actual.id}` ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-[#FFB600]" />
@@ -663,13 +844,18 @@ export function VisorReportesPdf() {
                 onClick={() =>
                   descargarReportePuppeteer(
                     `asistencia_${estudiante_actual.id}`,
-                    `/pdf/asistencia-estudiante/${estudiante_actual.id}?mes=${mes_individual}`,
+                    `/pdf/asistencia-estudiante/${estudiante_actual.id}?mes=${mes_individual}&fecha_inicio=${fecha_inicio_global}&fecha_fin=${fecha_fin_global}`,
                     `Asistencia_Mensual_${estudiante_actual.nombre.replace(/\s+/g, "_")}_${mes_individual}.pdf`,
                     "asistencia_estudiante",
-                    { becario_id: estudiante_actual.id, mes: mes_individual }
+                    {
+                      becario_id: estudiante_actual.id,
+                      mes: mes_individual,
+                      fecha_inicio: fecha_inicio_global,
+                      fecha_fin: fecha_fin_global,
+                    }
                   )
                 }
-                className="h-9 px-3.5 border-[#035683] text-[#035683] hover:bg-slate-100 font-bold text-xs rounded-xl shadow-2xs gap-1.5"
+                className="h-9 px-3.5 border-[#035683] text-[#035683] hover:bg-slate-100 font-bold text-xs rounded-xl shadow-2xs gap-1.5 cursor-pointer"
               >
                 {descargando_id === `asistencia_${estudiante_actual.id}` ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-[#00ABBD]" />

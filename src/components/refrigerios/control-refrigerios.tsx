@@ -60,6 +60,7 @@ import {
 } from "@/components/animaciones";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { clienteApi } from "@/lib/cliente-api";
+import { useConsulta } from "@/hooks/useConsulta";
 import { toast } from "sonner";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 
@@ -148,14 +149,14 @@ const REGISTROS_REFRIGERIOS_INICIALES: RegistroRacionRefrigerio[] = [
     becario_encargado_2: "Alejandro Roberth Paredes Tarquino",
     modalidad_preparacion: "cocina_diaconia",
     cantidad_raciones: 23,
-    costo_unitario_bs: 6.0,
-    costo_total_bs: 138.0,
-    presupuesto_referencial_bs: 138.0,
+    costo_unitario_bs: 5.0,
+    costo_total_bs: 115.0,
+    presupuesto_referencial_bs: 115.0,
     porcentaje_devolucion: 100,
-    monto_devolucion_bs: 138.0,
+    monto_devolucion_bs: 115.0,
     sede_nombre: "Oficina Central El Alto",
     bloque: "Bloque B (Auditorio)",
-    responsable_entrega: "Angel Javier Ali Paz",
+    responsable_entrega: "Administración Central",
     estado_reposicion: "rendido_pendiente",
     observaciones:
       "Refrigerio preparado para la jornada de Escuela de Líderes.",
@@ -170,15 +171,13 @@ const REGISTROS_REFRIGERIOS_INICIALES: RegistroRacionRefrigerio[] = [
     becario_encargado_2: "Carlos Oscar Luna Lizarraga",
     modalidad_preparacion: "traido_de_casa",
     cantidad_raciones: 23,
-    costo_unitario_bs: 6.0,
-    costo_total_bs: 138.0,
-    presupuesto_referencial_bs: 138.0,
+    costo_unitario_bs: 5.0,
+    costo_total_bs: 115.0,
+    presupuesto_referencial_bs: 115.0,
     porcentaje_devolucion: 100,
-    monto_devolucion_bs: 138.0,
+    monto_devolucion_bs: 115.0,
     becario_receptor_devolucion_nombre: "Carlos Oscar Luna Lizarraga",
     fecha_devolucion: "2026-10-17",
-    supervisor_revisor: "Angel Javier Ali Paz",
-    fecha_revision_supervisor: "2026-10-16",
     administrador_revisor: "Lic. Claudia Cabrera",
     fecha_aprobacion_admin: "2026-10-17",
     sede_nombre: "Oficina Central El Alto",
@@ -198,17 +197,17 @@ const REGISTROS_REFRIGERIOS_INICIALES: RegistroRacionRefrigerio[] = [
     becario_encargado_2: "Nilda Amalia Churata Paye",
     modalidad_preparacion: "compra_directa",
     cantidad_raciones: 23,
-    costo_unitario_bs: 5.5,
-    costo_total_bs: 126.5,
-    presupuesto_referencial_bs: 138.0,
+    costo_unitario_bs: 5.0,
+    costo_total_bs: 115.0,
+    presupuesto_referencial_bs: 115.0,
     porcentaje_devolucion: 100,
-    monto_devolucion_bs: 126.5,
-    supervisor_revisor: "Angel Javier Ali Paz",
-    fecha_revision_supervisor: "2026-10-09",
+    monto_devolucion_bs: 115.0,
+    administrador_revisor: "Lic. Claudia Cabrera",
+    fecha_aprobacion_admin: "2026-10-10",
     sede_nombre: "Oficina Central El Alto",
     bloque: "Bloque B (Auditorio)",
-    responsable_entrega: "Angel Javier Ali Paz",
-    estado_reposicion: "revisado_supervisor",
+    responsable_entrega: "Administración Central",
+    estado_reposicion: "aprobado_administracion",
     observaciones: "Refrigerio adquirido y distribuido a los becarios.",
   },
   {
@@ -221,13 +220,13 @@ const REGISTROS_REFRIGERIOS_INICIALES: RegistroRacionRefrigerio[] = [
     becario_encargado_2: "Isaias Daniel Herrera Mamani",
     modalidad_preparacion: "cocina_diaconia",
     cantidad_raciones: 23,
-    costo_unitario_bs: 6.0,
-    costo_total_bs: 138.0,
-    presupuesto_referencial_bs: 138.0,
+    costo_unitario_bs: 5.0,
+    costo_total_bs: 115.0,
+    presupuesto_referencial_bs: 115.0,
     porcentaje_devolucion: 100,
     sede_nombre: "Oficina Central El Alto",
     bloque: "Bloque B (Auditorio)",
-    responsable_entrega: "Angel Javier Ali Paz",
+    responsable_entrega: "Administración Central",
     estado_reposicion: "sorteado_programado",
     observaciones: "Dupla sorteada en ronda oficial de Escuela de Líderes.",
   },
@@ -247,6 +246,50 @@ export function ControlRefrigerios() {
   const [registros, set_registros] = useState<RegistroRacionRefrigerio[]>(
     REGISTROS_REFRIGERIOS_INICIALES
   );
+
+  const { datos: registros_servidor, invalidar } = useConsulta<RegistroRacionRefrigerio[]>(
+    "refrigerios_lista",
+    async () => {
+      try {
+        const resp = await clienteApi.get<any[]>("/api/refrigerios");
+        if (Array.isArray(resp) && resp.length > 0) {
+          return resp.map((item, idx) => ({
+            id: item.id || idx + 1,
+            fecha: item.fecha ? String(item.fecha).split("T")[0] : "2026-10-23",
+            evento_o_jornada: item.descripcion || item.evento_o_jornada || "Viernes Formativo - Escuela de Líderes",
+            tipo_refrigerio: item.tipo_refrigerio || "refrigerio_tarde",
+            becario_encargado: item.becario_encargado || item.becario_nombre || "Becarios Asignados",
+            becario_encargado_1: item.becario_encargado_1 || (item.becario_encargado ? item.becario_encargado.split(" y ")[0] : "Becario 1"),
+            becario_encargado_2: item.becario_encargado_2 || (item.becario_encargado ? item.becario_encargado.split(" y ")[1] : "Becario 2"),
+            modalidad_preparacion: item.modalidad_preparacion || "cocina_diaconia",
+            cantidad_raciones: Number(item.cantidad_raciones) || 23,
+            costo_unitario_bs: Number(item.costo_unitario_bs) || 5.0,
+            costo_total_bs: Number(item.costo_total_bs) || 115.0,
+            presupuesto_referencial_bs: 115.0,
+            porcentaje_devolucion: 100,
+            monto_devolucion_bs: Number(item.monto_devolucion_bs || item.costo_total_bs) || 115.0,
+            becario_receptor_devolucion_nombre: item.becario_receptor_devolucion_nombre || null,
+            fecha_devolucion: item.fecha_devolucion || null,
+            sede_nombre: item.sede_nombre || "Oficina Central El Alto",
+            bloque: item.bloque || "Bloque B (Auditorio)",
+            responsable_entrega: item.responsable_entrega || "Administración Central",
+            estado_reposicion: (item.estado_reposicion || "rendido_pendiente") as RegistroRacionRefrigerio["estado_reposicion"],
+            administrador_revisor: item.administrador_revisor || item.administrador_nombre || null,
+            fecha_aprobacion_admin: item.fecha_aprobacion_admin || null,
+            observaciones: item.observaciones || "Rendición de refrigerio por la dupla.",
+          }));
+        }
+      } catch {}
+      return REGISTROS_REFRIGERIOS_INICIALES;
+    },
+    { datos_iniciales: REGISTROS_REFRIGERIOS_INICIALES }
+  );
+
+  useEffect(() => {
+    if (registros_servidor && registros_servidor.length > 0) {
+      set_registros(registros_servidor);
+    }
+  }, [registros_servidor]);
   const [busqueda, set_busqueda] = useState("");
   const [modal_nuevo_abierto, set_modal_nuevo_abierto] = useState(false);
   const [modal_sorteo_abierto, set_modal_sorteo_abierto] = useState(false);
@@ -301,8 +344,8 @@ export function ControlRefrigerios() {
     BECARIOS_OFICIALES[1] || "Alejandro Roberth Paredes Tarquino"
   );
   const [nueva_cantidad, set_nueva_cantidad] = useState("23");
-  const [nuevo_costo_total, set_nuevo_costo_total] = useState("138.00");
-  const [nuevo_costo_unitario, set_nuevo_costo_unitario] = useState("6.00");
+  const [nuevo_costo_total, set_nuevo_costo_total] = useState("115.00");
+  const [nuevo_costo_unitario, set_nuevo_costo_unitario] = useState("5.00");
   const [nueva_sede, set_nueva_sede] = useState("Oficina Central El Alto");
   const [nuevo_bloque, set_nuevo_bloque] = useState("Bloque A (Administración)");
 
@@ -312,8 +355,8 @@ export function ControlRefrigerios() {
     set_nuevo_encargado_1(BECARIOS_OFICIALES[0] || "Adai Belen Huayta Cardozo");
     set_nuevo_encargado_2(BECARIOS_OFICIALES[1] || "Alejandro Roberth Paredes Tarquino");
     set_nueva_cantidad("23");
-    set_nuevo_costo_total("138.00");
-    set_nuevo_costo_unitario("6.00");
+    set_nuevo_costo_total("115.00");
+    set_nuevo_costo_unitario("5.00");
     set_nueva_sede("Oficina Central El Alto");
     set_nuevo_bloque("Bloque A (Administración)");
   };
@@ -324,8 +367,8 @@ export function ControlRefrigerios() {
     nuevo_encargado_1 !== (BECARIOS_OFICIALES[0] || "Adai Belen Huayta Cardozo") ||
     nuevo_encargado_2 !== (BECARIOS_OFICIALES[1] || "Alejandro Roberth Paredes Tarquino") ||
     nueva_cantidad !== "23" ||
-    nuevo_costo_total !== "138.00" ||
-    nuevo_costo_unitario !== "6.00" ||
+    nuevo_costo_total !== "115.00" ||
+    nuevo_costo_unitario !== "5.00" ||
     nueva_sede !== "Oficina Central El Alto" ||
     nuevo_bloque !== "Bloque A (Administración)";
 
@@ -343,10 +386,8 @@ export function ControlRefrigerios() {
   const manejarCambioCantidad = (val: string) => {
     set_nueva_cantidad(val);
     const cant = parseFloat(val) || 0;
-    const unitario = parseFloat(nuevo_costo_unitario) || 0;
-    if (cant > 0 && unitario > 0) {
-      set_nuevo_costo_total((cant * unitario).toFixed(2));
-    }
+    set_nuevo_costo_unitario("5.00");
+    set_nuevo_costo_total((cant * 5).toFixed(2));
   };
 
   const manejarCambioCostoTotal = (val: string) => {
@@ -367,7 +408,7 @@ export function ControlRefrigerios() {
     }
   };
 
-  const confirmarProgramacionDupla = () => {
+  const confirmarProgramacionDupla = async () => {
     if (sorteo_encargado_1 === sorteo_encargado_2) {
       toast.error("Deben ser dos becarios distintos para conformar la dupla.");
       return;
@@ -383,15 +424,15 @@ export function ControlRefrigerios() {
       becario_encargado_2: sorteo_encargado_2,
       modalidad_preparacion: "cocina_diaconia",
       cantidad_raciones: 23,
-      costo_unitario_bs: 6.0,
-      costo_total_bs: 138.0,
-      presupuesto_referencial_bs: 138.0,
+      costo_unitario_bs: 5.0,
+      costo_total_bs: 115.0,
+      presupuesto_referencial_bs: 115.0,
       porcentaje_devolucion: 100,
       sede_nombre: "Oficina Central El Alto",
       bloque: "Bloque B (Auditorio)",
-      responsable_entrega: usuario?.nombre || "Angel Javier Ali Paz",
+      responsable_entrega: usuario?.nombre || "Administración Central",
       estado_reposicion: "sorteado_programado",
-      observaciones: "Dupla oficial designada por la Directiva para este viernes. Presupuesto asignado Bs 138.00.",
+      observaciones: "Dupla oficial designada por la Directiva para este viernes. Presupuesto asignado Bs 115.00.",
     };
 
     set_registros([nuevo_refrigerio, ...registros]);
@@ -399,15 +440,16 @@ export function ControlRefrigerios() {
     toast.success("Viernes de refrigerio programado exitosamente", {
       description: `Dupla designada por Directiva: ${sorteo_encargado_1} y ${sorteo_encargado_2} para el ${sorteo_viernes_fecha}.`,
     });
+    await invalidar();
   };
 
   // Guardar nuevo registro de entrega de raciones de refrigerio
-  const manejarGuardarRefrigerio = (e: React.FormEvent) => {
+  const manejarGuardarRefrigerio = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const cant = parseInt(nueva_cantidad, 10) || 23;
-    const costo_t = parseFloat(nuevo_costo_total) || 138.0;
-    const precio_u = parseFloat(nuevo_costo_unitario) || (cant > 0 ? costo_t / cant : 6.0);
+    const costo_t = parseFloat(nuevo_costo_total) || 115.0;
+    const precio_u = parseFloat(nuevo_costo_unitario) || 5.0;
     const evento_final = nuevo_evento.trim() || "Escuela de Líderes (Viernes Formativo)";
 
     const nuevo: RegistroRacionRefrigerio = {
@@ -421,7 +463,7 @@ export function ControlRefrigerios() {
       cantidad_raciones: cant,
       costo_unitario_bs: precio_u,
       costo_total_bs: costo_t,
-      presupuesto_referencial_bs: 138.0,
+      presupuesto_referencial_bs: 115.0,
       porcentaje_devolucion: 100,
       monto_devolucion_bs: costo_t,
       sede_nombre: nueva_sede,
@@ -439,18 +481,17 @@ export function ControlRefrigerios() {
     });
 
     try {
-      clienteApi
-        .post("/api/refrigerios", {
-          fecha: nueva_fecha,
-          descripcion: evento_final,
-          cantidad_raciones: cant,
-          costo_unitario_bs: precio_u,
-          costo_total_bs: costo_t,
-          responsable_id: usuario?.id || 1,
-          becario_nombre: `${nuevo_encargado_1} y ${nuevo_encargado_2}`,
-          estado_reposicion: "rendido_pendiente",
-        })
-        .catch(() => {});
+      await clienteApi.post("/api/refrigerios", {
+        fecha: nueva_fecha,
+        descripcion: evento_final,
+        cantidad_raciones: cant,
+        costo_unitario_bs: precio_u,
+        costo_total_bs: costo_t,
+        responsable_id: usuario?.id || 1,
+        becario_nombre: `${nuevo_encargado_1} y ${nuevo_encargado_2}`,
+        estado_reposicion: "rendido_pendiente",
+      });
+      await invalidar();
     } catch {
       // Fallback local
     }
@@ -539,6 +580,7 @@ export function ControlRefrigerios() {
       description: `Monto total de Bs ${item_para_devolucion.costo_total_bs.toFixed(2)} reembolsado al 100% a: ${becario_receptor_elegido}.`,
     });
     set_item_para_devolucion(null);
+    await invalidar();
   };
 
   // Descarga del PDF oficial real con resiliencia
@@ -692,70 +734,82 @@ export function ControlRefrigerios() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Botón: Asignar Dupla del Viernes */}
-          <Button
-            onClick={() => set_modal_sorteo_abierto(true)}
-            variant="outline"
-            className="border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 font-bold rounded-xl text-xs h-10 px-3.5 gap-2 shadow-2xs"
-          >
-            <Users className="w-4 h-4 text-[#00ABBD]" />
-            <span>👥 Asignar Dupla del Viernes</span>
-          </Button>
-
-          {/* Botón: Registrar Raciones e Ingredientes */}
-          <Dialog
-            open={modal_nuevo_abierto}
-            onOpenChange={(abierto) => {
-              if (!abierto) {
-                intentarCerrarModalRefrigerio();
-              } else {
-                set_modal_nuevo_abierto(true);
-              }
-            }}
-          >
-            <DialogTrigger asChild>
-              <div>
-                <BotonJuicy variante="primario" tamaño="md">
-                  <Plus className="w-4 h-4" />
-                  <span>Registrar Raciones de Refrigerio</span>
-                </BotonJuicy>
-              </div>
-            </DialogTrigger>
-
-            <DialogContent
-              showCloseButton={false}
-              className="sm:max-w-[620px] max-h-[92vh] flex flex-col p-0 overflow-hidden bg-white border border-[#E5E7EB] rounded-2xl shadow-2xl"
+        {es_admin && (
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Botón: Asignar Dupla del Viernes */}
+            <Button
+              onClick={() => set_modal_sorteo_abierto(true)}
+              variant="outline"
+              className="border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 font-bold rounded-xl text-xs h-10 px-3.5 gap-2 shadow-2xs cursor-pointer"
             >
-              <DialogHeader
-                showCloseButton={false}
-                className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA] flex flex-row items-center justify-between"
-              >
-                <div>
-                  <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
-                    <Utensils className="w-5 h-5 text-[#00ABBD]" />
-                    <span>Registrar Raciones de Refrigerio</span>
-                  </DialogTitle>
-                  <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                    Descargo oficial de la dupla del viernes para devolución íntegra al 100%.
-                  </DialogDescription>
-                </div>
-                {/* Botón X de cierre solicitado por el usuario */}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={intentarCerrarModalRefrigerio}
-                  className="h-8 w-8 rounded-full text-slate-500 hover:text-slate-800 hover:bg-slate-200"
-                  aria-label="Cerrar modal"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </DialogHeader>
+              <Users className="w-4 h-4 text-[#00ABBD]" />
+              <span>👥 Asignar Dupla del Viernes</span>
+            </Button>
 
-              <form onSubmit={manejarGuardarRefrigerio} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-                <DialogBody className="p-5 space-y-4 overflow-y-auto flex-1 min-h-0 bg-white">
-                  {/* Fila 1: Fecha de Entrega (Viernes) y Evento o Jornada Vinculada */}
+            {/* Botón: Registrar Raciones e Ingredientes */}
+            <Dialog
+              open={modal_nuevo_abierto}
+              onOpenChange={(abierto) => {
+                if (!abierto) {
+                  intentarCerrarModalRefrigerio();
+                } else {
+                  set_modal_nuevo_abierto(true);
+                }
+              }}
+            >
+              <DialogTrigger asChild>
+                <div>
+                  <BotonJuicy variante="primario" tamaño="md">
+                    <Plus className="w-4 h-4" />
+                    <span>Registrar Raciones de Refrigerio</span>
+                  </BotonJuicy>
+                </div>
+              </DialogTrigger>
+
+              <DialogContent
+                showCloseButton={false}
+                className="sm:max-w-[620px] max-h-[92vh] flex flex-col p-0 overflow-hidden bg-white border border-[#E5E7EB] rounded-2xl shadow-2xl"
+              >
+                <DialogHeader
+                  showCloseButton={false}
+                  className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA] flex flex-row items-center justify-between"
+                >
+                  <div>
+                    <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+                      <Utensils className="w-5 h-5 text-[#00ABBD]" />
+                      <span>Registrar Raciones de Refrigerio</span>
+                    </DialogTitle>
+                    <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                      Descargo oficial de la dupla del viernes para devolución íntegra al 100%.
+                    </DialogDescription>
+                  </div>
+                  {/* Botón X de cierre solicitado por el usuario */}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={intentarCerrarModalRefrigerio}
+                    className="h-8 w-8 rounded-full text-slate-500 hover:text-slate-800 hover:bg-slate-200 cursor-pointer"
+                    aria-label="Cerrar modal"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </DialogHeader>
+
+                <form onSubmit={manejarGuardarRefrigerio} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                  <DialogBody className="p-5 space-y-4 overflow-y-auto flex-1 min-h-0 bg-white">
+                    {/* Recuadro informativo destacado de Presupuesto Oficial */}
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-1">
+                      <span className="font-bold flex items-center gap-1 text-[#035683]">
+                        <Coins className="w-3.5 h-3.5 text-[#FFB600]" />
+                        Presupuesto Oficial: Bs 5.00 por persona ({nueva_cantidad || 23} raciones × Bs 5.00 = Bs {((Number(nueva_cantidad) || 23) * 5).toFixed(2)})
+                      </span>
+                      <p className="text-[11px] text-slate-600">
+                        Tarifa institucional oficial de Bs 5.00 por persona. Al rendir el descargo, se procesará la devolución íntegra del 100%.
+                      </p>
+                    </div>
+
+                    {/* Fila 1: Fecha de Entrega (Viernes) y Evento o Jornada Vinculada */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <Label className="text-xs font-semibold">Fecha de Entrega (Viernes)</Label>
@@ -915,6 +969,7 @@ export function ControlRefrigerios() {
             </DialogContent>
           </Dialog>
         </div>
+        )}
       </div>
 
       {/* ============================================================== */}
@@ -1127,31 +1182,14 @@ export function ControlRefrigerios() {
 
                   {/* Acciones de Flujo */}
                   <div className="flex items-center gap-1.5">
-                    {/* Botón Flujo: Marcar Revisado por Supervisor */}
-                    {es_supervisor &&
-                      (item.estado_reposicion === "rendido_pendiente" ||
-                        item.estado_reposicion === "pendiente" ||
-                        item.estado_reposicion === "sorteado_programado") && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => manejarRevisarSupervisor(item)}
-                          className="h-8 px-2.5 text-xs border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg font-bold flex items-center gap-1"
-                          title="Marcar Revisado por Supervisor (Paso 1)"
-                        >
-                          <Check className="w-3.5 h-3.5 text-[#00ABBD]" />
-                          <span>Revisar</span>
-                        </Button>
-                      )}
-
                     {/* Botón Flujo: Aprobar Devolución 100% por Administración */}
                     {es_admin &&
                       item.estado_reposicion !== "aprobado_administracion" && (
                         <Button
                           size="sm"
                           onClick={() => abrirModalAprobarAdministracion(item)}
-                          className="h-8 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold flex items-center gap-1 shadow-xs"
-                          title="Aprobar y Registrar Devolución 100% (Paso 2)"
+                          className="h-8 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold flex items-center gap-1 shadow-xs cursor-pointer"
+                          title="Aprobar y Registrar Devolución 100% de fondos"
                         >
                           <Coins className="w-3.5 h-3.5 text-[#FFB600]" />
                           <span>Aprobar 100%</span>
@@ -1310,7 +1348,7 @@ export function ControlRefrigerios() {
                 Presupuesto Oficial de Escuela de Líderes:
               </span>
               <p className="text-[11px] text-slate-600">
-                23 raciones × Bs 6.00 = <strong>Bs 138.00</strong> (presupuesto estimado de <strong>Bs 125.00 a Bs 150.00</strong>). Al rendir la entrega del refrigerio, se procesará la <strong>devolución íntegra del 100%</strong>.
+                23 raciones × Bs 5.00 = <strong>Bs 115.00</strong> (tarifa institucional de Bs 5.00 por persona). Al rendir la entrega del refrigerio, se procesará la <strong>devolución íntegra del 100%</strong>.
               </p>
             </div>
           </DialogBody>

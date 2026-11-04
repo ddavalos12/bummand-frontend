@@ -33,6 +33,12 @@ import {
   FileSpreadsheet,
   Download,
   Trash2,
+  Search,
+  Plus,
+  Pencil,
+  Phone,
+  Mail,
+  MapPin,
   ExternalLink,
   FileUp,
   FileCheck,
@@ -643,9 +649,218 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
   const [nuevo_subtitulo, set_nuevo_subtitulo] = useState("Apertura institucional 2027");
   const [nuevo_rango, set_nuevo_rango] = useState("Enero – Junio 2027");
 
-  // Configuración de campos F-03: Conexión a Catálogo
-  const [campo_iglesia_conectado, set_campo_iglesia_conectado] = useState<boolean>(true);
-  const [campo_pastor_conectado, set_campo_pastor_conectado] = useState<boolean>(true);
+  // ==============================================================
+  // ESTADOS OFICIALES PARA MÓDULO 1 (IGLESIA F-03) Y DIRECTORIO
+  // ==============================================================
+  interface BecarioF03Item {
+    becario_id: number;
+    nombre: string;
+    ci: string;
+    evaluacion_id?: number | null;
+    puntaje?: number | null;
+    estado: string;
+    iglesia_nombre?: string | null;
+    pastor_nombre?: string | null;
+    pastor_celular?: string | null;
+    campos_formulario?: Record<string, unknown> | null;
+    fecha_evaluacion?: string | null;
+  }
+
+  interface IglesiaItem {
+    id: number;
+    nombre: string;
+    direccion?: string;
+    pastor_nombre?: string;
+    pastor_telefono?: string;
+    pastor_correo?: string;
+    latitud?: number;
+    longitud?: number;
+    radio_tolerancia_m?: number;
+  }
+
+  const [nomina_f03, set_nomina_f03] = useState<BecarioF03Item[]>([]);
+  const [cargando_nomina_f03, set_cargando_nomina_f03] = useState<boolean>(true);
+  const [busqueda_f03, set_busqueda_f03] = useState<string>("");
+
+  const [iglesias, set_iglesias] = useState<IglesiaItem[]>([]);
+  const [cargando_iglesias, set_cargando_iglesias] = useState<boolean>(true);
+
+  // Modal para evaluar F-03 por becario
+  const [becario_f03_seleccionado, set_becario_f03_seleccionado] = useState<BecarioF03Item | null>(null);
+  const [modal_evaluar_f03_abierto, set_modal_evaluar_f03_abierto] = useState<boolean>(false);
+
+  // Modal Agregar / Editar Iglesia
+  const [modal_iglesia_abierto, set_modal_iglesia_abierto] = useState<boolean>(false);
+  const [iglesia_editando, set_iglesia_editando] = useState<IglesiaItem | null>(null);
+  const [form_iglesia_nombre, set_form_iglesia_nombre] = useState<string>("");
+  const [form_iglesia_direccion, set_form_iglesia_direccion] = useState<string>("");
+  const [form_iglesia_pastor, set_form_iglesia_pastor] = useState<string>("");
+  const [form_iglesia_telefono, set_form_iglesia_telefono] = useState<string>("");
+  const [form_iglesia_correo, set_form_iglesia_correo] = useState<string>("");
+  const [form_iglesia_radio, set_form_iglesia_radio] = useState<number>(60);
+  const [guardando_iglesia, set_guardando_iglesia] = useState<boolean>(false);
+
+  const cargarNominaF03 = async () => {
+    try {
+      set_cargando_nomina_f03(true);
+      const res = await clienteApi.get<BecarioF03Item[]>("/evaluaciones/f03/nomina");
+      if (res && Array.isArray(res) && res.length > 0) {
+        set_nomina_f03(res);
+      } else {
+        const inicial = BECARIOS_SEMESTRE_II.map((b) => ({
+          becario_id: b.id,
+          nombre: b.nombre_completo,
+          ci: b.ci,
+          evaluacion_id: null,
+          puntaje: b.liderazgo_iglesia || null,
+          estado: (b.liderazgo_iglesia > 0 ? "Evaluado" : "Pendiente") as "Evaluado" | "Pendiente",
+          iglesia_nombre: "Iglesia Evangélica Amigos Central",
+          pastor_nombre: "Luis Álvaro Quispe Condori",
+          pastor_celular: "73236864",
+          campos_formulario: null,
+          fecha_evaluacion: b.liderazgo_iglesia > 0 ? "2026-10-15" : null,
+        }));
+        set_nomina_f03(inicial);
+      }
+    } catch (_e) {
+      const inicial = BECARIOS_SEMESTRE_II.map((b) => ({
+        becario_id: b.id,
+        nombre: b.nombre_completo,
+        ci: b.ci,
+        evaluacion_id: null,
+        puntaje: b.liderazgo_iglesia || null,
+        estado: (b.liderazgo_iglesia > 0 ? "Evaluado" : "Pendiente") as "Evaluado" | "Pendiente",
+        iglesia_nombre: "Iglesia Evangélica Amigos Central",
+        pastor_nombre: "Luis Álvaro Quispe Condori",
+        pastor_celular: "73236864",
+        campos_formulario: null,
+        fecha_evaluacion: b.liderazgo_iglesia > 0 ? "2026-10-15" : null,
+      }));
+      set_nomina_f03(inicial);
+    } finally {
+      set_cargando_nomina_f03(false);
+    }
+  };
+
+  const cargarIglesias = async () => {
+    try {
+      set_cargando_iglesias(true);
+      const res = await clienteApi.get<IglesiaItem[]>("/iglesias");
+      if (res && Array.isArray(res) && res.length > 0) {
+        set_iglesias(res);
+      } else {
+        set_iglesias(
+          CATALOGO_IGLESIAS_INSTITUCIONALES.map((ig, idx) => ({
+            id: Number(ig.id) || idx + 1,
+            nombre: ig.nombre,
+            direccion: ig.direccion,
+            pastor_nombre: ig.pastor_nombre,
+            pastor_telefono: ig.pastor_celular,
+            pastor_correo: ig.pastor_email,
+            radio_tolerancia_m: 60,
+          }))
+        );
+      }
+    } catch (_e) {
+      set_iglesias(
+        CATALOGO_IGLESIAS_INSTITUCIONALES.map((ig, idx) => ({
+          id: Number(ig.id) || idx + 1,
+          nombre: ig.nombre,
+          direccion: ig.direccion,
+          pastor_nombre: ig.pastor_nombre,
+          pastor_telefono: ig.pastor_celular,
+          pastor_correo: ig.pastor_email,
+          radio_tolerancia_m: 60,
+        }))
+      );
+    } finally {
+      set_cargando_iglesias(false);
+    }
+  };
+
+  useEffect(() => {
+    cargarNominaF03();
+    cargarIglesias();
+  }, []);
+
+  const abrirModalNuevaIglesia = () => {
+    set_iglesia_editando(null);
+    set_form_iglesia_nombre("");
+    set_form_iglesia_direccion("");
+    set_form_iglesia_pastor("");
+    set_form_iglesia_telefono("");
+    set_form_iglesia_correo("");
+    set_form_iglesia_radio(60);
+    set_modal_iglesia_abierto(true);
+  };
+
+  const abrirModalEditarIglesia = (ig: IglesiaItem) => {
+    set_iglesia_editando(ig);
+    set_form_iglesia_nombre(ig.nombre);
+    set_form_iglesia_direccion(ig.direccion || "");
+    set_form_iglesia_pastor(ig.pastor_nombre || "");
+    set_form_iglesia_telefono(ig.pastor_telefono || "");
+    set_form_iglesia_correo(ig.pastor_correo || "");
+    set_form_iglesia_radio(ig.radio_tolerancia_m || 60);
+    set_modal_iglesia_abierto(true);
+  };
+
+  const guardarIglesia = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form_iglesia_nombre.trim()) {
+      toast.error("El nombre de la congregación es obligatorio.");
+      return;
+    }
+
+    set_guardando_iglesia(true);
+    try {
+      const payload = {
+        nombre: form_iglesia_nombre.trim(),
+        direccion: form_iglesia_direccion.trim() || undefined,
+        pastor_nombre: form_iglesia_pastor.trim() || undefined,
+        pastor_telefono: form_iglesia_telefono.trim() || undefined,
+        pastor_correo: form_iglesia_correo.trim() || undefined,
+        radio_tolerancia_m: Number(form_iglesia_radio) || 60,
+      };
+
+      if (iglesia_editando) {
+        await clienteApi.put(`/iglesias/${iglesia_editando.id}`, payload);
+        toast.success("Congregación actualizada exitosamente.");
+        set_iglesias((prev) =>
+          prev.map((i) => (i.id === iglesia_editando.id ? { ...i, ...payload } : i))
+        );
+      } else {
+        const nueva = await clienteApi.post<IglesiaItem>("/iglesias", payload);
+        toast.success("Nueva congregación registrada en el catálogo oficial.");
+        if (nueva && nueva.id) {
+          set_iglesias((prev) => [...prev, nueva]);
+        } else {
+          set_iglesias((prev) => [
+            ...prev,
+            { id: Date.now(), ...payload },
+          ]);
+        }
+      }
+      set_modal_iglesia_abierto(false);
+    } catch (_error) {
+      toast.error("Error al guardar la congregación en el servidor.");
+    } finally {
+      set_guardando_iglesia(false);
+    }
+  };
+
+  const eliminarIglesia = async (id: number, nombre: string) => {
+    if (!window.confirm(`¿Está seguro de remover la congregación "${nombre}" del catálogo oficial?`)) {
+      return;
+    }
+    try {
+      await clienteApi.delete(`/iglesias/${id}`);
+      set_iglesias((prev) => prev.filter((i) => i.id !== id));
+      toast.success(`Congregación "${nombre}" eliminada del catálogo.`);
+    } catch (_error) {
+      toast.error("No se pudo eliminar la iglesia. Verifique si tiene becarios asignados.");
+    }
+  };
 
   // Métricas Administrativas Oficiales del Semestre II (21 Becarios)
   const total_becarios = BECARIOS_SEMESTRE_II.length;
@@ -958,156 +1173,409 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
         </div>
       )}
 
-      {/* ============================================================== */}
-      {/* TAB 2: ESTRUCTURA FORMULARIO F-03 (MINISTERIAL / IGLESIA)      */}
+            {/* ============================================================== */}
+      {/* TAB 2: GOBERNANZA OPERATIVA F-03 Y DIRECTORIO DE 17 IGLESIAS    */}
       {/* ============================================================== */}
       {pestaña_activa === "iglesia_f03" && (
         <div className="space-y-6">
-          <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs">
-            <CardHeader className="border-b border-[#E5E7EB]/60 bg-slate-50/50 pb-4">
+          {/* Header del Módulo 1 */}
+          <Card className="border-[#035683]/20 shadow-sm bg-gradient-to-r from-blue-50/40 via-white to-slate-50 rounded-2xl overflow-hidden ring-1 ring-[#035683]/10">
+            <CardHeader className="pb-3 border-b border-[#E5E7EB]/80 bg-[#035683]/5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="border-[#00ABBD] text-[#035683] font-bold text-[10px]">
                       Módulo 01 · 20% Oficial
                     </Badge>
-                    <span className="text-xs text-muted-foreground">Evaluador: Pastor de la Iglesia Local</span>
+                    <span className="text-xs text-muted-foreground font-mono">Evaluador: Pastor de la Iglesia Local</span>
                   </div>
                   <CardTitle className="text-lg font-bold text-[#035683] flex items-center gap-2">
                     <BookOpen className="w-5 h-5 text-[#00ABBD]" />
-                    Gobernanza del Instrumento F-03 · Evaluación Ministerial del Becario
+                    Evaluación Ministerial F-03 y Directorio Institucional de Iglesias
                   </CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
-                    Configure la estructura del formulario que el pastor responde semestralmente, la conexión con el catálogo de iglesias y sus 13 preguntas.
+                    Certificación de vida comunitaria y testimonio de los 23 becarios universitarios mediante las 13 preguntas canónicas y gestión de las 17 congregaciones registradas.
                   </CardDescription>
                 </div>
 
-                <Button
-                  onClick={() => set_modal_preview_f03_abierto(true)}
-                  className="h-10 px-4 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs shrink-0"
-                >
-                  <Eye className="w-4 h-4 text-[#FFB600]" />
-                  Vista Previa del Formulario F-03
-                </Button>
+                {es_admin && (
+                  <Button
+                    onClick={abrirModalNuevaIglesia}
+                    className="h-10 px-4 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs shrink-0 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4 text-[#FFB600]" />
+                    <span>Agregar Congregación</span>
+                  </Button>
+                )}
               </div>
             </CardHeader>
 
-            <CardContent className="p-6 space-y-6">
-              {/* Configuración de Conexión a Catálogo de Iglesias */}
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                <h4 className="text-xs font-mono font-bold uppercase text-[#035683] flex items-center gap-1.5">
-                  <Building2 className="w-4 h-4 text-[#00ABBD]" />
-                  Conexión de Campos a Catálogos Institucionales
-                </h4>
-                <p className="text-xs text-muted-foreground">
-                  Determine si los datos de la congregación y pastor se seleccionan desde el directorio auditado de Diaconía (Combobox) o permiten texto libre.
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                  <div className="p-3 bg-white rounded-lg border border-slate-200 flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-bold text-slate-800">Nombre de la Iglesia Local</p>
-                      <p className="text-[11px] text-muted-foreground">
-                        {campo_iglesia_conectado ? "Conectado a Catálogo (Combobox de 6 congregaciones)" : "Entrada libre de texto abierto"}
-                      </p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant={campo_iglesia_conectado ? "default" : "outline"}
-                      onClick={() => set_campo_iglesia_conectado(!campo_iglesia_conectado)}
-                      className={`h-7 text-xs font-bold rounded-lg ${campo_iglesia_conectado ? "bg-[#035683]" : ""}`}
-                    >
-                      {campo_iglesia_conectado ? "Conectado" : "Texto Libre"}
-                    </Button>
-                  </div>
-
-                  <div className="p-3 bg-white rounded-lg border border-slate-200 flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-bold text-slate-800">Pastor y Celular de Contacto</p>
-                      <p className="text-[11px] text-muted-foreground">
-                        {campo_pastor_conectado ? "Autocompletado desde directorio pastoral" : "Entrada manual de contacto"}
-                      </p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant={campo_pastor_conectado ? "default" : "outline"}
-                      onClick={() => set_campo_pastor_conectado(!campo_pastor_conectado)}
-                      className={`h-7 text-xs font-bold rounded-lg ${campo_pastor_conectado ? "bg-[#035683]" : ""}`}
-                    >
-                      {campo_pastor_conectado ? "Conectado" : "Texto Libre"}
-                    </Button>
-                  </div>
+            <CardContent className="p-4 sm:p-5">
+              {/* Tarjetas métricas rápidas */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3 bg-white rounded-xl border border-slate-200">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Total Becarios</span>
+                  <span className="text-xl font-bold font-mono text-[#035683]">{nomina_f03.length || 23}</span>
+                  <span className="text-[10px] text-muted-foreground block mt-0.5">Nómina oficial</span>
                 </div>
-              </div>
-
-              {/* Muestra de Catálogo Actual de Iglesias */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-bold text-[#035683]">Directorio Institucional de Congregaciones Registradas (6)</Label>
-                  <span className="text-[11px] text-muted-foreground">Base oficial Diaconía FRIF-IFD</span>
+                <div className="p-3 bg-white rounded-xl border border-emerald-200 bg-emerald-50/30">
+                  <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">F-03 Evaluados</span>
+                  <span className="text-xl font-bold font-mono text-emerald-700">
+                    {nomina_f03.filter((b) => b.estado === "Evaluado").length}
+                  </span>
+                  <span className="text-[10px] text-emerald-600 block mt-0.5">Certificados en sistema</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-                  {CATALOGO_IGLESIAS_INSTITUCIONALES.map((ig) => (
-                    <div key={ig.id} className="p-3 bg-white rounded-xl border border-slate-200 text-xs space-y-1">
-                      <p className="font-bold text-slate-800 truncate">{ig.nombre}</p>
-                      <p className="text-[11px] text-muted-foreground">{ig.pastor_nombre} · {ig.ciudad}</p>
-                      <Badge variant="outline" className="text-[10px] border-slate-300 font-mono">
-                        {ig.denominacion}
-                      </Badge>
-                    </div>
-                  ))}
+                <div className="p-3 bg-white rounded-xl border border-amber-200 bg-amber-50/30">
+                  <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">F-03 Pendientes</span>
+                  <span className="text-xl font-bold font-mono text-amber-700">
+                    {nomina_f03.filter((b) => b.estado !== "Evaluado").length}
+                  </span>
+                  <span className="text-[10px] text-amber-600 block mt-0.5">Por convalidar pastoral</span>
                 </div>
-              </div>
-
-              {/* Estructura de las 13 Preguntas Ministeriales */}
-              <div className="space-y-3 pt-2">
-                <Label className="text-xs font-mono uppercase font-bold text-slate-600">
-                  Estructura Canónica de Evaluación Ministerial (13 Preguntas)
-                </Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
-                    <p className="font-bold text-[#035683]">Preguntas 1 a 4: Compromiso y Cargos</p>
-                    <p className="text-[11px] text-muted-foreground">Frecuencia de asistencia (cultos y escuela dominical), compromiso en reuniones, cargos que ocupa en la iglesia y calidad de cumplimiento.</p>
-                  </div>
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
-                    <p className="font-bold text-[#035683]">Preguntas 5 a 8: Testimonio y Capacitación</p>
-                    <p className="text-[11px] text-muted-foreground">Convicción de llamado, áreas en las que es ejemplo, asistencia a capacitaciones y testimonio dentro y fuera de la iglesia.</p>
-                  </div>
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
-                    <p className="font-bold text-[#035683]">Preguntas 9 a 10: Relaciones y Discipulado</p>
-                    <p className="text-[11px] text-muted-foreground">Relaciones interpersonales con líderes y miembros, y desarrollo de nuevos líderes bajo su tutela.</p>
-                  </div>
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
-                    <p className="font-bold text-[#035683]">Preguntas 11 a 13: Fortalezas, Debilidades y Aporte</p>
-                    <p className="text-[11px] text-muted-foreground">Diagnóstico de fortalezas, debilidades y apreciación pastoral sobre el impacto del programa BUMAND.</p>
-                  </div>
+                <div className="p-3 bg-white rounded-xl border border-cyan-200 bg-cyan-50/30">
+                  <span className="text-[11px] font-bold text-cyan-800 uppercase tracking-wider block">Congregaciones</span>
+                  <span className="text-xl font-bold font-mono text-[#00ABBD]">{iglesias.length || 17}</span>
+                  <span className="text-[10px] text-cyan-600 block mt-0.5">Catálogo georreferenciado</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Diálogo Modal de Vista Previa del F-03 */}
-          <Dialog open={modal_preview_f03_abierto} onOpenChange={set_modal_preview_f03_abierto}>
-            <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto p-4 bg-white rounded-2xl">
-              <DialogHeader className="pb-2 border-b border-slate-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
-                      <Eye className="w-4 h-4 text-[#00ABBD]" />
-                      Vista Previa Interactiva: Formulario F-03 Ministerial
-                    </DialogTitle>
-                    <DialogDescription className="text-xs text-muted-foreground">
-                      Esta es la interfaz y flujo exacto que el pastor o supervisor utiliza para responder y emitir la acreditación institucional.
-                    </DialogDescription>
-                  </div>
-                  <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-800 text-[10px] font-bold">
-                    Modo Previsualización
-                  </Badge>
+          {/* TABLA 1: NÓMINA OPERATIVA F-03 POR BECARIO */}
+          <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs overflow-hidden">
+            <CardHeader className="p-4 border-b border-[#E5E7EB] bg-slate-50/60">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <CardTitle className="text-sm font-bold text-[#035683] flex items-center gap-2">
+                    <UserCheck className="w-4 h-4 text-[#00ABBD]" />
+                    Tabla Operativa de Evaluación Ministerial F-03 por Becario
+                  </CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                    Haga clic en "Evaluar / Ver F-03" para calificar las 13 preguntas, asignar nota sobre 20 y convalidar pastoralmente.
+                  </CardDescription>
                 </div>
-              </DialogHeader>
-              <div className="pt-2">
-                <FormularioF03 />
+
+                <div className="relative w-full sm:w-64">
+                  <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-3" />
+                  <Input
+                    placeholder="Buscar por estudiante o CI..."
+                    value={busqueda_f03}
+                    onChange={(e) => set_busqueda_f03(e.target.value)}
+                    className="h-9 pl-8 text-xs bg-white rounded-xl border-slate-200"
+                  />
+                </div>
               </div>
+            </CardHeader>
+
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-slate-50">
+                  <TableRow className="border-b border-slate-200 text-xs">
+                    <TableHead className="font-bold text-[#035683] w-12 text-center">#</TableHead>
+                    <TableHead className="font-bold text-[#035683]">Estudiante Becario</TableHead>
+                    <TableHead className="font-bold text-[#035683]">Congregación Asignada</TableHead>
+                    <TableHead className="font-bold text-[#035683]">Pastor Evaluador</TableHead>
+                    <TableHead className="font-bold text-[#035683] text-center">Estado</TableHead>
+                    <TableHead className="font-bold text-[#035683] text-center">Nota (/ 20 pts)</TableHead>
+                    <TableHead className="font-bold text-[#035683] text-center">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {nomina_f03
+                    .filter((b) =>
+                      busqueda_f03.trim() === ""
+                        ? true
+                        : b.nombre.toLowerCase().includes(busqueda_f03.toLowerCase()) ||
+                          b.ci.toLowerCase().includes(busqueda_f03.toLowerCase())
+                    )
+                    .map((item, index) => {
+                      const esEvaluado = item.estado === "Evaluado" || (item.puntaje !== null && item.puntaje !== undefined && item.puntaje > 0);
+                      return (
+                        <TableRow key={item.becario_id} className="text-xs hover:bg-slate-50/80 border-b border-slate-100">
+                          <TableCell className="text-center font-mono font-bold text-slate-500">{index + 1}</TableCell>
+                          <TableCell className="font-semibold text-slate-900">
+                            <div>
+                              <span>{item.nombre}</span>
+                              <span className="block text-[11px] font-mono text-slate-500 font-normal">CI: {item.ci}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-slate-700 max-w-xs truncate">
+                            {item.iglesia_nombre || "Iglesia Evangélica Amigos Central"}
+                          </TableCell>
+                          <TableCell className="text-slate-700">
+                            <div>
+                              <span>{item.pastor_nombre || "Luis Álvaro Quispe Condori"}</span>
+                              {item.pastor_celular && (
+                                <span className="block text-[11px] font-mono text-slate-500 font-normal">
+                                  Cel: {item.pastor_celular}
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge
+                              variant="outline"
+                              className={`text-[10px] font-bold ${
+                                esEvaluado
+                                  ? "bg-emerald-50 border-emerald-300 text-emerald-800"
+                                  : "bg-amber-50 border-amber-300 text-amber-800"
+                              }`}
+                            >
+                              {esEvaluado ? "Evaluado" : "Pendiente"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center font-mono font-bold text-sm text-[#035683]">
+                            {item.puntaje !== null && item.puntaje !== undefined ? `${Number(item.puntaje).toFixed(1)} pts` : "-"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                set_becario_f03_seleccionado(item);
+                                set_modal_evaluar_f03_abierto(true);
+                              }}
+                              className="h-8 px-3 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl shadow-xs gap-1.5 cursor-pointer"
+                            >
+                              <BookOpen className="w-3.5 h-3.5 text-[#FFB600]" />
+                              <span>Evaluar / Ver F-03</span>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          {/* TABLA 2: DIRECTORIO INSTITUCIONAL DE 17 IGLESIAS OFICIALES */}
+          <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-xs overflow-hidden">
+            <CardHeader className="p-4 border-b border-[#E5E7EB] bg-slate-50/60">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <CardTitle className="text-sm font-bold text-[#035683] flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-[#00ABBD]" />
+                    Directorio Institucional de Congregaciones Registradas ({iglesias.length} Iglesias)
+                  </CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                    Catálogo oficial geocodificado de sedes eclesiásticas registradas en el convenio con Diaconía FRIF-IFD.
+                  </CardDescription>
+                </div>
+
+                {es_admin && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={abrirModalNuevaIglesia}
+                    className="h-8 px-3 text-xs font-bold rounded-xl border-[#035683] text-[#035683] hover:bg-[#035683]/10 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-[#00ABBD] mr-1" />
+                    Nueva Congregación
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-slate-50">
+                  <TableRow className="border-b border-slate-200 text-xs">
+                    <TableHead className="font-bold text-[#035683] w-12 text-center">#</TableHead>
+                    <TableHead className="font-bold text-[#035683]">Congregación Cristiana</TableHead>
+                    <TableHead className="font-bold text-[#035683]">Dirección / Zona</TableHead>
+                    <TableHead className="font-bold text-[#035683]">Pastor Principal</TableHead>
+                    <TableHead className="font-bold text-[#035683]">Contacto Pastoral</TableHead>
+                    <TableHead className="font-bold text-[#035683] text-center">Georreferencia</TableHead>
+                    {es_admin && <TableHead className="font-bold text-[#035683] text-center">Gestión</TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {iglesias.map((ig, idx) => (
+                    <TableRow key={ig.id} className="text-xs hover:bg-slate-50/80 border-b border-slate-100">
+                      <TableCell className="text-center font-mono font-bold text-slate-500">{idx + 1}</TableCell>
+                      <TableCell className="font-semibold text-slate-900 max-w-xs">{ig.nombre}</TableCell>
+                      <TableCell className="text-slate-600 text-[11px]">{ig.direccion || "Zona El Alto / La Paz"}</TableCell>
+                      <TableCell className="text-slate-800 font-medium">{ig.pastor_nombre || "-"}</TableCell>
+                      <TableCell className="text-slate-600 text-[11px] font-mono">
+                        <div>
+                          {ig.pastor_telefono && <span>📞 {ig.pastor_telefono}</span>}
+                          {ig.pastor_correo && <span className="block text-slate-400">✉️ {ig.pastor_correo}</span>}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="outline" className="text-[10px] font-mono border-cyan-200 text-[#00ABBD]">
+                          Radio: {ig.radio_tolerancia_m || 60}m
+                        </Badge>
+                      </TableCell>
+                      {es_admin && (
+                        <TableCell className="text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => abrirModalEditarIglesia(ig)}
+                              className="h-7 w-7 p-0 text-slate-600 hover:text-[#035683] hover:bg-slate-100 cursor-pointer"
+                              title="Editar datos de congregación"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => eliminarIglesia(ig.id, ig.nombre)}
+                              className="h-7 w-7 p-0 text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer"
+                              title="Eliminar congregación"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          {/* MODAL DIALOG EVALUAR FORMULARIO F-03 */}
+          <Dialog open={modal_evaluar_f03_abierto} onOpenChange={set_modal_evaluar_f03_abierto}>
+            <DialogContent className="sm:max-w-4xl max-h-[92vh] overflow-y-auto p-4 bg-white rounded-2xl">
+              <DialogHeader className="pb-2 border-b border-slate-200">
+                <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+                  <Award className="w-5 h-5 text-[#FFB600]" />
+                  Evaluación Ministerial F-03: {becario_f03_seleccionado?.nombre}
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Complete la rúbrica de 13 preguntas, asigne la nota de Módulo 1 (máx. 20 pts) y certifique la evaluación pastoral.
+                </DialogDescription>
+              </DialogHeader>
+
+              {becario_f03_seleccionado && (
+                <div className="pt-2">
+                  <FormularioF03
+                    becario_id={becario_f03_seleccionado.becario_id}
+                    nombre_becario_inicial={becario_f03_seleccionado.nombre}
+                    iglesia_actual={becario_f03_seleccionado.iglesia_nombre || undefined}
+                    pastor_actual={becario_f03_seleccionado.pastor_nombre || undefined}
+                    celular_actual={becario_f03_seleccionado.pastor_celular || undefined}
+                    puntaje_inicial={becario_f03_seleccionado.puntaje || undefined}
+                    datos_f03={becario_f03_seleccionado.campos_formulario || undefined}
+                    catalogo_iglesias={iglesias}
+                    alGuardar={(res) => {
+                      set_nomina_f03((prev) =>
+                        prev.map((b) =>
+                          b.becario_id === res.becario_id
+                            ? { ...b, puntaje: res.puntaje, estado: "Evaluado" }
+                            : b
+                        )
+                      );
+                      set_modal_evaluar_f03_abierto(false);
+                    }}
+                    alCerrar={() => set_modal_evaluar_f03_abierto(false)}
+                  />
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+
+          {/* MODAL AGREGAR / EDITAR CONGREGACIÓN */}
+          <Dialog open={modal_iglesia_abierto} onOpenChange={set_modal_iglesia_abierto}>
+            <DialogContent className="sm:max-w-md bg-white rounded-2xl p-5">
+              <DialogHeader className="pb-3 border-b border-slate-100">
+                <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-[#00ABBD]" />
+                  {iglesia_editando ? "Editar Congregación Cristiana" : "Registrar Nueva Congregación"}
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Ingrese los datos institucionales de la iglesia y contacto del pastor principal.
+                </DialogDescription>
+              </DialogHeader>
+
+              <form onSubmit={guardarIglesia} className="space-y-3 pt-2">
+                <div>
+                  <Label className="text-xs font-semibold text-slate-700">Nombre de la Iglesia *</Label>
+                  <Input
+                    required
+                    value={form_iglesia_nombre}
+                    onChange={(e) => set_form_iglesia_nombre(e.target.value)}
+                    placeholder="Ej. Iglesia Bautista Central El Alto"
+                    className="h-9 text-xs rounded-xl mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold text-slate-700">Dirección / Zona</Label>
+                  <Input
+                    value={form_iglesia_direccion}
+                    onChange={(e) => set_form_iglesia_direccion(e.target.value)}
+                    placeholder="Ej. Av. 6 de Marzo #420, Villa Adela"
+                    className="h-9 text-xs rounded-xl mt-1"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs font-semibold text-slate-700">Pastor Principal</Label>
+                    <Input
+                      value={form_iglesia_pastor}
+                      onChange={(e) => set_form_iglesia_pastor(e.target.value)}
+                      placeholder="Pr. Juan Mamani"
+                      className="h-9 text-xs rounded-xl mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold text-slate-700">Celular / Teléfono</Label>
+                    <Input
+                      value={form_iglesia_telefono}
+                      onChange={(e) => set_form_iglesia_telefono(e.target.value)}
+                      placeholder="71234567"
+                      className="h-9 text-xs rounded-xl mt-1"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs font-semibold text-slate-700">Correo Electrónico</Label>
+                    <Input
+                      type="email"
+                      value={form_iglesia_correo}
+                      onChange={(e) => set_form_iglesia_correo(e.target.value)}
+                      placeholder="pastor@diaconia.bo"
+                      className="h-9 text-xs rounded-xl mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold text-slate-700">Radio Geodésico (m)</Label>
+                    <Input
+                      type="number"
+                      value={form_iglesia_radio}
+                      onChange={(e) => set_form_iglesia_radio(Number(e.target.value))}
+                      placeholder="60"
+                      className="h-9 text-xs rounded-xl mt-1"
+                    />
+                  </div>
+                </div>
+
+                <DialogFooter className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => set_modal_iglesia_abierto(false)}
+                    className="h-9 px-4 text-xs font-bold rounded-xl"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={guardando_iglesia}
+                    className="h-9 px-5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl shadow-xs"
+                  >
+                    {guardando_iglesia ? "Guardando..." : "Guardar Congregación"}
+                  </Button>
+                </DialogFooter>
+              </form>
             </DialogContent>
           </Dialog>
         </div>

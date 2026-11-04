@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -342,7 +342,13 @@ export function AprobacionPasajes() {
     { datos_iniciales: SOLICITUDES_INICIALES }
   );
 
-  const solicitudes = solicitudes_servidor && solicitudes_servidor.length > 0 ? solicitudes_servidor : solicitudes_locales;
+  useEffect(() => {
+    if (solicitudes_servidor && solicitudes_servidor.length > 0) {
+      set_solicitudes_locales(solicitudes_servidor);
+    }
+  }, [solicitudes_servidor]);
+
+  const solicitudes = solicitudes_locales;
 
   const solicitud_activa: SolicitudPasajeVista | undefined =
     solicitudes.find((s) => s.id === id_seleccionado) ||
@@ -421,6 +427,7 @@ export function AprobacionPasajes() {
     toast.success("Planilla marcada como Revisada por Supervisor", {
       description: "Nivel 1 completado. La planilla fue elevada para dictamen de Administración.",
     });
+    await invalidar();
   };
 
   const manejarAprobarAdministracion = async (id: number) => {
@@ -461,6 +468,7 @@ export function AprobacionPasajes() {
     toast.success("Planilla aprobada por Administración", {
       description: "El reembolso del 80% ha sido convalidado y acreditado institucionalmente.",
     });
+    await invalidar();
   };
 
   const manejarAprobar = async (id: number) => {
@@ -507,6 +515,7 @@ export function AprobacionPasajes() {
       description: `Se registró la observación institucional para ${solicitud_activa?.becario_nombre || ""}.`,
     });
     set_modal_observacion(false);
+    await invalidar();
   };
 
   const renderizarDetalleCard = (con_boton_volver = true) => !solicitud_activa ? (

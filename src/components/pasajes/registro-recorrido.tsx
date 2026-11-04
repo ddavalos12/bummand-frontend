@@ -335,8 +335,120 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
       p.zona.toLowerCase().includes(String(formulario.valores.destino || "").toLowerCase())
   );
 
+  const PARADAS_OFICIALES_COORDENADAS = [
+    { nombre: "La Ceja - Calle 1", latitud: -16.5085, longitud: -68.1633 },
+    { nombre: "Cruce Viacha", latitud: -16.5350, longitud: -68.1750 },
+    { nombre: "Pérez Velasco", latitud: -16.4955, longitud: -68.1370 },
+    { nombre: "Plaza San Francisco", latitud: -16.4962, longitud: -68.1384 },
+    { nombre: "San Pedro - Plaza Sucre", latitud: -16.5020, longitud: -68.1375 },
+    { nombre: "Sopocachi - Plaza Abaroa", latitud: -16.5125, longitud: -68.1275 },
+    { nombre: "Miraflores - Estadio Hernando Siles", latitud: -16.5005, longitud: -68.1228 },
+    { nombre: "Plaza Triangular", latitud: -16.5080, longitud: -68.1195 },
+    { nombre: "Villa Fátima - Plaza del Maestro", latitud: -16.4795, longitud: -68.1180 },
+    { nombre: "Estación Teleférico Rojo", latitud: -16.4910, longitud: -68.1430 },
+    { nombre: "Estación Teleférico Amarillo", latitud: -16.5190, longitud: -68.1465 },
+    { nombre: "Estación Teleférico Morado", latitud: -16.5115, longitud: -68.1565 },
+    { nombre: "Río Seco", latitud: -16.4865, longitud: -68.1932 },
+    { nombre: "Calacoto - Calle 21", latitud: -16.5410, longitud: -68.0850 },
+  ];
+
+  const calcularDistanciaHaversineMetros = (
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ): number => {
+    const R = 6371e3;
+    const rad = Math.PI / 180;
+    const dLat = (lat2 - lat1) * rad;
+    const dLon = (lon2 - lon1) * rad;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return Math.round(R * c);
+  };
+
+  const resolverUbicacionGpsReal = async (lat: number, lng: number): Promise<string> => {
+    // 1. Proximidad a parada <= 150m
+    let parada_cercana: { nombre: string; distancia: number } | null = null;
+    for (const p of PARADAS_OFICIALES_COORDENADAS) {
+      const d = calcularDistanciaHaversineMetros(lat, lng, p.latitud, p.longitud);
+      if (!parada_cercana || d < parada_cercana.distancia) {
+        parada_cercana = { nombre: p.nombre, distancia: d };
+      }
+    }
+
+    if (parada_cercana && parada_cercana.distancia <= 150) {
+      return `Parada ${parada_cercana.nombre} (a ${parada_cercana.distancia} m)`;
+    }
+
+    // 2. Geocodificación inversa con Nominatim para calle y zona real (> 150m)
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4000);
+      const resp = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+        { signal: controller.signal, headers: { "Accept-Language": "es" } }
+      );
+      clearTimeout(timeout);
+      if (resp.ok) {
+        const data = await resp.json();
+        const addr = data.address || {};
+        const calle =
+          addr.road || addr.pedestrian || addr.footway || addr.street || addr.neighbourhood || addr.suburb || "Av. Principal";
+        const zona =
+          addr.suburb || addr.city_district || addr.neighbourhood || addr.quarter || addr.city || "Ubicación en vivo";
+        return `${calle}, ${zona} (Ubicación en vivo)`;
+      }
+    } catch (_e) {
+      // Fallback
+    }
+
+    return `Ubicación GPS (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+  };
+
+  const [capturando_gps_campo, set_capturando_gps_campo] = useState<"origen" | "destino" | null>(null);
+
+  const capturarGpsParaCampo = (campo: "origen" | "destino") => {
+    if (typeof window !== "undefined" && navigator.geolocation) {
+      set_capturando_gps_campo(campo);
+      toast.info("Obteniendo coordenadas GPS en tiempo real...");
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          const ubicacion = await resolverUbicacionGpsReal(lat, lng);
+          formulario.cambiarValor(campo, ubicacion);
+          toast.success("Ubicación en tiempo real capturada", {
+            description: ubicacion,
+          });
+          set_capturando_gps_campo(null);
+        },
+        () => {
+          const fallback =
+            campo === "origen" ? "Av. 6 de Marzo, Ceja (El Alto)" : "Pérez Velasco, Centro La Paz";
+          formulario.cambiarValor(campo, fallback);
+          toast.info(`Ubicación aproximada asignada: ${fallback}`);
+          set_capturando_gps_campo(null);
+        },
+        { timeout: 5000, enableHighAccuracy: true }
+      );
+    } else {
+      formulario.cambiarValor(campo, "Ceja (El Alto)");
+    }
+  };
+
   const manejarSiguientePaso = () => {
     if (!formulario.validarFormulario()) {
+      return;
+    }
+    // Validación TAREA-01: Origen !== Destino
+    if (
+      String(formulario.valores.origen).trim().toLowerCase() ===
+      String(formulario.valores.destino).trim().toLowerCase()
+    ) {
+      toast.error("El punto de origen y destino no pueden ser la misma ubicación o parada");
       return;
     }
     const monto_actual = parseFloat(String(formulario.valores.monto) || "0");
@@ -373,6 +485,13 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
 
   const manejarGuardadoSoloIda = async () => {
     if (!formulario.validarFormulario()) {
+      return;
+    }
+    if (
+      String(formulario.valores.origen).trim().toLowerCase() ===
+      String(formulario.valores.destino).trim().toLowerCase()
+    ) {
+      toast.error("El punto de origen y destino no pueden ser la misma ubicación o parada");
       return;
     }
     set_cargando(true);
@@ -424,6 +543,13 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
 
   const manejarGuardado = async () => {
     if (!formulario.validarFormulario()) {
+      return;
+    }
+    if (
+      String(formulario.valores.origen).trim().toLowerCase() ===
+      String(formulario.valores.destino).trim().toLowerCase()
+    ) {
+      toast.error("El punto de origen y destino no pueden ser la misma ubicación o parada");
       return;
     }
     set_cargando(true);
@@ -672,7 +798,23 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
                   className="border-none shadow-none h-auto p-0 focus-visible:ring-0 text-xs font-semibold bg-transparent"
                 />
               </div>
-              <Search className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+              <div className="flex items-center gap-1 shrink-0">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    capturarGpsParaCampo("origen");
+                  }}
+                  disabled={capturando_gps_campo !== null}
+                  title="Capturar ubicación en tiempo real por GPS"
+                  className="h-7 w-7 p-0 text-[#00ABBD] hover:text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg cursor-pointer"
+                >
+                  <Navigation className={`w-3.5 h-3.5 ${capturando_gps_campo === "origen" ? "animate-spin text-[#FFB600]" : ""}`} />
+                </Button>
+                <Search className="w-3.5 h-3.5 text-muted-foreground" />
+              </div>
             </div>
 
             {/* Menú Flotante Autocomplete de Origen */}
@@ -749,7 +891,23 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
                   className="border-none shadow-none h-auto p-0 focus-visible:ring-0 text-xs font-semibold bg-transparent"
                 />
               </div>
-              <Search className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+              <div className="flex items-center gap-1 shrink-0">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    capturarGpsParaCampo("destino");
+                  }}
+                  disabled={capturando_gps_campo !== null}
+                  title="Capturar ubicación en tiempo real por GPS"
+                  className="h-7 w-7 p-0 text-[#00ABBD] hover:text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg cursor-pointer"
+                >
+                  <Navigation className={`w-3.5 h-3.5 ${capturando_gps_campo === "destino" ? "animate-spin text-[#FFB600]" : ""}`} />
+                </Button>
+                <Search className="w-3.5 h-3.5 text-muted-foreground" />
+              </div>
             </div>
 
             {/* Menú Flotante Autocomplete de Destino */}

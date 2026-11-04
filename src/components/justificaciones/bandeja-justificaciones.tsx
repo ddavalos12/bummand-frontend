@@ -378,7 +378,13 @@ export function BandejaJustificaciones() {
     { datos_iniciales: JUSTIFICACIONES_INICIALES }
   );
 
-  const justificaciones = justificaciones_servidor && justificaciones_servidor.length > 0 ? justificaciones_servidor : justificaciones_locales;
+  useEffect(() => {
+    if (justificaciones_servidor && justificaciones_servidor.length > 0) {
+      set_justificaciones_locales(justificaciones_servidor);
+    }
+  }, [justificaciones_servidor]);
+
+  const justificaciones = justificaciones_locales;
 
   useTiempoReal({
     eventos: {
@@ -497,14 +503,14 @@ export function BandejaJustificaciones() {
         administrador_id: usuario?.id || 1,
         observacion_admin: "Aprobación definitiva concedida por Administración con exención oficial de multa de viernes.",
       });
-      invalidar();
+      await invalidar();
     } catch {
       try {
         await clienteApi.patch(`/api/justificaciones/${_id}/resolver`, {
-          estado: "aprobado_administracion",
+          estado: "aprobada",
           observacion_supervisor: "Aprobación definitiva concedida por Administración con exención oficial de multa de viernes.",
         });
-        invalidar();
+        await invalidar();
       } catch {
         // Fallback local
       }
@@ -514,7 +520,7 @@ export function BandejaJustificaciones() {
         j.id === _id
           ? {
               ...j,
-              estado: "aprobado_administracion",
+              estado: "aprobada",
               administrador_nombre: nombre_admin,
               observacion_admin: "Aprobación definitiva concedida por Administración con exención oficial de multa de viernes.",
               fecha_resolucion: fecha_actual,
@@ -524,8 +530,9 @@ export function BandejaJustificaciones() {
       )
     );
     toast.success("Permiso Aprobado por Administración", {
-      description: "Nivel 2 completado. Se convalidó la justificación con exención de multa para este viernes.",
+      description: "Se convalidó la justificación formalmente con estado Aprobada y exención de multa para este viernes.",
     });
+    await invalidar();
   };
 
   const manejarAprobacionRapida = async (_id: number) => {
@@ -595,6 +602,7 @@ export function BandejaJustificaciones() {
     });
     set_justificacion_rechazo(null);
     set_observacion_rechazo("");
+    await invalidar();
     setTimeout(() => set_mensaje_alerta(null), 4000);
   };
 
@@ -643,13 +651,15 @@ export function BandejaJustificaciones() {
             />
           </div>
 
-          <Button
-            onClick={() => set_modal_crear_abierto(true)}
-            className="bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs h-9 gap-1.5 px-3.5 shadow-xs shrink-0 cursor-pointer"
-          >
-            <Plus className="w-4 h-4 text-[#FFB600]" />
-            <span>Registrar Permiso / Justificación</span>
-          </Button>
+          {(es_becario || es_admin) && (
+            <Button
+              onClick={() => set_modal_crear_abierto(true)}
+              className="bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs h-9 gap-1.5 px-3.5 shadow-xs shrink-0 cursor-pointer"
+            >
+              <Plus className="w-4 h-4 text-[#FFB600]" />
+              <span>Registrar Permiso / Justificación</span>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -843,45 +853,24 @@ export function BandejaJustificaciones() {
                           Detalles
                         </Button>
 
-                        {/* ACCIONES SUPERVISOR: Nivel 1 */}
-                        {es_pendiente && es_supervisor && !es_admin && (
-                          <>
-                            <Button
-                              size="sm"
-                              onClick={() => manejarRevisarSupervisor(just.id)}
-                              className="h-8 rounded-xl bg-[#007BBE] hover:bg-[#035683] text-white text-xs font-semibold px-3 gap-1 shadow-xs"
-                              title="Marcar Revisado por Supervisor para remitir a Administración"
-                            >
-                              <Check className="w-3.5 h-3.5 text-[#FFB600]" />
-                              <span>Marcar Revisado por Supervisor</span>
-                            </Button>
-
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                set_justificacion_rechazo(just);
-                                set_observacion_rechazo("");
-                              }}
-                              className="h-8 rounded-xl border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-semibold px-3 gap-1"
-                            >
-                              <X className="w-3.5 h-3.5 text-rose-600" />
-                              Rechazar
-                            </Button>
-                          </>
+                        {/* ACCIONES SUPERVISOR: Ocultas según política institucional (TAREA-08) */}
+                        {es_supervisor && !es_admin && es_pendiente && (
+                          <Badge variant="outline" className="text-amber-700 border-amber-300 bg-amber-50 text-[10px] font-medium">
+                            En espera de dictamen de Administración
+                          </Badge>
                         )}
 
-                        {/* ACCIONES ADMINISTRACIÓN: Nivel 2 */}
-                        {(es_revisado || (es_pendiente && es_admin)) && es_admin && (
+                        {/* ACCIONES ADMINISTRACIÓN: Dictamen Directo */}
+                        {es_admin && !es_aprobada && !es_rechazada && (
                           <>
                             <Button
                               size="sm"
                               onClick={() => manejarAprobarAdministracion(just.id)}
-                              className="h-8 rounded-xl bg-[#035683] hover:bg-[#084885] text-white text-xs font-semibold px-3 gap-1 shadow-xs"
-                              title="Aprobar formalmente con exención de multa para este viernes"
+                              className="h-8 rounded-xl bg-[#035683] hover:bg-[#084885] text-white text-xs font-semibold px-3 gap-1 shadow-xs cursor-pointer"
+                              title="Aprobar formalmente la solicitud de permiso con exención de multa"
                             >
                               <ShieldCheck className="w-3.5 h-3.5 text-[#FFB600]" />
-                              <span>Aprobar por Administración</span>
+                              <span>Aprobar Permiso</span>
                             </Button>
 
                             <Button
@@ -891,7 +880,7 @@ export function BandejaJustificaciones() {
                                 set_justificacion_rechazo(just);
                                 set_observacion_rechazo("");
                               }}
-                              className="h-8 rounded-xl border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-semibold px-3 gap-1"
+                              className="h-8 rounded-xl border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-semibold px-3 gap-1 cursor-pointer"
                             >
                               <X className="w-3.5 h-3.5 text-rose-600" />
                               Rechazar
@@ -899,15 +888,9 @@ export function BandejaJustificaciones() {
                           </>
                         )}
 
-                        {es_revisado && !es_admin && (
-                          <Badge variant="outline" className="text-sky-700 border-sky-300 bg-sky-50 text-[10px] font-mono">
-                            Elevado a Administración
-                          </Badge>
-                        )}
-
                         {es_pendiente && es_becario && (
                           <Badge variant="outline" className="text-amber-700 border-amber-300 bg-amber-50 text-[10px] font-medium">
-                            En revisión tutorial
+                            En revisión institucional
                           </Badge>
                         )}
                       </div>
