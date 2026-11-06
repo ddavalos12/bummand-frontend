@@ -40,7 +40,15 @@ export interface FormularioF03Props {
     pastor_correo?: string;
     direccion?: string;
   }>;
-  alGuardar?: (resultado: { becario_id: number; puntaje: number; estado: string }) => void;
+  alGuardar?: (resultado: {
+    becario_id: number;
+    puntaje: number;
+    estado: string;
+    pastor_nombre?: string;
+    iglesia_nombre?: string;
+    pastor_celular?: string;
+    campos_formulario?: Record<string, unknown>;
+  }) => void;
   alEnviarExito?: () => void;
   alCerrar?: () => void;
 }
@@ -214,39 +222,43 @@ export function FormularioF03({
     set_error_formulario(null);
     set_guardando(true);
 
-    try {
-      const cuerpo = {
-        becario_id: becario_id || 1,
-        pastor_nombre,
-        pastor_correo,
-        pastor_celular,
-        iglesia_nombre,
-        iglesia_direccion,
-        puntaje: Number(puntaje_f03),
-        observaciones: pregunta_opinion,
-        campos_formulario: {
-          lider_nombre,
-          lider_cargo,
-          frecuencia_asistencia,
-          demuestra_compromiso,
-          ocupa_cargo,
-          cargo_actual,
-          cumplimiento_cargos,
-          conviccion_llamado: pregunta_conviccion,
-          ejemplo_congregacion: pregunta_ejemplo,
-          compromiso_capacitaciones: pregunta_capacitaciones,
-          testimonio_cristiano: pregunta_testimonio,
-          relacion_miembros: pregunta_relacion,
-          desarrollo_nuevos_lideres: pregunta_nuevos_lideres,
-          fortalezas: pregunta_fortalezas,
-          debilidades: pregunta_debilidades,
-          opinion_general: pregunta_opinion,
-          declara_nombre,
-          declara_ci,
-          declara_aceptada,
-        },
-      };
+    const iglesia_resuelta = iglesia_nombre?.trim() || "Iglesia Evangélica Local";
+    const campos_respuestas = {
+      lider_nombre,
+      lider_cargo,
+      frecuencia_asistencia,
+      demuestra_compromiso,
+      ocupa_cargo,
+      cargo_actual,
+      cumplimiento_cargos,
+      conviccion_llamado: pregunta_conviccion,
+      ejemplo_congregacion: pregunta_ejemplo,
+      compromiso_capacitaciones: pregunta_capacitaciones,
+      testimonio_cristiano: pregunta_testimonio,
+      relacion_miembros: pregunta_relacion,
+      desarrollo_nuevos_lideres: pregunta_nuevos_lideres,
+      fortalezas: pregunta_fortalezas,
+      debilidades: pregunta_debilidades,
+      opinion_general: pregunta_opinion,
+      declara_nombre,
+      declara_ci,
+      declara_aceptada,
+    };
 
+    const cuerpo = {
+      becario_id: becario_id || 1,
+      becario_nombre: becario_nombre || nombre_becario_inicial,
+      pastor_nombre,
+      pastor_correo,
+      pastor_celular,
+      iglesia_nombre: iglesia_resuelta,
+      iglesia_direccion,
+      puntaje: Number(puntaje_f03),
+      observaciones: pregunta_opinion,
+      campos_formulario: campos_respuestas,
+    };
+
+    try {
       try {
         await clienteApi.post(`/evaluaciones/f03/becario/${becario_id || 1}`, cuerpo);
       } catch {
@@ -262,7 +274,11 @@ export function FormularioF03({
         alGuardar({
           becario_id: becario_id || 1,
           puntaje: Number(puntaje_f03),
-          estado: "Evaluado",
+          estado: "completada",
+          pastor_nombre,
+          iglesia_nombre: iglesia_resuelta,
+          pastor_celular,
+          campos_formulario: campos_respuestas,
         });
       }
       if (alEnviarExito) alEnviarExito();

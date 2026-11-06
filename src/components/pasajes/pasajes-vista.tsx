@@ -143,14 +143,14 @@ export function PasajesVista() {
 
   // Estado de paradas de la ida
   const [paradas_ida, set_paradas_ida] = useState<ParadaRuta[]>([
-    { id: "ida-1", numero: 1, nombre: "Zona 16 de Julio (El Alto)", confirmada: false },
-    { id: "ida-2", numero: 2, nombre: "Oficina Central Diaconía Bloque A", confirmada: false },
+    { id: "ida-1", numero: 1, nombre: "Villa Adela, El Alto", confirmada: false },
+    { id: "ida-2", numero: 2, nombre: "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)", confirmada: false },
   ]);
 
   // Estado de paradas de la vuelta
   const [paradas_vuelta, set_paradas_vuelta] = useState<ParadaRuta[]>([
-    { id: "vuelta-1", numero: 1, nombre: "", confirmada: false },
-    { id: "vuelta-2", numero: 2, nombre: "", confirmada: false },
+    { id: "vuelta-1", numero: 1, nombre: "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)", confirmada: false },
+    { id: "vuelta-2", numero: 2, nombre: "Villa Adela, El Alto", confirmada: false },
   ]);
 
   // Tramos de tarifas
@@ -228,16 +228,73 @@ export function PasajesVista() {
 
   // --- MANEJADORES DE PARADAS ---
 
-  const alternarConfirmacionParada = (seccion: "ida" | "vuelta", id_parada: string) => {
+  const alternarConfirmacionParada = async (seccion: "ida" | "vuelta", id_parada: string) => {
+    const lista = seccion === "ida" ? paradas_ida : paradas_vuelta;
+    const idx = lista.findIndex((p) => p.id === id_parada);
+    if (idx === -1) return;
+    const parada = lista[idx];
+
+    if (parada.confirmada) {
+      if (seccion === "ida") {
+        set_paradas_ida((prev) =>
+          prev.map((p) => (p.id === id_parada ? { ...p, confirmada: false } : p))
+        );
+      } else {
+        set_paradas_vuelta((prev) =>
+          prev.map((p) => (p.id === id_parada ? { ...p, confirmada: false } : p))
+        );
+      }
+      return;
+    }
+
+    const anterior = idx > 0 ? lista[idx - 1].nombre.trim() : "";
+    const siguiente = idx < lista.length - 1 ? lista[idx + 1].nombre.trim() : "";
+    let texto_nombre = parada.nombre.trim();
+
+    const es_igual_al_anterior = anterior !== "" && anterior.toLowerCase() === texto_nombre.toLowerCase();
+    const necesita_gps = texto_nombre === "" || es_igual_al_anterior;
+
+    if (necesita_gps) {
+      if (typeof window !== "undefined" && navigator.geolocation) {
+        toast.info("Obteniendo coordenadas GPS en tiempo real...");
+        try {
+          const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              timeout: 5000,
+              enableHighAccuracy: true,
+            });
+          });
+          const ubicacion = await resolverUbicacionGpsReal(pos.coords.latitude, pos.coords.longitude);
+          texto_nombre = ubicacion;
+        } catch (_e) {
+          texto_nombre = seccion === "ida" ? "Villa Adela, El Alto" : "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)";
+          toast.info(`Ubicación aproximada asignada: ${texto_nombre}`);
+        }
+      } else {
+        texto_nombre = seccion === "ida" ? "Villa Adela, El Alto" : "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)";
+      }
+    }
+
+    if (anterior !== "" && anterior.toLowerCase() === texto_nombre.toLowerCase()) {
+      toast.error("El punto de partida y llegada no pueden ser la misma ubicación");
+      return;
+    }
+
+    if (siguiente !== "" && siguiente.toLowerCase() === texto_nombre.toLowerCase()) {
+      toast.error("El punto de partida y llegada no pueden ser la misma ubicación");
+      return;
+    }
+
     if (seccion === "ida") {
       set_paradas_ida((prev) =>
-        prev.map((p) => (p.id === id_parada ? { ...p, confirmada: !p.confirmada } : p))
+        prev.map((p) => (p.id === id_parada ? { ...p, nombre: texto_nombre, confirmada: true } : p))
       );
     } else {
       set_paradas_vuelta((prev) =>
-        prev.map((p) => (p.id === id_parada ? { ...p, confirmada: !p.confirmada } : p))
+        prev.map((p) => (p.id === id_parada ? { ...p, nombre: texto_nombre, confirmada: true } : p))
       );
     }
+    toast.success("✓ Ubicación fijada");
   };
 
   const actualizarNombreParada = (seccion: "ida" | "vuelta", id_parada: string, nombre: string) => {
@@ -268,22 +325,43 @@ export function PasajesVista() {
     }
   };
 
-  // Catálogo de paradas georreferenciadas para cálculo de proximidad Haversine (<= 150m)
+  // Catálogo ampliado de paradas estratégicas de La Paz y El Alto
   const PARADAS_OFICIALES_COORDENADAS = [
-    { nombre: "La Ceja - Calle 1", latitud: -16.5085, longitud: -68.1633 },
-    { nombre: "Cruce Viacha", latitud: -16.5350, longitud: -68.1750 },
-    { nombre: "Pérez Velasco", latitud: -16.4955, longitud: -68.1370 },
-    { nombre: "Plaza San Francisco", latitud: -16.4962, longitud: -68.1384 },
-    { nombre: "San Pedro - Plaza Sucre", latitud: -16.5020, longitud: -68.1375 },
-    { nombre: "Sopocachi - Plaza Abaroa", latitud: -16.5125, longitud: -68.1275 },
-    { nombre: "Miraflores - Estadio Hernando Siles", latitud: -16.5005, longitud: -68.1228 },
-    { nombre: "Plaza Triangular", latitud: -16.5080, longitud: -68.1195 },
-    { nombre: "Villa Fátima - Plaza del Maestro", latitud: -16.4795, longitud: -68.1180 },
-    { nombre: "Estación Teleférico Rojo", latitud: -16.4910, longitud: -68.1430 },
-    { nombre: "Estación Teleférico Amarillo", latitud: -16.5190, longitud: -68.1465 },
-    { nombre: "Estación Teleférico Morado", latitud: -16.5115, longitud: -68.1565 },
-    { nombre: "Río Seco", latitud: -16.4865, longitud: -68.1932 },
-    { nombre: "Calacoto - Calle 21", latitud: -16.5410, longitud: -68.0850 },
+    { nombre: "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)", latitud: -16.50005, longitud: -68.17345 },
+    { nombre: "Agencia Diaconía Ceja (El Alto)", latitud: -16.5085, longitud: -68.1630 },
+    { nombre: "Sede Escuela de Líderes (La Paz)", latitud: -16.5042, longitud: -68.1315 },
+    { nombre: "La Ceja — Calle 1 / Puente Distribuidor (El Alto)", latitud: -16.5088, longitud: -68.1627 },
+    { nombre: "Cruce Villa Adela (El Alto)", latitud: -16.5245, longitud: -68.1885 },
+    { nombre: "Villa Adela, El Alto", latitud: -16.5360, longitud: -68.1920 },
+    { nombre: "Cruce Viacha (El Alto)", latitud: -16.5178, longitud: -68.1695 },
+    { nombre: "Ex Tranca Río Seco (El Alto)", latitud: -16.4912, longitud: -68.2105 },
+    { nombre: "Extranca Senkata — Av. 6 de Marzo (El Alto)", latitud: -16.5655, longitud: -68.1872 },
+    { nombre: "Ciudad Satélite — Plaza del Tinku (El Alto)", latitud: -16.5195, longitud: -68.1510 },
+    { nombre: "Ballivián / Faro Murillo (El Alto)", latitud: -16.5055, longitud: -68.1525 },
+    { nombre: "UPEA — Villa Esperanza (El Alto)", latitud: -16.4935, longitud: -68.1940 },
+    { nombre: "Terminal Metropolitana El Alto", latitud: -16.5152, longitud: -68.1720 },
+    { nombre: "Puente Vela / Ventilla (El Alto)", latitud: -16.5520, longitud: -68.1960 },
+    { nombre: "Pérez Velasco / Héroes del Pacífico (La Paz)", latitud: -16.4958, longitud: -68.1372 },
+    { nombre: "Plaza San Francisco (La Paz)", latitud: -16.4965, longitud: -68.1378 },
+    { nombre: "San Pedro — Plaza Sucre (La Paz)", latitud: -16.5030, longitud: -68.1360 },
+    { nombre: "El Prado / Obelisco (La Paz)", latitud: -16.4988, longitud: -68.1340 },
+    { nombre: "UMSA — Monoblock Central (La Paz)", latitud: -16.5048, longitud: -68.1298 },
+    { nombre: "Sopocachi — Plaza Abaroa (La Paz)", latitud: -16.5112, longitud: -68.1268 },
+    { nombre: "Miraflores — Estadio Hernando Siles (La Paz)", latitud: -16.4995, longitud: -68.1228 },
+    { nombre: "Miraflores — Plaza Triangular / Hospital de Clínicas (La Paz)", latitud: -16.5052, longitud: -68.1211 },
+    { nombre: "Terminal de Buses La Paz / Plaza Antofagasta", latitud: -16.4895, longitud: -68.1415 },
+    { nombre: "Cementerio General / Ajayuni (La Paz)", latitud: -16.4920, longitud: -68.1515 },
+    { nombre: "Periférica — Av. Vásquez / Autopista (La Paz)", latitud: -16.4840, longitud: -68.1425 },
+    { nombre: "Chuquiaguillo / Salida Yungas (La Paz)", latitud: -16.4620, longitud: -68.1050 },
+    { nombre: "Villa Fátima — Plaza del Maestro / Minasa (La Paz)", latitud: -16.4815, longitud: -68.1189 },
+    { nombre: "Obrajes — Calle 17 (Zona Sur, La Paz)", latitud: -16.5275, longitud: -68.1085 },
+    { nombre: "Calacoto — Calle 21 (Zona Sur, La Paz)", latitud: -16.5398, longitud: -68.0865 },
+    { nombre: "Chasquipampa — Calle 53 (Zona Sur, La Paz)", latitud: -16.5440, longitud: -68.0530 },
+    { nombre: "Teleférico Línea Roja (Estación Central / 16 de Julio)", latitud: -16.4918, longitud: -68.1452 },
+    { nombre: "Teleférico Línea Amarilla (Mirador / Sopocachi / Libertador)", latitud: -16.5172, longitud: -68.1338 },
+    { nombre: "Teleférico Línea Morada (Faro Murillo / San José)", latitud: -16.5015, longitud: -68.1355 },
+    { nombre: "Teleférico Línea Azul (Río Seco / UPEA / 16 de Julio)", latitud: -16.4960, longitud: -68.1820 },
+    { nombre: "Teleférico Línea Blanca (Plaza Villarroel / Busch)", latitud: -16.4930, longitud: -68.1195 },
   ];
 
   const calcularDistanciaHaversineMetros = (
@@ -317,6 +395,8 @@ export function PasajesVista() {
       return `Parada ${parada_cercana.nombre} (a ${parada_cercana.distancia} m)`;
     }
 
+    const parada_ref = parada_cercana ? parada_cercana.nombre : "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)";
+
     // 2. Geocodificación inversa Nominatim para calle/avenida real (> 150m)
     try {
       const controller = new AbortController();
@@ -330,16 +410,32 @@ export function PasajesVista() {
         const data = await resp.json();
         const addr = data.address || {};
         const calle =
-          addr.road || addr.pedestrian || addr.footway || addr.street || addr.neighbourhood || addr.suburb || "Av. Principal";
-        const zona =
-          addr.suburb || addr.city_district || addr.neighbourhood || addr.quarter || addr.city || "Ubicación en vivo";
-        return `${calle}, ${zona} (Ubicación en vivo)`;
+          addr.road || addr.pedestrian || addr.footway || addr.path || addr.residential || addr.amenity || addr.building;
+        const barrio =
+          addr.neighbourhood || addr.quarter || addr.suburb;
+        const distrito =
+          addr.city_district || addr.city || addr.town;
+
+        if (calle && String(calle).trim().length > 0) {
+          if (barrio && String(barrio).trim().length > 0) {
+            return `${calle}, ${barrio}`;
+          } else if (distrito && String(distrito).trim().length > 0) {
+            return `${calle}, ${distrito}`;
+          }
+          return `${calle}`;
+        } else {
+          const zona = barrio || distrito;
+          if (zona) {
+            return `Zona ${zona} · Ref. ${parada_ref}`;
+          }
+          return `Ref. ${parada_ref}`;
+        }
       }
     } catch (_e) {
       // Fallback
     }
 
-    return `Ubicación GPS (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+    return `Ubicación GPS (${lat.toFixed(4)}, ${lng.toFixed(4)}) · Ref. ${parada_ref}`;
   };
 
   const capturarGpsParada = (seccion: "ida" | "vuelta", id_parada: string) => {
@@ -351,19 +447,28 @@ export function PasajesVista() {
           const lng = pos.coords.longitude;
           const ubicacion = await resolverUbicacionGpsReal(lat, lng);
           actualizarNombreParada(seccion, id_parada, ubicacion);
-          toast.success("Ubicación en tiempo real asignada", {
+          if (seccion === "ida") {
+            set_paradas_ida((prev) =>
+              prev.map((p) => (p.id === id_parada ? { ...p, nombre: ubicacion, confirmada: true } : p))
+            );
+          } else {
+            set_paradas_vuelta((prev) =>
+              prev.map((p) => (p.id === id_parada ? { ...p, nombre: ubicacion, confirmada: true } : p))
+            );
+          }
+          toast.success("✓ Ubicación fijada por GPS", {
             description: ubicacion,
           });
         },
         () => {
-          const lugar_simulado = seccion === "ida" ? "Villa Adela, El Alto (Ubicación aproximada)" : "Pérez Velasco, La Paz (Ubicación aproximada)";
+          const lugar_simulado = seccion === "ida" ? "Villa Adela, El Alto" : "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)";
           actualizarNombreParada(seccion, id_parada, lugar_simulado);
           toast.info(`Ubicación asignada: ${lugar_simulado}`);
         },
         { timeout: 5000, enableHighAccuracy: true }
       );
     } else {
-      actualizarNombreParada(seccion, id_parada, "Ceja El Alto (Estación Central)");
+      actualizarNombreParada(seccion, id_parada, "La Ceja — Calle 1 / Puente Distribuidor (El Alto)");
     }
   };
 
@@ -514,12 +619,12 @@ export function PasajesVista() {
 
     // Limpiar para siguiente registro
     set_paradas_ida([
-      { id: "ida-1", numero: 1, nombre: "", confirmada: false },
-      { id: "ida-2", numero: 2, nombre: "", confirmada: false },
+      { id: "ida-1", numero: 1, nombre: "Villa Adela, El Alto", confirmada: false },
+      { id: "ida-2", numero: 2, nombre: "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)", confirmada: false },
     ]);
     set_paradas_vuelta([
-      { id: "vuelta-1", numero: 1, nombre: "", confirmada: false },
-      { id: "vuelta-2", numero: 2, nombre: "", confirmada: false },
+      { id: "vuelta-1", numero: 1, nombre: "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)", confirmada: false },
+      { id: "vuelta-2", numero: 2, nombre: "Villa Adela, El Alto", confirmada: false },
     ]);
     set_paso_actual("ida");
 
@@ -683,7 +788,7 @@ export function PasajesVista() {
 
                   {/* LISTA DE PARADAS DE IDA */}
                   <div className="space-y-2.5">
-                    {paradas_ida.map((parada) => (
+                    {paradas_ida.map((parada, idx) => (
                       <div
                         key={parada.id}
                         className="flex items-center gap-2 p-2 rounded-xl border border-[#E5E7EB] bg-white hover:border-[#00ABBD]/50 transition-colors"
@@ -695,10 +800,10 @@ export function PasajesVista() {
                         <button
                           type="button"
                           onClick={() => capturarGpsParada("ida", parada.id)}
-                          className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-[#00ABBD] transition-colors shrink-0"
-                          title="Obtener coordenadas GPS en este punto"
+                          className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-[#DC2626] hover:text-[#B91C1C] transition-colors shrink-0"
+                          title="Fijar ubicación GPS en este punto"
                         >
-                          <MapPin className="w-4 h-4" />
+                          <MapPin className="w-4 h-4 text-[#DC2626]" />
                         </button>
 
                         <Input
@@ -708,7 +813,7 @@ export function PasajesVista() {
                           className="h-9 text-xs border-none shadow-none focus-visible:ring-0 flex-1 px-1"
                         />
 
-                        {/* BOTÓN "CONFIRMAR" / "✓ EN ESTA PARADA" */}
+                        {/* BOTÓN "CONFIRMAR" / "✓ UBICACIÓN FIJADA" */}
                         <Button
                           type="button"
                           size="sm"
@@ -716,15 +821,20 @@ export function PasajesVista() {
                           onClick={() => alternarConfirmacionParada("ida", parada.id)}
                           className={`h-8 px-3 text-xs font-bold shrink-0 rounded-lg transition-all ${
                             parada.confirmada
-                              ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
-                              : "border-[#E5E7EB] text-[#035683] hover:bg-slate-50"
+                              ? "bg-[#10B981] hover:bg-[#059669] text-white shadow-xs"
+                              : "border-[#CBD5E1] bg-[#F1F5F9] text-[#475569] hover:bg-slate-200"
                           }`}
                         >
                           {parada.confirmada ? (
                             <>
                               <Check className="w-3.5 h-3.5 mr-1" />
-                              ✓ En esta parada
+                              ✓ Ubicación fijada
                             </>
+                          ) : (parada.nombre.trim() === "" ||
+                              (idx > 0 &&
+                                paradas_ida[idx - 1]?.nombre.trim().toLowerCase() ===
+                                  parada.nombre.trim().toLowerCase())) ? (
+                            "📍 Fijar aquí"
                           ) : (
                             "Confirmar"
                           )}
@@ -889,7 +999,7 @@ export function PasajesVista() {
 
                   {/* LISTA DE PARADAS DE VUELTA */}
                   <div className="space-y-2.5">
-                    {paradas_vuelta.map((parada) => (
+                    {paradas_vuelta.map((parada, idx) => (
                       <div
                         key={parada.id}
                         className="flex items-center gap-2 p-2 rounded-xl border border-[#E5E7EB] bg-white hover:border-[#FFB600]/80 transition-colors"
@@ -901,10 +1011,10 @@ export function PasajesVista() {
                         <button
                           type="button"
                           onClick={() => capturarGpsParada("vuelta", parada.id)}
-                          className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-[#00ABBD] transition-colors shrink-0"
-                          title="Obtener coordenadas GPS en este punto"
+                          className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-[#DC2626] hover:text-[#B91C1C] transition-colors shrink-0"
+                          title="Fijar ubicación GPS en este punto"
                         >
-                          <MapPin className="w-4 h-4" />
+                          <MapPin className="w-4 h-4 text-[#DC2626]" />
                         </button>
 
                         <Input
@@ -914,7 +1024,7 @@ export function PasajesVista() {
                           className="h-9 text-xs border-none shadow-none focus-visible:ring-0 flex-1 px-1"
                         />
 
-                        {/* BOTÓN "CONFIRMAR" / "✓ EN ESTA PARADA" */}
+                        {/* BOTÓN "CONFIRMAR" / "✓ UBICACIÓN FIJADA" */}
                         <Button
                           type="button"
                           size="sm"
@@ -922,15 +1032,20 @@ export function PasajesVista() {
                           onClick={() => alternarConfirmacionParada("vuelta", parada.id)}
                           className={`h-8 px-3 text-xs font-bold shrink-0 rounded-lg transition-all ${
                             parada.confirmada
-                              ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
-                              : "border-[#E5E7EB] text-[#035683] hover:bg-slate-50"
+                              ? "bg-[#10B981] hover:bg-[#059669] text-white shadow-xs"
+                              : "border-[#CBD5E1] bg-[#F1F5F9] text-[#475569] hover:bg-slate-200"
                           }`}
                         >
                           {parada.confirmada ? (
                             <>
                               <Check className="w-3.5 h-3.5 mr-1" />
-                              ✓ En esta parada
+                              ✓ Ubicación fijada
                             </>
+                          ) : (parada.nombre.trim() === "" ||
+                              (idx > 0 &&
+                                paradas_vuelta[idx - 1]?.nombre.trim().toLowerCase() ===
+                                  parada.nombre.trim().toLowerCase())) ? (
+                            "📍 Fijar aquí"
                           ) : (
                             "Confirmar"
                           )}

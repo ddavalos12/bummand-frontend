@@ -4,40 +4,26 @@ import React, { useState } from "react";
 import {
   Building2,
   ShieldCheck,
-  GraduationCap,
   HeartHandshake,
   BookOpen,
   Users,
-  MapPin,
-  Calendar,
-  Award,
-  Sparkles,
   Clock,
-  Bus,
-  CheckCircle2,
   Quote,
-  Phone,
-  Mail,
-  Globe,
-  FileCheck,
-  Compass,
   Briefcase,
   Church,
-  Activity,
   Layers,
   ChevronDown,
   ExternalLink,
   Copy,
   Check,
-  Landmark,
-  Scale,
-  Coffee,
+  Target,
+  Eye,
+  Flag,
+  Sparkles,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ContadorRodilloAnimado } from "@/components/animaciones/contador-rodillo-animado";
 
 interface AcercaDeNosotrosProps {
   rol_usuario?: string;
@@ -63,13 +49,40 @@ export function AcercaDeNosotros({ rol_usuario = "becario" }: AcercaDeNosotrosPr
   };
 
   return (
-    <div className="w-full space-y-8 animate-in fade-in duration-300">
+    <div className="w-full space-y-6 animate-in fade-in duration-300">
       {/* ============================================================== */}
-      {/* 1. HERO INSTITUCIONAL PRINCIPAL                                */}
+      {/* 1. ENCABEZADO SUPERIOR INSTITUCIONAL (Barra + Logos)           */}
       {/* ============================================================== */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#035683] via-[#007BBE] to-[#00808E] p-6 sm:p-10 text-white shadow-xl border border-[#00ABBD]/30">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-[#E5E7EB]">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#035683] tracking-tight">
+            Acerca de Nosotros
+          </h1>
+          <p className="text-xs sm:text-sm font-semibold text-[#007BBE]">
+            Diaconía FRIF-IFD · BUMAND
+          </p>
+        </div>
+        <div className="flex items-center gap-3 bg-white p-2 sm:p-2.5 rounded-2xl border border-[#E5E7EB] shadow-xs">
+          <img
+            src="/logos/LOGO-BUMAND-2_2023.svg"
+            alt="Logo BUMAND"
+            className="h-8 sm:h-9 w-auto object-contain"
+          />
+          <div className="h-6 w-px bg-slate-200" />
+          <img
+            src="/logos/ALTA2.svg"
+            alt="Logo Diaconía IFD"
+            className="h-7 sm:h-8 w-auto object-contain"
+          />
+        </div>
+      </div>
+
+      {/* ============================================================== */}
+      {/* 2. HERO INSTITUCIONAL PRINCIPAL (Gradiente Oficial Diaconía)   */}
+      {/* ============================================================== */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#035683] via-[#007BBE] to-[#00ABBD] p-6 sm:p-8 text-white shadow-xl border border-[#00ABBD]/30">
         {/* Marca de agua institucional al 20% */}
-        <div className="absolute -right-12 -bottom-16 w-80 h-80 opacity-20 pointer-events-none select-none">
+        <div className="absolute -right-10 -bottom-14 w-72 h-72 opacity-20 pointer-events-none select-none">
           <img
             src="/logos/ALTA2.svg"
             alt="Marca de agua Diaconía"
@@ -77,597 +90,403 @@ export function AcercaDeNosotros({ rol_usuario = "becario" }: AcercaDeNosotrosPr
           />
         </div>
 
-        {/* Malla poligonal sutil al 10% */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.15),transparent_60%)] pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-3 max-w-3xl">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-xs font-poppins font-semibold text-white">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#FFB600]" />
-                Institución Financiera de Desarrollo · Regulada por ASFI
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFB600]/20 border border-[#FFB600]/40 text-xs font-poppins font-bold text-[#FFB600]">
-                <Sparkles className="w-3.5 h-3.5" />
-                Actualizado al Semestre II - 2026
-              </span>
-            </div>
-
-            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight font-sans text-white leading-tight">
-              BUMAND · Becas Universitarias con Misión y Acción Diaconal
-            </h1>
-
-            <p className="text-sm sm:text-base text-white/90 leading-relaxed font-sans font-normal">
-              Programa social de excelencia y responsabilidad diaconal impulsado por la{" "}
-              <strong className="text-white font-semibold">
-                Fundación Diaconía Fondo Rotativo de Inversión y Fomento (Diaconía FRIF-IFD)
-              </strong>
-              , forjando a la nueva generación de profesionales íntegros con principios cristianos,
-              competencia técnica de vanguardia y vocación de servicio a Bolivia.
-            </p>
+        <div className="relative z-10 space-y-4">
+          {/* Badges superiores */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-xs font-bold text-white">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#FFB600]" />
+              Inversión Social · Diaconía FRIF-IFD
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFB600]/20 border border-[#FFB600]/40 text-xs font-bold text-[#FFB600]">
+              Desde 1981
+            </span>
           </div>
 
-          <div className="flex flex-row md:flex-col items-center md:items-end gap-3 shrink-0 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20">
-            <img
-              src="/logos/LOGO-BUMAND-2_2023.svg"
-              alt="Logo BUMAND"
-              className="h-10 sm:h-12 w-auto object-contain"
-            />
-            <div className="h-6 w-px md:w-16 md:h-px bg-white/20 my-1" />
-            <img
-              src="/logos/ALTA2.svg"
-              alt="Logo Diaconía IFD"
-              className="h-8 sm:h-9 w-auto object-contain"
-            />
-          </div>
-        </div>
-
-        {/* LEMA BÍBLICO INSTITUCIONAL OFICIAL */}
-        <div className="mt-8 pt-5 border-t border-white/15 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-start gap-3 bg-black/20 backdrop-blur-sm p-4 rounded-2xl border border-white/15 ring-1 ring-white/10">
-            <Quote className="w-5 h-5 text-[#FFB600] shrink-0 mt-0.5" />
-            <div>
-              <p className="text-xs sm:text-sm font-semibold italic text-white/95 leading-relaxed">
-                «Y todo lo que hagáis, hacedlo de corazón, como para el Señor y no para los hombres; sabiendo que del Señor recibiréis la recompensa de la herencia, porque a Cristo el Señor servís.»
-              </p>
-              <span className="text-[11px] font-poppins font-extrabold text-[#FFB600] mt-1.5 block tracking-wide uppercase">
-                Colosenses 3:23 · Lema Institucional BUMAND
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3 bg-black/20 backdrop-blur-sm p-4 rounded-2xl border border-white/15 ring-1 ring-white/10">
-            <Quote className="w-5 h-5 text-[#00ABBD] shrink-0 mt-0.5" />
-            <div>
-              <p className="text-xs sm:text-sm font-semibold italic text-white/95 leading-relaxed">
-                «Junto a aguas de reposo me pastoreará. Confortará mi alma; me guiará por sendas de justicia por amor de su nombre.»
-              </p>
-              <span className="text-[11px] font-poppins font-extrabold text-[#00ABBD] mt-1.5 block tracking-wide uppercase">
-                Salmos 23:2-3 · Lema Fundacional Diaconía FRIF-IFD
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ============================================================== */}
-      {/* 2. CIFRAS Y MÉTRICAS DE IMPACTO INSTITUCIONAL                 */}
-      {/* ============================================================== */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-        {/* KPI 1: Sedes */}
-        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-xs flex flex-col justify-between hover:border-[#007BBE]/40 transition-colors">
-          <span className="text-[11px] font-poppins font-bold text-muted-foreground uppercase tracking-wider block">
-            Sedes y Agencias
-          </span>
-          <div className="font-poppins text-2xl sm:text-3xl font-extrabold text-[#035683] my-1">
-            <ContadorRodilloAnimado valor={72} sufijo="" clase_personalizada="text-[#035683]" />
-          </div>
-          <p className="text-[11px] text-muted-foreground font-sans">
-            WGS84 en todo el país
-          </p>
-        </div>
-
-        {/* KPI 2: Becarios Activos */}
-        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-xs flex flex-col justify-between hover:border-[#007BBE]/40 transition-colors">
-          <span className="text-[11px] font-poppins font-bold text-muted-foreground uppercase tracking-wider block">
-            Becarios Activos
-          </span>
-          <div className="font-poppins text-2xl sm:text-3xl font-extrabold text-[#007BBE] my-1">
-            <ContadorRodilloAnimado valor={23} sufijo="" clase_personalizada="text-[#007BBE]" />
-          </div>
-          <p className="text-[11px] text-muted-foreground font-sans">
-            Nómina Semestre II-2026
-          </p>
-        </div>
-
-        {/* KPI 3: Becarios Históricos */}
-        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-xs flex flex-col justify-between hover:border-[#007BBE]/40 transition-colors">
-          <span className="text-[11px] font-poppins font-bold text-muted-foreground uppercase tracking-wider block">
-            Graduados BUMAND
-          </span>
-          <div className="font-poppins text-2xl sm:text-3xl font-extrabold text-[#00808E] my-1">
-            <ContadorRodilloAnimado valor={65} prefijo="+" clase_personalizada="text-[#00808E]" />
-          </div>
-          <p className="text-[11px] text-muted-foreground font-sans">
-            Profesionales formados
-          </p>
-        </div>
-
-        {/* KPI 4: Iglesias Aliadas */}
-        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-xs flex flex-col justify-between hover:border-[#007BBE]/40 transition-colors">
-          <span className="text-[11px] font-poppins font-bold text-muted-foreground uppercase tracking-wider block">
-            Iglesias Registradas
-          </span>
-          <div className="font-poppins text-2xl sm:text-3xl font-extrabold text-[#FFB600] my-1">
-            <ContadorRodilloAnimado valor={17} sufijo="" clase_personalizada="text-[#FFB600]" />
-          </div>
-          <p className="text-[11px] text-muted-foreground font-sans">
-            Congregaciones F-03
-          </p>
-        </div>
-
-        {/* KPI 5: Tutores y Mentores */}
-        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-xs flex flex-col justify-between hover:border-[#007BBE]/40 transition-colors">
-          <span className="text-[11px] font-poppins font-bold text-muted-foreground uppercase tracking-wider block">
-            Tutores Mentores
-          </span>
-          <div className="font-poppins text-2xl sm:text-3xl font-extrabold text-[#035683] my-1">
-            <ContadorRodilloAnimado valor={29} sufijo="" clase_personalizada="text-[#035683]" />
-          </div>
-          <p className="text-[11px] text-muted-foreground font-sans">
-            Jefaturas en Diaconía IFD
-          </p>
-        </div>
-
-        {/* KPI 6: Cero Papel */}
-        <div className="bg-[#035683] text-white border border-[#035683] rounded-2xl p-4 shadow-xs flex flex-col justify-between">
-          <span className="text-[11px] font-poppins font-bold text-[#FFB600] uppercase tracking-wider block">
-            Digitalización Total
-          </span>
-          <div className="font-poppins text-2xl sm:text-3xl font-extrabold text-white my-1">
-            100%
-          </div>
-          <p className="text-[11px] text-white/80 font-sans">
-            +250 hojas/mes erradicadas
-          </p>
-        </div>
-      </div>
-
-      {/* ============================================================== */}
-      {/* 3. HISTORIA Y ORÍGENES FUNDACIONALES FIDEDIGNOS (1981 – 2026)  */}
-      {/* ============================================================== */}
-      <Card className="rounded-3xl border-[#E5E7EB] bg-white shadow-xs p-6 sm:p-8">
-        <div className="space-y-2 mb-6">
-          <div className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-[#035683]" />
-            <h3 className="text-lg sm:text-xl font-bold text-[#035683] font-sans">
-              Historia y Orígenes Fundacionales del Programa BUMAND (1981 – 2026)
-            </h3>
-          </div>
-          <p className="text-xs sm:text-sm text-muted-foreground font-sans">
-            Más de cuatro décadas forjando profesionales cristianos de excelencia al servicio de Dios y la comunidad boliviana.
-          </p>
-        </div>
-
-        <div className="relative border-l-2 border-[#00ABBD]/30 ml-4 sm:ml-6 space-y-8 pl-6 sm:pl-8 py-2">
-          {/* Hito 1: 1981-1982 */}
-          <div className="relative group">
-            <div className="absolute -left-[33px] sm:-left-[41px] top-0 w-6 h-6 rounded-full bg-white border-4 border-[#035683] shadow-xs" />
-            <div className="space-y-1.5">
-              <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#035683]/10 text-[#035683] font-poppins font-bold text-[11px]">
-                1981 – 1982 · Fundación Misionera Pionera
-              </span>
-              <h4 className="text-sm font-bold text-[#1A1A1A] font-sans">
-                Iniciativa de la Misionera Berit Helgøy Kloster y la Iglesia Luterana de Noruega (NMS)
-              </h4>
-              <p className="text-xs text-slate-600 font-sans leading-relaxed">
-                El programa nace en las ciudades de La Paz y El Alto gracias a la visión diaconal de la misionera noruega <strong>Berit Helgøy Kloster</strong>, respaldada por la Sociedad Misionera de la Iglesia Luterana de Noruega (NMS). Su propósito fundamental fue brindar una oportunidad real de formación superior a jóvenes bachilleres de escasos recursos económicos pertenecientes a congregaciones cristianas locales, promoviendo la equidad social y el testimonio cristiano.
-              </p>
-            </div>
-          </div>
-
-          {/* Hito 2: 1983-1984 */}
-          <div className="relative group">
-            <div className="absolute -left-[33px] sm:-left-[41px] top-0 w-6 h-6 rounded-full bg-white border-4 border-[#007BBE] shadow-xs" />
-            <div className="space-y-1.5">
-              <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#007BBE]/10 text-[#007BBE] font-poppins font-bold text-[11px]">
-                1983 – 1984 · Consolidación Institucional
-              </span>
-              <h4 className="text-sm font-bold text-[#1A1A1A] font-sans">
-                Estructuración Directiva bajo el Liderazgo del Lic. Carlos Tamayo
-              </h4>
-              <p className="text-xs text-slate-600 font-sans leading-relaxed">
-                El programa se consolida formalmente en Bolivia bajo la dirección del <strong>Lic. Carlos Tamayo</strong>, estableciendo los reglamentos de selección, el acompañamiento pastoral continuo, los criterios de excelencia académica y el compromiso de retribución de los becarios a través de su testimonio y servicio comunitario.
-              </p>
-            </div>
-          </div>
-
-          {/* Hito 3: 2019 */}
-          <div className="relative group">
-            <div className="absolute -left-[33px] sm:-left-[41px] top-0 w-6 h-6 rounded-full bg-white border-4 border-[#00ABBD] shadow-xs" />
-            <div className="space-y-1.5">
-              <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#00ABBD]/10 text-[#00808E] font-poppins font-bold text-[11px]">
-                2019 · Alianza Estratégica Institucional
-              </span>
-              <h4 className="text-sm font-bold text-[#1A1A1A] font-sans">
-                Integración Plena como Programa Insignia de Diaconía FRIF-IFD
-              </h4>
-              <p className="text-xs text-slate-600 font-sans leading-relaxed">
-                En el año 2019, BUMAND se integra oficialmente como el programa insignia de responsabilidad social y mayordomía cristiana de la <strong>Fundación Diaconía Fondo Rotativo de Inversión y Fomento (Diaconía FRIF-IFD)</strong>, ampliando su red de prácticas preprofesionales a más de 72 sedes en todo el país y fortaleciendo el patrocinio financiero para jóvenes universitarios.
-              </p>
-            </div>
-          </div>
-
-          {/* Hito 4: 2024-2026 */}
-          <div className="relative group">
-            <div className="absolute -left-[33px] sm:-left-[41px] top-0 w-6 h-6 rounded-full bg-[#FFB600] border-4 border-white shadow-md ring-2 ring-[#FFB600]" />
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-sky-50 to-amber-50 border border-[#00ABBD]/40 space-y-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-block px-3 py-0.5 rounded-full bg-[#035683] text-[#FFB600] font-poppins font-bold text-[11px]">
-                  Gestión 2026 · Modernización y Trazabilidad Integral
-                </span>
-                <span className="text-xs font-poppins font-semibold text-emerald-700 flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Operatividad Certificada
-                </span>
-              </div>
-              <h4 className="text-sm font-bold text-[#035683] font-sans">
-                Consolidación del Ecosistema Digital BUMAND 2.0
-              </h4>
-              <p className="text-xs text-slate-700 font-sans leading-relaxed">
-                A través de la digitalización multiplataforma, se alcanza la erradicación total de formularios en papel carbónico, implementando control de asistencia con radar geodésico Haversine (120m), liquidación transparente de pasajes al 80%, certificación pastoral con Formulario F-03 y seguimiento de 23 becarios en convenio con la Universidad Mayor de San Andrés (UMSA).
-              </p>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* ============================================================== */}
-      {/* 4. MISIÓN, VISIÓN Y MARCO TEOLÓGICO DE LA MISIÓN INTEGRAL      */}
-      {/* ============================================================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Misión y Visión */}
-        <div className="space-y-4">
-          <Card className="rounded-3xl border-[#E5E7EB] bg-white shadow-xs p-6 hover:shadow-md transition-shadow">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-[#007BBE]/10 text-[#007BBE] flex items-center justify-center shrink-0">
-                <Landmark className="w-6 h-6" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-lg font-bold text-[#035683] font-sans">
-                  Nuestra Misión
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-sans">
-                  «Entidad financiera con principios cristianos que aporta al progreso integral de nuestros clientes y desarrolla la inclusión de la población vulnerable a través de soluciones financieras integrales en áreas urbanas y rurales.»
-                </p>
-                <div className="pt-1">
-                  <Badge variant="outline" className="border-[#007BBE]/30 text-[#007BBE] bg-[#007BBE]/5 text-[11px] font-poppins">
-                    Progreso Integral e Inclusión Social
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="rounded-3xl border-[#E5E7EB] bg-white shadow-xs p-6 hover:shadow-md transition-shadow">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-[#00ABBD]/10 text-[#00ABBD] flex items-center justify-center shrink-0">
-                <Compass className="w-6 h-6" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-lg font-bold text-[#035683] font-sans">
-                  Nuestra Visión
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-sans">
-                  «Ser una institución líder en la inclusión financiera, prestando soluciones financieras integrales de calidad con trato digno al cliente y respeto a los valores culturales, con una visión diaconal.»
-                </p>
-                <div className="pt-1">
-                  <Badge variant="outline" className="border-[#00ABBD]/30 text-[#00808E] bg-[#00ABBD]/5 text-[11px] font-poppins">
-                    Liderazgo Diaconal y Trato Digno
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Marco Teológico: Misión Integral y Mayordomía Cristiana */}
-        <Card className="rounded-3xl border-[#E5E7EB] bg-white shadow-xs p-6 flex flex-col justify-between">
+          {/* Título y subtítulo oficial */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Church className="w-5 h-5 text-[#035683]" />
-              <h3 className="text-lg font-bold text-[#035683] font-sans">
-                Fundamentación Teológica: Misión Integral y Mayordomía Bíblica
-              </h3>
-            </div>
-            <p className="text-xs text-muted-foreground font-sans mb-4 leading-relaxed">
-              El programa BUMAND se fundamenta teológicamente en el paradigma de la <strong>Misión Integral</strong> y la mayordomía bíblica inspirada en la eclesiología de teólogos contemporáneos como <strong>Howard Snyder</strong> en su influyente obra <em>«La Comunidad del Rey»</em>.
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+              BUMAND
+            </h2>
+            <p className="text-sm sm:text-base font-bold text-[#FFB600] mt-0.5">
+              Becarios Universitarios Misión Alianza Noruega de Diaconía
             </p>
+          </div>
 
-            <div className="space-y-3.5">
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-1.5">
-                <span className="font-bold text-[#035683] block">
-                  1. El Reino de Dios y la Vida Cotidiana
-                </span>
-                <p className="leading-relaxed text-[11px]">
-                  Como postula Snyder, el Reino de Dios abarca todas las dimensiones de la vida humana. La fe cristiana no puede limitarse al ámbito privado o cultual, sino que se manifiesta activamente en la excelencia profesional, la justicia social y el servicio al prójimo.
+          {/* Párrafo descriptivo institucional */}
+          <p className="text-xs sm:text-sm text-white/95 leading-relaxed max-w-4xl">
+            Programa de inversión social de Diaconía FRIF-IFD integrado desde 2019. Empodera a estudiantes universitarios de escasos recursos mediante formación integral en liderazgo diaconal, combinando fe, competencias técnicas y vocación de servicio.
+          </p>
+
+          {/* Chips de impacto institucional idénticos a móvil */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+            <div className="px-4 py-2.5 rounded-xl bg-white/12 border border-white/20 backdrop-blur-xs">
+              <span className="text-xs font-bold text-white block">25 becarios activos</span>
+              <span className="text-[11px] text-[#FFB600] font-medium">La Paz y El Alto</span>
+            </div>
+            <div className="px-4 py-2.5 rounded-xl bg-white/12 border border-white/20 backdrop-blur-xs">
+              <span className="text-xs font-bold text-white block">+65 beneficiados</span>
+              <span className="text-[11px] text-[#FFB600] font-medium">47% mujeres</span>
+            </div>
+            <div className="px-4 py-2.5 rounded-xl bg-white/12 border border-white/20 backdrop-blur-xs">
+              <span className="text-xs font-bold text-white block">Sede Diaconía</span>
+              <span className="text-[11px] text-[#FFB600] font-medium">Desde 2019</span>
+            </div>
+          </div>
+
+          {/* Versículo lema bíblico oficial: Colosenses 3:23 */}
+          <div className="mt-4 pt-3 border-t border-white/20">
+            <div className="p-4 rounded-2xl bg-black/25 backdrop-blur-sm border border-white/20 flex items-start gap-3">
+              <Quote className="w-5 h-5 text-[#FFB600] shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-xs sm:text-sm font-medium italic text-white/95 leading-relaxed">
+                  «Y todo lo que hagáis, hacedlo de corazón, como para el Señor y no para los hombres.»
                 </p>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-1.5">
-                <span className="font-bold text-[#007BBE] block">
-                  2. La Mayordomía de Talentos y Saberes
-                </span>
-                <p className="leading-relaxed text-[11px]">
-                  Cada disciplina universitaria (Ingeniería, Contaduría, Psicología, Medicina, Educación) es considerada una vocación sagrada recibida por gracia. El becario es administrador y mayordomo de sus competencias para transformar su entorno comunitario con honestidad y amor.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200 text-xs text-amber-900 space-y-1">
-                <span className="font-bold block">
-                  3. La Iglesia Local como Núcleo de Vida Comunitaria
-                </span>
-                <p className="leading-relaxed text-[11px]">
-                  El becario no es un individuo aislado, sino parte viva del cuerpo de Cristo en su congregación local, donde rinde cuentas, testifica con su conducta y apoya al pastor en el discipulado.
+                <p className="text-[11px] font-bold text-[#FFB600] uppercase tracking-wide">
+                  Colosenses 3:23 · Lema Institucional BUMAND
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ============================================================== */}
+      {/* 3. TARJETA: ¿QUIÉNES SOMOS?                                    */}
+      {/* ============================================================== */}
+      <Card className="rounded-2xl border-[#E5E7EB] bg-white shadow-xs p-6 sm:p-7">
+        <div className="flex items-center gap-2.5 text-[#035683] font-bold text-base mb-3">
+          <Users className="w-5 h-5 text-[#007BBE]" />
+          <h3 className="font-sans">¿Quiénes somos?</h3>
+        </div>
+        <div className="space-y-3 text-xs sm:text-sm leading-relaxed text-slate-700">
+          <p>
+            BUMAND es un programa de capacitación en liderazgo de servicio, dirigido a estudiantes universitarios cristianos evangélicos, de escasos recursos, que tienen gran potencial de formarse como líderes diaconales, para ser agentes de cambio en la familia, la iglesia y la comunidad.
+          </p>
+          <p className="text-slate-600">
+            Inició sus reuniones y actividades de formación en las instalaciones de la Misión Alianza de Noruega (ex fábrica de vidrios); posteriormente, tras su integración en 2019 a Diaconía FRIF-IFD, las reuniones y talleres pasaron a realizarse en las oficinas de la institución.
+          </p>
+        </div>
+      </Card>
+
+      {/* ============================================================== */}
+      {/* 4. OBJETIVO, VISIÓN Y MISIÓN INSTITUCIONAL                     */}
+      {/* ============================================================== */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Objetivo del Programa */}
+        <Card className="rounded-2xl border-[#E5E7EB] bg-white shadow-xs p-5 flex flex-col justify-between hover:border-[#FFB600]/60 transition-colors">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-amber-50 text-[#D97706] border border-amber-200 flex items-center justify-center shrink-0">
+                <Target className="w-5 h-5 text-[#D97706]" />
+              </div>
+              <h4 className="text-sm font-bold text-[#035683]">Objetivo del Programa</h4>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed italic">
+              «La escuela de liderazgo Diaconal busca formar líderes cristianos comprometidos con el Reino de Dios, desde una fuerte espiritualidad, para que desde su testimonio de vida y el ejercicio de su liderazgo, transformen positivamente su entorno en la perspectiva del reino.»
+            </p>
+          </div>
+        </Card>
+
+        {/* Visión */}
+        <Card className="rounded-2xl border-[#E5E7EB] bg-white shadow-xs p-5 flex flex-col justify-between hover:border-[#00ABBD]/60 transition-colors">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-[#00ABBD]/10 text-[#00ABBD] border border-[#00ABBD]/20 flex items-center justify-center shrink-0">
+                <Eye className="w-5 h-5 text-[#00ABBD]" />
+              </div>
+              <h4 className="text-sm font-bold text-[#035683]">Visión</h4>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed italic">
+              «Líderes graduados con vocación de servicio, involucrados plenamente en su contexto social, haciendo uso inteligente y relevante de su entrenamiento, su profesión y liderazgo para la gloria de Dios.»
+            </p>
+          </div>
+        </Card>
+
+        {/* Misión */}
+        <Card className="rounded-2xl border-[#E5E7EB] bg-white shadow-xs p-5 flex flex-col justify-between hover:border-[#007BBE]/60 transition-colors">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-[#007BBE]/10 text-[#007BBE] border border-[#007BBE]/20 flex items-center justify-center shrink-0">
+                <Flag className="w-5 h-5 text-[#007BBE]" />
+              </div>
+              <h4 className="text-sm font-bold text-[#035683]">Misión</h4>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed italic">
+              «Los becarios capacitados, comprometidos y motivados por la Palabra de Dios y el Espíritu Santo a un liderazgo de servicio en su contexto social e iglesia local.»
+            </p>
           </div>
         </Card>
       </div>
 
       {/* ============================================================== */}
-      {/* 5. LOS 4 PILARES FUNDAMENTALES DEL PROGRAMA BUMAND             */}
+      {/* 5. LOS 4 COMPONENTES DEL PROGRAMA                             */}
       {/* ============================================================== */}
-      <Card className="rounded-3xl border-[#035683]/20 bg-gradient-to-br from-white via-slate-50 to-sky-50/30 shadow-sm p-6 sm:p-8 ring-1 ring-[#035683]/10">
-        <div className="space-y-2 mb-6">
-          <div className="flex items-center gap-2">
-            <Award className="w-5 h-5 text-[#FFB600]" />
-            <h3 className="text-lg sm:text-xl font-bold text-[#035683] font-sans">
-              Los Cuatro Pilares Fundamentales del Programa BUMAND
-            </h3>
+      <Card className="rounded-2xl border-[#E5E7EB] bg-white shadow-xs p-6 sm:p-7">
+        <div className="space-y-1 mb-5">
+          <div className="flex items-center gap-2 text-[#035683] font-bold text-base">
+            <Layers className="w-5 h-5 text-[#007BBE]" />
+            <h3>Los 4 Componentes del Programa</h3>
           </div>
-          <p className="text-xs sm:text-sm text-muted-foreground font-sans">
-            Estructura formativa integral que articula la vida espiritual, académica, profesional y el bienestar social de cada becario.
+          <p className="text-xs text-muted-foreground">
+            Ejes formativos integrales definidos en el marco fundacional de BUMAND:
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Pilar 1 */}
-          <div className="p-5 rounded-2xl border border-blue-200 bg-white shadow-xs flex flex-col justify-between space-y-3 hover:border-[#035683] transition-all">
-            <div className="space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-[#035683]/10 text-[#035683] flex items-center justify-center font-bold">
-                <Church className="w-5 h-5" />
-              </div>
-              <Badge variant="outline" className="border-[#035683]/30 text-[#035683] bg-[#035683]/5 text-[10px] font-bold">
-                Pilar 1 · Espiritual
-              </Badge>
-              <h4 className="text-sm font-bold text-slate-900 font-sans">
-                Acompañamiento Espiritual y Eclesiástico (F-03)
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Componente 1 */}
+          <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E5E7EB] flex items-start gap-3.5 hover:border-[#007BBE]/40 transition-colors">
+            <div className="w-9 h-9 rounded-xl bg-[#007BBE]/10 text-[#007BBE] flex items-center justify-center shrink-0">
+              <BookOpen className="w-4 h-4" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-xs sm:text-sm font-bold text-[#007BBE]">
+                1. Escuela de Líderes
               </h4>
-              <p className="text-xs text-slate-600 font-sans leading-relaxed">
-                Conexión viva con la congregación local y el pastor evaluador mediante el <strong>Formulario F-03</strong>. Certifica comunión, servicio en cargos eclesiales, testimonio ético y formación ministerial continua (20% del total de la beca).
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Ciclo formativo basado en el módulo CETI-Iglesia y el estudio del libro de Howard Snyder: «La Comunidad del Rey», generando un cambio en la visión de la iglesia como agente de transformación del Reino con hechos de misericordia e impacto social.
               </p>
             </div>
-            <span className="text-[10px] font-mono text-slate-500 font-semibold block pt-2 border-t border-slate-100">
-              Evaluador: Pastor de Iglesia Local
-            </span>
           </div>
 
-          {/* Pilar 2 */}
-          <div className="p-5 rounded-2xl border border-sky-200 bg-white shadow-xs flex flex-col justify-between space-y-3 hover:border-[#007BBE] transition-all">
-            <div className="space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-[#007BBE]/10 text-[#007BBE] flex items-center justify-center font-bold">
-                <Briefcase className="w-5 h-5" />
-              </div>
-              <Badge variant="outline" className="border-[#007BBE]/30 text-[#007BBE] bg-[#007BBE]/5 text-[10px] font-bold">
-                Pilar 2 · Laboral
-              </Badge>
-              <h4 className="text-sm font-bold text-slate-900 font-sans">
-                Excelencia Académica y Prácticas Preprofesionales
+          {/* Componente 2 */}
+          <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E5E7EB] flex items-start gap-3.5 hover:border-[#00ABBD]/40 transition-colors">
+            <div className="w-9 h-9 rounded-xl bg-[#00ABBD]/10 text-[#00ABBD] flex items-center justify-center shrink-0">
+              <Briefcase className="w-4 h-4" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-xs sm:text-sm font-bold text-[#00ABBD]">
+                2. Prácticas Pre-Profesionales
               </h4>
-              <p className="text-xs text-slate-600 font-sans leading-relaxed">
-                Asignación económica mensual para estudios superiores, convalidación semestral de kárdex de notas y prácticas supervisadas en gerencias y agencias de <strong>Diaconía FRIF-IFD</strong> con rúbrica Likert 18+3 evaluada por jefes de unidad.
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Apoyo en la cualificación profesional y técnica de los becarios dentro de la institución y el mercado laboral, generando impacto positivo en su persona, familia, iglesia y comunidad sobre la plataforma del servicio.
               </p>
             </div>
-            <span className="text-[10px] font-mono text-slate-500 font-semibold block pt-2 border-t border-slate-100">
-              Evaluador: Universidad y Tutor Mentor
-            </span>
           </div>
 
-          {/* Pilar 3 */}
-          <div className="p-5 rounded-2xl border border-amber-200 bg-white shadow-xs flex flex-col justify-between space-y-3 hover:border-[#FFB600] transition-all">
-            <div className="space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-700 flex items-center justify-center font-bold">
-                <BookOpen className="w-5 h-5" />
-              </div>
-              <Badge variant="outline" className="border-amber-300 text-amber-800 bg-amber-50 text-[10px] font-bold">
-                Pilar 3 · Teológico
-              </Badge>
-              <h4 className="text-sm font-bold text-slate-900 font-sans">
-                Escuela de Líderes y Formación Teológica (CETI)
+          {/* Componente 3 */}
+          <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E5E7EB] flex items-start gap-3.5 hover:border-[#D97706]/40 transition-colors">
+            <div className="w-9 h-9 rounded-xl bg-amber-50 text-[#D97706] flex items-center justify-center shrink-0">
+              <Church className="w-4 h-4" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-xs sm:text-sm font-bold text-[#D97706]">
+                3. Liderazgo en la Iglesia
               </h4>
-              <p className="text-xs text-slate-600 font-sans leading-relaxed">
-                Encuentros formativos presenciales de los viernes por la tarde y plataforma virtual con 12 módulos de mayordomía, ética profesional en el ámbito financiero y liderazgo servidor en alianza con el <strong>CETI</strong>.
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Eje central enfocado en potenciar el liderazgo y compromiso cristiano para servir en su congregación local y en todo el entorno comunitario donde se desenvuelve el estudiante.
               </p>
             </div>
-            <span className="text-[10px] font-mono text-slate-500 font-semibold block pt-2 border-t border-slate-100">
-              Evaluador: Facilitador Teológico CETI
-            </span>
           </div>
 
-          {/* Pilar 4 */}
-          <div className="p-5 rounded-2xl border border-teal-200 bg-white shadow-xs flex flex-col justify-between space-y-3 hover:border-[#00808E] transition-all">
-            <div className="space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-teal-500/10 text-[#00808E] flex items-center justify-center font-bold">
-                <Coffee className="w-5 h-5" />
-              </div>
-              <Badge variant="outline" className="border-teal-300 text-[#00808E] bg-teal-50 text-[10px] font-bold">
-                Pilar 4 · Social
-              </Badge>
-              <h4 className="text-sm font-bold text-slate-900 font-sans">
-                Bienestar Integral y Mayordomía Social
+          {/* Componente 4 */}
+          <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E5E7EB] flex items-start gap-3.5 hover:border-[#00808E]/40 transition-colors">
+            <div className="w-9 h-9 rounded-xl bg-[#00808E]/10 text-[#00808E] flex items-center justify-center shrink-0">
+              <HeartHandshake className="w-4 h-4" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-xs sm:text-sm font-bold text-[#00808E]">
+                4. Acciones de Servicio
               </h4>
-              <p className="text-xs text-slate-600 font-sans leading-relaxed">
-                Diagnóstico socioeconómico de bienestar estudiantil, subsidio de refrigerios de duplas los viernes (tarifa institucional de <strong>Bs 5.00</strong> por persona con 100% de devolución), reembolso del 80% de pasajes y acompañamiento familiar.
+              <p className="text-xs text-slate-600 leading-relaxed">
+                «Si no te cuesta, no lo valoras». El programa no se limita al aporte económico; fomenta una actitud de esfuerzo, trabajo pre-profesional y servicio activo y solidario en favor de la comunidad.
               </p>
             </div>
-            <span className="text-[10px] font-mono text-slate-500 font-semibold block pt-2 border-t border-slate-100">
-              Evaluador: Trabajo Social y Administración
-            </span>
           </div>
         </div>
       </Card>
 
       {/* ============================================================== */}
-      {/* 6. SEDE CENTRAL, AGAVERAS Y DATOS DE CONTACTO                  */}
+      {/* 6. LOS TRES PRINCIPIOS DIACONALES                              */}
       {/* ============================================================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Tarjeta Sede Central Diaconía */}
-        <Card className="rounded-3xl border-[#E5E7EB] bg-white shadow-xs p-6 lg:col-span-2 flex flex-col justify-between">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#035683]/10 text-[#035683] flex items-center justify-center font-bold">
-                <Building2 className="w-5 h-5 text-[#035683]" />
-              </div>
-              <div>
-                <h4 className="text-base font-bold text-[#035683] font-sans">
-                  Oficina Central Diaconía FRIF-IFD
-                </h4>
-                <p className="text-xs text-muted-foreground font-sans">
-                  Sede Administrativa Nacional y Bloques de Prácticas BUMAND
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-slate-700">
-              <div className="p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E5E7EB] space-y-1">
-                <span className="font-poppins font-bold text-[#007BBE] block">
-                  Dirección Institucional:
-                </span>
-                <p className="font-sans">
-                  Av. Juan Pablo II N° 2540 (y Bloque B N° 125), Ciudad de El Alto, La Paz – Bolivia.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E5E7EB] space-y-1">
-                <span className="font-poppins font-bold text-[#00ABBD] block">
-                  Coordenadas Geodésicas WGS84:
-                </span>
-                <p className="font-mono text-[11px]">
-                  Latitud: -16.5000535924045<br />
-                  Longitud: -68.17345520393889
-                </p>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-sky-50/50 border border-sky-100 flex items-center justify-between gap-3">
-              <div className="text-xs text-[#035683]">
-                <strong className="font-semibold">Radio de Tolerancia Geodésica:</strong> 120 metros para registro de asistencia mediante algoritmo de Haversine.
-              </div>
-              <a
-                href="https://maps.google.com/?q=-16.5000535924045,-68.17345520393889"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#007BBE] text-white font-poppins text-xs font-bold hover:bg-[#035683] transition-colors shrink-0"
-              >
-                <span>Ver en Maps</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            </div>
+      <Card className="rounded-2xl border-[#E5E7EB] bg-white shadow-xs p-6 sm:p-7">
+        <div className="space-y-1 mb-5">
+          <div className="flex items-center gap-2 text-[#035683] font-bold text-base">
+            <Sparkles className="w-5 h-5 text-[#FFB600]" />
+            <h3>Los Tres Principios Diaconales</h3>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Pilares fundacionales que rigen el actuar de Diaconía FRIF-IFD y la formación del becario:
+          </p>
+        </div>
 
-          <div className="pt-4 border-t border-[#E5E7EB] mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-            <span>Red Nacional: 5 Sucursales · 4 Oficinas Feriales · 62 Agencias</span>
-            <span className="font-poppins font-bold text-[#007BBE]">Diaconía FRIF-IFD · Bolivia</span>
-          </div>
-        </Card>
-
-        {/* Tarjeta de Contacto Directo BUMAND */}
-        <Card className="rounded-3xl border-[#E5E7EB] bg-white shadow-xs p-6 flex flex-col justify-between">
-          <div className="space-y-4">
-            <h4 className="text-base font-bold text-[#035683] font-sans flex items-center gap-2">
-              <Mail className="w-4 h-4 text-[#00ABBD]" />
-              Canales de Coordinación
-            </h4>
-            <p className="text-xs text-muted-foreground font-sans">
-              Para consultas de convenios, actas de compromiso y soporte al becario:
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Principio 1 */}
+          <div className="p-4 rounded-xl bg-[#FFFBEB] border-l-4 border-l-[#FFB600] border border-[#E5E7EB] space-y-1.5">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs sm:text-sm font-bold text-[#D97706]">
+                1. Compartir la Fe
+              </h4>
+              <span className="text-base">🕊️</span>
+            </div>
+            <p className="text-xs text-slate-700 leading-relaxed">
+              Comunión cristiana en congregaciones locales, devocionales y testimonio vivo.
             </p>
+          </div>
 
-            <div className="space-y-2.5">
-              <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E5E7EB] flex items-center justify-between">
-                <div className="min-w-0 pr-2">
-                  <span className="text-[10px] font-poppins uppercase text-muted-foreground block font-bold">
-                    Correo Coordinación
-                  </span>
-                  <p className="text-xs font-mono font-semibold text-[#035683] truncate">
-                    coordinacion@bumand.bo
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => copiarContacto("coordinacion@bumand.bo")}
-                  className="p-1.5 rounded-xl hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
-                  title="Copiar correo"
-                >
-                  {correo_copiado ? (
-                    <Check className="w-4 h-4 text-emerald-600" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
+          {/* Principio 2 */}
+          <div className="p-4 rounded-xl bg-[#F0F9FF] border-l-4 border-l-[#035683] border border-[#E5E7EB] space-y-1.5">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs sm:text-sm font-bold text-[#035683]">
+                2. Combatir la Pobreza
+              </h4>
+              <span className="text-base">🌱</span>
+            </div>
+            <p className="text-xs text-slate-700 leading-relaxed">
+              Inclusión social, becas universitarias y oportunidades formativas integrales.
+            </p>
+          </div>
 
-              <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E5E7EB] flex items-center justify-between">
-                <div className="min-w-0 pr-2">
-                  <span className="text-[10px] font-poppins uppercase text-muted-foreground block font-bold">
-                    Portal Institucional
-                  </span>
-                  <p className="text-xs font-mono font-semibold text-[#007BBE] truncate">
-                    https://www.diaconia.bo
-                  </p>
-                </div>
-                <a
-                  href="https://www.diaconia.bo"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-1.5 rounded-xl hover:bg-slate-200 text-slate-600 transition-colors"
-                  title="Visitar portal oficial"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-              </div>
+          {/* Principio 3 */}
+          <div className="p-4 rounded-xl bg-[#F0FDFA] border-l-4 border-l-[#00808E] border border-[#E5E7EB] space-y-1.5">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs sm:text-sm font-bold text-[#00808E]">
+                3. Promover la Justicia
+              </h4>
+              <span className="text-base">⚖️</span>
+            </div>
+            <p className="text-xs text-slate-700 leading-relaxed">
+              Equidad, trato digno, ética transparente y servicio activo al prójimo.
+            </p>
+          </div>
+        </div>
+      </Card>
 
-              <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E5E7EB] space-y-0.5">
-                <span className="text-[10px] font-poppins uppercase text-muted-foreground block font-bold">
-                  Soporte Técnico Informática UMSA
-                </span>
-                <p className="text-xs font-mono font-semibold text-slate-800">
-                  daniel234.davalos@gmail.com
-                </p>
-              </div>
+      {/* ============================================================== */}
+      {/* 7. HISTORIA Y TRAYECTORIA INSTITUCIONAL (1981 – PRESENTE)      */}
+      {/* ============================================================== */}
+      <Card className="rounded-2xl border-[#E5E7EB] bg-white shadow-xs p-6 sm:p-7">
+        <div className="space-y-1 mb-6">
+          <div className="flex items-center gap-2 text-[#035683] font-bold text-base">
+            <Clock className="w-5 h-5 text-[#035683]" />
+            <h3>Historia y Trayectoria Institucional (1981 – Presente)</h3>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Evolución y consolidación del programa desde su fundación misionera hasta la actualidad:
+          </p>
+        </div>
+
+        <div className="relative border-l-2 border-slate-200 ml-4 sm:ml-6 space-y-6 pl-6 sm:pl-7">
+          {/* Hito 1 */}
+          <div className="relative">
+            <div className="absolute -left-[31px] sm:-left-[35px] top-0.5 w-4 h-4 rounded-full bg-[#035683] border-2 border-white shadow-xs" />
+            <div className="space-y-1">
+              <h4 className="text-xs sm:text-sm font-bold text-slate-900">
+                1981 – 1982 · Origen del Programa con Berit Helgøy Kloster
+              </h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Nace en la Misión Alianza de Noruega para apoyar a jóvenes universitarios desde el proyecto de patrocinio.
+              </p>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-[#E5E7EB] mt-4 text-[11px] font-poppins text-center text-muted-foreground">
-            Horario de Prácticas: Lun a Vie 08:30 – 16:30
+          {/* Hito 2 */}
+          <div className="relative">
+            <div className="absolute -left-[31px] sm:-left-[35px] top-0.5 w-4 h-4 rounded-full bg-[#007BBE] border-2 border-white shadow-xs" />
+            <div className="space-y-1">
+              <h4 className="text-xs sm:text-sm font-bold text-slate-900">
+                1983 – 1984 · Reafirmación de Becas Universitarias con Carlos Tamayo
+              </h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Consolidado por Carlos Tamayo para fortalecer las iglesias con profesionales cristianos y brindar apoyo sociofinanciero.
+              </p>
+            </div>
           </div>
-        </Card>
-      </div>
+
+          {/* Hito 3 */}
+          <div className="relative">
+            <div className="absolute -left-[31px] sm:-left-[35px] top-0.5 w-4 h-4 rounded-full bg-[#00ABBD] border-2 border-white shadow-xs" />
+            <div className="space-y-1">
+              <h4 className="text-xs sm:text-sm font-bold text-slate-900">
+                2019 · Integración a Diaconía FRIF-IFD
+              </h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Adopción institucional como programa de inversión social, trasladando encuentros a las oficinas de Diaconía.
+              </p>
+            </div>
+          </div>
+
+          {/* Hito 4 */}
+          <div className="relative">
+            <div className="absolute -left-[31px] sm:-left-[35px] top-0.5 w-4 h-4 rounded-full bg-[#FFB600] border-2 border-white shadow-xs ring-2 ring-[#FFB600]/40" />
+            <div className="space-y-1">
+              <h4 className="text-xs sm:text-sm font-bold text-[#035683]">
+                Presente · Impacto Activo y Consolidación
+              </h4>
+              <p className="text-xs text-slate-700 leading-relaxed">
+                25 becarios en La Paz y El Alto, +65 egresados (47% mujeres) y plataforma digital institucional.
+              </p>
+            </div>
+          </div>
+        </div>
+      </Card>
 
       {/* ============================================================== */}
-      {/* 7. PREGUNTAS FRECUENTES INSTITUCIONALES (FAQ)                 */}
+      {/* 8. SEDE CENTRAL DIACONÍA FRIF-IFD Y CONTACTO                   */}
       {/* ============================================================== */}
-      <Card className="rounded-3xl border-[#E5E7EB] bg-white shadow-xs p-6 sm:p-8">
-        <div className="space-y-2 mb-6">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-[#007BBE]" />
-            <h3 className="text-lg sm:text-xl font-bold text-[#035683] font-sans">
-              Preguntas Frecuentes Institucionales (FAQ)
-            </h3>
+      <Card className="rounded-2xl border-[#E5E7EB] bg-white shadow-xs p-6 sm:p-7">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div className="space-y-3 max-w-2xl">
+            <div className="flex items-center gap-2 text-[#035683] font-bold text-base">
+              <Building2 className="w-5 h-5 text-[#007BBE]" />
+              <h3>Sede Central Diaconía FRIF-IFD</h3>
+            </div>
+            <div className="space-y-1 text-xs sm:text-sm text-slate-700 leading-relaxed">
+              <p className="font-semibold text-slate-900">
+                Av. Juan Pablo II N° 2540 (Bloques A y B), El Alto, La Paz, Bolivia.
+              </p>
+              <p className="text-slate-600 font-mono text-xs">
+                Coordenadas: -16.50005, -68.17345 (Tolerancia: 120m)
+              </p>
+              <p className="text-slate-600">
+                Contacto Oficial: <span className="font-mono font-medium text-[#007BBE]">coordinacion@bumand.bo</span>
+              </p>
+            </div>
           </div>
-          <p className="text-xs sm:text-sm text-muted-foreground font-sans">
-            Aclaraciones normativas sobre el funcionamiento de la beca, regulaciones ASFI y evaluación
+
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <Button
+              type="button"
+              onClick={() => copiarContacto("coordinacion@bumand.bo")}
+              variant="outline"
+              className="h-10 px-4 rounded-xl text-xs font-bold border-[#E5E7EB] text-[#035683] hover:bg-slate-50 flex items-center gap-1.5 cursor-pointer"
+            >
+              {correo_copiado ? (
+                <>
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span>Copiado</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span>Copiar Correo</span>
+                </>
+              )}
+            </Button>
+
+            <a
+              href="https://maps.google.com/?q=-16.50005,-68.17345"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl bg-[#007BBE] hover:bg-[#035683] text-white text-xs font-bold transition-colors shadow-xs"
+            >
+              <span>Ver en Maps</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
+        </div>
+      </Card>
+
+      {/* ============================================================== */}
+      {/* 9. PREGUNTAS FRECUENTES INSTITUCIONALES (FAQ)                 */}
+      {/* ============================================================== */}
+      <Card className="rounded-2xl border-[#E5E7EB] bg-white shadow-xs p-6 sm:p-7">
+        <div className="space-y-1 mb-5">
+          <div className="flex items-center gap-2 text-[#035683] font-bold text-base">
+            <BookOpen className="w-5 h-5 text-[#007BBE]" />
+            <h3>Preguntas Frecuentes Institucionales (FAQ)</h3>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Aclaraciones normativas sobre el funcionamiento de la beca, regulaciones ASFI y evaluación:
           </p>
         </div>
 
@@ -676,17 +495,17 @@ export function AcercaDeNosotros({ rol_usuario = "becario" }: AcercaDeNosotrosPr
             {
               pregunta: "¿Qué es BUMAND y quién lo financia?",
               respuesta:
-                "BUMAND (Becas Universitarias con Misión y Acción Diaconal) es el programa de becas y responsabilidad social financiado íntegramente por la Fundación Diaconía Fondo Rotativo de Inversión y Fomento - IFD. Cubre apoyo económico mensual (Bs. 650 universitarios / Bs. 250 técnicos), el 80% de gastos de transporte urbano, seguro médico institucional y formación teológica.",
+                "BUMAND (Becarios Universitarios Misión Alianza Noruega de Diaconía) es el programa de becas y responsabilidad social financiado íntegramente por la Fundación Diaconía Fondo Rotativo de Inversión y Fomento - IFD. Cubre apoyo económico mensual, reintegro del 80% de gastos de transporte urbano, seguro médico institucional y formación en liderazgo diaconal.",
             },
             {
               pregunta: "¿Quiénes fundaron el programa y cuál es su trasfondo histórico?",
               respuesta:
-                "Fue fundado en 1981–1982 por la misionera noruega Berit Helgøy Kloster con el apoyo de la Iglesia Luterana de Noruega (NMS). En 1983–1984 fue consolidado bajo la dirección del Lic. Carlos Tamayo, y en 2019 se integró formalmente como programa insignia de Diaconía FRIF-IFD.",
+                "Fue fundado en 1981–1982 por la misionera noruega Berit Helgøy Kloster con el apoyo de la Misión Alianza de Noruega. En 1983–1984 fue consolidado bajo la dirección de Carlos Tamayo, y en 2019 se integró formalmente como programa de inversión social de Diaconía FRIF-IFD.",
             },
             {
               pregunta: "¿Por qué la marcación de asistencia se valida con GPS Haversine?",
               respuesta:
-                "Para garantizar certeza geográfica y transparencia ante auditorías de Recursos Humanos y la ASFI, la marcación de entrada y salida se valida satelitalmente con un radio de tolerancia geodésico (50m a 120m). Esto suprime la necesidad de registros en papel y previene cualquier fraude de presencia.",
+                "Para garantizar certeza geográfica y transparencia ante auditorías de Recursos Humanos y la ASFI, la marcación de entrada y salida se valida satelitalmente con un radio de tolerancia geodésico de 120 metros. Esto suprime la necesidad de registros en papel y previene cualquier fraude de presencia.",
             },
             {
               pregunta: "¿Cómo funciona la política del 80% de devolución de pasajes?",
@@ -696,24 +515,19 @@ export function AcercaDeNosotros({ rol_usuario = "becario" }: AcercaDeNosotrosPr
             {
               pregunta: "¿Cuál es el presupuesto oficial de refrigerios para las duplas del viernes?",
               respuesta:
-                "El presupuesto oficial es de Bs 5.00 por persona (23 raciones × Bs 5.00 = Bs 115.00). Al rendir la entrega del refrigerio institucional en la Escuela de Líderes, Administración procesa la devolución íntegra del 100%.",
-            },
-            {
-              pregunta: "¿Qué es el Cuestionario de Bienestar de 26 Preguntas?",
-              respuesta:
-                "Es un instrumento psicoemocional digitalizado que evalúa salud mental, hábitos de sueño, entorno familiar, estrés académico y vida de fe. Permite a Trabajo Social de Diaconía detectar alertas tempranas (semáforo amarillo o rojo) para brindar contención oportuna a los jóvenes.",
+                "El presupuesto oficial es de Bs 5.00 por persona. Al rendir la entrega del refrigerio institucional en la Escuela de Líderes, Administración procesa la devolución íntegra del 100%.",
             },
           ].map((item, index) => {
             const esta_abierta = pregunta_abierta === index;
             return (
               <div
                 key={index}
-                className="border border-[#E5E7EB] rounded-2xl overflow-hidden transition-all bg-white"
+                className="border border-[#E5E7EB] rounded-xl overflow-hidden transition-all bg-white"
               >
                 <button
                   type="button"
                   onClick={() => alternarPregunta(index)}
-                  className="w-full flex items-center justify-between p-4 text-left font-sans text-xs sm:text-sm font-bold text-[#035683] hover:bg-slate-50 transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-between p-4 text-left text-xs sm:text-sm font-bold text-[#035683] hover:bg-slate-50 transition-colors cursor-pointer"
                 >
                   <span>{item.pregunta}</span>
                   <ChevronDown
@@ -723,7 +537,7 @@ export function AcercaDeNosotros({ rol_usuario = "becario" }: AcercaDeNosotrosPr
                   />
                 </button>
                 {esta_abierta && (
-                  <div className="px-4 pb-4 pt-1 text-xs text-slate-700 leading-relaxed font-sans border-t border-slate-100 bg-[#F8FAFC]/50">
+                  <div className="px-4 pb-4 pt-1 text-xs text-slate-700 leading-relaxed border-t border-slate-100 bg-[#F8FAFC]/50">
                     {item.respuesta}
                   </div>
                 )}

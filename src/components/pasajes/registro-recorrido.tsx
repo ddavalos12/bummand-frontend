@@ -37,7 +37,7 @@ import { toast } from "sonner";
 export interface ParadaFrecuente {
   id: string;
   nombre: string;
-  zona: "El Alto" | "La Paz Centro" | "La Paz Sur";
+  zona: "El Alto" | "La Paz Centro" | "La Paz Sur" | "La Paz" | "La Paz / El Alto";
   tarifa_sugerida: string;
 }
 
@@ -51,17 +51,41 @@ export interface RutaFrecuente {
 }
 
 const PARADAS_FRECUENTES: ParadaFrecuente[] = [
-  { id: "ceja", nombre: "Ceja (El Alto)", zona: "El Alto", tarifa_sugerida: "3.50" },
-  { id: "perez_velasco", nombre: "Pérez Velasco", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
-  { id: "san_francisco", nombre: "San Francisco", zona: "La Paz Centro", tarifa_sugerida: "2.60" },
-  { id: "cruce_viacha", nombre: "Cruce Viacha (El Alto)", zona: "El Alto", tarifa_sugerida: "3.50" },
-  { id: "sopocachi", nombre: "Sopocachi (Plaza Abaroa)", zona: "La Paz Centro", tarifa_sugerida: "2.60" },
-  { id: "miraflores", nombre: "Miraflores (Plaza Triangular)", zona: "La Paz Centro", tarifa_sugerida: "2.60" },
-  { id: "san_pedro", nombre: "San Pedro (Plaza Sucre)", zona: "La Paz Centro", tarifa_sugerida: "2.60" },
-  { id: "satelite", nombre: "Ciudad Satélite", zona: "El Alto", tarifa_sugerida: "3.00" },
-  { id: "rio_seco", nombre: "Río Seco (El Alto)", zona: "El Alto", tarifa_sugerida: "3.50" },
-  { id: "villa_fatima", nombre: "Villa Fátima", zona: "La Paz Centro", tarifa_sugerida: "2.60" },
-  { id: "calacoto", nombre: "Calacoto (Calle 21)", zona: "La Paz Sur", tarifa_sugerida: "3.50" },
+  { id: "diaconia_central", nombre: "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
+  { id: "diaconia_ceja", nombre: "Agencia Diaconía Ceja (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
+  { id: "escuela_lideres", nombre: "Sede Escuela de Líderes (La Paz)", zona: "La Paz", tarifa_sugerida: "2.60" },
+  { id: "ceja_distribuidor", nombre: "La Ceja — Calle 1 / Puente Distribuidor (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
+  { id: "cruce_villa_adela", nombre: "Cruce Villa Adela (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
+  { id: "villa_adela", nombre: "Villa Adela, El Alto", zona: "El Alto", tarifa_sugerida: "2.00" },
+  { id: "cruce_viacha", nombre: "Cruce Viacha (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
+  { id: "rio_seco", nombre: "Ex Tranca Río Seco (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
+  { id: "senkata", nombre: "Extranca Senkata — Av. 6 de Marzo (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
+  { id: "satelite", nombre: "Ciudad Satélite — Plaza del Tinku (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
+  { id: "ballivian", nombre: "Ballivián / Faro Murillo (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
+  { id: "upea", nombre: "UPEA — Villa Esperanza (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
+  { id: "terminal_el_alto", nombre: "Terminal Metropolitana El Alto", zona: "El Alto", tarifa_sugerida: "2.00" },
+  { id: "puente_vela", nombre: "Puente Vela / Ventilla (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
+  { id: "perez_velasco", nombre: "Pérez Velasco / Héroes del Pacífico (La Paz)", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
+  { id: "san_francisco", nombre: "Plaza San Francisco (La Paz)", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
+  { id: "san_pedro", nombre: "San Pedro — Plaza Sucre (La Paz)", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
+  { id: "el_prado", nombre: "El Prado / Obelisco (La Paz)", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
+  { id: "umsa", nombre: "UMSA — Monoblock Central (La Paz)", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
+  { id: "sopocachi", nombre: "Sopocachi — Plaza Abaroa (La Paz)", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
+  { id: "miraflores_siles", nombre: "Miraflores — Estadio Hernando Siles (La Paz)", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
+  { id: "miraflores_triangular", nombre: "Miraflores — Plaza Triangular / Hospital de Clínicas (La Paz)", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
+  { id: "terminal_la_paz", nombre: "Terminal de Buses La Paz / Plaza Antofagasta", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
+  { id: "cementerio", nombre: "Cementerio General / Ajayuni (La Paz)", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
+  { id: "periferica", nombre: "Periférica — Av. Vásquez / Autopista (La Paz)", zona: "La Paz", tarifa_sugerida: "3.50" },
+  { id: "chuquiaguillo", nombre: "Chuquiaguillo / Salida Yungas (La Paz)", zona: "La Paz", tarifa_sugerida: "3.50" },
+  { id: "villa_fatima", nombre: "Villa Fátima — Plaza del Maestro / Minasa (La Paz)", zona: "La Paz", tarifa_sugerida: "3.50" },
+  { id: "obrajes", nombre: "Obrajes — Calle 17 (Zona Sur, La Paz)", zona: "La Paz Sur", tarifa_sugerida: "3.50" },
+  { id: "calacoto", nombre: "Calacoto — Calle 21 (Zona Sur, La Paz)", zona: "La Paz Sur", tarifa_sugerida: "3.50" },
+  { id: "chasquipampa", nombre: "Chasquipampa — Calle 53 (Zona Sur, La Paz)", zona: "La Paz Sur", tarifa_sugerida: "3.50" },
+  { id: "teleferico_roja", nombre: "Teleférico Línea Roja (Estación Central / 16 de Julio)", zona: "La Paz / El Alto", tarifa_sugerida: "3.00" },
+  { id: "teleferico_amarilla", nombre: "Teleférico Línea Amarilla (Mirador / Sopocachi / Libertador)", zona: "La Paz / El Alto", tarifa_sugerida: "3.00" },
+  { id: "teleferico_morada", nombre: "Teleférico Línea Morada (Faro Murillo / San José)", zona: "La Paz / El Alto", tarifa_sugerida: "3.00" },
+  { id: "teleferico_azul", nombre: "Teleférico Línea Azul (Río Seco / UPEA / 16 de Julio)", zona: "El Alto", tarifa_sugerida: "3.00" },
+  { id: "teleferico_blanca", nombre: "Teleférico Línea Blanca (Plaza Villarroel / Busch)", zona: "La Paz", tarifa_sugerida: "3.00" },
 ];
 
 const RUTAS_FRECUENTES_PREAJUSTADAS: RutaFrecuente[] = [
@@ -141,8 +165,8 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
 
   const formulario = useFormularioValidado(
     {
-      origen: "",
-      destino: "",
+      origen: "Villa Adela, El Alto",
+      destino: "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)",
       monto: "3.50",
       fecha: new Date(),
     },
@@ -336,20 +360,41 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
   );
 
   const PARADAS_OFICIALES_COORDENADAS = [
-    { nombre: "La Ceja - Calle 1", latitud: -16.5085, longitud: -68.1633 },
-    { nombre: "Cruce Viacha", latitud: -16.5350, longitud: -68.1750 },
-    { nombre: "Pérez Velasco", latitud: -16.4955, longitud: -68.1370 },
-    { nombre: "Plaza San Francisco", latitud: -16.4962, longitud: -68.1384 },
-    { nombre: "San Pedro - Plaza Sucre", latitud: -16.5020, longitud: -68.1375 },
-    { nombre: "Sopocachi - Plaza Abaroa", latitud: -16.5125, longitud: -68.1275 },
-    { nombre: "Miraflores - Estadio Hernando Siles", latitud: -16.5005, longitud: -68.1228 },
-    { nombre: "Plaza Triangular", latitud: -16.5080, longitud: -68.1195 },
-    { nombre: "Villa Fátima - Plaza del Maestro", latitud: -16.4795, longitud: -68.1180 },
-    { nombre: "Estación Teleférico Rojo", latitud: -16.4910, longitud: -68.1430 },
-    { nombre: "Estación Teleférico Amarillo", latitud: -16.5190, longitud: -68.1465 },
-    { nombre: "Estación Teleférico Morado", latitud: -16.5115, longitud: -68.1565 },
-    { nombre: "Río Seco", latitud: -16.4865, longitud: -68.1932 },
-    { nombre: "Calacoto - Calle 21", latitud: -16.5410, longitud: -68.0850 },
+    { nombre: "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)", latitud: -16.50005, longitud: -68.17345 },
+    { nombre: "Agencia Diaconía Ceja (El Alto)", latitud: -16.5085, longitud: -68.1630 },
+    { nombre: "Sede Escuela de Líderes (La Paz)", latitud: -16.5042, longitud: -68.1315 },
+    { nombre: "La Ceja — Calle 1 / Puente Distribuidor (El Alto)", latitud: -16.5088, longitud: -68.1627 },
+    { nombre: "Cruce Villa Adela (El Alto)", latitud: -16.5245, longitud: -68.1885 },
+    { nombre: "Villa Adela, El Alto", latitud: -16.5360, longitud: -68.1920 },
+    { nombre: "Cruce Viacha (El Alto)", latitud: -16.5178, longitud: -68.1695 },
+    { nombre: "Ex Tranca Río Seco (El Alto)", latitud: -16.4912, longitud: -68.2105 },
+    { nombre: "Extranca Senkata — Av. 6 de Marzo (El Alto)", latitud: -16.5655, longitud: -68.1872 },
+    { nombre: "Ciudad Satélite — Plaza del Tinku (El Alto)", latitud: -16.5195, longitud: -68.1510 },
+    { nombre: "Ballivián / Faro Murillo (El Alto)", latitud: -16.5055, longitud: -68.1525 },
+    { nombre: "UPEA — Villa Esperanza (El Alto)", latitud: -16.4935, longitud: -68.1940 },
+    { nombre: "Terminal Metropolitana El Alto", latitud: -16.5152, longitud: -68.1720 },
+    { nombre: "Puente Vela / Ventilla (El Alto)", latitud: -16.5520, longitud: -68.1960 },
+    { nombre: "Pérez Velasco / Héroes del Pacífico (La Paz)", latitud: -16.4958, longitud: -68.1372 },
+    { nombre: "Plaza San Francisco (La Paz)", latitud: -16.4965, longitud: -68.1378 },
+    { nombre: "San Pedro — Plaza Sucre (La Paz)", latitud: -16.5030, longitud: -68.1360 },
+    { nombre: "El Prado / Obelisco (La Paz)", latitud: -16.4988, longitud: -68.1340 },
+    { nombre: "UMSA — Monoblock Central (La Paz)", latitud: -16.5048, longitud: -68.1298 },
+    { nombre: "Sopocachi — Plaza Abaroa (La Paz)", latitud: -16.5112, longitud: -68.1268 },
+    { nombre: "Miraflores — Estadio Hernando Siles (La Paz)", latitud: -16.4995, longitud: -68.1228 },
+    { nombre: "Miraflores — Plaza Triangular / Hospital de Clínicas (La Paz)", latitud: -16.5052, longitud: -68.1211 },
+    { nombre: "Terminal de Buses La Paz / Plaza Antofagasta", latitud: -16.4895, longitud: -68.1415 },
+    { nombre: "Cementerio General / Ajayuni (La Paz)", latitud: -16.4920, longitud: -68.1515 },
+    { nombre: "Periférica — Av. Vásquez / Autopista (La Paz)", latitud: -16.4840, longitud: -68.1425 },
+    { nombre: "Chuquiaguillo / Salida Yungas (La Paz)", latitud: -16.4620, longitud: -68.1050 },
+    { nombre: "Villa Fátima — Plaza del Maestro / Minasa (La Paz)", latitud: -16.4815, longitud: -68.1189 },
+    { nombre: "Obrajes — Calle 17 (Zona Sur, La Paz)", latitud: -16.5275, longitud: -68.1085 },
+    { nombre: "Calacoto — Calle 21 (Zona Sur, La Paz)", latitud: -16.5398, longitud: -68.0865 },
+    { nombre: "Chasquipampa — Calle 53 (Zona Sur, La Paz)", latitud: -16.5440, longitud: -68.0530 },
+    { nombre: "Teleférico Línea Roja (Estación Central / 16 de Julio)", latitud: -16.4918, longitud: -68.1452 },
+    { nombre: "Teleférico Línea Amarilla (Mirador / Sopocachi / Libertador)", latitud: -16.5172, longitud: -68.1338 },
+    { nombre: "Teleférico Línea Morada (Faro Murillo / San José)", latitud: -16.5015, longitud: -68.1355 },
+    { nombre: "Teleférico Línea Azul (Río Seco / UPEA / 16 de Julio)", latitud: -16.4960, longitud: -68.1820 },
+    { nombre: "Teleférico Línea Blanca (Plaza Villarroel / Busch)", latitud: -16.4930, longitud: -68.1195 },
   ];
 
   const calcularDistanciaHaversineMetros = (
@@ -383,6 +428,8 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
       return `Parada ${parada_cercana.nombre} (a ${parada_cercana.distancia} m)`;
     }
 
+    const parada_ref = parada_cercana ? parada_cercana.nombre : "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)";
+
     // 2. Geocodificación inversa con Nominatim para calle y zona real (> 150m)
     try {
       const controller = new AbortController();
@@ -396,16 +443,32 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
         const data = await resp.json();
         const addr = data.address || {};
         const calle =
-          addr.road || addr.pedestrian || addr.footway || addr.street || addr.neighbourhood || addr.suburb || "Av. Principal";
-        const zona =
-          addr.suburb || addr.city_district || addr.neighbourhood || addr.quarter || addr.city || "Ubicación en vivo";
-        return `${calle}, ${zona} (Ubicación en vivo)`;
+          addr.road || addr.pedestrian || addr.footway || addr.path || addr.residential || addr.amenity || addr.building;
+        const barrio =
+          addr.neighbourhood || addr.quarter || addr.suburb;
+        const distrito =
+          addr.city_district || addr.city || addr.town;
+
+        if (calle && String(calle).trim().length > 0) {
+          if (barrio && String(barrio).trim().length > 0) {
+            return `${calle}, ${barrio}`;
+          } else if (distrito && String(distrito).trim().length > 0) {
+            return `${calle}, ${distrito}`;
+          }
+          return `${calle}`;
+        } else {
+          const zona = barrio || distrito;
+          if (zona) {
+            return `Zona ${zona} · Ref. ${parada_ref}`;
+          }
+          return `Ref. ${parada_ref}`;
+        }
       }
     } catch (_e) {
       // Fallback
     }
 
-    return `Ubicación GPS (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+    return `Ubicación GPS (${lat.toFixed(4)}, ${lng.toFixed(4)}) · Ref. ${parada_ref}`;
   };
 
   const [capturando_gps_campo, set_capturando_gps_campo] = useState<"origen" | "destino" | null>(null);
@@ -420,14 +483,23 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
           const lng = pos.coords.longitude;
           const ubicacion = await resolverUbicacionGpsReal(lat, lng);
           formulario.cambiarValor(campo, ubicacion);
-          toast.success("Ubicación en tiempo real capturada", {
+
+          // Si el otro campo tiene el mismo valor o está vacío, evitar duplicidad asignando la sede
+          const otro_campo = campo === "origen" ? "destino" : "origen";
+          const otro_valor = String(formulario.valores[otro_campo] || "").trim();
+          if (otro_valor.toLowerCase() === ubicacion.toLowerCase()) {
+            const sede_default = "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)";
+            formulario.cambiarValor(otro_campo, sede_default);
+          }
+
+          toast.success("✓ Ubicación en tiempo real fijada", {
             description: ubicacion,
           });
           set_capturando_gps_campo(null);
         },
         () => {
           const fallback =
-            campo === "origen" ? "Av. 6 de Marzo, Ceja (El Alto)" : "Pérez Velasco, Centro La Paz";
+            campo === "origen" ? "Villa Adela, El Alto" : "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)";
           formulario.cambiarValor(campo, fallback);
           toast.info(`Ubicación aproximada asignada: ${fallback}`);
           set_capturando_gps_campo(null);
@@ -435,7 +507,10 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
         { timeout: 5000, enableHighAccuracy: true }
       );
     } else {
-      formulario.cambiarValor(campo, "Ceja (El Alto)");
+      formulario.cambiarValor(
+        campo,
+        campo === "origen" ? "Villa Adela, El Alto" : "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)"
+      );
     }
   };
 
@@ -798,20 +873,21 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
                   className="border-none shadow-none h-auto p-0 focus-visible:ring-0 text-xs font-semibold bg-transparent"
                 />
               </div>
-              <div className="flex items-center gap-1 shrink-0">
+              <div className="flex items-center gap-1.5 shrink-0">
                 <Button
                   type="button"
                   size="sm"
-                  variant="ghost"
+                  variant="outline"
                   onClick={(e) => {
                     e.stopPropagation();
                     capturarGpsParaCampo("origen");
                   }}
                   disabled={capturando_gps_campo !== null}
-                  title="Capturar ubicación en tiempo real por GPS"
-                  className="h-7 w-7 p-0 text-[#00ABBD] hover:text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg cursor-pointer"
+                  title="Capturar y fijar ubicación GPS actual"
+                  className="h-7 px-2 text-[11px] font-bold border-[#CBD5E1] bg-[#F1F5F9] text-[#035683] hover:bg-[#00ABBD]/10 hover:border-[#00ABBD] rounded-lg flex items-center gap-1 cursor-pointer"
                 >
-                  <Navigation className={`w-3.5 h-3.5 ${capturando_gps_campo === "origen" ? "animate-spin text-[#FFB600]" : ""}`} />
+                  <Navigation className={`w-3 h-3 text-[#00ABBD] ${capturando_gps_campo === "origen" ? "animate-spin text-[#FFB600]" : ""}`} />
+                  <span>{capturando_gps_campo === "origen" ? "Detectando..." : "📍 Fijar GPS"}</span>
                 </Button>
                 <Search className="w-3.5 h-3.5 text-muted-foreground" />
               </div>
@@ -891,20 +967,21 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
                   className="border-none shadow-none h-auto p-0 focus-visible:ring-0 text-xs font-semibold bg-transparent"
                 />
               </div>
-              <div className="flex items-center gap-1 shrink-0">
+              <div className="flex items-center gap-1.5 shrink-0">
                 <Button
                   type="button"
                   size="sm"
-                  variant="ghost"
+                  variant="outline"
                   onClick={(e) => {
                     e.stopPropagation();
                     capturarGpsParaCampo("destino");
                   }}
                   disabled={capturando_gps_campo !== null}
-                  title="Capturar ubicación en tiempo real por GPS"
-                  className="h-7 w-7 p-0 text-[#00ABBD] hover:text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg cursor-pointer"
+                  title="Capturar y fijar ubicación GPS actual"
+                  className="h-7 px-2 text-[11px] font-bold border-[#CBD5E1] bg-[#F1F5F9] text-[#035683] hover:bg-[#00ABBD]/10 hover:border-[#00ABBD] rounded-lg flex items-center gap-1 cursor-pointer"
                 >
-                  <Navigation className={`w-3.5 h-3.5 ${capturando_gps_campo === "destino" ? "animate-spin text-[#FFB600]" : ""}`} />
+                  <Navigation className={`w-3 h-3 text-[#007BBE] ${capturando_gps_campo === "destino" ? "animate-spin text-[#FFB600]" : ""}`} />
+                  <span>{capturando_gps_campo === "destino" ? "Detectando..." : "📍 Fijar GPS"}</span>
                 </Button>
                 <Search className="w-3.5 h-3.5 text-muted-foreground" />
               </div>

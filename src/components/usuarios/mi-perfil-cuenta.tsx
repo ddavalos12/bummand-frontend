@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   UserCheck,
   ShieldCheck,
+  Shield,
+  Check,
   GraduationCap,
   Mail,
   Lock,
@@ -449,8 +451,18 @@ export function MiPerfilCuenta() {
 
   const seguridad_clave = useMemo(() => calcularNivelSeguridad(clave_nueva), [clave_nueva]);
 
+  const requisitos_clave = useMemo(() => {
+    return {
+      longitud_minima: clave_nueva.length >= 8,
+      tiene_mayuscula: /[A-Z]/.test(clave_nueva),
+      tiene_minuscula: /[a-z]/.test(clave_nueva),
+      tiene_numero: /[0-9]/.test(clave_nueva),
+      tiene_simbolo: /[^A-Za-z0-9]/.test(clave_nueva),
+    };
+  }, [clave_nueva]);
+
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-6 w-full">
       {/* 1. Encabezado Institucional de Perfil */}
       <Card className="rounded-2xl border-none shadow-sm overflow-hidden bg-gradient-to-r from-[#035683] via-[#007BBE] to-[#00ABBD] text-white">
         <div className="p-6 sm:p-8 flex flex-col md:flex-row items-center md:items-start justify-between gap-6">
@@ -962,25 +974,86 @@ export function MiPerfilCuenta() {
         </TabsContent>
 
         {/* =========================================================================
-            PESTAÑA 3: Contraseña y Seguridad de Cuenta
+            PESTAÑA 3: Contraseña y Seguridad de Cuenta (100% Ancho)
            ========================================================================= */}
-        <TabsContent value="seguridad_contrasena" className="space-y-5 outline-none">
-          <Card className="rounded-2xl border-[#E5E7EB] shadow-xs bg-white p-6">
-            <CardHeader className="p-0 pb-5 border-b border-[#E5E7EB]">
-              <CardTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+        <TabsContent value="seguridad_contrasena" className="space-y-6 outline-none w-full">
+          {/* Franja Informativa de Estado de Contraseña Actual (Ancho Completo w-full) */}
+          <div className="w-full rounded-2xl bg-gradient-to-r from-[#035683]/10 via-[#007BBE]/10 to-[#00ABBD]/10 border border-[#007BBE]/25 p-5 sm:p-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-[#007BBE] text-white flex items-center justify-center shrink-0 shadow-md">
+                  <ShieldCheck className="w-6 h-6 text-[#FFB600]" />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-base font-bold text-[#035683]">
+                      Estado de Protección y Cifrado de Cuenta
+                    </h3>
+                    <Badge className="bg-emerald-500/15 text-emerald-700 border-emerald-300 font-bold text-[10px]">
+                      Cuenta Protegida
+                    </Badge>
+                    <Badge variant="outline" className="border-[#007BBE]/40 text-[#007BBE] bg-white font-mono text-[10px]">
+                      Algoritmo bcrypt activo
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-slate-600">
+                    Su cuenta institucional está asociada al correo principal{" "}
+                    <span className="font-semibold text-slate-900 font-mono">
+                      {correo_principal || usuario?.correo || "correo institucional"}
+                    </span>
+                    . La clave está resguardada con hash unidireccional salted no reversible.
+                  </p>
+                </div>
+              </div>
+
+              {/* Resumen de indicadores visuales */}
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0 w-full sm:w-auto">
+                <div className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-white border border-[#E5E7EB] shadow-xs text-center">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                    Encriptación
+                  </span>
+                  <span className="text-xs font-mono font-extrabold text-[#035683]">
+                    bcrypt (10 rounds)
+                  </span>
+                </div>
+                <div className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-white border border-[#E5E7EB] shadow-xs text-center">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                    Credenciales
+                  </span>
+                  <span className="text-xs font-bold text-emerald-600 flex items-center justify-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Vigentes
+                  </span>
+                </div>
+                <div className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-white border border-[#E5E7EB] shadow-xs text-center">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                    Sesión JWT
+                  </span>
+                  <span className="text-xs font-mono font-bold text-[#007BBE]">
+                    ASFI / 24h
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tarjeta Principal de Cambio de Contraseña y Verificación (w-full) */}
+          <Card className="w-full rounded-2xl border-[#E5E7EB] shadow-xs bg-white p-6 sm:p-8">
+            <CardHeader className="p-0 pb-6 border-b border-[#E5E7EB]">
+              <CardTitle className="text-lg font-bold text-[#035683] flex items-center gap-2">
                 <Lock className="w-5 h-5 text-[#007BBE]" />
-                <span>Actualización de Contraseña y Seguridad</span>
+                <span>Actualización de Contraseña Institucional</span>
               </CardTitle>
               <CardDescription className="text-xs text-muted-foreground">
-                Gestione la clave de seguridad para el acceso a su cuenta institucional
+                Actualice su contraseña periódicamente siguiendo los estándares de seguridad de Diaconía FRIF-IFD
               </CardDescription>
             </CardHeader>
 
-            <div className="pt-5 grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Formulario */}
-              <form onSubmit={manejarCambiarContrasenaPropia} className="lg:col-span-2 space-y-4">
+            <div className="pt-6 grid grid-cols-1 xl:grid-cols-12 gap-6 w-full">
+              {/* Columna Principal: Formulario de Cambio de Contraseña (xl:col-span-8 w-full) */}
+              <form onSubmit={manejarCambiarContrasenaPropia} className="xl:col-span-8 w-full space-y-5">
                 {/* Contraseña Actual */}
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label className="text-xs font-bold text-[#035683]">
                     Contraseña Actual <span className="text-rose-500">*</span>
                   </Label>
@@ -991,48 +1064,51 @@ export function MiPerfilCuenta() {
                       value={clave_actual}
                       onChange={(_e) => set_clave_actual(_e.target.value)}
                       required
-                      className="h-10 pr-10 text-xs font-mono rounded-xl border-[#E5E7EB]"
+                      className="h-11 pr-11 text-xs sm:text-sm font-mono rounded-xl border-[#E5E7EB] w-full focus-visible:ring-[#007BBE]"
                     />
                     <button
                       type="button"
                       onClick={() => set_mostrar_clave_actual(!mostrar_clave_actual)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[#035683] cursor-pointer"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[#035683] cursor-pointer"
                       title={mostrar_clave_actual ? "Ocultar" : "Mostrar"}
                     >
                       {mostrar_clave_actual ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Ingrese la clave con la que inició sesión actualmente.
+                  </p>
                 </div>
 
                 {/* Nueva Contraseña */}
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label className="text-xs font-bold text-[#035683]">
                     Nueva Contraseña <span className="text-rose-500">*</span>
                   </Label>
                   <div className="relative">
                     <Input
                       type={mostrar_clave_nueva ? "text" : "password"}
-                      placeholder="Mínimo 6 u 8 caracteres con letras y números"
+                      placeholder="Mínimo 8 caracteres combinando mayúsculas, minúsculas, números y símbolos"
                       value={clave_nueva}
                       onChange={(_e) => set_clave_nueva(_e.target.value)}
                       required
-                      className="h-10 pr-10 text-xs font-mono rounded-xl border-[#E5E7EB]"
+                      className="h-11 pr-11 text-xs sm:text-sm font-mono rounded-xl border-[#E5E7EB] w-full focus-visible:ring-[#007BBE]"
                     />
                     <button
                       type="button"
                       onClick={() => set_mostrar_clave_nueva(!mostrar_clave_nueva)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[#035683] cursor-pointer"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[#035683] cursor-pointer"
                       title={mostrar_clave_nueva ? "Ocultar" : "Mostrar"}
                     >
                       {mostrar_clave_nueva ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
 
-                  {/* Indicador visual de seguridad */}
+                  {/* Barra interactiva de nivel de seguridad en vivo */}
                   {clave_nueva && (
                     <div className="space-y-1.5 pt-1">
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="font-semibold text-muted-foreground">Fortaleza calculada:</span>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-muted-foreground">Fortaleza calculada en vivo:</span>
                         <span className="font-bold text-[#035683]">{seguridad_clave.etiqueta}</span>
                       </div>
                       <Progress value={seguridad_clave.puntaje} className="h-2 rounded-full" />
@@ -1040,24 +1116,24 @@ export function MiPerfilCuenta() {
                   )}
                 </div>
 
-                {/* Confirmar Contraseña */}
-                <div className="space-y-1.5">
+                {/* Confirmar Nueva Contraseña */}
+                <div className="space-y-2">
                   <Label className="text-xs font-bold text-[#035683]">
                     Confirmar Nueva Contraseña <span className="text-rose-500">*</span>
                   </Label>
                   <div className="relative">
                     <Input
                       type={mostrar_clave_confirmar ? "text" : "password"}
-                      placeholder="Vuelva a escribir la nueva contraseña"
+                      placeholder="Vuelva a escribir la nueva contraseña exactamente igual"
                       value={clave_confirmar}
                       onChange={(_e) => set_clave_confirmar(_e.target.value)}
                       required
-                      className="h-10 pr-10 text-xs font-mono rounded-xl border-[#E5E7EB]"
+                      className="h-11 pr-11 text-xs sm:text-sm font-mono rounded-xl border-[#E5E7EB] w-full focus-visible:ring-[#007BBE]"
                     />
                     <button
                       type="button"
                       onClick={() => set_mostrar_clave_confirmar(!mostrar_clave_confirmar)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[#035683] cursor-pointer"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[#035683] cursor-pointer"
                       title={mostrar_clave_confirmar ? "Ocultar" : "Mostrar"}
                     >
                       {mostrar_clave_confirmar ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -1065,51 +1141,164 @@ export function MiPerfilCuenta() {
                   </div>
 
                   {clave_confirmar && clave_nueva !== clave_confirmar && (
-                    <p className="text-[11px] text-rose-500 font-semibold flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5" /> Las contraseñas ingresadas no coinciden.
+                    <p className="text-xs text-rose-500 font-semibold flex items-center gap-1.5 pt-1">
+                      <AlertCircle className="w-4 h-4 shrink-0" /> Las contraseñas ingresadas no coinciden. Verifíquelas.
                     </p>
                   )}
                   {clave_confirmar && clave_nueva === clave_confirmar && (
-                    <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Las contraseñas coinciden correctamente.
+                    <p className="text-xs text-emerald-600 font-semibold flex items-center gap-1.5 pt-1">
+                      <CheckCircle2 className="w-4 h-4 shrink-0" /> Las contraseñas coinciden correctamente.
                     </p>
                   )}
                 </div>
 
-                <div className="pt-2">
+                {/* Barra inferior de acción con botón destacado */}
+                <div className="pt-3 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <p className="text-xs text-muted-foreground order-2 sm:order-1">
+                    Los cambios entrarán en vigencia inmediatamente tras guardar.
+                  </p>
                   <Button
                     type="submit"
                     disabled={
                       guardando_clave ||
                       !clave_actual ||
                       !clave_nueva ||
+                      clave_nueva.length < 8 ||
                       clave_nueva !== clave_confirmar
                     }
-                    className="h-10 px-6 bg-[#007BBE] hover:bg-[#035683] text-white font-bold rounded-xl text-xs shadow-xs cursor-pointer flex items-center gap-2"
+                    className="h-11 px-8 w-full sm:w-auto bg-[#007BBE] hover:bg-[#035683] text-white font-bold rounded-xl text-xs sm:text-sm shadow-md cursor-pointer flex items-center justify-center gap-2 transition-colors disabled:opacity-50 order-1 sm:order-2"
                   >
                     <KeyRound className="w-4 h-4" />
-                    <span>{guardando_clave ? "Actualizando..." : "Actualizar Mi Contraseña"}</span>
+                    <span>{guardando_clave ? "Actualizando Contraseña..." : "Actualizar Mi Contraseña"}</span>
                   </Button>
                 </div>
               </form>
 
-              {/* Recomendaciones de Seguridad Diaconía */}
-              <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-slate-50 border border-[#E5E7EB] space-y-3">
+              {/* Columna Lateral: Requisitos en Vivo y Políticas (xl:col-span-4 w-full) */}
+              <div className="xl:col-span-4 w-full space-y-4">
+                {/* Tarjeta de Verificación en Vivo de Requisitos */}
+                <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-[#E5E7EB] space-y-4">
                   <div className="flex items-center gap-2 text-[#035683] font-bold text-xs">
                     <ShieldCheck className="w-4 h-4 text-[#007BBE]" />
+                    <span>Verificación de Requisitos en Vivo</span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    <div className="flex items-center gap-2.5 text-xs">
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                          requisitos_clave.longitud_minima
+                            ? "bg-emerald-500 text-white"
+                            : "bg-slate-200 text-slate-400"
+                        }`}
+                      >
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </div>
+                      <span
+                        className={`text-xs ${
+                          requisitos_clave.longitud_minima
+                            ? "text-emerald-700 font-semibold"
+                            : "text-slate-600"
+                        }`}
+                      >
+                        Mínimo 8 caracteres ({clave_nueva.length}/8)
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 text-xs">
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                          requisitos_clave.tiene_mayuscula
+                            ? "bg-emerald-500 text-white"
+                            : "bg-slate-200 text-slate-400"
+                        }`}
+                      >
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </div>
+                      <span
+                        className={`text-xs ${
+                          requisitos_clave.tiene_mayuscula
+                            ? "text-emerald-700 font-semibold"
+                            : "text-slate-600"
+                        }`}
+                      >
+                        Al menos una letra mayúscula (A-Z)
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 text-xs">
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                          requisitos_clave.tiene_minuscula
+                            ? "bg-emerald-500 text-white"
+                            : "bg-slate-200 text-slate-400"
+                        }`}
+                      >
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </div>
+                      <span
+                        className={`text-xs ${
+                          requisitos_clave.tiene_minuscula
+                            ? "text-emerald-700 font-semibold"
+                            : "text-slate-600"
+                        }`}
+                      >
+                        Al menos una letra minúscula (a-z)
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 text-xs">
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                          requisitos_clave.tiene_numero
+                            ? "bg-emerald-500 text-white"
+                            : "bg-slate-200 text-slate-400"
+                        }`}
+                      >
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </div>
+                      <span
+                        className={`text-xs ${
+                          requisitos_clave.tiene_numero
+                            ? "text-emerald-700 font-semibold"
+                            : "text-slate-600"
+                        }`}
+                      >
+                        Al menos un número (0-9)
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 text-xs">
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                          requisitos_clave.tiene_simbolo
+                            ? "bg-emerald-500 text-white"
+                            : "bg-slate-200 text-slate-400"
+                        }`}
+                      >
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </div>
+                      <span
+                        className={`text-xs ${
+                          requisitos_clave.tiene_simbolo
+                            ? "text-emerald-700 font-semibold"
+                            : "text-slate-600"
+                        }`}
+                      >
+                        Carácter especial o símbolo (!@#$%...)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tarjeta de Recomendaciones y Políticas de Seguridad Diaconía */}
+                <div className="p-5 rounded-2xl bg-white border border-[#E5E7EB] space-y-3 shadow-xs">
+                  <div className="flex items-center gap-2 text-[#035683] font-bold text-xs">
+                    <Shield className="w-4 h-4 text-[#007BBE]" />
                     <span>Políticas de Seguridad Diaconía FRIF</span>
                   </div>
 
-                  <ul className="space-y-2 text-[11px] text-muted-foreground">
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-emerald-500 font-bold shrink-0">✓</span>
-                      <span>Longitud mínima de 8 caracteres recomendada.</span>
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-emerald-500 font-bold shrink-0">✓</span>
-                      <span>Incluir mayúsculas, minúsculas, números y caracteres especiales.</span>
-                    </li>
+                  <ul className="space-y-2 text-xs text-muted-foreground">
                     <li className="flex items-start gap-1.5">
                       <span className="text-emerald-500 font-bold shrink-0">✓</span>
                       <span>No reutilice contraseñas de correos o redes personales ajenas a BUMAND.</span>
@@ -1118,15 +1307,20 @@ export function MiPerfilCuenta() {
                       <span className="text-emerald-500 font-bold shrink-0">✓</span>
                       <span>No comparta sus credenciales con compañeros o terceros no autorizados.</span>
                     </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-emerald-500 font-bold shrink-0">✓</span>
+                      <span>Cierre de sesión automático tras inactividad prolongada según normativa ASFI.</span>
+                    </li>
                   </ul>
                 </div>
 
-                <div className="p-3.5 rounded-xl border border-dashed border-[#E5E7EB] bg-slate-50/50 space-y-1.5 text-xs text-muted-foreground">
+                {/* Información Criptográfica */}
+                <div className="p-4 rounded-2xl border border-dashed border-[#E5E7EB] bg-slate-50/50 space-y-1.5 text-xs text-muted-foreground">
                   <span className="font-bold text-[#035683] block text-[11px]">
-                    Sesión Activa
+                    Infraestructura Criptográfica
                   </span>
-                  <p className="text-[11px]">
-                    Token JWT emitido por la infraestructura de seguridad BUMAND. Cierre de sesión automático tras periodo de inactividad prolongada.
+                  <p className="text-[11px] leading-relaxed">
+                    Las credenciales se cifran mediante salt rounds unidireccionales con token JWT institucional de doble capa.
                   </p>
                 </div>
               </div>

@@ -1466,7 +1466,15 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                       set_nomina_f03((prev) =>
                         prev.map((b) =>
                           b.becario_id === res.becario_id
-                            ? { ...b, puntaje: res.puntaje, estado: "Evaluado" }
+                            ? {
+                                ...b,
+                                puntaje: res.puntaje,
+                                estado: "completada",
+                                pastor_nombre: res.pastor_nombre ?? b.pastor_nombre,
+                                iglesia_nombre: res.iglesia_nombre ?? b.iglesia_nombre,
+                                pastor_celular: res.pastor_celular ?? b.pastor_celular,
+                                campos_formulario: res.campos_formulario ?? b.campos_formulario,
+                              }
                             : b
                         )
                       );

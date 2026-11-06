@@ -272,7 +272,7 @@ export function ControlRefrigerios() {
             fecha_devolucion: item.fecha_devolucion || null,
             sede_nombre: item.sede_nombre || "Oficina Central El Alto",
             bloque: item.bloque || "Bloque B (Auditorio)",
-            responsable_entrega: item.responsable_entrega || "Administración Central",
+            responsable_entrega: item.responsable_entrega || "Coordinación General BUMAND",
             estado_reposicion: (item.estado_reposicion || "rendido_pendiente") as RegistroRacionRefrigerio["estado_reposicion"],
             administrador_revisor: item.administrador_revisor || item.administrador_nombre || null,
             fecha_aprobacion_admin: item.fecha_aprobacion_admin || null,
@@ -348,6 +348,8 @@ export function ControlRefrigerios() {
   const [nuevo_costo_unitario, set_nuevo_costo_unitario] = useState("5.00");
   const [nueva_sede, set_nueva_sede] = useState("Oficina Central El Alto");
   const [nuevo_bloque, set_nuevo_bloque] = useState("Bloque A (Administración)");
+  const [nuevo_responsable_entrega, set_nuevo_responsable_entrega] = useState("Coordinación General BUMAND");
+  const [nuevas_observaciones, set_nuevas_observaciones] = useState("");
 
   const resetearFormularioRefrigerio = () => {
     set_nueva_fecha("2026-10-23");
@@ -359,6 +361,8 @@ export function ControlRefrigerios() {
     set_nuevo_costo_unitario("5.00");
     set_nueva_sede("Oficina Central El Alto");
     set_nuevo_bloque("Bloque A (Administración)");
+    set_nuevo_responsable_entrega("Coordinación General BUMAND");
+    set_nuevas_observaciones("");
   };
 
   const tiene_cambios_refrigerio =
@@ -370,7 +374,9 @@ export function ControlRefrigerios() {
     nuevo_costo_total !== "115.00" ||
     nuevo_costo_unitario !== "5.00" ||
     nueva_sede !== "Oficina Central El Alto" ||
-    nuevo_bloque !== "Bloque A (Administración)";
+    nuevo_bloque !== "Bloque A (Administración)" ||
+    nuevo_responsable_entrega !== "Coordinación General BUMAND" ||
+    nuevas_observaciones !== "";
 
   const intentarCerrarModalRefrigerio = () => {
     confirmarCierreSinCompletar(
@@ -468,9 +474,9 @@ export function ControlRefrigerios() {
       monto_devolucion_bs: costo_t,
       sede_nombre: nueva_sede,
       bloque: nuevo_bloque,
-      responsable_entrega: `${nuevo_encargado_1} y ${nuevo_encargado_2}`,
+      responsable_entrega: nuevo_responsable_entrega.trim() || "Coordinación General BUMAND",
       estado_reposicion: "rendido_pendiente",
-      observaciones: "Rendición de refrigerio por la dupla para devolución íntegra al 100%.",
+      observaciones: nuevas_observaciones.trim() || "Sin observaciones adicionales.",
     };
 
     set_registros([nuevo, ...registros]);
@@ -488,6 +494,8 @@ export function ControlRefrigerios() {
         costo_unitario_bs: precio_u,
         costo_total_bs: costo_t,
         responsable_id: usuario?.id || 1,
+        responsable_entrega: nuevo_responsable_entrega.trim() || "Coordinación General BUMAND",
+        observaciones: nuevas_observaciones.trim() || undefined,
         becario_nombre: `${nuevo_encargado_1} y ${nuevo_encargado_2}`,
         estado_reposicion: "rendido_pendiente",
       });
@@ -946,6 +954,29 @@ export function ControlRefrigerios() {
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
+
+                  {/* Fila 5: Supervisor / Responsable de Entrega */}
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold">Supervisor / Responsable de Entrega</Label>
+                    <Input
+                      placeholder="Coordinación General BUMAND"
+                      value={nuevo_responsable_entrega}
+                      onChange={(e) => set_nuevo_responsable_entrega(e.target.value)}
+                      className="h-9 text-xs border-[#E5E7EB]"
+                    />
+                  </div>
+
+                  {/* Fila 6: Observaciones / Menú Detallado */}
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold">Observaciones / Menú Detallado</Label>
+                    <Textarea
+                      placeholder="Detalle de los alimentos entregados a los becarios..."
+                      value={nuevas_observaciones}
+                      onChange={(e) => set_nuevas_observaciones(e.target.value)}
+                      rows={3}
+                      className="text-xs border-[#E5E7EB] rounded-xl resize-none"
+                    />
                   </div>
                 </DialogBody>
 
