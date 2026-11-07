@@ -67,6 +67,11 @@ import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { toast } from "sonner";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
+import {
+  obtenerExtractoMensualAsistencia,
+  generarExtractoMensualDeterminista,
+  type RespuestaExtractoMensual,
+} from "@/servicios/asistencia.servicio";
 
 export interface HorasMesHistorico {
   mes: string;
@@ -1036,17 +1041,17 @@ export function GestionBecarios() {
     }
   };
 
-  const descargarAsistenciaMensualEstudiante = async (becario_id: number, nombre: string) => {
+  const descargarAsistenciaMensualEstudiante = async (becario_id: number, nombre: string, mes_consulta = '2026-10') => {
     try {
       set_descargando_pdf_estudiante('asistencia_' + becario_id);
       toast.info('Generando kárdex de asistencia mensual...', {
-        description: 'Estudiante: ' + nombre,
+        description: 'Estudiante: ' + nombre + ' · Mes: ' + mes_consulta,
       });
       await descargarPdfConResiliencia(
-        '/pdf/asistencia-estudiante/' + becario_id + '?mes=2026-10',
-        'Asistencia_Mensual_' + nombre.replace(/\s+/g, '_') + '_2026_10.pdf',
+        '/pdf/asistencia-estudiante/' + becario_id + '?mes=' + mes_consulta,
+        'Asistencia_Mensual_' + nombre.replace(/\s+/g, '_') + '_' + mes_consulta.replace('-', '_') + '.pdf',
         'asistencia_estudiante',
-        { becario_id, mes: '2026-10' }
+        { becario_id, mes: mes_consulta }
       );
       toast.success('Kárdex de asistencia mensual descargado exitosamente');
     } catch (_e) {
@@ -1070,6 +1075,40 @@ export function GestionBecarios() {
   // Estados para modales de Horas y Ficha Completa
   const [becario_horas_modal, set_becario_horas_modal] = useState<BecarioVista | null>(null);
   const [becario_ficha_modal, set_becario_ficha_modal] = useState<BecarioVista | null>(null);
+
+  // Estados y sincronización interactiva para Modal de Extracto Bancario de Horas (BKL-07)
+  const [modal_horas_mes_seleccionado, set_modal_horas_mes_seleccionado] = useState<string>("2026-10");
+  const [modal_horas_busqueda_mes, set_modal_horas_busqueda_mes] = useState<string>("");
+  const [modal_horas_vista, set_modal_horas_vista] = useState<"extracto_diario" | "resumen_mensual">("extracto_diario");
+  const [modal_horas_datos, set_modal_horas_datos] = useState<RespuestaExtractoMensual | null>(null);
+  const [modal_horas_cargando, set_modal_horas_cargando] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!becario_horas_modal) return;
+    let montado = true;
+    async function cargarExtractoModal() {
+      set_modal_horas_cargando(true);
+      try {
+        const resp = await obtenerExtractoMensualAsistencia(
+          modal_horas_mes_seleccionado,
+          becario_horas_modal?.id
+        );
+        if (montado && resp) set_modal_horas_datos(resp);
+      } catch {
+        if (montado) {
+          set_modal_horas_datos(
+            generarExtractoMensualDeterminista(becario_horas_modal?.id || 1, modal_horas_mes_seleccionado)
+          );
+        }
+      } finally {
+        if (montado) set_modal_horas_cargando(false);
+      }
+    }
+    cargarExtractoModal();
+    return () => {
+      montado = false;
+    };
+  }, [becario_horas_modal, modal_horas_mes_seleccionado]);
 
   // Consulta API con datos precargados y normalización defensiva
   const { datos: becarios_remotos, invalidar } = useConsulta<BecarioVista[]>(
@@ -2742,128 +2781,438 @@ export function GestionBecarios() {
         </Dialog>
       )}
 
-      {/* Modal Historial de Horas Realizadas por Mes */}
+      {/* Modal Historial de Horas Realizadas por Mes y Extracto Bancario Diario (BKL-07) */}
       <Dialog open={!!becario_horas_modal} onOpenChange={(open) => !open && set_becario_horas_modal(null)}>
         <DialogContent
           showCloseButton={false}
-          className="sm:max-w-[620px] max-h-[85vh] flex flex-col p-0 overflow-hidden bg-white rounded-2xl border-[#E5E7EB] shadow-2xl"
+          className="sm:max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white rounded-2xl border-[#E5E7EB] shadow-2xl"
         >
           <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] bg-[#F8F9FA] shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#035683]/10 text-[#035683] flex items-center justify-center">
-                <Clock className="w-5 h-5 text-[#00ABBD]" />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#035683]/10 text-[#035683] flex items-center justify-center shrink-0">
+                  <Clock className="w-5 h-5 text-[#00ABBD]" />
+                </div>
+                <div>
+                  <DialogTitle className="text-base font-bold text-[#035683]">
+                    Extracto Mensual de Asistencia y Kárdex de Horas
+                  </DialogTitle>
+                  <CardDescription className="text-xs text-muted-foreground">
+                    {becario_horas_modal?.nombre || "Becario"} · CI: {becario_horas_modal?.ci || "-"} {becario_horas_modal?.expedicion || ""} · {becario_horas_modal?.carrera || "-"}
+                  </CardDescription>
+                </div>
               </div>
-              <div>
-                <DialogTitle className="text-base font-bold text-[#035683]">
-                  Historial de Horas Realizadas por Mes
-                </DialogTitle>
-                <CardDescription className="text-xs text-muted-foreground">
-                  {becario_horas_modal?.nombre || "Becario"} · CI: {becario_horas_modal?.ci || "-"} {becario_horas_modal?.expedicion || ""} · {becario_horas_modal?.carrera || "-"}
-                </CardDescription>
-              </div>
+
+              {/* Botón rápido para descargar PDF del mes seleccionado */}
+              {becario_horas_modal && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    descargarAsistenciaMensualEstudiante(
+                      becario_horas_modal.id,
+                      becario_horas_modal.nombre,
+                      modal_horas_mes_seleccionado
+                    )
+                  }
+                  disabled={descargando_pdf_estudiante === 'asistencia_' + becario_horas_modal.id}
+                  className="h-9 px-3.5 border-[#035683] text-[#035683] hover:bg-[#035683]/10 rounded-xl text-xs font-bold gap-1.5 shrink-0 self-start sm:self-center cursor-pointer"
+                  title="Exportar extracto oficial del mes seleccionado en PDF con Puppeteer"
+                >
+                  {descargando_pdf_estudiante === 'asistencia_' + becario_horas_modal.id ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-[#00ABBD]" />
+                  ) : (
+                    <Printer className="w-3.5 h-3.5 text-[#00ABBD]" />
+                  )}
+                  <span>Exportar PDF Mes</span>
+                </Button>
+              )}
             </div>
           </DialogHeader>
 
           <DialogBody className="p-6 space-y-5 overflow-y-auto flex-1 min-h-0">
-            {becario_horas_modal && (
-              <>
-                <div className="p-4 rounded-xl bg-[#035683]/5 border border-[#035683]/15 flex items-center justify-between">
-                  <div>
-                    <span className="text-xs text-muted-foreground">Mes Actual (Octubre 2026)</span>
-                    <p className="text-2xl font-bold font-mono text-[#035683]">
-                      {(becario_horas_modal.horas_mes_actual ?? 0).toFixed(1)}{" "}
-                      <span className="text-sm font-normal text-muted-foreground">
-                        / {(becario_horas_modal.horas_meta_mes ?? 36).toFixed(1)} hrs
+            {becario_horas_modal && (() => {
+              const datos_resueltos = modal_horas_datos || generarExtractoMensualDeterminista(becario_horas_modal.id, modal_horas_mes_seleccionado);
+              const lista_meses = datos_resueltos.extractos;
+              const extracto_seleccionado = lista_meses.find((e) => e.periodo === modal_horas_mes_seleccionado) || datos_resueltos.extracto_actual || lista_meses[0];
+
+              const pildoras_meses_modal = [
+                { clave: "2026-11", etiqueta: "Nov 2026" },
+                { clave: "2026-10", etiqueta: "Oct 2026" },
+                { clave: "2026-09", etiqueta: "Sep 2026" },
+                { clave: "2026-08", etiqueta: "Ago 2026" },
+                { clave: "2026-07", etiqueta: "Jul 2026" },
+                { clave: "2026-06", etiqueta: "Jun 2026" },
+                { clave: "2026-05", etiqueta: "May 2026" },
+                { clave: "2026-04", etiqueta: "Abr 2026" },
+                { clave: "2026-03", etiqueta: "Mar 2026" },
+              ];
+
+              const manejarBusquedaMes = (texto: string) => {
+                set_modal_horas_busqueda_mes(texto);
+                if (!texto.trim()) return;
+                const busq = texto.trim().toLowerCase();
+                const match = lista_meses.find((e) =>
+                  e.mes_nombre.toLowerCase().includes(busq) ||
+                  e.periodo.toLowerCase().includes(busq) ||
+                  (busq === "mayo" && e.periodo === "2026-05") ||
+                  (busq === "marzo" && e.periodo === "2026-03") ||
+                  (busq === "abril" && e.periodo === "2026-04") ||
+                  (busq === "junio" && e.periodo === "2026-06") ||
+                  (busq === "julio" && e.periodo === "2026-07") ||
+                  (busq === "agosto" && e.periodo === "2026-08") ||
+                  (busq === "septiembre" && e.periodo === "2026-09") ||
+                  (busq === "octubre" && e.periodo === "2026-10") ||
+                  (busq === "noviembre" && e.periodo === "2026-11")
+                );
+                if (match) {
+                  set_modal_horas_mes_seleccionado(match.periodo);
+                }
+              };
+
+              return (
+                <div className="space-y-5">
+                  {/* Tarjeta de Resumen del Mes Seleccionado */}
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-[#035683]/10 via-[#007BBE]/10 to-[#00ABBD]/10 border border-[#007BBE]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+                          Periodo Consultado
+                        </span>
+                        <Badge variant="outline" className="text-xs font-mono font-bold bg-[#035683] text-white border-transparent">
+                          {extracto_seleccionado.mes_nombre}
+                        </Badge>
+                      </div>
+                      <p className="text-2xl font-bold font-mono text-[#035683]">
+                        {extracto_seleccionado.horas_acumuladas.toFixed(1)}{" "}
+                        <span className="text-sm font-normal text-muted-foreground">
+                          / {extracto_seleccionado.meta_horas.toFixed(1)} hrs
+                        </span>
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap sm:flex-nowrap items-center gap-6 text-right">
+                      <div>
+                        <span className="text-xs text-muted-foreground block">Cumplimiento</span>
+                        <p className={`text-2xl font-bold font-mono ${
+                          extracto_seleccionado.diferencia_horas >= 0 ? "text-emerald-700" : "text-amber-600"
+                        }`}>
+                          {extracto_seleccionado.porcentaje_cumplimiento}%
+                        </p>
+                        <span className="text-[11px] font-mono text-muted-foreground">
+                          {extracto_seleccionado.diferencia_horas >= 0
+                            ? `+${extracto_seleccionado.diferencia_horas.toFixed(1)} hrs`
+                            : `${extracto_seleccionado.diferencia_horas.toFixed(1)} hrs`}
+                        </span>
+                      </div>
+
+                      <div className="border-l border-slate-200 pl-4 text-left">
+                        <span className="text-xs text-muted-foreground block">Asistencias</span>
+                        <p className="text-base font-bold text-[#035683]">
+                          {extracto_seleccionado.jornadas_totales} jornadas
+                        </p>
+                        <span className="text-[11px] text-emerald-700 font-semibold">
+                          {extracto_seleccionado.tasa_puntualidad}% puntualidad
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Barra de Búsqueda de Mes, Switch de Vistas y Píldoras Interactivas */}
+                  <div className="p-3.5 bg-slate-50 border border-[#E5E7EB] rounded-xl space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      {/* Buscador tecleable */}
+                      <div className="relative flex-1 max-w-md">
+                        <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <Input
+                          type="text"
+                          placeholder="Buscar mes (ej. Mayo, Julio, Octubre)..."
+                          value={modal_horas_busqueda_mes}
+                          onChange={(e) => manejarBusquedaMes(e.target.value)}
+                          className="pl-8 h-8 text-xs rounded-lg border-[#E5E7EB] bg-white"
+                        />
+                      </div>
+
+                      {/* Conmutador de Vistas */}
+                      <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-[#E5E7EB] shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => set_modal_horas_vista("extracto_diario")}
+                          className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                            modal_horas_vista === "extracto_diario"
+                              ? "bg-[#035683] text-white shadow-2xs"
+                              : "text-slate-600 hover:bg-slate-100"
+                          }`}
+                        >
+                          Extracto Diario del Mes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => set_modal_horas_vista("resumen_mensual")}
+                          className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                            modal_horas_vista === "resumen_mensual"
+                              ? "bg-[#035683] text-white shadow-2xs"
+                              : "text-slate-600 hover:bg-slate-100"
+                          }`}
+                        >
+                          Resumen Anual de Meses
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Píldoras Rápidas Interactivas de Meses (Marzo a Noviembre 2026) */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 border-t border-slate-200/60">
+                      <span className="text-[11px] font-mono text-muted-foreground mr-1 shrink-0 font-bold">
+                        Meses:
                       </span>
-                    </p>
+                      {pildoras_meses_modal.map((pm) => {
+                        const es_seleccionado = modal_horas_mes_seleccionado === pm.clave;
+                        return (
+                          <button
+                            key={pm.clave}
+                            type="button"
+                            onClick={() => {
+                              set_modal_horas_mes_seleccionado(pm.clave);
+                              set_modal_horas_busqueda_mes("");
+                              set_modal_horas_vista("extracto_diario");
+                            }}
+                            className={`px-2.5 py-1 rounded-md text-xs font-mono font-bold transition-all shrink-0 cursor-pointer ${
+                              es_seleccionado
+                                ? "bg-[#007BBE] text-white shadow-2xs ring-2 ring-[#007BBE]/30 scale-105"
+                                : "bg-white text-slate-600 border border-[#E5E7EB] hover:bg-slate-100"
+                            }`}
+                          >
+                            {pm.etiqueta}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-xs text-muted-foreground">Avance Global</span>
-                    <p className="text-2xl font-bold font-mono text-[#00ABBD]">
-                      {(becario_horas_modal.horas_meta_mes ?? 0) > 0
-                        ? Math.round(((becario_horas_modal.horas_mes_actual ?? 0) / (becario_horas_modal.horas_meta_mes || 36)) * 100)
-                        : 0}%
-                    </p>
-                  </div>
-                </div>
 
-                <div className="space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683]">
-                    Desglose Mensual Acumulado
-                  </h4>
-                  <div className="border border-[#E5E7EB] rounded-xl overflow-hidden">
-                    <Table>
-                      <TableHeader className="bg-slate-50">
-                        <TableRow className="border-b border-[#E5E7EB]">
-                          <TableHead className="text-xs font-bold text-[#035683]">Mes</TableHead>
-                          <TableHead className="text-xs font-bold text-[#035683]">Horas</TableHead>
-                          <TableHead className="text-xs font-bold text-[#035683]">Meta</TableHead>
-                          <TableHead className="text-xs font-bold text-[#035683]">Progreso</TableHead>
-                          <TableHead className="text-xs font-bold text-[#035683] text-right">Estado</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {becario_horas_modal.historial_horas_mes?.map((h, i) => (
-                          <TableRow key={i} className="border-b border-[#E5E7EB]/40">
-                            <TableCell className="text-xs font-bold text-[#1E293B]">
-                              {h.mes}
-                            </TableCell>
-                            <TableCell className="font-mono text-xs font-bold text-[#035683]">
-                              {(h.horas_realizadas ?? 0).toFixed(1)} hrs
-                            </TableCell>
-                            <TableCell className="font-mono text-xs text-muted-foreground">
-                              {(h.meta_horas ?? 36).toFixed(1)} hrs
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Progress value={Math.min(100, h.porcentaje)} className="h-1.5 w-16" />
-                                <span className="text-[11px] font-mono font-semibold text-muted-foreground">
-                                  {h.porcentaje}%
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {(h.horas_realizadas ?? 0) > (h.meta_horas ?? 36) ? (
-                                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-300 text-[10px] font-bold">
-                                  Meta Superada (+{((h.horas_realizadas ?? 0) - (h.meta_horas ?? 36)).toFixed(1)} hrs)
-                                </Badge>
-                              ) : h.estado === "cumplido" ? (
-                                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-300 text-[10px] font-bold">
-                                  Meta Cumplida
-                                </Badge>
-                              ) : h.estado === "en_progreso" ? (
-                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300 text-[10px] font-bold">
-                                  En Progreso
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 text-[10px] font-bold">
-                                  En Riesgo
-                                </Badge>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                  {/* VISTA 1: Extracto Bancario Diario */}
+                  {modal_horas_vista === "extracto_diario" && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683] flex items-center gap-2">
+                          <span>Movimientos Diarios · {extracto_seleccionado.mes_nombre}</span>
+                          <Badge variant="outline" className="font-mono text-[10px] text-[#00ABBD] border-[#00ABBD]/30 bg-[#00ABBD]/10 font-bold">
+                            {extracto_seleccionado.horas_acumuladas.toFixed(2)} hrs computadas
+                          </Badge>
+                        </h4>
+                        <span className="text-xs font-mono text-muted-foreground">
+                          {extracto_seleccionado.movimientos.length} asistencias registradas
+                        </span>
+                      </div>
+
+                      <div className="border border-[#E5E7EB] rounded-xl overflow-hidden bg-white shadow-2xs">
+                        <Table>
+                          <TableHeader className="bg-slate-50">
+                            <TableRow className="border-b border-[#E5E7EB]">
+                              <TableHead className="text-xs font-bold text-[#035683] pl-4">Fecha / Día</TableHead>
+                              <TableHead className="text-xs font-bold text-[#035683]">Actividad / Sede</TableHead>
+                              <TableHead className="text-xs font-bold text-[#035683] text-center">Hora Entrada</TableHead>
+                              <TableHead className="text-xs font-bold text-[#035683] text-center">Hora Salida</TableHead>
+                              <TableHead className="text-xs font-bold text-[#007BBE] text-right">Horas Día (+)</TableHead>
+                              <TableHead className="text-xs font-bold text-[#035683] text-right">Saldo Acumulado</TableHead>
+                              <TableHead className="text-xs font-bold text-[#035683] pr-4 text-right">Estado</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {extracto_seleccionado.movimientos.length === 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={7} className="h-28 text-center text-xs text-muted-foreground">
+                                  No hay movimientos de asistencia registrados en {extracto_seleccionado.mes_nombre}.
+                                </TableCell>
+                              </TableRow>
+                            ) : (
+                              extracto_seleccionado.movimientos.map((m) => (
+                                <TableRow key={m.id} className="border-b border-[#E5E7EB]/40 hover:bg-slate-50/70 transition-colors">
+                                  {/* Fecha / Día */}
+                                  <TableCell className="pl-4 py-2.5">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="font-mono font-bold text-xs bg-slate-100 text-[#035683] px-1.5 py-0.5 rounded border border-slate-200">
+                                        {m.fecha_corta}
+                                      </span>
+                                      <span className="text-xs font-medium text-slate-700">{m.dia_semana}</span>
+                                    </div>
+                                  </TableCell>
+
+                                  {/* Actividad / Sede */}
+                                  <TableCell className="py-2.5">
+                                    <div className="space-y-0.5">
+                                      <div className="text-xs font-bold text-[#035683]">
+                                        {m.tipo_etiqueta}
+                                      </div>
+                                      <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                        <MapPin className="w-3 h-3 text-[#00ABBD] shrink-0" />
+                                        <span className="truncate max-w-[240px]">{m.sede}</span>
+                                      </div>
+                                    </div>
+                                  </TableCell>
+
+                                  {/* Entrada */}
+                                  <TableCell className="text-center py-2.5">
+                                    <Badge variant="outline" className="bg-emerald-50 text-emerald-800 border-emerald-300 font-mono font-bold text-xs gap-1 px-2 py-0.5">
+                                      <Clock className="w-3 h-3 text-emerald-600" />
+                                      {m.hora_entrada}
+                                    </Badge>
+                                  </TableCell>
+
+                                  {/* Salida */}
+                                  <TableCell className="text-center py-2.5">
+                                    <Badge variant="outline" className="bg-sky-50 text-sky-800 border-sky-300 font-mono font-bold text-xs gap-1 px-2 py-0.5">
+                                      <Clock className="w-3 h-3 text-sky-600" />
+                                      {m.hora_salida || "En curso"}
+                                    </Badge>
+                                  </TableCell>
+
+                                  {/* Horas Día */}
+                                  <TableCell className="text-right py-2.5">
+                                    <span className="font-mono font-extrabold text-xs text-[#007BBE] bg-[#007BBE]/10 px-2 py-0.5 rounded">
+                                      +{m.horas_dia.toFixed(2)} hrs
+                                    </span>
+                                  </TableCell>
+
+                                  {/* Saldo Acumulado */}
+                                  <TableCell className="text-right py-2.5">
+                                    <span className="font-mono font-bold text-xs text-[#035683] bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
+                                      {m.saldo_acumulado.toFixed(2)} hrs
+                                    </span>
+                                  </TableCell>
+
+                                  {/* Estado */}
+                                  <TableCell className="pr-4 text-right py-2.5">
+                                    <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] font-bold">
+                                      Acreditado ({m.distancia_metros}m)
+                                    </Badge>
+                                  </TableCell>
+                                </TableRow>
+                              ))
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* VISTA 2: Resumen Anual de Meses */}
+                  {modal_horas_vista === "resumen_mensual" && (
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683]">
+                        Desglose Mensual Acumulado (Gestión 2026)
+                      </h4>
+                      <div className="border border-[#E5E7EB] rounded-xl overflow-hidden bg-white shadow-2xs">
+                        <Table>
+                          <TableHeader className="bg-slate-50">
+                            <TableRow className="border-b border-[#E5E7EB]">
+                              <TableHead className="text-xs font-bold text-[#035683]">Mes</TableHead>
+                              <TableHead className="text-xs font-bold text-[#035683]">Horas</TableHead>
+                              <TableHead className="text-xs font-bold text-[#035683]">Meta</TableHead>
+                              <TableHead className="text-xs font-bold text-[#035683]">Progreso</TableHead>
+                              <TableHead className="text-xs font-bold text-[#035683] text-right">Estado</TableHead>
+                              <TableHead className="text-xs font-bold text-[#035683] pr-4 text-right">Acción</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {lista_meses.map((h) => {
+                              const es_activo = h.periodo === modal_horas_mes_seleccionado;
+                              return (
+                                <TableRow
+                                  key={h.periodo}
+                                  onClick={() => {
+                                    set_modal_horas_mes_seleccionado(h.periodo);
+                                    set_modal_horas_vista("extracto_diario");
+                                  }}
+                                  className={`border-b border-[#E5E7EB]/40 cursor-pointer transition-colors ${
+                                    es_activo ? "bg-[#035683]/5 font-semibold" : "hover:bg-slate-50/70"
+                                  }`}
+                                >
+                                  <TableCell className="text-xs font-bold text-[#1E293B]">
+                                    <div className="flex items-center gap-1.5">
+                                      <span>{h.mes_nombre}</span>
+                                      {es_activo && (
+                                        <Badge className="bg-[#007BBE] text-white text-[9px] px-1.5 py-0">
+                                          Viendo
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="font-mono text-xs font-bold text-[#035683]">
+                                    {h.horas_acumuladas.toFixed(1)} hrs
+                                  </TableCell>
+                                  <TableCell className="font-mono text-xs text-muted-foreground">
+                                    {h.meta_horas.toFixed(1)} hrs
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex items-center gap-2">
+                                      <Progress value={Math.min(100, h.porcentaje_cumplimiento)} className="h-1.5 w-16" />
+                                      <span className="text-[11px] font-mono font-semibold text-muted-foreground">
+                                        {h.porcentaje_cumplimiento}%
+                                      </span>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    {h.horas_acumuladas > h.meta_horas ? (
+                                      <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-300 text-[10px] font-bold">
+                                        Meta Superada (+{(h.horas_acumuladas - h.meta_horas).toFixed(1)} hrs)
+                                      </Badge>
+                                    ) : h.estado_meta === "cumplido" ? (
+                                      <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-300 text-[10px] font-bold">
+                                        Meta Cumplida
+                                      </Badge>
+                                    ) : h.estado_meta === "en_progreso" ? (
+                                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300 text-[10px] font-bold">
+                                        En Progreso
+                                      </Badge>
+                                    ) : (
+                                      <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 text-[10px] font-bold">
+                                        En Riesgo
+                                      </Badge>
+                                    )}
+                                  </TableCell>
+                                  <TableCell className="pr-4 text-right">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        set_modal_horas_mes_seleccionado(h.periodo);
+                                        set_modal_horas_vista("extracto_diario");
+                                      }}
+                                      className="h-7 text-xs text-[#007BBE] hover:bg-[#007BBE]/10 px-2 font-bold cursor-pointer"
+                                    >
+                                      Ver Diario
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="p-3 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs text-muted-foreground flex items-center gap-2">
+                    <Award className="w-4 h-4 text-[#00ABBD] shrink-0" />
+                    <span>
+                      El cumplimiento mínimo reglamentario es de <strong>36.0 horas mensuales (9.0 horas semanales con horario flexible)</strong> de práctica y servicio institucional en BUMAND.
+                    </span>
                   </div>
                 </div>
-
-                <div className="p-3 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs text-muted-foreground flex items-center gap-2">
-                  <Award className="w-4 h-4 text-[#00ABBD] shrink-0" />
-                  <span>
-                    El cumplimiento mínimo reglamentario es de <strong>36.0 horas mensuales (9.0 horas semanales con horario flexible)</strong> de práctica y servicio institucional en BUMAND.
-                  </span>
-                </div>
-              </>
-            )}
+              );
+            })()}
           </DialogBody>
 
-          <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA] shrink-0 flex justify-end">
+          <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA] shrink-0 flex items-center justify-between">
+            <span className="text-xs text-muted-foreground font-mono">
+              BUMAND Asistencia · Extracto Mensual Certificado
+            </span>
             <Button
               type="button"
               variant="outline"
               onClick={() => set_becario_horas_modal(null)}
-              className="h-9 border-[#E5E7EB] rounded-xl text-xs font-semibold"
+              className="h-9 border-[#E5E7EB] rounded-xl text-xs font-semibold cursor-pointer"
             >
               Cerrar
             </Button>
