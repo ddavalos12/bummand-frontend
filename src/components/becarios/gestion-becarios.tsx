@@ -980,40 +980,12 @@ function normalizarBecario(remoto: any): BecarioVista {
     url_kardex: remoto.url_kardex || match_inicial?.url_kardex,
     nombre_archivo_kardex: remoto.nombre_archivo_kardex || match_inicial?.nombre_archivo_kardex || `Kardex_2026_${remoto.universidad || match_inicial?.universidad || "UMSA"}.pdf`,
     fecha_subida_documentos: remoto.fecha_subida_documentos || match_inicial?.fecha_subida_documentos || "2026-02-15",
-    modalidad_pasajes: (() => {
-      let mod_local: string | undefined;
-      if (typeof window !== "undefined") {
-        try {
-          const mapa_raw = localStorage.getItem("bumand_config_pasajes_local");
-          if (mapa_raw) {
-            const mapa = JSON.parse(mapa_raw);
-            const clave_id = String(remoto.id || match_inicial?.id || "");
-            const clave_ci = ci_str || (match_inicial?.ci ? String(match_inicial.ci).trim() : "");
-            mod_local = (mapa[clave_id] || (clave_ci ? mapa[clave_ci] : null))?.modalidad_pasajes;
-          }
-        } catch {}
-      }
-      return (remoto.modalidad_pasajes as any) || mod_local || (match_inicial as any)?.modalidad_pasajes || "ida_y_vuelta";
-    })(),
-    configuracion_pasajes_actividades: (() => {
-      let cfg_local: any;
-      if (typeof window !== "undefined") {
-        try {
-          const mapa_raw = localStorage.getItem("bumand_config_pasajes_local");
-          if (mapa_raw) {
-            const mapa = JSON.parse(mapa_raw);
-            const clave_id = String(remoto.id || match_inicial?.id || "");
-            const clave_ci = ci_str || (match_inicial?.ci ? String(match_inicial.ci).trim() : "");
-            cfg_local = (mapa[clave_id] || (clave_ci ? mapa[clave_ci] : null))?.configuracion_pasajes_actividades;
-          }
-        } catch {}
-      }
-      return (remoto.configuracion_pasajes_actividades as any) || cfg_local || (match_inicial as any)?.configuracion_pasajes_actividades || {
-        practicas: "ida_y_vuelta",
-        escuela_lideres: "ida_y_vuelta",
-        acciones_servicio: "ida_y_vuelta",
-      };
-    })(),
+    modalidad_pasajes: (remoto.modalidad_pasajes as any) || (match_inicial as any)?.modalidad_pasajes || "ida_y_vuelta",
+    configuracion_pasajes_actividades: (remoto.configuracion_pasajes_actividades as any) || (match_inicial as any)?.configuracion_pasajes_actividades || {
+      practicas: "ida_y_vuelta",
+      escuela_lideres: "ida_y_vuelta",
+      acciones_servicio: "ida_y_vuelta",
+    },
   };
 }
 
@@ -1672,26 +1644,17 @@ export function GestionBecarios() {
         acciones_servicio: pasajes_servicio,
       };
 
-      if (typeof window !== "undefined") {
-        try {
-          const mapa_raw = localStorage.getItem("bumand_config_pasajes_local");
-          const mapa = mapa_raw ? JSON.parse(mapa_raw) : {};
-          const objeto_guardar = {
-            modalidad_pasajes: modalidad_pasajes_gral,
-            configuracion_pasajes_actividades: payload_actividades,
-          };
-          if (becario_pasajes.id) mapa[String(becario_pasajes.id)] = objeto_guardar;
-          if (becario_pasajes.ci) mapa[String(becario_pasajes.ci).trim()] = objeto_guardar;
-          localStorage.setItem("bumand_config_pasajes_local", JSON.stringify(mapa));
-        } catch {}
-      }
+      const usuario_id_valido =
+        becario_pasajes.usuario_id && !isNaN(Number(becario_pasajes.usuario_id))
+          ? Number(becario_pasajes.usuario_id)
+          : undefined;
 
-      await clienteApi.patch(`/becarios/${becario_pasajes.id}/configuracion-pasajes`, {
+      await clienteApi.patch(`/api/becarios/${becario_pasajes.id}/configuracion-pasajes`, {
         modalidad_pasajes: modalidad_pasajes_gral,
         configuracion_pasajes_actividades: payload_actividades,
         ci: becario_pasajes.ci,
         nombre: becario_pasajes.nombre,
-        usuario_id: becario_pasajes.usuario_id || undefined,
+        usuario_id: usuario_id_valido,
       });
 
       set_lista_becarios((prev) =>
@@ -1712,8 +1675,8 @@ export function GestionBecarios() {
       set_modal_pasajes_abierto(false);
       set_becario_pasajes(null);
       await invalidar();
-    } catch {
-      toast.error("Error al actualizar configuración de pasajes");
+    } catch (error: any) {
+      toast.error(error?.mensaje || error?.message || "Error al actualizar configuración de pasajes");
     } finally {
       set_guardando_config_pasajes(false);
     }

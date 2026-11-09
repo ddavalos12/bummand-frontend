@@ -200,3 +200,17 @@ export async function eliminarRefrigerio(
     RUTAS_API.REFRIGERIOS.POR_ID(id)
   );
 }
+
+
+export const refrigeriosServicio = {
+  obtenerTodos: listarRefrigerios,
+  obtenerPorId: obtenerRefrigerioPorId,
+  asignarDupla: asignarDuplaRefrigerio,
+  obtenerMiTurno: obtenerMiTurnoRefrigerio,
+  generarPlanillaReposicion,
+  rendir: rendirRefrigerio,
+  revisarSupervisor: revisarSupervisorRefrigerio,
+  aprobarAdministracion: aprobarAdministracionRefrigerio,
+  actualizar: actualizarRefrigerio,
+  eliminar: eliminarRefrigerio,
+};

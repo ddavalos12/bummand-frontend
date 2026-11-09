@@ -138,100 +138,6 @@ export const BECARIOS_OFICIALES = [
   "Ruth Alesandra Choque Huanca",
 ];
 
-const REGISTROS_REFRIGERIOS_INICIALES: RegistroRacionRefrigerio[] = [
-  {
-    id: 1,
-    fecha: "2026-10-23",
-    evento_o_jornada: "Viernes Formativo - Escuela de Líderes",
-    tipo_refrigerio: "refrigerio_tarde",
-    becario_encargado: "Adai Belen Huayta Cardozo y Alejandro Roberth Paredes Tarquino",
-    becario_encargado_1: "Adai Belen Huayta Cardozo",
-    becario_encargado_2: "Alejandro Roberth Paredes Tarquino",
-    modalidad_preparacion: "cocina_diaconia",
-    cantidad_raciones: 23,
-    costo_unitario_bs: 5.0,
-    costo_total_bs: 115.0,
-    presupuesto_referencial_bs: 115.0,
-    porcentaje_devolucion: 100,
-    monto_devolucion_bs: 115.0,
-    sede_nombre: "Oficina Central El Alto",
-    bloque: "Bloque B (Auditorio)",
-    responsable_entrega: "Administración Central",
-    estado_reposicion: "rendido_pendiente",
-    observaciones:
-      "Refrigerio preparado para la jornada de Escuela de Líderes.",
-  },
-  {
-    id: 2,
-    fecha: "2026-10-16",
-    evento_o_jornada: "Viernes Formativo - Escuela de Líderes",
-    tipo_refrigerio: "refrigerio_tarde",
-    becario_encargado: "Aydee Ruth Ali Condori y Carlos Oscar Luna Lizarraga",
-    becario_encargado_1: "Aydee Ruth Ali Condori",
-    becario_encargado_2: "Carlos Oscar Luna Lizarraga",
-    modalidad_preparacion: "traido_de_casa",
-    cantidad_raciones: 23,
-    costo_unitario_bs: 5.0,
-    costo_total_bs: 115.0,
-    presupuesto_referencial_bs: 115.0,
-    porcentaje_devolucion: 100,
-    monto_devolucion_bs: 115.0,
-    becario_receptor_devolucion_nombre: "Carlos Oscar Luna Lizarraga",
-    fecha_devolucion: "2026-10-17",
-    administrador_revisor: "Lic. Claudia Cabrera",
-    fecha_aprobacion_admin: "2026-10-17",
-    sede_nombre: "Oficina Central El Alto",
-    bloque: "Bloque A (Administración)",
-    responsable_entrega: "Claudia Cabrera",
-    estado_reposicion: "aprobado_administracion",
-    observaciones:
-      "Refrigerio casero preparado para los becarios y servido puntualmente.",
-  },
-  {
-    id: 3,
-    fecha: "2026-10-09",
-    evento_o_jornada: "Viernes Formativo - Escuela de Líderes",
-    tipo_refrigerio: "refrigerio_tarde",
-    becario_encargado: "Daniel Davalos Quiñoñez y Nilda Amalia Churata Paye",
-    becario_encargado_1: "Daniel Davalos Quiñoñez",
-    becario_encargado_2: "Nilda Amalia Churata Paye",
-    modalidad_preparacion: "compra_directa",
-    cantidad_raciones: 23,
-    costo_unitario_bs: 5.0,
-    costo_total_bs: 115.0,
-    presupuesto_referencial_bs: 115.0,
-    porcentaje_devolucion: 100,
-    monto_devolucion_bs: 115.0,
-    administrador_revisor: "Lic. Claudia Cabrera",
-    fecha_aprobacion_admin: "2026-10-10",
-    sede_nombre: "Oficina Central El Alto",
-    bloque: "Bloque B (Auditorio)",
-    responsable_entrega: "Administración Central",
-    estado_reposicion: "aprobado_administracion",
-    observaciones: "Refrigerio adquirido y distribuido a los becarios.",
-  },
-  {
-    id: 4,
-    fecha: "2026-10-30",
-    evento_o_jornada: "Viernes Formativo - Escuela de Líderes",
-    tipo_refrigerio: "refrigerio_tarde",
-    becario_encargado: "Edgar Elias Alarcon Huanca e Isaias Daniel Herrera Mamani",
-    becario_encargado_1: "Edgar Elias Alarcon Huanca",
-    becario_encargado_2: "Isaias Daniel Herrera Mamani",
-    modalidad_preparacion: "cocina_diaconia",
-    cantidad_raciones: 23,
-    costo_unitario_bs: 5.0,
-    costo_total_bs: 115.0,
-    presupuesto_referencial_bs: 115.0,
-    porcentaje_devolucion: 100,
-    sede_nombre: "Oficina Central El Alto",
-    bloque: "Bloque B (Auditorio)",
-    responsable_entrega: "Administración Central",
-    estado_reposicion: "sorteado_programado",
-    observaciones: "Dupla sorteada en ronda oficial de Escuela de Líderes.",
-  },
-];
-
 export function ControlRefrigerios() {
   const { usuario } = usarAutenticacion();
   const es_admin = usuario?.rol === "administrador";
@@ -243,16 +149,14 @@ export function ControlRefrigerios() {
     DialogoConfirmacionInstitucional,
   } = useConfirmacionDialogo();
 
-  const [registros, set_registros] = useState<RegistroRacionRefrigerio[]>(
-    REGISTROS_REFRIGERIOS_INICIALES
-  );
+  const [registros, set_registros] = useState<RegistroRacionRefrigerio[]>([]);
 
   const { datos: registros_servidor, invalidar } = useConsulta<RegistroRacionRefrigerio[]>(
     "refrigerios_lista",
     async () => {
       try {
         const resp = await clienteApi.get<any[]>("/api/refrigerios");
-        if (Array.isArray(resp) && resp.length > 0) {
+        if (Array.isArray(resp)) {
           return resp.map((item, idx) => ({
             id: item.id || idx + 1,
             fecha: item.fecha ? String(item.fecha).split("T")[0] : "2026-10-23",
@@ -280,13 +184,13 @@ export function ControlRefrigerios() {
           }));
         }
       } catch {}
-      return REGISTROS_REFRIGERIOS_INICIALES;
+      return [];
     },
-    { datos_iniciales: REGISTROS_REFRIGERIOS_INICIALES }
+    { datos_iniciales: [] }
   );
 
   useEffect(() => {
-    if (registros_servidor && registros_servidor.length > 0) {
+    if (registros_servidor) {
       set_registros(registros_servidor);
     }
   }, [registros_servidor]);
@@ -392,8 +296,8 @@ export function ControlRefrigerios() {
   const manejarCambioCantidad = (val: string) => {
     set_nueva_cantidad(val);
     const cant = parseFloat(val) || 0;
-    set_nuevo_costo_unitario("5.00");
-    set_nuevo_costo_total((cant * 5).toFixed(2));
+    const unitario = parseFloat(nuevo_costo_unitario) || 5.0;
+    set_nuevo_costo_total((cant * unitario).toFixed(2));
   };
 
   const manejarCambioCostoTotal = (val: string) => {

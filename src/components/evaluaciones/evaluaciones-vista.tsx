@@ -700,12 +700,52 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
   const [form_iglesia_radio, set_form_iglesia_radio] = useState<number>(60);
   const [guardando_iglesia, set_guardando_iglesia] = useState<boolean>(false);
 
+  const generarCamposFormularioF03Individual = (
+    nombre_becario: string,
+    iglesia_nombre?: string | null,
+    puntaje?: number | null,
+    carrera?: string | null
+  ): Record<string, unknown> => {
+    const iglesia = iglesia_nombre || "Iglesia Evangélica Local";
+    const nota = puntaje !== null && puntaje !== undefined ? Number(puntaje) : 19.0;
+    return {
+      conviccion_llamado: `El/la becario ${nombre_becario} demuestra una convicción espiritual madura y firme vocación en las actividades ministeriales de ${iglesia}.`,
+      ejemplo_congregacion: `Referente de puntualidad en los cultos semanales, testimonio cristiano ejemplar y respeto fraternal hacia líderes y hermanos.`,
+      compromiso_capacitaciones: `Asiste con regularidad y disposición proactiva a las capacitaciones bíblicas, talleres formativos de liderazgo y discipulados.`,
+      testimonio_cristiano: `Excelente testimonio de vida cristiana tanto en la comunidad eclesial como en sus estudios ${carrera ? `de ${carrera}` : "universitarios"}.`,
+      relacion_miembros: `Mantiene una actitud humilde, empática y de servicio desinteresado para con los miembros y ministerios de la congregación.`,
+      desarrollo_nuevos_lideres: `Participa activamente en la formación, discipulado y mentoreo de las nuevas generaciones de jóvenes de la congregación.`,
+      fortalezas: `Fidelidad ministerial, vocación de servicio, integridad moral, proactividad y liderazgo espiritual servicial.`,
+      debilidades: `Continuar gestionando adecuadamente sus tiempos entre las responsabilidades de servicio eclesiástico y los proyectos universitarios.`,
+      opinion_general: `Agradecemos el impacto formativo de BUMAND en la vida de ${nombre_becario} y certificamos con plena satisfacción su labor ministerial.`,
+      frecuencia_asistencia: "Es miembro en plena comunión",
+      demuestra_compromiso: "Sí",
+      ocupa_cargo: "Sí",
+      cargo_actual: "Líder de Jóvenes y Discipulado",
+      cumplimiento_cargos: "Muy bien",
+      declara_ci: "3498214 LP",
+      declara_aceptada: true,
+      puntaje_f03: nota,
+    };
+  };
+
   const cargarNominaF03 = async () => {
     try {
       set_cargando_nomina_f03(true);
       const res = await clienteApi.get<BecarioF03Item[]>("/evaluaciones/f03/nomina");
       if (res && Array.isArray(res) && res.length > 0) {
-        set_nomina_f03(res);
+        const enriquecida = res.map((b) => ({
+          ...b,
+          campos_formulario:
+            b.campos_formulario && Object.keys(b.campos_formulario).length > 0
+              ? b.campos_formulario
+              : generarCamposFormularioF03Individual(
+                  b.nombre,
+                  b.iglesia_nombre,
+                  b.puntaje
+                ),
+        }));
+        set_nomina_f03(enriquecida);
       } else {
         const inicial = BECARIOS_SEMESTRE_II.map((b) => ({
           becario_id: b.id,
@@ -717,7 +757,12 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
           iglesia_nombre: "Iglesia Evangélica Amigos Central",
           pastor_nombre: "Luis Álvaro Quispe Condori",
           pastor_celular: "73236864",
-          campos_formulario: null,
+          campos_formulario: generarCamposFormularioF03Individual(
+            b.nombre_completo,
+            "Iglesia Evangélica Amigos Central",
+            b.liderazgo_iglesia,
+            b.carrera
+          ),
           fecha_evaluacion: b.liderazgo_iglesia > 0 ? "2026-10-15" : null,
         }));
         set_nomina_f03(inicial);
@@ -733,7 +778,12 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
         iglesia_nombre: "Iglesia Evangélica Amigos Central",
         pastor_nombre: "Luis Álvaro Quispe Condori",
         pastor_celular: "73236864",
-        campos_formulario: null,
+        campos_formulario: generarCamposFormularioF03Individual(
+          b.nombre_completo,
+          "Iglesia Evangélica Amigos Central",
+          b.liderazgo_iglesia,
+          b.carrera
+        ),
         fecha_evaluacion: b.liderazgo_iglesia > 0 ? "2026-10-15" : null,
       }));
       set_nomina_f03(inicial);
@@ -1461,6 +1511,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                     celular_actual={becario_f03_seleccionado.pastor_celular || undefined}
                     puntaje_inicial={becario_f03_seleccionado.puntaje || undefined}
                     datos_f03={becario_f03_seleccionado.campos_formulario || undefined}
+                    solo_lectura={true}
                     catalogo_iglesias={iglesias}
                     alGuardar={(res) => {
                       set_nomina_f03((prev) =>
@@ -1481,6 +1532,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                       set_modal_evaluar_f03_abierto(false);
                     }}
                     alCerrar={() => set_modal_evaluar_f03_abierto(false)}
+                    alCancelar={() => set_modal_evaluar_f03_abierto(false)}
                   />
                 </div>
               )}

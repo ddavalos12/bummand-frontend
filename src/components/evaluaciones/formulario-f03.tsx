@@ -24,7 +24,7 @@ import { CATALOGO_IGLESIAS_INSTITUCIONALES, IglesiaInstitucional } from "./evalu
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
 
-export interface FormularioF03Props {
+export interface PropiedadesFormularioF03 {
   becario_id?: number;
   nombre_becario_inicial?: string;
   iglesia_actual?: string;
@@ -32,6 +32,7 @@ export interface FormularioF03Props {
   celular_actual?: string;
   datos_f03?: Record<string, unknown> | null;
   puntaje_inicial?: number | null;
+  solo_lectura?: boolean;
   catalogo_iglesias?: Array<{
     id: number | string;
     nombre: string;
@@ -51,6 +52,24 @@ export interface FormularioF03Props {
   }) => void;
   alEnviarExito?: () => void;
   alCerrar?: () => void;
+  alCancelar?: () => void;
+}
+
+export type FormularioF03Props = PropiedadesFormularioF03;
+
+function generarRespuestasPorDefecto(nombre_becario: string, nombre_iglesia?: string) {
+  const iglesia = nombre_iglesia || "su congregación local";
+  return {
+    conviccion_llamado: `Demuestra vocación espiritual, convicción ministerial y compromiso constante en el servicio dentro de ${iglesia}.`,
+    ejemplo_congregacion: `Es referente de puntualidad, respeto a las autoridades eclesiásticas y fidelidad en sus responsabilidades asignadas.`,
+    compromiso_capacitaciones: `Asiste a los talleres formativos, discipulados y estudios bíblicos convocados por el liderazgo pastoral.`,
+    testimonio_cristiano: `Mantiene un testimonio íntegro y ejemplar tanto en su vida eclesial como en el entorno universitario y familiar.`,
+    relacion_miembros: `Trato fraterno, empático, humilde y colaborativo con todos los ministerios y miembros de la congregación.`,
+    desarrollo_nuevos_lideres: `Acompaña y mentorea a jóvenes y adolescentes de la congregación en formación ministerial.`,
+    fortalezas: `Responsabilidad, espíritu de servicio, integridad, empatía e iniciativa proactiva.`,
+    debilidades: `Continuar equilibrando la alta carga académica universitaria con los horarios de los ministerios locales.`,
+    opinion_general: `El/la estudiante ${nombre_becario} es de bendición para la iglesia y recomendamos ampliamente su certificación y continuidad en BUMAND.`,
+  };
 }
 
 /**
@@ -61,17 +80,19 @@ export interface FormularioF03Props {
  */
 export function FormularioF03({
   becario_id = 1,
-  nombre_becario_inicial = "María Catunta Laime",
+  nombre_becario_inicial = "Becario Institucional",
   iglesia_actual,
   pastor_actual,
   celular_actual,
   datos_f03,
   puntaje_inicial,
+  solo_lectura = false,
   catalogo_iglesias,
   alGuardar,
   alEnviarExito,
   alCerrar,
-}: FormularioF03Props) {
+  alCancelar,
+}: PropiedadesFormularioF03) {
   const [cargando_pdf, set_cargando_pdf] = useState(false);
   const [guardando, set_guardando] = useState(false);
   const [error_formulario, set_error_formulario] = useState<string | null>(null);
@@ -81,6 +102,11 @@ export function FormularioF03({
       ? catalogo_iglesias
       : CATALOGO_IGLESIAS_INSTITUCIONALES;
 
+  const respuestas_iniciales = generarRespuestasPorDefecto(
+    nombre_becario_inicial,
+    iglesia_actual
+  );
+
   // Sección I: Datos Pastor e Iglesia con soporte de Catálogo Institucional
   const [origen_datos_iglesia, set_origen_datos_iglesia] = useState<"catalogo" | "manual">("catalogo");
   const [iglesia_seleccionada_id, set_iglesia_seleccionada_id] = useState<string>(
@@ -88,92 +114,94 @@ export function FormularioF03({
   );
 
   const [pastor_nombre, set_pastor_nombre] = useState(
-    pastor_actual || (lista_iglesias[0] as any)?.pastor_nombre || "Luis Álvaro Quispe Condori"
+    pastor_actual || (datos_f03?.pastor_nombre as string) || (lista_iglesias[0] as any)?.pastor_nombre || "Pastor Principal"
   );
   const [pastor_correo, set_pastor_correo] = useState(
-    (lista_iglesias[0] as any)?.pastor_correo || (lista_iglesias[0] as any)?.pastor_email || "pastor.luis.quispe@diaconia.bo"
+    (datos_f03?.pastor_correo as string) || (lista_iglesias[0] as any)?.pastor_correo || (lista_iglesias[0] as any)?.pastor_email || "pastor@diaconia.bo"
   );
   const [pastor_celular, set_pastor_celular] = useState(
-    celular_actual || (lista_iglesias[0] as any)?.pastor_telefono || (lista_iglesias[0] as any)?.pastor_celular || "73236864"
+    celular_actual || (datos_f03?.pastor_celular as string) || (lista_iglesias[0] as any)?.pastor_telefono || (lista_iglesias[0] as any)?.pastor_celular || "70000000"
   );
   const [iglesia_nombre, set_iglesia_nombre] = useState(
-    iglesia_actual || lista_iglesias[0]?.nombre || "Iglesia Evangélica Amigos Central de Bolivia Bautista Saavedra Más que Vencedores"
+    iglesia_actual || (datos_f03?.iglesia_nombre as string) || lista_iglesias[0]?.nombre || "Iglesia Evangélica Local"
   );
   const [iglesia_direccion, set_iglesia_direccion] = useState(
-    (lista_iglesias[0] as any)?.direccion || "Zona Bautista Saavedra / Villa Adela, El Alto"
+    (datos_f03?.iglesia_direccion as string) || (lista_iglesias[0] as any)?.direccion || "Zona Central / Sede Local"
   );
-  const [lider_nombre, set_lider_nombre] = useState("Hno. David Mendoza");
-  const [lider_cargo, set_lider_cargo] = useState("Líder de Diaconía");
+  const [lider_nombre, set_lider_nombre] = useState((datos_f03?.lider_nombre as string) || "Líder de Jóvenes");
+  const [lider_cargo, set_lider_cargo] = useState((datos_f03?.lider_cargo as string) || "Líder Ministerial");
 
   // Calificación Módulo 1 (Sobre 20 puntos)
   const [puntaje_f03, set_puntaje_f03] = useState<number>(
-    puntaje_inicial !== undefined && puntaje_inicial !== null ? Number(puntaje_inicial) : 19.0
+    puntaje_inicial !== undefined && puntaje_inicial !== null
+      ? Number(puntaje_inicial)
+      : datos_f03?.puntaje_f03 !== undefined && datos_f03?.puntaje_f03 !== null
+      ? Number(datos_f03.puntaje_f03)
+      : 19.0
   );
 
   // Sección II: Preguntas 1 a 13
   const [becario_nombre, set_becario_nombre] = useState(nombre_becario_inicial);
   const [frecuencia_asistencia, set_frecuencia_asistencia] = useState(
-    (datos_f03?.frecuencia_asistencia as string) || "Es miembro en plena comunión"
+    (datos_f03?.frecuencia_asistencia as string) || (datos_f03?.p5_puntualidad as string) || "Es miembro en plena comunión"
   );
   const [demuestra_compromiso, set_demuestra_compromiso] = useState(
-    (datos_f03?.demuestra_compromiso as string) || "Sí"
+    (datos_f03?.demuestra_compromiso as string) || (datos_f03?.p7_actitud as string) || "Sí"
   );
   const [ocupa_cargo, set_ocupa_cargo] = useState(
     (datos_f03?.ocupa_cargo as string) || "Sí"
   );
   const [cargo_actual, set_cargo_actual] = useState(
-    (datos_f03?.cargo_actual as string) || (datos_f03?.cargo_2025 as string) || "Líder de Jóvenes"
+    (datos_f03?.cargo_actual as string) || (datos_f03?.cargo_2025 as string) || (datos_f03?.p4_actividades as string) || "Líder de Jóvenes"
   );
   const [cumplimiento_cargos, set_cumplimiento_cargos] = useState(
     (datos_f03?.cumplimiento_cargos as string) || "Muy bien"
   );
 
   const [pregunta_conviccion, set_pregunta_conviccion] = useState(
-    (datos_f03?.conviccion_llamado as string) ||
-    "Muestra sincera vocación y disposición de servicio constante en las actividades de la congregación."
+    (datos_f03?.conviccion_llamado as string) || (datos_f03?.p1_conviccion as string) || respuestas_iniciales.conviccion_llamado
   );
   const [pregunta_ejemplo, set_pregunta_ejemplo] = useState(
-    (datos_f03?.ejemplo_congregacion as string) ||
-    "En la puntualidad a los cultos, fidelidad en el servicio y respeto hacia los líderes espirituales."
+    (datos_f03?.ejemplo_congregacion as string) || (datos_f03?.p2_ejemplo as string) || respuestas_iniciales.ejemplo_congregacion
   );
   const [pregunta_capacitaciones, set_pregunta_capacitaciones] = useState(
-    (datos_f03?.compromiso_capacitaciones as string) ||
-    "Asiste a todos los talleres juveniles y participa activamente en los estudios bíblicos semanales."
+    (datos_f03?.compromiso_capacitaciones as string) || (datos_f03?.p3_capacitaciones as string) || respuestas_iniciales.compromiso_capacitaciones
   );
   const [pregunta_testimonio, set_pregunta_testimonio] = useState(
-    (datos_f03?.testimonio_cristiano as string) ||
-    "Excelente testimonio tanto dentro de la comunidad de fe como en su entorno universitario y familiar."
+    (datos_f03?.testimonio_cristiano as string) || (datos_f03?.p8_testimonio as string) || respuestas_iniciales.testimonio_cristiano
   );
   const [pregunta_relacion, set_pregunta_relacion] = useState(
-    (datos_f03?.relacion_miembros as string) ||
-    "Trato fraternal, humilde y siempre presto a colaborar en las necesidades de los hermanos."
+    (datos_f03?.relacion_miembros as string) || (datos_f03?.p9_relacion_miembros as string) || respuestas_iniciales.relacion_miembros
   );
   const [pregunta_nuevos_lideres, set_pregunta_nuevos_lideres] = useState(
-    (datos_f03?.desarrollo_nuevos_lideres as string) ||
-    "Se encuentra mentoreando a dos señoritas del grupo de adolescentes en el área de alabanza."
+    (datos_f03?.desarrollo_nuevos_lideres as string) || (datos_f03?.p6_liderazgo as string) || respuestas_iniciales.desarrollo_nuevos_lideres
   );
   const [pregunta_fortalezas, set_pregunta_fortalezas] = useState(
-    (datos_f03?.fortalezas as string) ||
-    "Compromiso, empatía, responsabilidad y facilidad de comunicación."
+    (datos_f03?.fortalezas as string) || (datos_f03?.p10_fortalezas as string) || respuestas_iniciales.fortalezas
   );
   const [pregunta_debilidades, set_pregunta_debilidades] = useState(
-    (datos_f03?.debilidades as string) ||
-    "A veces sobrecarga sus horarios universitarios con compromisos extraordinarios."
+    (datos_f03?.debilidades as string) || (datos_f03?.p11_debilidades as string) || (datos_f03?.p12_aspectos_mejorar as string) || respuestas_iniciales.debilidades
   );
   const [pregunta_opinion, set_pregunta_opinion] = useState(
-    (datos_f03?.opinion_general as string) ||
-    "El aporte del programa BUMAND en la vida del becario ha sido un testimonio palpable de edificación para toda la iglesia."
+    (datos_f03?.opinion_general as string) || (datos_f03?.p13_recomendacion as string) || respuestas_iniciales.opinion_general
   );
 
   // Sección III: Declaración Jurada
   const [declara_nombre, set_declara_nombre] = useState(
-    pastor_actual || "Luis Álvaro Quispe Condori"
+    (datos_f03?.declara_nombre as string) || pastor_actual || (lista_iglesias[0] as any)?.pastor_nombre || "Pastor Principal"
   );
-  const [declara_ci, set_declara_ci] = useState("3498214 LP");
-  const [declara_aceptada, set_declara_aceptada] = useState(true);
+  const [declara_ci, set_declara_ci] = useState((datos_f03?.declara_ci as string) || "3498214 LP");
+  const [declara_aceptada, set_declara_aceptada] = useState(
+    datos_f03?.declara_aceptada !== undefined ? Boolean(datos_f03.declara_aceptada) : true
+  );
 
-  // Sincronizar cuando cambian las props iniciales
+  // Sincronizar dinámicamente cuando cambian las props iniciales o datos_f03 del becario seleccionado
   useEffect(() => {
+    const respuestas_defecto = generarRespuestasPorDefecto(
+      nombre_becario_inicial || "el/la becario",
+      iglesia_actual
+    );
+
     if (nombre_becario_inicial) set_becario_nombre(nombre_becario_inicial);
     if (iglesia_actual) set_iglesia_nombre(iglesia_actual);
     if (pastor_actual) {
@@ -184,7 +212,78 @@ export function FormularioF03({
     if (puntaje_inicial !== undefined && puntaje_inicial !== null) {
       set_puntaje_f03(Number(puntaje_inicial));
     }
-  }, [nombre_becario_inicial, iglesia_actual, pastor_actual, celular_actual, puntaje_inicial]);
+
+    if (datos_f03) {
+      if (datos_f03.pastor_nombre) set_pastor_nombre(String(datos_f03.pastor_nombre));
+      if (datos_f03.pastor_correo) set_pastor_correo(String(datos_f03.pastor_correo));
+      if (datos_f03.pastor_celular) set_pastor_celular(String(datos_f03.pastor_celular));
+      if (datos_f03.iglesia_nombre) set_iglesia_nombre(String(datos_f03.iglesia_nombre));
+      if (datos_f03.iglesia_direccion) set_iglesia_direccion(String(datos_f03.iglesia_direccion));
+      if (datos_f03.lider_nombre) set_lider_nombre(String(datos_f03.lider_nombre));
+      if (datos_f03.lider_cargo) set_lider_cargo(String(datos_f03.lider_cargo));
+
+      if (datos_f03.frecuencia_asistencia || datos_f03.p5_puntualidad) {
+        set_frecuencia_asistencia(String(datos_f03.frecuencia_asistencia || datos_f03.p5_puntualidad));
+      }
+      if (datos_f03.demuestra_compromiso || datos_f03.p7_actitud) {
+        set_demuestra_compromiso(String(datos_f03.demuestra_compromiso || datos_f03.p7_actitud));
+      }
+      if (datos_f03.ocupa_cargo !== undefined) {
+        set_ocupa_cargo(String(datos_f03.ocupa_cargo));
+      }
+      if (datos_f03.cargo_actual || datos_f03.cargo_2025 || datos_f03.p4_actividades) {
+        set_cargo_actual(String(datos_f03.cargo_actual || datos_f03.cargo_2025 || datos_f03.p4_actividades));
+      }
+      if (datos_f03.cumplimiento_cargos) {
+        set_cumplimiento_cargos(String(datos_f03.cumplimiento_cargos));
+      }
+
+      set_pregunta_conviccion(
+        String(datos_f03.conviccion_llamado || datos_f03.p1_conviccion || respuestas_defecto.conviccion_llamado)
+      );
+      set_pregunta_ejemplo(
+        String(datos_f03.ejemplo_congregacion || datos_f03.p2_ejemplo || respuestas_defecto.ejemplo_congregacion)
+      );
+      set_pregunta_capacitaciones(
+        String(datos_f03.compromiso_capacitaciones || datos_f03.p3_capacitaciones || respuestas_defecto.compromiso_capacitaciones)
+      );
+      set_pregunta_testimonio(
+        String(datos_f03.testimonio_cristiano || datos_f03.p8_testimonio || respuestas_defecto.testimonio_cristiano)
+      );
+      set_pregunta_relacion(
+        String(datos_f03.relacion_miembros || datos_f03.p9_relacion_miembros || respuestas_defecto.relacion_miembros)
+      );
+      set_pregunta_nuevos_lideres(
+        String(datos_f03.desarrollo_nuevos_lideres || datos_f03.p6_liderazgo || respuestas_defecto.desarrollo_nuevos_lideres)
+      );
+      set_pregunta_fortalezas(
+        String(datos_f03.fortalezas || datos_f03.p10_fortalezas || respuestas_defecto.fortalezas)
+      );
+      set_pregunta_debilidades(
+        String(datos_f03.debilidades || datos_f03.p11_debilidades || datos_f03.p12_aspectos_mejorar || respuestas_defecto.debilidades)
+      );
+      set_pregunta_opinion(
+        String(datos_f03.opinion_general || datos_f03.p13_recomendacion || respuestas_defecto.opinion_general)
+      );
+
+      if (datos_f03.declara_nombre) set_declara_nombre(String(datos_f03.declara_nombre));
+      if (datos_f03.declara_ci) set_declara_ci(String(datos_f03.declara_ci));
+      if (datos_f03.declara_aceptada !== undefined) set_declara_aceptada(Boolean(datos_f03.declara_aceptada));
+      if (datos_f03.puntaje_f03 !== undefined && datos_f03.puntaje_f03 !== null) {
+        set_puntaje_f03(Number(datos_f03.puntaje_f03));
+      }
+    } else {
+      set_pregunta_conviccion(respuestas_defecto.conviccion_llamado);
+      set_pregunta_ejemplo(respuestas_defecto.ejemplo_congregacion);
+      set_pregunta_capacitaciones(respuestas_defecto.compromiso_capacitaciones);
+      set_pregunta_testimonio(respuestas_defecto.testimonio_cristiano);
+      set_pregunta_relacion(respuestas_defecto.relacion_miembros);
+      set_pregunta_nuevos_lideres(respuestas_defecto.desarrollo_nuevos_lideres);
+      set_pregunta_fortalezas(respuestas_defecto.fortalezas);
+      set_pregunta_debilidades(respuestas_defecto.debilidades);
+      set_pregunta_opinion(respuestas_defecto.opinion_general);
+    }
+  }, [becario_id, nombre_becario_inicial, iglesia_actual, pastor_actual, celular_actual, puntaje_inicial, datos_f03]);
 
   const manejarSeleccionIglesia = (id: string) => {
     set_iglesia_seleccionada_id(id);
@@ -339,6 +438,11 @@ export function FormularioF03({
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
+            {solo_lectura && (
+              <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-300 font-bold text-[10px]">
+                Modo Consulta · Solo Lectura
+              </Badge>
+            )}
             <Badge variant="outline" className="border-[#00ABBD] text-[#035683] font-bold text-[10px]">
               Módulo 01 · 20% Oficial
             </Badge>
@@ -369,8 +473,10 @@ export function FormularioF03({
                 max="20"
                 step="0.5"
                 value={puntaje_f03}
+                disabled={solo_lectura}
+                readOnly={solo_lectura}
                 onChange={(e) => set_puntaje_f03(Math.min(20, Math.max(0, Number(e.target.value) || 0)))}
-                className="w-24 h-9 text-center font-bold text-base text-[#035683] bg-white border-[#00ABBD] rounded-xl"
+                className="w-24 h-9 text-center font-bold text-base text-[#035683] bg-white border-[#00ABBD] rounded-xl disabled:bg-slate-50 disabled:opacity-85"
               />
               <span className="text-xs font-bold text-slate-500">/ 20 pts</span>
             </div>
@@ -390,23 +496,25 @@ export function FormularioF03({
             <div className="flex items-center gap-1.5 p-0.5 bg-slate-100 rounded-lg border border-slate-200">
               <button
                 type="button"
+                disabled={solo_lectura}
                 onClick={() => set_origen_datos_iglesia("catalogo")}
                 className={`px-2 py-0.5 text-[11px] font-bold rounded-md transition-all ${
                   origen_datos_iglesia === "catalogo"
                     ? "bg-[#035683] text-white shadow-2xs"
                     : "text-slate-600 hover:text-slate-900"
-                }`}
+                } disabled:opacity-60`}
               >
                 Catálogo Institucional ({lista_iglesias.length})
               </button>
               <button
                 type="button"
+                disabled={solo_lectura}
                 onClick={() => set_origen_datos_iglesia("manual")}
                 className={`px-2 py-0.5 text-[11px] font-bold rounded-md transition-all ${
                   origen_datos_iglesia === "manual"
                     ? "bg-[#035683] text-white shadow-2xs"
                     : "text-slate-600 hover:text-slate-900"
-                }`}
+                } disabled:opacity-60`}
               >
                 Texto Libre (Manual)
               </button>
@@ -426,8 +534,9 @@ export function FormularioF03({
               </div>
               <select
                 value={iglesia_seleccionada_id}
+                disabled={solo_lectura}
                 onChange={(e) => manejarSeleccionIglesia(e.target.value)}
-                className="w-full h-9 text-xs font-medium rounded-lg border border-[#E5E7EB] bg-white px-2.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#00ABBD]"
+                className="w-full h-9 text-xs font-medium rounded-lg border border-[#E5E7EB] bg-white px-2.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#00ABBD] disabled:bg-slate-50 disabled:opacity-85"
               >
                 {lista_iglesias.map((ig) => {
                   const pastor = (ig as any).pastor_nombre || (ig as any).pastor || "";
@@ -447,11 +556,13 @@ export function FormularioF03({
               <Label className="text-xs">Nombre del pastor *</Label>
               <Input
                 value={pastor_nombre}
+                disabled={solo_lectura}
+                readOnly={solo_lectura}
                 onChange={(e) => {
                   set_pastor_nombre(e.target.value);
                   set_declara_nombre(e.target.value);
                 }}
-                className="h-8 text-xs border-[#E5E7EB] mt-1"
+                className="h-8 text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800"
               />
             </div>
             <div>
@@ -459,32 +570,40 @@ export function FormularioF03({
               <Input
                 type="email"
                 value={pastor_correo}
+                disabled={solo_lectura}
+                readOnly={solo_lectura}
                 onChange={(e) => set_pastor_correo(e.target.value)}
-                className="h-8 text-xs border-[#E5E7EB] mt-1"
+                className="h-8 text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800"
               />
             </div>
             <div>
               <Label className="text-xs">N.º celular del pastor</Label>
               <Input
                 value={pastor_celular}
+                disabled={solo_lectura}
+                readOnly={solo_lectura}
                 onChange={(e) => set_pastor_celular(e.target.value)}
-                className="h-8 text-xs border-[#E5E7EB] mt-1"
+                className="h-8 text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800"
               />
             </div>
             <div>
               <Label className="text-xs">Nombre de la iglesia</Label>
               <Input
                 value={iglesia_nombre}
+                disabled={solo_lectura}
+                readOnly={solo_lectura}
                 onChange={(e) => set_iglesia_nombre(e.target.value)}
-                className="h-8 text-xs border-[#E5E7EB] mt-1"
+                className="h-8 text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800"
               />
             </div>
             <div className="sm:col-span-2">
               <Label className="text-xs">Dirección de la iglesia</Label>
               <Input
                 value={iglesia_direccion}
+                disabled={solo_lectura}
+                readOnly={solo_lectura}
                 onChange={(e) => set_iglesia_direccion(e.target.value)}
-                className="h-8 text-xs border-[#E5E7EB] mt-1"
+                className="h-8 text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800"
               />
             </div>
           </div>
@@ -503,8 +622,10 @@ export function FormularioF03({
             <Label className="text-xs">1. Nombre del becario</Label>
             <Input
               value={becario_nombre}
+              disabled={solo_lectura}
+              readOnly={solo_lectura}
               onChange={(e) => set_becario_nombre(e.target.value)}
-              className="h-8 text-xs border-[#E5E7EB] mt-1 font-semibold text-[#035683]"
+              className="h-8 text-xs border-[#E5E7EB] mt-1 font-semibold text-[#035683] disabled:bg-slate-50 disabled:text-[#035683]"
             />
           </div>
 
@@ -520,12 +641,13 @@ export function FormularioF03({
                 <button
                   key={opc}
                   type="button"
+                  disabled={solo_lectura}
                   onClick={() => set_frecuencia_asistencia(opc)}
                   className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-all ${
                     frecuencia_asistencia === opc
                       ? "bg-[#00ABBD]/15 border-[#00ABBD] text-[#00808E] font-bold"
                       : "border-[#E5E7EB] bg-white text-slate-700 hover:bg-slate-50"
-                  }`}
+                  } disabled:opacity-85 disabled:cursor-not-allowed`}
                 >
                   {opc}
                 </button>
@@ -540,12 +662,13 @@ export function FormularioF03({
                 <button
                   key={opc}
                   type="button"
+                  disabled={solo_lectura}
                   onClick={() => set_demuestra_compromiso(opc)}
                   className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-all ${
                     demuestra_compromiso === opc
                       ? "bg-[#00ABBD]/15 border-[#00ABBD] text-[#00808E] font-bold"
                       : "border-[#E5E7EB] bg-white text-slate-700 hover:bg-slate-50"
-                  }`}
+                  } disabled:opacity-85 disabled:cursor-not-allowed`}
                 >
                   {opc}
                 </button>
@@ -560,12 +683,13 @@ export function FormularioF03({
                 <button
                   key={opc}
                   type="button"
+                  disabled={solo_lectura}
                   onClick={() => set_ocupa_cargo(opc)}
                   className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-all ${
                     ocupa_cargo === opc
                       ? "bg-[#00ABBD]/15 border-[#00ABBD] text-[#00808E] font-bold"
                       : "border-[#E5E7EB] bg-white text-slate-700 hover:bg-slate-50"
-                  }`}
+                  } disabled:opacity-85 disabled:cursor-not-allowed`}
                 >
                   {opc}
                 </button>
@@ -578,16 +702,20 @@ export function FormularioF03({
                   <Label className="text-xs">Cargo actual</Label>
                   <Input
                     value={cargo_actual}
+                    disabled={solo_lectura}
+                    readOnly={solo_lectura}
                     onChange={(e) => set_cargo_actual(e.target.value)}
-                    className="h-8 text-xs border-[#E5E7EB] mt-1"
+                    className="h-8 text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-100 disabled:text-slate-800"
                   />
                 </div>
                 <div>
                   <Label className="text-xs">Cumplimiento de cargos</Label>
                   <Input
                     value={cumplimiento_cargos}
+                    disabled={solo_lectura}
+                    readOnly={solo_lectura}
                     onChange={(e) => set_cumplimiento_cargos(e.target.value)}
-                    className="h-8 text-xs border-[#E5E7EB] mt-1"
+                    className="h-8 text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-100 disabled:text-slate-800"
                   />
                 </div>
               </div>
@@ -599,8 +727,10 @@ export function FormularioF03({
             <Textarea
               rows={2}
               value={pregunta_conviccion}
+              disabled={solo_lectura}
+              readOnly={solo_lectura}
               onChange={(e) => set_pregunta_conviccion(e.target.value)}
-              className="text-xs border-[#E5E7EB] mt-1"
+              className="text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-90"
             />
           </div>
 
@@ -609,8 +739,10 @@ export function FormularioF03({
             <Textarea
               rows={2}
               value={pregunta_ejemplo}
+              disabled={solo_lectura}
+              readOnly={solo_lectura}
               onChange={(e) => set_pregunta_ejemplo(e.target.value)}
-              className="text-xs border-[#E5E7EB] mt-1"
+              className="text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-90"
             />
           </div>
 
@@ -619,8 +751,10 @@ export function FormularioF03({
             <Textarea
               rows={2}
               value={pregunta_capacitaciones}
+              disabled={solo_lectura}
+              readOnly={solo_lectura}
               onChange={(e) => set_pregunta_capacitaciones(e.target.value)}
-              className="text-xs border-[#E5E7EB] mt-1"
+              className="text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-90"
             />
           </div>
 
@@ -629,8 +763,10 @@ export function FormularioF03({
             <Textarea
               rows={2}
               value={pregunta_testimonio}
+              disabled={solo_lectura}
+              readOnly={solo_lectura}
               onChange={(e) => set_pregunta_testimonio(e.target.value)}
-              className="text-xs border-[#E5E7EB] mt-1"
+              className="text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-90"
             />
           </div>
 
@@ -639,8 +775,10 @@ export function FormularioF03({
             <Textarea
               rows={2}
               value={pregunta_relacion}
+              disabled={solo_lectura}
+              readOnly={solo_lectura}
               onChange={(e) => set_pregunta_relacion(e.target.value)}
-              className="text-xs border-[#E5E7EB] mt-1"
+              className="text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-90"
             />
           </div>
 
@@ -649,8 +787,10 @@ export function FormularioF03({
             <Textarea
               rows={2}
               value={pregunta_nuevos_lideres}
+              disabled={solo_lectura}
+              readOnly={solo_lectura}
               onChange={(e) => set_pregunta_nuevos_lideres(e.target.value)}
-              className="text-xs border-[#E5E7EB] mt-1"
+              className="text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-90"
             />
           </div>
 
@@ -660,8 +800,10 @@ export function FormularioF03({
               <Textarea
                 rows={2}
                 value={pregunta_fortalezas}
+                disabled={solo_lectura}
+                readOnly={solo_lectura}
                 onChange={(e) => set_pregunta_fortalezas(e.target.value)}
-                className="text-xs border-[#E5E7EB] mt-1"
+                className="text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-90"
               />
             </div>
             <div>
@@ -669,8 +811,10 @@ export function FormularioF03({
               <Textarea
                 rows={2}
                 value={pregunta_debilidades}
+                disabled={solo_lectura}
+                readOnly={solo_lectura}
                 onChange={(e) => set_pregunta_debilidades(e.target.value)}
-                className="text-xs border-[#E5E7EB] mt-1"
+                className="text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-90"
               />
             </div>
           </div>
@@ -680,8 +824,10 @@ export function FormularioF03({
             <Textarea
               rows={2}
               value={pregunta_opinion}
+              disabled={solo_lectura}
+              readOnly={solo_lectura}
               onChange={(e) => set_pregunta_opinion(e.target.value)}
-              className="text-xs border-[#E5E7EB] mt-1"
+              className="text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-90"
             />
           </div>
         </div>
@@ -700,16 +846,20 @@ export function FormularioF03({
               <Label className="text-xs">Nombre del pastor (declaración)</Label>
               <Input
                 value={declara_nombre}
+                disabled={solo_lectura}
+                readOnly={solo_lectura}
                 onChange={(e) => set_declara_nombre(e.target.value)}
-                className="h-8 text-xs border-[#E5E7EB] mt-1"
+                className="h-8 text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800"
               />
             </div>
             <div>
               <Label className="text-xs">C.I. del pastor</Label>
               <Input
                 value={declara_ci}
+                disabled={solo_lectura}
+                readOnly={solo_lectura}
                 onChange={(e) => set_declara_ci(e.target.value)}
-                className="h-8 text-xs border-[#E5E7EB] mt-1"
+                className="h-8 text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800"
               />
             </div>
           </div>
@@ -718,6 +868,7 @@ export function FormularioF03({
             <Checkbox
               id="f03-check"
               checked={declara_aceptada}
+              disabled={solo_lectura}
               onCheckedChange={(c) => set_declara_aceptada(Boolean(c))}
               className="mt-0.5"
             />
@@ -736,15 +887,26 @@ export function FormularioF03({
       </CardContent>
 
       <div className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] shrink-0 flex flex-wrap items-center justify-between gap-2">
-        {alCerrar && (
+        {solo_lectura ? (
           <Button
             type="button"
             variant="outline"
-            onClick={alCerrar}
-            className="h-10 px-4 text-xs font-bold rounded-xl border-slate-300"
+            onClick={alCancelar || alCerrar}
+            className="h-10 px-4 text-xs font-bold rounded-xl border-slate-300 hover:bg-slate-100 text-[#035683]"
           >
-            Cerrar
+            Cerrar Vista F-03
           </Button>
+        ) : (
+          (alCerrar || alCancelar) && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={alCancelar || alCerrar}
+              className="h-10 px-4 text-xs font-bold rounded-xl border-slate-300"
+            >
+              Cerrar
+            </Button>
+          )
         )}
 
         <div className="flex items-center gap-2 ml-auto">
@@ -763,19 +925,21 @@ export function FormularioF03({
             <span>Exportar PDF</span>
           </Button>
 
-          <Button
-            type="button"
-            disabled={guardando}
-            onClick={guardarEvaluacionF03}
-            className="bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl h-10 px-5 shadow-sm gap-2"
-          >
-            {guardando ? (
-              <Loader2 className="w-4 h-4 animate-spin text-[#FFB600]" />
-            ) : (
-              <Save className="w-4 h-4 text-[#FFB600]" />
-            )}
-            <span>Guardar Evaluación F-03 (Módulo 1)</span>
-          </Button>
+          {!solo_lectura && (
+            <Button
+              type="button"
+              disabled={guardando}
+              onClick={guardarEvaluacionF03}
+              className="bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl h-10 px-5 shadow-sm gap-2"
+            >
+              {guardando ? (
+                <Loader2 className="w-4 h-4 animate-spin text-[#FFB600]" />
+              ) : (
+                <Save className="w-4 h-4 text-[#FFB600]" />
+              )}
+              <span>Guardar Evaluación Ministerial F-03</span>
+            </Button>
+          )}
         </div>
       </div>
     </Card>

@@ -118,103 +118,9 @@ const BECARIOS_OFICIALES = [
   { id: 123, nombre: "Fernando Rene Yujra Quispe", carrera: "Ingeniería Civil", sede: "Oficina Central Bloque A" },
 ];
 
-const JUSTIFICACIONES_INICIALES: JustificacionIncidencia[] = [
-  {
-    id: 1,
-    becario_id: 101,
-    becario_nombre: "Nilda Amalia Churata Paye",
-    carrera: "Educación Parvularia",
-    sede_nombre: "Centro Infantil Sagrada Familia",
-    tipo_incidencia: "asistencia_practicas",
-    fecha_incidencia: "2026-10-06",
-    motivo: "Cita médica odontológica de urgencia",
-    descripcion:
-      "Tuve una extracción de urgencia en el Seguro Social Universitario. Adjunto comprobante médico y receta prescrita.",
-    documento_adjunto: "Certificado_Medico_SSU_Churata.png",
-    nombre_archivo_prueba: "Certificado_Medico_SSU_Churata.png",
-    archivo_prueba_url: MUESTRA_RECETA_MEDICA_SVG,
-    estado: "pendiente",
-    created_at: "2026-10-06 14:20",
-  },
-  {
-    id: 2,
-    becario_id: 102,
-    becario_nombre: "Edgar Elias Alarcon Huanca",
-    carrera: "Ingeniería de Sistemas",
-    sede_nombre: "Oficina Central Bloque A",
-    tipo_incidencia: "asistencia_evento",
-    fecha_incidencia: "2026-10-02",
-    motivo: "Cruce de horario con examen parcial universitario",
-    descripcion:
-      "Rendición del segundo examen parcial de Redes y Comunicaciones de 10:00 a 12:00 en la UPEA. Solicito convalidación del módulo de devocional matutino.",
-    documento_adjunto: "Boleta_Examen_UPEA_Alarcon.pdf",
-    nombre_archivo_prueba: "Boleta_Examen_UPEA_Alarcon.pdf",
-    estado: "revisado_supervisor",
-    supervisor_nombre: "Lic. Marcos Quispe",
-    observacion_supervisor: "Verificado rol oficial de exámenes de la facultad. Se eleva a Administración.",
-    fecha_revision_supervisor: "2026-10-03 09:30",
-    created_at: "2026-10-02 18:05",
-  },
-  {
-    id: 3,
-    becario_id: 103,
-    becario_nombre: "Adai Belen Huayta Cardozo",
-    carrera: "Contaduría Pública",
-    sede_nombre: "Agencia Villa Dolores",
-    tipo_incidencia: "escuela_lideres",
-    fecha_incidencia: "2026-09-29",
-    motivo: "Bloqueo y suspensión del transporte en autopista",
-    descripcion:
-      "Paro de choferes en el peaje de la autopista imposibilitó el arribo a tiempo a la sesión de Escuela de Líderes.",
-    estado: "aprobado_administracion",
-    supervisor_nombre: "Lic. Marcos Quispe",
-    observacion_supervisor: "Incidencia de fuerza mayor corroborada en reportes de tránsito.",
-    fecha_revision_supervisor: "2026-09-29 14:00",
-    administrador_nombre: "Lic. Juan Pérez (Administración)",
-    observacion_admin: "Permiso convalidado oficialmente con exención total de multa de viernes.",
-    fecha_resolucion: "2026-09-30 09:15",
-    exime_multa_viernes: true,
-    created_at: "2026-09-29 11:40",
-  },
-  {
-    id: 4,
-    becario_id: 104,
-    becario_nombre: "Ronald Franz Mamani Quispe",
-    carrera: "Bioquímica y Farmacia",
-    sede_nombre: "Laboratorio Clínico San Gabriel",
-    tipo_incidencia: "escuela_lideres",
-    fecha_incidencia: "2026-09-25",
-    motivo: "Inasistencia sin respaldo documental",
-    descripcion:
-      "No pude asistir a la sesión de Escuela de Líderes por compromisos personales de índole familiar.",
-    estado: "rechazada",
-    supervisor_nombre: "Lic. Marcos Quispe",
-    observacion_supervisor:
-      "El reglamento institucional del programa BUMAND exige constancia médica, académica o laboral certificada para justificar inasistencias en talleres centrales.",
-    fecha_resolucion: "2026-09-26 16:30",
-    created_at: "2026-09-25 19:10",
-  },
-  {
-    id: 5,
-    becario_id: 105,
-    becario_nombre: "Abigail Ruth Condori Flores",
-    carrera: "Trabajo Social",
-    sede_nombre: "Hogar de Niños Amor y Esperanza",
-    tipo_incidencia: "asistencia_practicas",
-    fecha_incidencia: "2026-10-07",
-    motivo: "Defensa de proyecto de grado semestral",
-    descripcion:
-      "Sustentación del perfil de tesis en la facultad durante la jornada vespertina. Se cuenta con el visto bueno del tutor.",
-    documento_adjunto: "Carta_Convocatoria_Defensa_UMSA.pdf",
-    nombre_archivo_prueba: "Carta_Convocatoria_Defensa_UMSA.pdf",
-    estado: "pendiente",
-    created_at: "2026-10-07 10:00",
-  },
-];
-
 export function BandejaJustificaciones() {
   const { usuario } = usarAutenticacion();
-  const [justificaciones_locales, set_justificaciones_locales] = useState<JustificacionIncidencia[]>(JUSTIFICACIONES_INICIALES);
+  const [justificaciones_locales, set_justificaciones_locales] = useState<JustificacionIncidencia[]>([]);
   const [filtro_estado, set_filtro_estado] = useState<string>("todos");
   const [termino_busqueda, set_termino_busqueda] = useState<string>("");
 
@@ -373,13 +279,13 @@ export function BandejaJustificaciones() {
           created_at: item.created_at ? String(item.created_at) : "2026-10-01",
         }));
       }
-      return JUSTIFICACIONES_INICIALES;
+      return [];
     },
-    { datos_iniciales: JUSTIFICACIONES_INICIALES }
+    { datos_iniciales: [] }
   );
 
   useEffect(() => {
-    if (justificaciones_servidor && justificaciones_servidor.length > 0) {
+    if (justificaciones_servidor) {
       set_justificaciones_locales(justificaciones_servidor);
     }
   }, [justificaciones_servidor]);

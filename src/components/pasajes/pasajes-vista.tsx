@@ -89,15 +89,19 @@ export interface RecorridoMensual {
 
 // --- TARIFAS OFICIALES LA PAZ / EL ALTO ---
 
-export const OPCIONES_TARIFAS_LOCALES = [
-  { codigo: "minibus_el_alto", label: "Bs 2.00 — Minibús (dentro de El Alto)", monto: 2.0 },
-  { codigo: "micro_el_alto", label: "Bs 1.50 — Micro (dentro de El Alto)", monto: 1.5 },
-  { codigo: "ceja_la_paz", label: "Bs 3.50 — Minibús (Centro La Paz – Ceja)", monto: 3.5 },
-  { codigo: "umsa_ceja", label: "Bs 4.00 — Minibús (UMSA – Ceja)", monto: 4.0 },
-  { codigo: "teleferico_regular", label: "Bs 3.00 — Teleférico (línea regular)", monto: 3.0 },
-  { codigo: "teleferico_transbordo", label: "Bs 2.00 — Teleférico (por transbordo)", monto: 2.0 },
-  { codigo: "custom", label: "Otro (escribir monto)…", monto: 0 },
-];
+export interface OpcionTarifa {
+  codigo: string;
+  label: string;
+  monto: number;
+}
+
+export const OPCION_TARIFA_CUSTOM: OpcionTarifa = {
+  codigo: "custom",
+  label: "Otro (escribir monto)…",
+  monto: 0,
+};
+
+export const OPCIONES_TARIFAS_LOCALES: OpcionTarifa[] = [OPCION_TARIFA_CUSTOM];
 
 export const RECORRIDOS_INICIALES: RecorridoMensual[] = [];
 
@@ -153,14 +157,53 @@ export function PasajesVista() {
     { id: "vuelta-2", numero: 2, nombre: "Villa Adela, El Alto", confirmada: false },
   ]);
 
-  // Tramos de tarifas
+  // Tramos de tarifas y catálogo dinámico
+  const [opciones_tarifas, set_opciones_tarifas] = useState<OpcionTarifa[]>([OPCION_TARIFA_CUSTOM]);
+
   const [tramos_ida, set_tramos_ida] = useState<TramoTarifa[]>([
-    { id: "t-ida-1", codigo_tarifa: "ceja_la_paz", monto: 3.5 },
+    { id: "t-ida-1", codigo_tarifa: "custom", monto: 0 },
   ]);
 
   const [tramos_vuelta, set_tramos_vuelta] = useState<TramoTarifa[]>([
-    { id: "t-vue-1", codigo_tarifa: "", monto: 0 },
+    { id: "t-vue-1", codigo_tarifa: "custom", monto: 0 },
   ]);
+
+  useEffect(() => {
+    let montado = true;
+    const cargarTarifasActivas = async () => {
+      try {
+        const res = await clienteApi.get<any[]>("/api/pasajes/tarifas");
+        if (!montado) return;
+        if (Array.isArray(res) && res.length > 0) {
+          const activas: OpcionTarifa[] = res
+            .filter((t) => t.activo !== false)
+            .map((t) => ({
+              codigo: `tarifa_${t.id}`,
+              label: `Bs ${Number(t.costo_bs).toFixed(2)} — ${t.medio_transporte}${t.descripcion ? ` (${t.descripcion})` : ""}`,
+              monto: Number(t.costo_bs) || 0,
+            }));
+          const catalogo = [...activas, OPCION_TARIFA_CUSTOM];
+          set_opciones_tarifas(catalogo);
+
+          if (activas.length > 0) {
+            set_tramos_ida((prev) =>
+              prev.map((t, idx) =>
+                idx === 0 && (t.codigo_tarifa === "custom" && t.monto === 0)
+                  ? { ...t, codigo_tarifa: activas[0].codigo, monto: activas[0].monto }
+                  : t
+              )
+            );
+          }
+        }
+      } catch (_e) {
+        // En caso de contingencia offline mantiene la opción custom
+      }
+    };
+    cargarTarifasActivas();
+    return () => {
+      montado = false;
+    };
+  }, []);
 
   // Recorridos mensuales declarados
   const [recorridos, set_recorridos] = useState<RecorridoMensual[]>(RECORRIDOS_INICIALES);
@@ -507,7 +550,7 @@ export function PasajesVista() {
   // --- MANEJADORES DE TARIFAS ---
 
   const actualizarTarifa = (seccion: "ida" | "vuelta", id_tramo: string, codigo: string) => {
-    const opcion = OPCIONES_TARIFAS_LOCALES.find((o) => o.codigo === codigo);
+    const opcion = opciones_tarifas.find((o) => o.codigo === codigo);
     const monto = opcion ? opcion.monto : 0;
 
     const actualizador = (prev: TramoTarifa[]) =>
@@ -521,10 +564,11 @@ export function PasajesVista() {
   };
 
   const agregarTramoTarifa = (seccion: "ida" | "vuelta") => {
+    const primer_opcion = opciones_tarifas[0] || OPCION_TARIFA_CUSTOM;
     const nuevo_tramo: TramoTarifa = {
       id: `tramo-${Date.now()}`,
-      codigo_tarifa: "teleferico_transbordo",
-      monto: 2.0,
+      codigo_tarifa: primer_opcion.codigo,
+      monto: primer_opcion.monto,
     };
     if (seccion === "ida") {
       set_tramos_ida((prev) => [...prev, nuevo_tramo]);
@@ -578,13 +622,13 @@ export function PasajesVista() {
     const obtenerNombresTarifas = (tramos: TramoTarifa[]) =>
       tramos
         .map((t) => {
-          const opc = OPCIONES_TARIFAS_LOCALES.find((o) => o.codigo === t.codigo_tarifa);
+          const opc = opciones_tarifas.find((o) => o.codigo === t.codigo_tarifa);
           if (t.codigo_tarifa === "custom") return t.nombre_transporte_personalizado || "Transporte Alternativo";
           if (!opc) return "Transporte Urbano";
-          if (opc.codigo.includes("teleferico")) return "Mi Teleférico";
-          if (opc.codigo.includes("minibus") || opc.codigo.includes("ceja") || opc.codigo.includes("umsa"))
+          if (opc.codigo.includes("teleferico") || opc.label.toLowerCase().includes("teleférico")) return "Mi Teleférico";
+          if (opc.codigo.includes("minibus") || opc.label.toLowerCase().includes("minibús") || opc.codigo.includes("ceja") || opc.codigo.includes("umsa"))
             return "Minibús Interciudad";
-          if (opc.codigo.includes("micro")) return "Micro / Colectivo";
+          if (opc.codigo.includes("micro") || opc.label.toLowerCase().includes("micro")) return "Micro / Colectivo";
           return opc.label;
         })
         .join(" + ");
@@ -884,7 +928,7 @@ export function PasajesVista() {
                               <SelectValue placeholder="Selecciona una tarifa oficial..." />
                             </SelectTrigger>
                             <SelectContent className="bg-white border-[#E5E7EB] max-h-60 shadow-lg z-[100]">
-                              {OPCIONES_TARIFAS_LOCALES.map((opc) => (
+                              {opciones_tarifas.map((opc) => (
                                 <SelectItem
                                   key={opc.codigo}
                                   value={opc.codigo}
@@ -1095,7 +1139,7 @@ export function PasajesVista() {
                               <SelectValue placeholder="Selecciona una tarifa oficial..." />
                             </SelectTrigger>
                             <SelectContent className="bg-white border-[#E5E7EB] max-h-60 shadow-lg z-[100]">
-                              {OPCIONES_TARIFAS_LOCALES.map((opc) => (
+                              {opciones_tarifas.map((opc) => (
                                 <SelectItem
                                   key={opc.codigo}
                                   value={opc.codigo}
