@@ -302,6 +302,13 @@ export function MenuLateral({
               icono: ClipboardCheck,
             },
             {
+              id: "refrigerios",
+              etiqueta: "Mis Refrigerios",
+              descripcion: "Raciones y vales institucionales",
+              icono: Utensils,
+              badge: "Diaconía",
+            },
+            {
               id: "evaluaciones",
               etiqueta: "Mis Evaluaciones",
               descripcion: "Matriz y Socioeconómica",

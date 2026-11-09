@@ -339,6 +339,54 @@ export default function PaginaInicioSesion() {
                 disabled={cargando}
               />
             </form>
+
+            <div className="pt-3 border-t border-[#E5E7EB]/70 space-y-2">
+              <div className="flex items-center justify-between text-[11px] font-bold text-[#035683]">
+                <span>Cuentas Semilla de Demostración</span>
+                <span className="text-[10px] font-normal text-muted-foreground">Clic para autocompletar</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1.5" id="selector-cuentas-semilla">
+                <button
+                  type="button"
+                  id="btn-semilla-admin"
+                  onClick={() => {
+                    set_correo("coordinacion@bumand.bo");
+                    set_contrasena("Bumand2026!");
+                    set_mostrar_contrasena(true);
+                  }}
+                  className="p-1.5 text-center rounded-lg border border-[#035683]/20 bg-[#035683]/5 hover:bg-[#035683]/10 text-[10px] font-medium text-[#035683] transition-colors cursor-pointer"
+                >
+                  <div className="font-bold">Admin General</div>
+                  <div className="text-[9px] text-muted-foreground truncate">coordinacion@...</div>
+                </button>
+                <button
+                  type="button"
+                  id="btn-semilla-supervisor"
+                  onClick={() => {
+                    set_correo("angel.ali@bumand.bo");
+                    set_contrasena("Bumand2026!");
+                    set_mostrar_contrasena(true);
+                  }}
+                  className="p-1.5 text-center rounded-lg border border-[#00ABBD]/20 bg-[#00ABBD]/5 hover:bg-[#00ABBD]/10 text-[10px] font-medium text-[#00808E] transition-colors cursor-pointer"
+                >
+                  <div className="font-bold">Supervisor</div>
+                  <div className="text-[9px] text-muted-foreground truncate">angel.ali@...</div>
+                </button>
+                <button
+                  type="button"
+                  id="btn-semilla-becario"
+                  onClick={() => {
+                    set_correo("daniel234.davalos@gmail.com");
+                    set_contrasena("Bumand2026!");
+                    set_mostrar_contrasena(true);
+                  }}
+                  className="p-1.5 text-center rounded-lg border border-[#FFB600]/30 bg-[#FFB600]/10 hover:bg-[#FFB600]/20 text-[10px] font-medium text-[#B8860B] transition-colors cursor-pointer"
+                >
+                  <div className="font-bold">Becario</div>
+                  <div className="text-[9px] text-muted-foreground truncate">daniel234...</div>
+                </button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
