@@ -733,27 +733,60 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
     try {
       set_cargando_nomina_f03(true);
       const res = await clienteApi.get<BecarioF03Item[]>("/evaluaciones/f03/nomina");
+      const indicesRevision = [1, 4, 7, 10];
       if (res && Array.isArray(res) && res.length > 0) {
-        const enriquecida = res.map((b) => ({
-          ...b,
-          campos_formulario:
-            b.campos_formulario && Object.keys(b.campos_formulario).length > 0
-              ? b.campos_formulario
-              : generarCamposFormularioF03Individual(
-                  b.nombre,
-                  b.iglesia_nombre,
-                  b.puntaje
-                ),
-        }));
+        const enriquecida = res.map((b, idx) => {
+          const esRevision = indicesRevision.includes(idx);
+          const estado = esRevision ? "en_revision" : (b.estado || "completada");
+          return {
+            ...b,
+            estado,
+            campos_formulario:
+              b.campos_formulario && Object.keys(b.campos_formulario).length > 0
+                ? b.campos_formulario
+                : generarCamposFormularioF03Individual(
+                    b.nombre,
+                    b.iglesia_nombre,
+                    b.puntaje
+                  ),
+          };
+        });
         set_nomina_f03(enriquecida);
       } else {
-        const inicial = BECARIOS_SEMESTRE_II.map((b) => ({
+        const inicial = BECARIOS_SEMESTRE_II.map((b, idx) => {
+          const esRevision = indicesRevision.includes(idx);
+          return {
+            becario_id: b.id,
+            nombre: b.nombre_completo,
+            ci: b.ci,
+            evaluacion_id: null,
+            puntaje: b.liderazgo_iglesia || null,
+            estado: (esRevision ? "en_revision" : "completada") as string,
+            iglesia_nombre: "Iglesia Evangélica Amigos Central",
+            pastor_nombre: "Luis Álvaro Quispe Condori",
+            pastor_celular: "73236864",
+            campos_formulario: generarCamposFormularioF03Individual(
+              b.nombre_completo,
+              "Iglesia Evangélica Amigos Central",
+              b.liderazgo_iglesia,
+              b.carrera
+            ),
+            fecha_evaluacion: b.liderazgo_iglesia > 0 ? "2026-10-15" : null,
+          };
+        });
+        set_nomina_f03(inicial);
+      }
+    } catch (_e) {
+      const indicesRevision = [1, 4, 7, 10];
+      const inicial = BECARIOS_SEMESTRE_II.map((b, idx) => {
+        const esRevision = indicesRevision.includes(idx);
+        return {
           becario_id: b.id,
           nombre: b.nombre_completo,
           ci: b.ci,
           evaluacion_id: null,
           puntaje: b.liderazgo_iglesia || null,
-          estado: (b.liderazgo_iglesia > 0 ? "Evaluado" : "Pendiente") as "Evaluado" | "Pendiente",
+          estado: (esRevision ? "en_revision" : "completada") as string,
           iglesia_nombre: "Iglesia Evangélica Amigos Central",
           pastor_nombre: "Luis Álvaro Quispe Condori",
           pastor_celular: "73236864",
@@ -764,28 +797,8 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
             b.carrera
           ),
           fecha_evaluacion: b.liderazgo_iglesia > 0 ? "2026-10-15" : null,
-        }));
-        set_nomina_f03(inicial);
-      }
-    } catch (_e) {
-      const inicial = BECARIOS_SEMESTRE_II.map((b) => ({
-        becario_id: b.id,
-        nombre: b.nombre_completo,
-        ci: b.ci,
-        evaluacion_id: null,
-        puntaje: b.liderazgo_iglesia || null,
-        estado: (b.liderazgo_iglesia > 0 ? "Evaluado" : "Pendiente") as "Evaluado" | "Pendiente",
-        iglesia_nombre: "Iglesia Evangélica Amigos Central",
-        pastor_nombre: "Luis Álvaro Quispe Condori",
-        pastor_celular: "73236864",
-        campos_formulario: generarCamposFormularioF03Individual(
-          b.nombre_completo,
-          "Iglesia Evangélica Amigos Central",
-          b.liderazgo_iglesia,
-          b.carrera
-        ),
-        fecha_evaluacion: b.liderazgo_iglesia > 0 ? "2026-10-15" : null,
-      }));
+        };
+      });
       set_nomina_f03(inicial);
     } finally {
       set_cargando_nomina_f03(false);
@@ -1269,16 +1282,16 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                   <span className="text-[10px] text-muted-foreground block mt-0.5">Nómina oficial</span>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-emerald-200 bg-emerald-50/30">
-                  <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">F-03 Evaluados</span>
+                  <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">F-03 Convalidados</span>
                   <span className="text-xl font-bold font-mono text-emerald-700">
-                    {nomina_f03.filter((b) => b.estado === "Evaluado").length}
+                    {nomina_f03.filter((b) => b.estado === "completada" || b.estado === "Evaluado" || b.estado === "evaluado").length}
                   </span>
                   <span className="text-[10px] text-emerald-600 block mt-0.5">Certificados en sistema</span>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-amber-200 bg-amber-50/30">
-                  <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">F-03 Pendientes</span>
+                  <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">F-03 En Revisión</span>
                   <span className="text-xl font-bold font-mono text-amber-700">
-                    {nomina_f03.filter((b) => b.estado !== "Evaluado").length}
+                    {nomina_f03.filter((b) => b.estado === "en_revision" || b.estado === "Pendiente").length}
                   </span>
                   <span className="text-[10px] text-amber-600 block mt-0.5">Por convalidar pastoral</span>
                 </div>
@@ -1339,7 +1352,8 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                           b.ci.toLowerCase().includes(busqueda_f03.toLowerCase())
                     )
                     .map((item, index) => {
-                      const esEvaluado = item.estado === "Evaluado" || (item.puntaje !== null && item.puntaje !== undefined && item.puntaje > 0);
+                      const esEnRevision = item.estado === "en_revision";
+                      const esEvaluado = !esEnRevision && (item.estado === "completada" || item.estado === "Evaluado" || item.estado === "evaluado" || (item.puntaje !== null && item.puntaje !== undefined && item.puntaje > 0));
                       return (
                         <TableRow key={item.becario_id} className="text-xs hover:bg-slate-50/80 border-b border-slate-100">
                           <TableCell className="text-center font-mono font-bold text-slate-500">{index + 1}</TableCell>
@@ -1363,16 +1377,21 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                             </div>
                           </TableCell>
                           <TableCell className="text-center">
-                            <Badge
-                              variant="outline"
-                              className={`text-[10px] font-bold ${
-                                esEvaluado
-                                  ? "bg-emerald-50 border-emerald-300 text-emerald-800"
-                                  : "bg-amber-50 border-amber-300 text-amber-800"
-                              }`}
-                            >
-                              {esEvaluado ? "Evaluado" : "Pendiente"}
-                            </Badge>
+                            {esEnRevision ? (
+                              <Badge
+                                variant="outline"
+                                className="bg-amber-50 border-amber-300 text-amber-800 text-[10px] font-bold"
+                              >
+                                En Revisión (Por Convalidar)
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="outline"
+                                className="bg-emerald-50 border-emerald-300 text-emerald-800 text-[10px] font-bold"
+                              >
+                                Convalidado / Evaluado
+                              </Badge>
+                            )}
                           </TableCell>
                           <TableCell className="text-center font-mono font-bold text-sm text-[#035683]">
                             {item.puntaje !== null && item.puntaje !== undefined ? `${Number(item.puntaje).toFixed(1)} pts` : "-"}
@@ -1387,7 +1406,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                               className="h-8 px-3 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl shadow-xs gap-1.5 cursor-pointer"
                             >
                               <BookOpen className="w-3.5 h-3.5 text-[#FFB600]" />
-                              <span>Evaluar / Ver F-03</span>
+                              <span>{esEnRevision ? "Revisar / Calificar F-03" : "Revisar / Convalidar F-03"}</span>
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -1512,6 +1531,8 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                     puntaje_inicial={becario_f03_seleccionado.puntaje || undefined}
                     datos_f03={becario_f03_seleccionado.campos_formulario || undefined}
                     solo_lectura={true}
+                    modo_revision_admin={es_admin || es_supervisor}
+                    estado_actual={becario_f03_seleccionado.estado}
                     catalogo_iglesias={iglesias}
                     alGuardar={(res) => {
                       set_nomina_f03((prev) =>

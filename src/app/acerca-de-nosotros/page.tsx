@@ -21,17 +21,21 @@ export default function PaginaAcercaDeNosotros() {
               href="/"
               className="flex items-center gap-2 group transition-transform active:scale-95"
             >
-              <img
-                src="/logos/ALTA1.svg"
-                alt="Diaconía IFD"
-                className="h-8 w-auto object-contain"
-              />
-              <div className="h-6 w-px bg-slate-200 hidden sm:block" />
-              <img
-                src="/logos/LOGO-BUMAND_2023.svg"
-                alt="BUMAND"
-                className="h-7 w-auto object-contain hidden sm:block"
-              />
+              <div className="flex items-center gap-2.5 bg-[#035683] px-2.5 py-1 rounded-xl border border-[#00ABBD]/30 shadow-2xs">
+                <div className="bg-white px-2 py-0.5 rounded-lg shadow-2xs flex items-center">
+                  <img
+                    src="/logos/logo-diaconia-color.svg"
+                    alt="Diaconía IFD"
+                    className="h-6 w-auto object-contain"
+                  />
+                </div>
+                <div className="h-5 w-px bg-white/25 hidden sm:block" />
+                <img
+                  src="/logos/LOGO-BUMAND-2_2023.svg"
+                  alt="BUMAND"
+                  className="h-6 w-auto object-contain hidden sm:block"
+                />
+              </div>
             </Link>
           </div>
 

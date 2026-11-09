@@ -33,6 +33,8 @@ export interface PropiedadesFormularioF03 {
   datos_f03?: Record<string, unknown> | null;
   puntaje_inicial?: number | null;
   solo_lectura?: boolean;
+  modo_revision_admin?: boolean;
+  estado_actual?: string;
   catalogo_iglesias?: Array<{
     id: number | string;
     nombre: string;
@@ -87,6 +89,8 @@ export function FormularioF03({
   datos_f03,
   puntaje_inicial,
   solo_lectura = false,
+  modo_revision_admin = false,
+  estado_actual,
   catalogo_iglesias,
   alGuardar,
   alEnviarExito,
@@ -96,6 +100,9 @@ export function FormularioF03({
   const [cargando_pdf, set_cargando_pdf] = useState(false);
   const [guardando, set_guardando] = useState(false);
   const [error_formulario, set_error_formulario] = useState<string | null>(null);
+
+  const respuestas_bloqueadas = Boolean(solo_lectura || modo_revision_admin);
+  const puede_calificar = !solo_lectura || Boolean(modo_revision_admin);
 
   const lista_iglesias =
     catalogo_iglesias && catalogo_iglesias.length > 0
@@ -438,11 +445,16 @@ export function FormularioF03({
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            {solo_lectura && (
+            {modo_revision_admin ? (
+              <Badge variant="outline" className="bg-amber-50 text-amber-900 border-amber-300 font-bold text-[10px] flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3 text-amber-600" />
+                Modo Revisión Administrativa · Respuestas del Becario Protegidas
+              </Badge>
+            ) : solo_lectura ? (
               <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-300 font-bold text-[10px]">
                 Modo Consulta · Solo Lectura
               </Badge>
-            )}
+            ) : null}
             <Badge variant="outline" className="border-[#00ABBD] text-[#035683] font-bold text-[10px]">
               Módulo 01 · 20% Oficial
             </Badge>
@@ -464,6 +476,9 @@ export function FormularioF03({
             <p className="text-[11px] text-muted-foreground">
               Define el puntaje sobre 20.00 puntos que impactará directamente en la Sábana Consolidada Semestral.
             </p>
+            <p className="text-[11px] font-semibold text-[#035683]">
+              Revise las respuestas de las 13 preguntas (incluyendo preguntas abiertas) y asigne/convalide la calificación sobre 20.00 puntos.
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
@@ -473,8 +488,8 @@ export function FormularioF03({
                 max="20"
                 step="0.5"
                 value={puntaje_f03}
-                disabled={solo_lectura}
-                readOnly={solo_lectura}
+                disabled={!puede_calificar}
+                readOnly={!puede_calificar}
                 onChange={(e) => set_puntaje_f03(Math.min(20, Math.max(0, Number(e.target.value) || 0)))}
                 className="w-24 h-9 text-center font-bold text-base text-[#035683] bg-white border-[#00ABBD] rounded-xl disabled:bg-slate-50 disabled:opacity-85"
               />
@@ -496,7 +511,7 @@ export function FormularioF03({
             <div className="flex items-center gap-1.5 p-0.5 bg-slate-100 rounded-lg border border-slate-200">
               <button
                 type="button"
-                disabled={solo_lectura}
+                disabled={respuestas_bloqueadas}
                 onClick={() => set_origen_datos_iglesia("catalogo")}
                 className={`px-2 py-0.5 text-[11px] font-bold rounded-md transition-all ${
                   origen_datos_iglesia === "catalogo"
@@ -508,7 +523,7 @@ export function FormularioF03({
               </button>
               <button
                 type="button"
-                disabled={solo_lectura}
+                disabled={respuestas_bloqueadas}
                 onClick={() => set_origen_datos_iglesia("manual")}
                 className={`px-2 py-0.5 text-[11px] font-bold rounded-md transition-all ${
                   origen_datos_iglesia === "manual"
@@ -534,7 +549,7 @@ export function FormularioF03({
               </div>
               <select
                 value={iglesia_seleccionada_id}
-                disabled={solo_lectura}
+                disabled={respuestas_bloqueadas}
                 onChange={(e) => manejarSeleccionIglesia(e.target.value)}
                 className="w-full h-9 text-xs font-medium rounded-lg border border-[#E5E7EB] bg-white px-2.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#00ABBD] disabled:bg-slate-50 disabled:opacity-85"
               >
@@ -556,8 +571,8 @@ export function FormularioF03({
               <Label className="text-xs">Nombre del pastor *</Label>
               <Input
                 value={pastor_nombre}
-                disabled={solo_lectura}
-                readOnly={solo_lectura}
+                disabled={respuestas_bloqueadas}
+                readOnly={respuestas_bloqueadas}
                 onChange={(e) => {
                   set_pastor_nombre(e.target.value);
                   set_declara_nombre(e.target.value);
@@ -570,8 +585,8 @@ export function FormularioF03({
               <Input
                 type="email"
                 value={pastor_correo}
-                disabled={solo_lectura}
-                readOnly={solo_lectura}
+                disabled={respuestas_bloqueadas}
+                readOnly={respuestas_bloqueadas}
                 onChange={(e) => set_pastor_correo(e.target.value)}
                 className="h-8 text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800"
               />
@@ -580,8 +595,8 @@ export function FormularioF03({
               <Label className="text-xs">N.º celular del pastor</Label>
               <Input
                 value={pastor_celular}
-                disabled={solo_lectura}
-                readOnly={solo_lectura}
+                disabled={respuestas_bloqueadas}
+                readOnly={respuestas_bloqueadas}
                 onChange={(e) => set_pastor_celular(e.target.value)}
                 className="h-8 text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800"
               />
@@ -590,8 +605,8 @@ export function FormularioF03({
               <Label className="text-xs">Nombre de la iglesia</Label>
               <Input
                 value={iglesia_nombre}
-                disabled={solo_lectura}
-                readOnly={solo_lectura}
+                disabled={respuestas_bloqueadas}
+                readOnly={respuestas_bloqueadas}
                 onChange={(e) => set_iglesia_nombre(e.target.value)}
                 className="h-8 text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800"
               />
@@ -600,8 +615,8 @@ export function FormularioF03({
               <Label className="text-xs">Dirección de la iglesia</Label>
               <Input
                 value={iglesia_direccion}
-                disabled={solo_lectura}
-                readOnly={solo_lectura}
+                disabled={respuestas_bloqueadas}
+                readOnly={respuestas_bloqueadas}
                 onChange={(e) => set_iglesia_direccion(e.target.value)}
                 className="h-8 text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800"
               />
@@ -622,8 +637,8 @@ export function FormularioF03({
             <Label className="text-xs">1. Nombre del becario</Label>
             <Input
               value={becario_nombre}
-              disabled={solo_lectura}
-              readOnly={solo_lectura}
+              disabled={respuestas_bloqueadas}
+              readOnly={respuestas_bloqueadas}
               onChange={(e) => set_becario_nombre(e.target.value)}
               className="h-8 text-xs border-[#E5E7EB] mt-1 font-semibold text-[#035683] disabled:bg-slate-50 disabled:text-[#035683]"
             />
@@ -641,7 +656,7 @@ export function FormularioF03({
                 <button
                   key={opc}
                   type="button"
-                  disabled={solo_lectura}
+                  disabled={respuestas_bloqueadas}
                   onClick={() => set_frecuencia_asistencia(opc)}
                   className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-all ${
                     frecuencia_asistencia === opc
@@ -662,7 +677,7 @@ export function FormularioF03({
                 <button
                   key={opc}
                   type="button"
-                  disabled={solo_lectura}
+                  disabled={respuestas_bloqueadas}
                   onClick={() => set_demuestra_compromiso(opc)}
                   className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-all ${
                     demuestra_compromiso === opc
@@ -683,7 +698,7 @@ export function FormularioF03({
                 <button
                   key={opc}
                   type="button"
-                  disabled={solo_lectura}
+                  disabled={respuestas_bloqueadas}
                   onClick={() => set_ocupa_cargo(opc)}
                   className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-all ${
                     ocupa_cargo === opc
@@ -702,8 +717,8 @@ export function FormularioF03({
                   <Label className="text-xs">Cargo actual</Label>
                   <Input
                     value={cargo_actual}
-                    disabled={solo_lectura}
-                    readOnly={solo_lectura}
+                    disabled={respuestas_bloqueadas}
+                    readOnly={respuestas_bloqueadas}
                     onChange={(e) => set_cargo_actual(e.target.value)}
                     className="h-8 text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-100 disabled:text-slate-800"
                   />
@@ -712,8 +727,8 @@ export function FormularioF03({
                   <Label className="text-xs">Cumplimiento de cargos</Label>
                   <Input
                     value={cumplimiento_cargos}
-                    disabled={solo_lectura}
-                    readOnly={solo_lectura}
+                    disabled={respuestas_bloqueadas}
+                    readOnly={respuestas_bloqueadas}
                     onChange={(e) => set_cumplimiento_cargos(e.target.value)}
                     className="h-8 text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-100 disabled:text-slate-800"
                   />
@@ -727,8 +742,8 @@ export function FormularioF03({
             <Textarea
               rows={2}
               value={pregunta_conviccion}
-              disabled={solo_lectura}
-              readOnly={solo_lectura}
+              disabled={respuestas_bloqueadas}
+              readOnly={respuestas_bloqueadas}
               onChange={(e) => set_pregunta_conviccion(e.target.value)}
               className="text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-90"
             />
@@ -739,8 +754,8 @@ export function FormularioF03({
             <Textarea
               rows={2}
               value={pregunta_ejemplo}
-              disabled={solo_lectura}
-              readOnly={solo_lectura}
+              disabled={respuestas_bloqueadas}
+              readOnly={respuestas_bloqueadas}
               onChange={(e) => set_pregunta_ejemplo(e.target.value)}
               className="text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-90"
             />
@@ -751,8 +766,8 @@ export function FormularioF03({
             <Textarea
               rows={2}
               value={pregunta_capacitaciones}
-              disabled={solo_lectura}
-              readOnly={solo_lectura}
+              disabled={respuestas_bloqueadas}
+              readOnly={respuestas_bloqueadas}
               onChange={(e) => set_pregunta_capacitaciones(e.target.value)}
               className="text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-90"
             />
@@ -763,8 +778,8 @@ export function FormularioF03({
             <Textarea
               rows={2}
               value={pregunta_testimonio}
-              disabled={solo_lectura}
-              readOnly={solo_lectura}
+              disabled={respuestas_bloqueadas}
+              readOnly={respuestas_bloqueadas}
               onChange={(e) => set_pregunta_testimonio(e.target.value)}
               className="text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-90"
             />
@@ -775,8 +790,8 @@ export function FormularioF03({
             <Textarea
               rows={2}
               value={pregunta_relacion}
-              disabled={solo_lectura}
-              readOnly={solo_lectura}
+              disabled={respuestas_bloqueadas}
+              readOnly={respuestas_bloqueadas}
               onChange={(e) => set_pregunta_relacion(e.target.value)}
               className="text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-90"
             />
@@ -787,8 +802,8 @@ export function FormularioF03({
             <Textarea
               rows={2}
               value={pregunta_nuevos_lideres}
-              disabled={solo_lectura}
-              readOnly={solo_lectura}
+              disabled={respuestas_bloqueadas}
+              readOnly={respuestas_bloqueadas}
               onChange={(e) => set_pregunta_nuevos_lideres(e.target.value)}
               className="text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-90"
             />
@@ -800,8 +815,8 @@ export function FormularioF03({
               <Textarea
                 rows={2}
                 value={pregunta_fortalezas}
-                disabled={solo_lectura}
-                readOnly={solo_lectura}
+                disabled={respuestas_bloqueadas}
+                readOnly={respuestas_bloqueadas}
                 onChange={(e) => set_pregunta_fortalezas(e.target.value)}
                 className="text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-90"
               />
@@ -811,8 +826,8 @@ export function FormularioF03({
               <Textarea
                 rows={2}
                 value={pregunta_debilidades}
-                disabled={solo_lectura}
-                readOnly={solo_lectura}
+                disabled={respuestas_bloqueadas}
+                readOnly={respuestas_bloqueadas}
                 onChange={(e) => set_pregunta_debilidades(e.target.value)}
                 className="text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-90"
               />
@@ -824,8 +839,8 @@ export function FormularioF03({
             <Textarea
               rows={2}
               value={pregunta_opinion}
-              disabled={solo_lectura}
-              readOnly={solo_lectura}
+              disabled={respuestas_bloqueadas}
+              readOnly={respuestas_bloqueadas}
               onChange={(e) => set_pregunta_opinion(e.target.value)}
               className="text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-90"
             />
@@ -846,8 +861,8 @@ export function FormularioF03({
               <Label className="text-xs">Nombre del pastor (declaración)</Label>
               <Input
                 value={declara_nombre}
-                disabled={solo_lectura}
-                readOnly={solo_lectura}
+                disabled={respuestas_bloqueadas}
+                readOnly={respuestas_bloqueadas}
                 onChange={(e) => set_declara_nombre(e.target.value)}
                 className="h-8 text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800"
               />
@@ -856,8 +871,8 @@ export function FormularioF03({
               <Label className="text-xs">C.I. del pastor</Label>
               <Input
                 value={declara_ci}
-                disabled={solo_lectura}
-                readOnly={solo_lectura}
+                disabled={respuestas_bloqueadas}
+                readOnly={respuestas_bloqueadas}
                 onChange={(e) => set_declara_ci(e.target.value)}
                 className="h-8 text-xs border-[#E5E7EB] mt-1 disabled:bg-slate-50 disabled:text-slate-800"
               />
@@ -868,7 +883,7 @@ export function FormularioF03({
             <Checkbox
               id="f03-check"
               checked={declara_aceptada}
-              disabled={solo_lectura}
+              disabled={respuestas_bloqueadas}
               onCheckedChange={(c) => set_declara_aceptada(Boolean(c))}
               className="mt-0.5"
             />
@@ -887,27 +902,14 @@ export function FormularioF03({
       </CardContent>
 
       <div className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] shrink-0 flex flex-wrap items-center justify-between gap-2">
-        {solo_lectura ? (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={alCancelar || alCerrar}
-            className="h-10 px-4 text-xs font-bold rounded-xl border-slate-300 hover:bg-slate-100 text-[#035683]"
-          >
-            Cerrar Vista F-03
-          </Button>
-        ) : (
-          (alCerrar || alCancelar) && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={alCancelar || alCerrar}
-              className="h-10 px-4 text-xs font-bold rounded-xl border-slate-300"
-            >
-              Cerrar
-            </Button>
-          )
-        )}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={alCancelar || alCerrar}
+          className="h-10 px-4 text-xs font-bold rounded-xl border-slate-300 hover:bg-slate-100 text-[#035683]"
+        >
+          {solo_lectura && !modo_revision_admin ? "Cerrar Vista F-03" : "Cerrar"}
+        </Button>
 
         <div className="flex items-center gap-2 ml-auto">
           <Button
@@ -925,7 +927,7 @@ export function FormularioF03({
             <span>Exportar PDF</span>
           </Button>
 
-          {!solo_lectura && (
+          {puede_calificar && (
             <Button
               type="button"
               disabled={guardando}
@@ -937,7 +939,7 @@ export function FormularioF03({
               ) : (
                 <Save className="w-4 h-4 text-[#FFB600]" />
               )}
-              <span>Guardar Evaluación Ministerial F-03</span>
+              <span>Convalidar y Guardar Calificación F-03</span>
             </Button>
           )}
         </div>
