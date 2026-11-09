@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
+import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -180,24 +181,19 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
   const descargarAsistenciaMensualPdf = async () => {
     try {
       set_descargando_pdf(true);
-      toast.info("Generando kárdex de asistencia mensual con Puppeteer en el servidor...", {
+      toast.info("Generando kárdex de asistencia mensual en PDF...", {
         description: `Periodo: ${extracto_activo.mes_nombre}`,
       });
       const id_becario = usuario?.id || 1;
-      const blob = await clienteApi.descargarBlob(
-        `/pdf/asistencia-estudiante/${id_becario}?mes=${extracto_activo.periodo}`
+      await descargarPdfConResiliencia(
+        "/pdf/asistencia-estudiante/" + id_becario + "?mes=" + extracto_activo.periodo,
+        "Asistencia_" + extracto_activo.periodo + "_Becario_" + id_becario + ".pdf",
+        "asistencia_estudiante",
+        { becario_id: String(id_becario), mes: extracto_activo.periodo }
       );
-      const url = window.URL.createObjectURL(blob);
-      const enlace = document.createElement("a");
-      enlace.href = url;
-      enlace.download = `Extracto_Asistencia_${extracto_activo.periodo}.pdf`;
-      document.body.appendChild(enlace);
-      enlace.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(enlace);
       toast.success("Kárdex de asistencia mensual descargado exitosamente");
     } catch (_error) {
-      toast.error("Error al exportar la asistencia mensual en PDF con Puppeteer");
+      toast.error("Error al exportar la asistencia mensual en PDF");
     } finally {
       set_descargando_pdf(false);
     }

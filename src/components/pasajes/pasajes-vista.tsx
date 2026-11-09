@@ -26,6 +26,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { clienteApi } from "@/lib/cliente-api";
+import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
@@ -214,22 +215,19 @@ export function PasajesVista() {
   const descargarExpedientePdf = async () => {
     try {
       set_descargando_pdf(true);
-      toast.info("Generando expediente mensual de recorridos con Puppeteer...", {
-        description: "Preparando documento oficial en formato PDF.",
+      toast.info("Generando expediente mensual de recorridos en PDF...", {
+        description: "Preparando documento oficial.",
       });
       const id_becario = usuario?.id || 1;
-      const blob = await clienteApi.descargarBlob("/pdf/recorridos-estudiante/" + id_becario + "?mes=2026-10");
-      const url = window.URL.createObjectURL(blob);
-      const enlace = document.createElement("a");
-      enlace.href = url;
-      enlace.download = "Expediente_Recorridos_Estudiante_" + id_becario + "_2026_10.pdf";
-      document.body.appendChild(enlace);
-      enlace.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(enlace);
+      await descargarPdfConResiliencia(
+        "/pdf/recorridos-estudiante/" + id_becario + "?mes=2026-10",
+        "Expediente_Recorridos_Becario_" + id_becario + ".pdf",
+        "recorridos_estudiante",
+        { becario_id: String(id_becario), mes: "2026-10" }
+      );
       toast.success("Expediente de recorridos descargado exitosamente");
     } catch (_error) {
-      toast.error("Error al exportar el expediente de recorridos en PDF con Puppeteer");
+      toast.error("Error al exportar el expediente de recorridos en PDF");
     } finally {
       set_descargando_pdf(false);
     }

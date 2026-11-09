@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
+import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import {
   BECARIOS_SEMESTRE_II,
   NOTAS_CETI_SEMESTRE_II,
@@ -99,25 +100,21 @@ export function SabanaConsolidadoSemestral() {
   const descargarReportePuppeteerPdf = async () => {
     try {
       set_descargando_pdf(true);
-      toast.info("Generando informe semestral con Puppeteer en el servidor...", {
+      toast.info("Generando informe semestral oficial en PDF...", {
         description: "Compilando tabla apaisada de 14 columnas, promedios y dictamen oficial.",
       });
 
-      const blob = await clienteApi.descargarBlob("/pdf/evaluacion-semestral?periodo=II_2026");
-      const url = window.URL.createObjectURL(blob);
-      const enlace = document.createElement("a");
-      enlace.href = url;
-      enlace.download = "Evaluacion_Semestre_II_2026.pdf";
-      document.body.appendChild(enlace);
-      enlace.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(enlace);
+      await descargarPdfConResiliencia(
+        "/pdf/evaluacion-semestral?periodo=II_2026",
+        "Evaluacion_Semestre_II_2026.pdf",
+        "evaluacion_semestral_ii"
+      );
 
       toast.success("PDF oficial descargado exitosamente", {
-        description: "Documento oficial generado con Puppeteer en el backend.",
+        description: "Documento oficial listo.",
       });
     } catch (_error) {
-      toast.error("Error al descargar PDF con Puppeteer", {
+      toast.error("Error al descargar PDF", {
         description: "Verifique la conectividad con el servicio de generación de PDF.",
       });
     } finally {

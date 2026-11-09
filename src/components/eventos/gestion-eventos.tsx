@@ -40,6 +40,7 @@ import {
 import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
 import { EstadoVacio } from "@/components/ui/estado-vacio";
 import { toast } from "sonner";
+import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -894,22 +895,25 @@ export function GestionEventos() {
 </body>
 </html>`;
 
-      const ventana = window.open("", "_blank");
-      if (!ventana) {
-        toast.error("Ventana emergente bloqueada", {
-          description: "Por favor permite las ventanas emergentes para abrir el documento de impresión.",
-        });
-        return;
-      }
-      ventana.document.write(contenido_html);
-      ventana.document.close();
-      ventana.focus();
-      setTimeout(() => {
-        ventana.print();
-      }, 300);
+      const endpoint = `/pdf/evento/${_evento.id}`;
+      const nombre_archivo = `Acta_Asistencia_Evento_${_evento.id}.pdf`;
 
-      toast.success("Documento preparado para impresión / PDF", {
-        description: `Se abrió la vista de impresión oficial para el evento ${_evento.titulo}.`,
+      toast.info("Generando Acta Oficial de Asistencia en PDF...", {
+        description: `Evento: ${_evento.titulo}`,
+      });
+
+      await descargarPdfConResiliencia(
+        endpoint,
+        nombre_archivo,
+        "evento",
+        {
+          evento_id: String(_evento.id),
+          titulo: _evento.titulo,
+        }
+      );
+
+      toast.success("Acta Oficial de Asistencia descargada exitosamente", {
+        description: `Archivo "${nombre_archivo}" listo.`,
       });
     } catch (_error) {
       toast.error("Error al emitir el acta PDF", {

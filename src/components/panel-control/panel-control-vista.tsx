@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { clienteApi } from "@/lib/cliente-api";
+import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import {
   ContadorAnimado,
   ContenedorEscalonado,
@@ -659,7 +660,7 @@ export function PanelControlVista() {
   const descargarCortePdf = async () => {
     try {
       set_exportando_pdf_corte(true);
-      toast.loading("Generando informe oficial de corte en PDF con Puppeteer...", {
+      toast.loading("Generando informe oficial de corte en PDF...", {
         id: "corte-pdf-toast",
       });
 
@@ -670,22 +671,26 @@ export function PanelControlVista() {
         params.set("tipo", filtro_tipo_actividad);
       }
 
-      const blob = await clienteApi.descargarBlob(`/pdf/corte-asistencia?${params.toString()}`);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Corte_Asistencia_Semana_${info_semana.num_semana}_BUMAND.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      const endpoint = `/pdf/corte-asistencia?${params.toString()}`;
+      const nombre_archivo = `Corte_Asistencia_Semana_${info_semana.num_semana}_BUMAND.pdf`;
+
+      await descargarPdfConResiliencia(
+        endpoint,
+        nombre_archivo,
+        "corte_asistencia",
+        {
+          fecha_inicio: info_semana.inicio_iso,
+          fecha_fin: info_semana.fin_iso,
+          tipo: filtro_tipo_actividad,
+        }
+      );
 
       toast.success("Acta oficial de corte descargada en PDF exitosamente", {
         id: "corte-pdf-toast",
-        description: `${info_semana.etiqueta} emitido por Puppeteer.`,
+        description: `${info_semana.etiqueta} emitido exitosamente.`,
       });
     } catch (err) {
-      toast.error("No se pudo generar el PDF con Puppeteer. Revisa la conexión del servidor.", {
+      toast.error("No se pudo generar el PDF de corte.", {
         id: "corte-pdf-toast",
       });
     } finally {
@@ -1864,11 +1869,19 @@ export function PanelControlVista() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => toast.info("Generando reporte de matriz semanal en formato Excel...")}
+                  onClick={async () => {
+                    toast.info("Generando Matriz de Horarios Semanal en PDF...");
+                    await descargarPdfConResiliencia(
+                      "/pdf/corte-asistencia?tipo=todas",
+                      "Matriz_Horarios_Semanal_BUMAND.pdf",
+                      "corte_asistencia"
+                    );
+                    toast.success("Matriz de Horarios descargada en PDF exitosamente");
+                  }}
                   className="h-8 text-xs border-[#E5E7EB] text-[#035683] hover:bg-slate-50 gap-1 font-bold cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5 text-[#00ABBD]" />
-                  Exportar
+                  Exportar PDF
                 </Button>
               </div>
             </div>
@@ -2075,11 +2088,17 @@ export function PanelControlVista() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  toast.success(
+                onClick={async () => {
+                  toast.info(
                     `Generando acta oficial consolidada en PDF para ${periodo_seleccionado_obj.etiqueta}...`
-                  )
-                }
+                  );
+                  await descargarPdfConResiliencia(
+                    "/pdf/consolidado-auditoria",
+                    `Acta_Oficial_Consolidada_${periodo_academico}.pdf`,
+                    "consolidado_auditoria"
+                  );
+                  toast.success("Acta oficial descargada en PDF exitosamente");
+                }}
                 className="h-8 text-xs font-bold border-[#035683]/30 text-[#035683] hover:bg-[#035683]/10 gap-1.5 cursor-pointer shadow-xs"
               >
                 <Download className="w-3.5 h-3.5 text-[#00ABBD]" />

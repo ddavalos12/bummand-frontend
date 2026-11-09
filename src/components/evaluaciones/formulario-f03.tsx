@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { CATALOGO_IGLESIAS_INSTITUCIONALES, IglesiaInstitucional } from "./evaluaciones-datos-semestre";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
+import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 
 export interface PropiedadesFormularioF03 {
   becario_id?: number;
@@ -412,20 +413,18 @@ export function FormularioF03({
     });
 
     try {
-      const blob = await clienteApi.descargarBlob(`/pdf/evaluacion/${becario_id || 1}`);
-      const url = window.URL.createObjectURL(blob);
-      const enlace = document.createElement("a");
-      enlace.href = url;
-      enlace.download = `Formulario_F03_${becario_nombre.replace(/\s+/g, "_")}.pdf`;
-      document.body.appendChild(enlace);
-      enlace.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(enlace);
+      const nombre_limpio = becario_nombre.replace(/\s+/g, "_");
+      await descargarPdfConResiliencia(
+        `/pdf/evaluacion/${becario_id || 1}`,
+        `Formulario_F03_${nombre_limpio}.pdf`,
+        "f03",
+        { becario_id: String(becario_id || 1), nombre_becario: becario_nombre }
+      );
 
       toast.success("Formulario F-03 descargado en PDF oficial.");
       if (alEnviarExito) alEnviarExito();
     } catch (_e) {
-      toast.error("Error al descargar el PDF generado por Puppeteer desde el servidor.");
+      toast.error("Error al descargar el PDF generado desde el servidor.");
     } finally {
       set_cargando_pdf(false);
     }

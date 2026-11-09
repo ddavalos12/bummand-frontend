@@ -53,6 +53,7 @@ import {
 import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
+import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import { useConsulta } from "@/hooks/useConsulta";
 import { useTiempoReal } from "@/hooks/useTiempoReal";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
@@ -238,15 +239,18 @@ export function AprobacionPasajes() {
 
       const id_becario = solicitud_activa?.becario_id || solicitud_activa?.id || 1;
       const endpoint = `/pdf/recorridos-estudiante/${id_becario}?fecha_inicio=${fecha_inicio_auditoria}&fecha_fin=${fecha_fin_auditoria}`;
-      const blob = await clienteApi.descargarBlob(endpoint);
-      const url = window.URL.createObjectURL(blob);
-      const enlace = document.createElement("a");
-      enlace.href = url;
-      enlace.download = `Expediente_Pasajes_Auditoria_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
-      document.body.appendChild(enlace);
-      enlace.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(enlace);
+      const nombre_archivo = `Expediente_Pasajes_Auditoria_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
+
+      await descargarPdfConResiliencia(
+        endpoint,
+        nombre_archivo,
+        "recorridos_estudiante",
+        {
+          becario_id: String(id_becario),
+          fecha_inicio: fecha_inicio_auditoria,
+          fecha_fin: fecha_fin_auditoria,
+        }
+      );
 
       toast.success("Expediente de pasajes para auditoría descargado exitosamente");
     } catch {
@@ -261,24 +265,27 @@ export function AprobacionPasajes() {
   const descargarExpedientePdf = async (item: SolicitudPasajeVista) => {
     try {
       set_descargando_pdf(true);
-      toast.info("Generando expediente oficial de recorridos con Puppeteer...", {
+      toast.info("Generando expediente oficial de recorridos en PDF...", {
         description: `Becario: ${item.becario_nombre} · Periodo: ${item.periodo}`,
       });
       const id_becario = item.becario_id || item.id || 1;
-      const blob = await clienteApi.descargarBlob(
-        `/pdf/recorridos-estudiante/${id_becario}?solicitud_id=${item.id}&mes=${encodeURIComponent(item.periodo)}`
+      const endpoint = `/pdf/recorridos-estudiante/${id_becario}?solicitud_id=${item.id}&mes=${encodeURIComponent(item.periodo)}`;
+      const nombre_archivo = `Expediente_Recorridos_${item.becario_nombre.replace(/\s+/g, '_')}_${item.periodo.replace(/\s+/g, '_')}.pdf`;
+
+      await descargarPdfConResiliencia(
+        endpoint,
+        nombre_archivo,
+        "recorridos_estudiante",
+        {
+          becario_id: String(id_becario),
+          mes: item.periodo,
+          nombre_becario: item.becario_nombre,
+        }
       );
-      const url = window.URL.createObjectURL(blob);
-      const enlace = document.createElement("a");
-      enlace.href = url;
-      enlace.download = `Expediente_Recorridos_${item.becario_nombre.replace(/\s+/g, '_')}_${item.periodo.replace(/\s+/g, '_')}.pdf`;
-      document.body.appendChild(enlace);
-      enlace.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(enlace);
+
       toast.success("Expediente de recorridos descargado exitosamente");
     } catch (_error) {
-      toast.error("Error al exportar el expediente de recorridos en PDF con Puppeteer");
+      toast.error("Error al exportar el expediente de recorridos en PDF");
     } finally {
       set_descargando_pdf(false);
     }

@@ -1005,21 +1005,27 @@ export async function descargarPdfConResiliencia(
     | "pasajes_general"
     | "justificaciones_general"
     | "asistencia_general"
-    | "auditoria",
+    | "auditoria"
+    | "corte_asistencia"
+    | "consolidado_auditoria",
   params?: {
-    becario_id?: number;
+    becario_id?: number | string;
     mes?: string;
     fecha_inicio?: string;
     fecha_fin?: string;
     modulo?: string;
+    tipo?: string;
+    nombre_becario?: string;
+    titulo?: string;
+    evento_id?: number | string;
   }
 ): Promise<void> {
   let blob: Blob | null = null;
 
-  // 1. Intento primario con servidor backend (si está disponible)
+  // 1. Intento primario con servidor backend (con timeout ampliado a 20s para reportes complejos)
   try {
     const { clienteApi } = await import("@/lib/cliente-api");
-    blob = await clienteApi.descargarBlob(endpoint, { tiempo_espera_ms: 3000 });
+    blob = await clienteApi.descargarBlob(endpoint, { tiempo_espera_ms: 20000 });
   } catch {
     // Si el backend no responde o no está disponible, activamos el generador cliente de alta fidelidad
     blob = null;
@@ -1027,27 +1033,29 @@ export async function descargarPdfConResiliencia(
 
   // 2. Si el backend no devolvió el blob, generamos el documento PDF canónico en el cliente
   if (!blob) {
+    const id_becario = params?.becario_id ? Number(params.becario_id) || 1 : 1;
     switch (tipo) {
       case "evaluacion_semestral_ii":
         blob = generarPdfEvaluacionSemestral();
         break;
       case "horas":
+      case "corte_asistencia":
         blob = generarPdfCorteHoras();
         break;
       case "refrigerios":
         blob = generarPdfRefrigerios();
         break;
       case "f03":
-        blob = generarPdfFormularioF03(params?.becario_id || 1);
+        blob = generarPdfFormularioF03(id_becario);
         break;
       case "evento":
-        blob = generarPdfActaEvento(1);
+        blob = generarPdfActaEvento(params?.evento_id ? Number(params.evento_id) || 1 : 1);
         break;
       case "recorridos_estudiante":
-        blob = generarPdfExpedienteRecorridos(params?.becario_id || 4, params?.mes || "2026-10");
+        blob = generarPdfExpedienteRecorridos(id_becario, params?.mes || "2026-10");
         break;
       case "asistencia_estudiante":
-        blob = generarPdfAsistenciaMensual(params?.becario_id || 1, params?.mes || "2026-10");
+        blob = generarPdfAsistenciaMensual(id_becario, params?.mes || "2026-10");
         break;
       case "pasajes_general":
         blob = generarPdfPasajesGeneral(params?.fecha_inicio, params?.fecha_fin);
@@ -1058,6 +1066,7 @@ export async function descargarPdfConResiliencia(
       case "asistencia_general":
         blob = generarPdfAsistenciaGeneral(params?.fecha_inicio, params?.fecha_fin);
         break;
+      case "consolidado_auditoria":
       case "auditoria":
         blob = generarPdfAuditoriaIntervalo(
           params?.modulo || "refrigerios",

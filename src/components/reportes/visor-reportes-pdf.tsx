@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -171,8 +171,43 @@ export function VisorReportesPdf() {
   const [fecha_fin_global, set_fecha_fin_global] = useState<string>("2026-10-31");
 
   // Estados para exportación individual por estudiante
+  const [lista_becarios, set_lista_becarios] = useState(LISTA_23_BECARIOS_REPORTES);
   const [estudiante_seleccionado_id, set_estudiante_seleccionado_id] = useState<number>(7);
   const [mes_individual, set_mes_individual] = useState<string>("2026-10");
+
+  useEffect(() => {
+    let cancelado = false;
+    async function cargarBecariosReales() {
+      try {
+        const { clienteApi } = await import("@/lib/cliente-api");
+        const resp = await clienteApi.get<any>("/becarios");
+        const datos = Array.isArray(resp) ? resp : resp?.items || resp?.data || [];
+        if (!cancelado && Array.isArray(datos) && datos.length > 0) {
+          const mapeados = datos.map((b: any) => ({
+            id: Number(b.id),
+            nombre: String(b.usuario?.nombre || b.nombre || `Becario #${b.id}`),
+            ci: String(b.ci || "Sin CI"),
+            carrera: String(b.carrera || "Carrera BUMAND"),
+            universidad: String(b.universidad || "Universidad"),
+            sede: String(b.lugar_practica?.nombre || b.ubicacion || "Sede Central"),
+            m1: 20,
+            m2: 20,
+            m3: 20,
+            m4: 20,
+            m5: 20,
+          }));
+          set_lista_becarios(mapeados);
+          if (!mapeados.some((m: any) => m.id === estudiante_seleccionado_id)) {
+            set_estudiante_seleccionado_id(mapeados[0].id);
+          }
+        }
+      } catch {
+        // Mantiene LISTA_23_BECARIOS_REPORTES como fallback resiliente
+      }
+    }
+    cargarBecariosReales();
+    return () => { cancelado = true; };
+  }, []);
 
   // Estados para panel de auditoría por intervalo de fechas
   const [modulo_auditoria, set_modulo_auditoria] = useState<string>("refrigerios");
@@ -181,8 +216,8 @@ export function VisorReportesPdf() {
   const [descargando_auditoria, set_descargando_auditoria] = useState<boolean>(false);
 
   const estudiante_actual =
-    LISTA_23_BECARIOS_REPORTES.find((b) => b.id === estudiante_seleccionado_id) ||
-    LISTA_23_BECARIOS_REPORTES[0];
+    lista_becarios.find((b) => b.id === estudiante_seleccionado_id) ||
+    lista_becarios[0];
 
   const descargarReportePuppeteer = async (
     clave: string,
@@ -254,7 +289,7 @@ export function VisorReportesPdf() {
         ruta_base = "/pdf/corte-asistencia";
         nombre_doc = "Corte_Asistencia";
       } else if (mod === "pasajes") {
-        ruta_base = "/pdf/recorridos-estudiante/todos";
+        ruta_base = "/pdf/pasajes-general";
         nombre_doc = "Expediente_Pasajes";
       } else if (mod === "evaluaciones") {
         ruta_base = "/pdf/evaluacion-semestral";
@@ -757,7 +792,7 @@ export function VisorReportesPdf() {
                   <SelectValue placeholder="Seleccione un estudiante" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-[#E5E7EB] max-h-72">
-                  {LISTA_23_BECARIOS_REPORTES.map((becario) => (
+                  {lista_becarios.map((becario) => (
                     <SelectItem
                       key={becario.id}
                       value={String(becario.id)}
