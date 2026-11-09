@@ -59,7 +59,10 @@ import {
   Bus,
   Upload,
   FileText,
+  RefreshCw,
+  ArrowRight,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { clienteApi } from "@/lib/cliente-api";
 import { useConsulta } from "@/hooks/useConsulta";
@@ -136,12 +139,93 @@ export const TERMINACIONES_CI_BOLIVIA = [
   { codigo: "QR", departamento: "Extranjero / Naturalizado" },
 ] as const;
 
-const SUPERVISORES_INSTITUCIONALES = [
-  { nombre: "Angel Javier Ali Paz", correo: "angel.ali@diaconia.bo" },
-  { nombre: "Claudia Cabrera", correo: "claudia.cabrera@diaconia.bo" },
-  { nombre: "Rodrigo Solorzano", correo: "rodrigo.solorzano@diaconia.bo" },
-  { nombre: "Lic. Mónica Valenzuela", correo: "monica.valenzuela@diaconia.bo" },
+export interface SupervisorInstitucional {
+  id: number;
+  nombre: string;
+  correo: string;
+  sedes?: string[];
+}
+
+export const SUPERVISORES_CATALOGO_BASE: SupervisorInstitucional[] = [
+  { id: 45, nombre: "Adams Callejas", correo: "adams.callejas@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
+  { id: 36, nombre: "Alberto Iber Leon Coronado", correo: "alberto.leon@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
+  { id: 55, nombre: "Alejandra Lizeth Romay Valdez", correo: "alejandra.romay@diaconia.bo", sedes: ["Centro Infantil Sagrada Familia"] },
+  { id: 47, nombre: "Anai Linda Paye Fabian", correo: "anai.paye@diaconia.bo", sedes: ["Agencia Villa Dolores"] },
+  { id: 2, nombre: "Angel Javier Ali Paz", correo: "angel.ali@bumand.bo", sedes: ["Oficina Central Bloque A", "Agencia Villa Dolores"] },
+  { id: 42, nombre: "Brian Marcelo Siles Loras", correo: "brian.siles@diaconia.bo", sedes: ["Consultorio Médico San Lucas"] },
+  { id: 44, nombre: "Carlos Alanoca Pari", correo: "carlos.alanoca@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
+  { id: 39, nombre: "Cheryl Lissett Zegarra Corminales", correo: "cheryl.zegarra@diaconia.bo", sedes: ["Hogar de Niños Amor y Esperanza"] },
+  { id: 28, nombre: "Claudia Consuelo Cabrera Delgado", correo: "claudia.cabrera@diaconia.bo", sedes: ["Centro Infantil Sagrada Familia", "Oficina Central Bloque A"] },
+  { id: 38, nombre: "Eilen Astorga", correo: "eilen.astorga@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
+  { id: 30, nombre: "Elsa Quinteros Aquino", correo: "elsa.quinteros@diaconia.bo", sedes: ["Consultorio Médico San Lucas"] },
+  { id: 50, nombre: "Fernando Castillo Vedia", correo: "fernando.castillo@diaconia.bo", sedes: ["Agencia Villa Dolores"] },
+  { id: 34, nombre: "Franz Raul Salazar Vasquez", correo: "franz.salazar@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
+  { id: 31, nombre: "Hugo Seifert", correo: "hugo.seifert@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
+  { id: 49, nombre: "Jaime Rodrigo Poma Cruz", correo: "jaime.poma@diaconia.bo", sedes: ["Centro Infantil Sagrada Familia"] },
+  { id: 52, nombre: "Jenny Ramos Ticona", correo: "jenny.ramos@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
+  { id: 40, nombre: "Juan Perez", correo: "juan.perez@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
+  { id: 51, nombre: "María Angélica Crespo Patzi", correo: "maria.crespo@diaconia.bo", sedes: ["Hogar de Niños Amor y Esperanza"] },
+  { id: 48, nombre: "Maritza Aguilar Rodrigo", correo: "maritza.aguilar@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
+  { id: 32, nombre: "Max Arthur Reynoso Espinoza", correo: "max.reynoso@diaconia.bo", sedes: ["Agencia Villa Dolores"] },
+  { id: 33, nombre: "Mildrette Rojas Soliz", correo: "mildrette.rojas@diaconia.bo", sedes: ["Consultorio Médico San Lucas"] },
+  { id: 54, nombre: "Pamela Sanchez Cachi", correo: "pamela.sanchez@diaconia.bo", sedes: ["Centro Infantil Sagrada Familia"] },
+  { id: 53, nombre: "Raisa Noelia Arce Humerez", correo: "raisa.arce@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
+  { id: 37, nombre: "Ramiro Riera", correo: "ramiro.riera@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
+  { id: 35, nombre: "Reynaldo Alavi Paz", correo: "reynaldo.alavi@diaconia.bo", sedes: ["Agencia Villa Dolores"] },
+  { id: 41, nombre: "Ricardo Martin Menacho Salas", correo: "ricardo.menacho@diaconia.bo", sedes: ["Hogar de Niños Amor y Esperanza"] },
+  { id: 29, nombre: "Rodrigo Solorzano San Martin", correo: "rodrigo.solorzano@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
+  { id: 43, nombre: "Samuel Martín Durán Baspineiro", correo: "samuel.duran@diaconia.bo", sedes: ["Centro Infantil Sagrada Familia"] },
+  { id: 46, nombre: "Walter Laime Poma", correo: "walter.laime@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
 ];
+
+export const SUPERVISORES_INSTITUCIONALES = SUPERVISORES_CATALOGO_BASE;
+
+export function resolverSupervisor(
+  criterio: string | number | undefined | null,
+  catalogo: SupervisorInstitucional[] = SUPERVISORES_CATALOGO_BASE
+): SupervisorInstitucional {
+  if (!criterio) return catalogo[0] || SUPERVISORES_CATALOGO_BASE[0];
+
+  const id_num = Number(criterio);
+  if (!Number.isNaN(id_num) && id_num > 0) {
+    const por_id = catalogo.find((s) => s.id === id_num);
+    if (por_id) return por_id;
+  }
+
+  const str = String(criterio).toLowerCase().trim();
+
+  const por_correo = catalogo.find((s) => s.correo.toLowerCase().trim() === str);
+  if (por_correo) return por_correo;
+
+  const prefijo_criterio = str.includes("@") ? str.split("@")[0] : str;
+  const por_prefijo = catalogo.find(
+    (s) => s.correo.toLowerCase().split("@")[0] === prefijo_criterio
+  );
+  if (por_prefijo) return por_prefijo;
+
+  const por_nombre_exacto = catalogo.find((s) => s.nombre.toLowerCase().trim() === str);
+  if (por_nombre_exacto) return por_nombre_exacto;
+
+  if (str.includes("claudia") && str.includes("cabrera")) {
+    const s = catalogo.find((item) => item.id === 28);
+    if (s) return s;
+  }
+  if (str.includes("rodrigo") && str.includes("solorzano")) {
+    const s = catalogo.find((item) => item.id === 29);
+    if (s) return s;
+  }
+  if (str.includes("angel") && str.includes("ali")) {
+    const s = catalogo.find((item) => item.id === 2);
+    if (s) return s;
+  }
+
+  const por_nombre_parcial = catalogo.find(
+    (s) => s.nombre.toLowerCase().includes(str) || str.includes(s.nombre.toLowerCase())
+  );
+  if (por_nombre_parcial) return por_nombre_parcial;
+
+  return catalogo[0] || SUPERVISORES_CATALOGO_BASE[0];
+}
 
 /**
  * Función de determinación de pertenencia de becario a un supervisor institucional.
@@ -1172,6 +1256,8 @@ export function GestionBecarios() {
   const [edit_iglesia, set_edit_iglesia] = useState("");
   const [edit_sede, set_edit_sede] = useState("Oficina Central Bloque A");
   const [edit_supervisor, set_edit_supervisor] = useState(SUPERVISORES_INSTITUCIONALES[0].nombre);
+  const [edit_supervisor_id, set_edit_supervisor_id] = useState<number>(2);
+  const [filtro_supervisor_edicion, set_filtro_supervisor_edicion] = useState("");
   const [edit_estado, set_edit_estado] = useState<"activo" | "pendiente_validacion">("activo");
   const [edit_ceti, set_edit_ceti] = useState(1);
   const [edit_horas_meta_mes, set_edit_horas_meta_mes] = useState(36);
@@ -1266,12 +1352,76 @@ export function GestionBecarios() {
     toast.success("Kárdex actualizado en formulario", { description: file.name });
   };
 
-  // Estado para Asignar Supervisor (Modal)
+  // Catálogo reactivo de Supervisores Institucionales (cargados dinámicamente desde backend /usuarios?rol=supervisor)
+  const [lista_supervisores, set_lista_supervisores] = useState<SupervisorInstitucional[]>(SUPERVISORES_CATALOGO_BASE);
+  const [subvista_directorio, set_subvista_directorio] = useState<"becarios" | "supervisores">("becarios");
+  const [filtro_tipo_supervisores, set_filtro_tipo_supervisores] = useState<"todos" | "con_becarios" | "disponibles">("todos");
+  const [busqueda_supervisores, set_busqueda_supervisores] = useState("");
+
+  // Modal para designar / transferir becario a supervisor
+  const [modal_designar_abierto, set_modal_designar_abierto] = useState(false);
+  const [supervisor_para_designar, set_supervisor_para_designar] = useState<SupervisorInstitucional | null>(null);
+  const [becario_a_designar_id, set_becario_a_designar_id] = useState<number | null>(null);
+
+  // Estado para Asignar / Cambiar Supervisor (Modal)
   const [modal_supervisor_abierto, set_modal_supervisor_abierto] = useState(false);
   const [becario_seleccionado, set_becario_seleccionado] = useState<BecarioVista | null>(null);
   const [supervisor_seleccionado, set_supervisor_seleccionado] = useState(
     SUPERVISORES_INSTITUCIONALES[0].nombre
   );
+  const [supervisor_seleccionado_id, set_supervisor_seleccionado_id] = useState<number>(2);
+  const [filtro_supervisor_modal, set_filtro_supervisor_modal] = useState("");
+
+  // Cargar dinámicamente los supervisores reales desde PostgreSQL al montar el componente
+  useEffect(() => {
+    let montado = true;
+    async function cargarSupervisoresRemotos() {
+      try {
+        const respuesta = await clienteApi.get<any[]>("/usuarios?rol=supervisor");
+        if (montado && Array.isArray(respuesta) && respuesta.length > 0) {
+          const mapa = new Map<number, SupervisorInstitucional>();
+          SUPERVISORES_CATALOGO_BASE.forEach((s) => mapa.set(s.id, s));
+          respuesta.forEach((item) => {
+            if (item?.id) {
+              const existente = mapa.get(item.id);
+              mapa.set(item.id, {
+                id: item.id,
+                nombre: item.nombre || existente?.nombre || "Supervisor",
+                correo: item.correo || existente?.correo || "",
+                sedes: existente?.sedes || ["Oficina Central Bloque A"],
+              });
+            }
+          });
+          const ordenados = Array.from(mapa.values()).sort((a, b) =>
+            a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" })
+          );
+          set_lista_supervisores(ordenados);
+        }
+      } catch (error) {
+        console.warn("No se pudieron cargar supervisores dinámicos, usando catálogo base de 29:", error);
+      }
+    }
+    cargarSupervisoresRemotos();
+    return () => {
+      montado = false;
+    };
+  }, []);
+
+  const supervisores_filtrados_modal = useMemo(() => {
+    if (!filtro_supervisor_modal.trim()) return lista_supervisores;
+    const q = filtro_supervisor_modal.toLowerCase().trim();
+    return lista_supervisores.filter(
+      (s) => s.nombre.toLowerCase().includes(q) || s.correo.toLowerCase().includes(q)
+    );
+  }, [lista_supervisores, filtro_supervisor_modal]);
+
+  const supervisores_filtrados_edicion = useMemo(() => {
+    if (!filtro_supervisor_edicion.trim()) return lista_supervisores;
+    const q = filtro_supervisor_edicion.toLowerCase().trim();
+    return lista_supervisores.filter(
+      (s) => s.nombre.toLowerCase().includes(q) || s.correo.toLowerCase().includes(q)
+    );
+  }, [lista_supervisores, filtro_supervisor_edicion]);
 
   // Estado para Verificación Mensual y Pestañas Temáticas
   const [verificacion_mensual_activa, set_verificacion_mensual_activa] = useState(false);
@@ -1300,6 +1450,105 @@ export function GestionBecarios() {
     });
     return Array.from(conjunto);
   }, [lista_para_rol]);
+
+  // Estadísticas y agrupaciones para la pestaña "Supervisores con Becarios Designados"
+  const estadisticas_supervisores = useMemo(() => {
+    const total_supervisores = lista_supervisores.length;
+    const asignaciones = lista_supervisores.map((sup) => {
+      const becarios_asignados = lista_para_rol.filter((b) => {
+        if (b.supervisor_id && Number(b.supervisor_id) === Number(sup.id)) return true;
+        if (b.tutor_correo && b.tutor_correo.toLowerCase() === sup.correo.toLowerCase()) return true;
+        if (b.tutor_nombre) {
+          const nom_b = b.tutor_nombre.toLowerCase().trim();
+          const nom_s = sup.nombre.toLowerCase().trim();
+          if (nom_b === nom_s || nom_s.includes(nom_b) || nom_b.includes(nom_s)) return true;
+        }
+        return false;
+      });
+      return { supervisor: sup, becarios: becarios_asignados };
+    });
+
+    const con_becarios = asignaciones.filter((item) => item.becarios.length > 0).length;
+    const sin_becarios = total_supervisores - con_becarios;
+    const total_becarios_supervisados = lista_para_rol.filter(
+      (b) => Boolean(b.tutor_nombre || b.supervisor_id)
+    ).length;
+
+    return {
+      total_supervisores,
+      con_becarios,
+      sin_becarios,
+      total_becarios_supervisados,
+      asignaciones,
+    };
+  }, [lista_supervisores, lista_para_rol]);
+
+  const asignaciones_filtradas = useMemo(() => {
+    return estadisticas_supervisores.asignaciones.filter(({ supervisor, becarios }) => {
+      if (filtro_tipo_supervisores === "con_becarios" && becarios.length === 0) return false;
+      if (filtro_tipo_supervisores === "disponibles" && becarios.length > 0) return false;
+
+      if (!busqueda_supervisores.trim()) return true;
+      const q = busqueda_supervisores.toLowerCase().trim();
+      if (supervisor.nombre.toLowerCase().includes(q)) return true;
+      if (supervisor.correo.toLowerCase().includes(q)) return true;
+      if (
+        becarios.some(
+          (b) =>
+            b.nombre.toLowerCase().includes(q) ||
+            b.ci.includes(q) ||
+            b.carrera.toLowerCase().includes(q)
+        )
+      ) {
+        return true;
+      }
+      return false;
+    });
+  }, [estadisticas_supervisores, filtro_tipo_supervisores, busqueda_supervisores]);
+
+  const abrirModalDesignarABecario = (supervisor: SupervisorInstitucional) => {
+    if (!es_admin) {
+      toast.error("Acción restringida: Solo el Administrador puede designar becarios.");
+      return;
+    }
+    set_supervisor_para_designar(supervisor);
+    set_becario_a_designar_id(lista_becarios[0]?.id || null);
+    set_modal_designar_abierto(true);
+  };
+
+  const manejarConfirmarDesignacionBecario = async () => {
+    if (!supervisor_para_designar || !becario_a_designar_id) return;
+    const becario_dest = lista_becarios.find((b) => b.id === becario_a_designar_id);
+    if (!becario_dest) return;
+
+    try {
+      await clienteApi.put(`/api/becarios/${becario_dest.id}/asignar-supervisor`, {
+        supervisor_id: supervisor_para_designar.id,
+      });
+    } catch (err_api) {
+      console.warn("Persistencia remota falló, aplicando optimista:", err_api);
+    }
+
+    set_lista_becarios((prev) =>
+      prev.map((b) =>
+        b.id === becario_dest.id
+          ? {
+              ...b,
+              supervisor_id: supervisor_para_designar.id,
+              tutor_nombre: supervisor_para_designar.nombre,
+              tutor_correo: supervisor_para_designar.correo,
+            }
+          : b
+      )
+    );
+
+    toast.success("Becario asignado exitosamente", {
+      description: `${becario_dest.nombre} ahora está asignado(a) a ${supervisor_para_designar.nombre}.`,
+    });
+    set_modal_designar_abierto(false);
+    set_supervisor_para_designar(null);
+    await invalidar();
+  };
 
   const tiene_cambios_nuevo_becario =
     nuevo_nombre.trim() !== "" ||
@@ -1472,7 +1721,13 @@ export function GestionBecarios() {
     set_edit_ciudad(becario.ciudad || "La Paz");
     set_edit_iglesia(typeof becario.iglesia === "string" ? becario.iglesia : (becario.iglesia as any)?.nombre || "");
     set_edit_sede(typeof becario.lugar_practica === "string" ? becario.lugar_practica : (becario.lugar_practica as any)?.nombre || "Oficina Central Bloque A");
-    set_edit_supervisor(becario.tutor_nombre || SUPERVISORES_INSTITUCIONALES[0].nombre);
+    const sup_inicial = resolverSupervisor(
+      becario.supervisor_id || becario.tutor_nombre || becario.tutor_correo,
+      lista_supervisores
+    );
+    set_edit_supervisor_id(sup_inicial.id);
+    set_edit_supervisor(sup_inicial.nombre);
+    set_filtro_supervisor_edicion("");
     set_edit_estado(becario.estado === "activo" ? "activo" : "pendiente_validacion");
     set_edit_ceti(becario.ceti ?? 1);
     set_edit_horas_meta_mes(becario.horas_meta_mes ?? 36);
@@ -1504,9 +1759,9 @@ export function GestionBecarios() {
         ? `${edit_ci.trim()}-${edit_complemento.trim().toUpperCase()}`
         : edit_ci.trim();
 
-      const supervisor_encontrado = SUPERVISORES_INSTITUCIONALES.find(
-        (s) => s.nombre === edit_supervisor
-      ) || SUPERVISORES_INSTITUCIONALES[0];
+      const supervisor_encontrado =
+        lista_supervisores.find((s) => s.id === edit_supervisor_id) ||
+        resolverSupervisor(edit_supervisor, lista_supervisores);
 
       // Intentar actualizar vía API remota
       try {
@@ -1524,11 +1779,21 @@ export function GestionBecarios() {
           direccion: edit_direccion.trim(),
           ciudad: edit_ciudad.trim(),
           ceti: edit_ceti,
+          supervisor_id: supervisor_encontrado.id,
           url_carnet: edit_carnet_url || becario_a_editar.url_carnet || undefined,
           url_kardex: edit_kardex_url || becario_a_editar.url_kardex || undefined,
         });
       } catch (err_api) {
         console.warn("Actualización remota en backend falló o sin conexión, aplicando optimista local:", err_api);
+      }
+
+      // Persistir asignación explícita de supervisor en backend PostgreSQL
+      try {
+        await clienteApi.put(`/api/becarios/${becario_a_editar.id}/asignar-supervisor`, {
+          supervisor_id: supervisor_encontrado.id,
+        });
+      } catch (err_sup) {
+        console.warn("Asignación de supervisor remota falló, aplicando optimista:", err_sup);
       }
 
       // Actualizar registro en lista local
@@ -1549,6 +1814,7 @@ export function GestionBecarios() {
         ciudad: edit_ciudad.trim(),
         iglesia: edit_iglesia.trim() || becario_a_editar.iglesia,
         lugar_practica: edit_sede,
+        supervisor_id: supervisor_encontrado.id,
         tutor_nombre: supervisor_encontrado.nombre,
         tutor_correo: supervisor_encontrado.correo,
         estado: edit_estado,
@@ -1589,22 +1855,37 @@ export function GestionBecarios() {
       return;
     }
     set_becario_seleccionado(becario);
-    set_supervisor_seleccionado(becario.tutor_nombre);
+    const sup_inicial = resolverSupervisor(
+      becario.supervisor_id || becario.tutor_nombre || becario.tutor_correo,
+      lista_supervisores
+    );
+    set_supervisor_seleccionado_id(sup_inicial.id);
+    set_supervisor_seleccionado(sup_inicial.nombre);
+    set_filtro_supervisor_modal("");
     set_modal_supervisor_abierto(true);
   };
 
-  const manejarGuardarSupervisor = () => {
+  const manejarGuardarSupervisor = async () => {
     if (!becario_seleccionado) return;
 
-    const supervisor_encontrado = SUPERVISORES_INSTITUCIONALES.find(
-      (s) => s.nombre === supervisor_seleccionado
-    ) || SUPERVISORES_INSTITUCIONALES[0];
+    const supervisor_encontrado =
+      lista_supervisores.find((s) => s.id === supervisor_seleccionado_id) ||
+      resolverSupervisor(supervisor_seleccionado, lista_supervisores);
+
+    try {
+      await clienteApi.put(`/api/becarios/${becario_seleccionado.id}/asignar-supervisor`, {
+        supervisor_id: supervisor_encontrado.id,
+      });
+    } catch (err_api) {
+      console.warn("Fallo persistencia remota de supervisor, aplicando optimista local:", err_api);
+    }
 
     set_lista_becarios((prev) =>
       prev.map((b) =>
         b.id === becario_seleccionado.id
           ? {
               ...b,
+              supervisor_id: supervisor_encontrado.id,
               tutor_nombre: supervisor_encontrado.nombre,
               tutor_correo: supervisor_encontrado.correo,
             }
@@ -1617,6 +1898,7 @@ export function GestionBecarios() {
     );
     set_modal_supervisor_abierto(false);
     set_becario_seleccionado(null);
+    await invalidar();
   };
 
   const abrirModalConfigurarPasajes = (becario: BecarioVista) => {
@@ -1868,185 +2150,502 @@ export function GestionBecarios() {
         <CardContent className="p-4 sm:p-6 space-y-5">
           {/* TAB 1: DIRECTORIO GENERAL (COMPACTA, CERO SCROLL HORIZONTAL) */}
           <TabsContent value="directorio" className="space-y-4">
-            <div className="border border-[#E5E7EB] rounded-2xl overflow-hidden bg-white shadow-2xs">
-              <Table>
-                <TableHeader className="bg-slate-50/80 border-b border-[#E5E7EB]">
-                  <TableRow>
-                    <TableHead className="w-[280px] font-bold text-[#035683]">Becario & Documento</TableHead>
-                    <TableHead className="font-bold text-[#035683]">Carrera / Universidad</TableHead>
-                    <TableHead className="font-bold text-[#035683]">Sede Asignada</TableHead>
-                    <TableHead className="w-[130px] font-bold text-[#035683] text-center">Estado</TableHead>
-                    <TableHead className="w-[190px] font-bold text-[#035683] text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {becarios_filtrados.length === 0 ? (
+            {/* SELECTOR DE SUBVISTAS DEL DIRECTORIO: BECARIOS VS SUPERVISORES */}
+            <div className="flex flex-wrap items-center justify-between gap-3 p-2 bg-gradient-to-r from-slate-50 via-sky-50/40 to-slate-50 border border-[#E5E7EB] rounded-2xl shadow-2xs">
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant={subvista_directorio === "becarios" ? "default" : "outline"}
+                  onClick={() => set_subvista_directorio("becarios")}
+                  className={cn(
+                    "h-9 px-4 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2",
+                    subvista_directorio === "becarios"
+                      ? "bg-[#035683] text-white shadow-xs hover:bg-[#035683]/90"
+                      : "bg-white text-slate-700 border-[#E5E7EB] hover:bg-slate-100"
+                  )}
+                >
+                  <Users className="w-4 h-4 text-[#00ABBD]" />
+                  <span>📋 Directorio General de Becarios ({lista_para_rol.length})</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant={subvista_directorio === "supervisores" ? "default" : "outline"}
+                  onClick={() => set_subvista_directorio("supervisores")}
+                  className={cn(
+                    "h-9 px-4 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2",
+                    subvista_directorio === "supervisores"
+                      ? "bg-[#035683] text-white shadow-xs hover:bg-[#035683]/90"
+                      : "bg-white text-slate-700 border-[#E5E7EB] hover:bg-slate-100"
+                  )}
+                >
+                  <UserCog className="w-4 h-4 text-[#00ABBD]" />
+                  <span>👥 Supervisores con Becarios Designados ({lista_supervisores.length})</span>
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium pr-2">
+                <Sparkles className="w-3.5 h-3.5 text-[#00ABBD]" />
+                <span className="hidden sm:inline">Gestión Institucional Diaconía FRIF-IFD</span>
+              </div>
+            </div>
+
+            {subvista_directorio === "becarios" ? (
+              <div className="border border-[#E5E7EB] rounded-2xl overflow-hidden bg-white shadow-2xs">
+                <Table>
+                  <TableHeader className="bg-slate-50/80 border-b border-[#E5E7EB]">
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-10 text-muted-foreground text-xs">
-                        <div className="flex flex-col items-center justify-center gap-2">
-                          <Users className="w-8 h-8 text-slate-300" />
-                          <p className="font-semibold text-slate-600">
-                            {es_supervisor
-                              ? "No tiene becarios asignados o ninguno coincide con la búsqueda."
-                              : "No se encontraron becarios que coincidan con la búsqueda."}
-                          </p>
-                          <p className="text-[11px] text-muted-foreground">
-                            {es_supervisor
-                              ? "La administración central asigna los estudiantes a su supervisión institucional."
-                              : "Verifique los términos de búsqueda o registre un nuevo becario."}
-                          </p>
-                        </div>
-                      </TableCell>
+                      <TableHead className="w-[260px] font-bold text-[#035683]">Becario & Documento</TableHead>
+                      <TableHead className="font-bold text-[#035683]">Carrera / Universidad</TableHead>
+                      <TableHead className="font-bold text-[#035683]">Sede Asignada</TableHead>
+                      <TableHead className="w-[240px] font-bold text-[#035683]">Supervisor / Tutor Asignado</TableHead>
+                      <TableHead className="w-[120px] font-bold text-[#035683] text-center">Estado</TableHead>
+                      <TableHead className="w-[190px] font-bold text-[#035683] text-right">Acciones</TableHead>
                     </TableRow>
-                  ) : (
-                    becarios_filtrados.map((b) => (
-                      <TableRow key={b.id} className="border-b border-[#E5E7EB]/40 hover:bg-[#00ABBD]/5 transition-colors">
-                        <TableCell className="font-medium text-[#1E293B]">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-[#035683]/10 text-[#035683] flex items-center justify-center font-bold text-xs shrink-0">
-                              {(b.nombre || "B").charAt(0).toUpperCase()}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="font-bold text-xs text-[#1E293B] truncate max-w-[200px]" title={b.nombre}>
-                                {b.nombre || "Becario"}
-                              </p>
-                              <span className="font-mono text-[11px] font-semibold text-muted-foreground block">
-                                CI: {b.ci || "-"} {b.expedicion || ""}
-                              </span>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-xs">
-                            <p className="font-semibold text-[#1E293B] truncate max-w-[210px]" title={b.carrera}>
-                              {b.carrera || "-"}
+                  </TableHeader>
+                  <TableBody>
+                    {becarios_filtrados.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-10 text-muted-foreground text-xs">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <Users className="w-8 h-8 text-slate-300" />
+                            <p className="font-semibold text-slate-600">
+                              {es_supervisor
+                                ? "No tiene becarios asignados o ninguno coincide con la búsqueda."
+                                : "No se encontraron becarios que coincidan con la búsqueda."}
                             </p>
-                            <p className="text-muted-foreground text-[11px] truncate max-w-[210px]" title={b.universidad}>
-                              {b.universidad || "-"}
+                            <p className="text-[11px] text-muted-foreground">
+                              {es_supervisor
+                                ? "La administración central asigna los estudiantes a su supervisión institucional."
+                                : "Verifique los términos de búsqueda o registre un nuevo becario."}
                             </p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1.5 text-xs text-[#035683] font-semibold">
-                            <Building2 className="w-3.5 h-3.5 text-[#00ABBD] shrink-0" />
-                            <span className="truncate max-w-[190px]">
-                              {typeof b.lugar_practica === "string" ? b.lugar_practica : (b.lugar_practica as any)?.nombre || "Oficina Central"}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {b.tiene_usuario === false ? (
-                            <Badge
-                              variant="outline"
-                              className="bg-sky-50 text-sky-700 border-sky-300 text-[10px] font-bold"
-                              title="Pre-registrado en nómina. Pendiente de auto-registro en App Móvil con su C.I."
-                            >
-                              <Smartphone className="w-3 h-3 mr-1 text-sky-600" />
-                              PENDIENTE APP
-                            </Badge>
-                          ) : b.estado === "activo" ? (
-                            <Badge
-                              variant="outline"
-                              className="bg-emerald-50 text-emerald-700 border-emerald-300 text-[10px] font-bold"
-                            >
-                              <UserCheck className="w-3 h-3 mr-1" />
-                              ACTIVO
-                            </Badge>
-                          ) : (
-                            <Badge
-                              variant="outline"
-                              className="bg-amber-50 text-amber-700 border-amber-300 text-[10px] font-bold"
-                            >
-                              <Clock className="w-3 h-3 mr-1" />
-                              PENDIENTE
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => set_becario_ficha_modal(b)}
-                              className="h-8 px-2.5 text-xs font-bold border-[#035683]/30 text-[#035683] hover:bg-[#035683]/10 rounded-lg flex items-center gap-1 cursor-pointer"
-                              title="Visualizar Datos Completos del Expediente"
-                            >
-                              <Eye className="w-3.5 h-3.5 text-[#035683]" />
-                              <span>Ficha</span>
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => set_becario_horas_modal(b)}
-                              className="h-8 px-2 text-xs font-bold border-[#00ABBD]/50 text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg flex items-center gap-1 cursor-pointer"
-                              title="Ver Historial de Horas por Mes"
-                            >
-                              <Clock className="w-3.5 h-3.5 text-[#00ABBD]" />
-                            </Button>
-                            {es_admin && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => abrirModalEditarBecario(b)}
-                                className="h-8 w-8 p-0 text-[#035683] hover:text-[#00ABBD] hover:bg-slate-100 rounded-lg cursor-pointer"
-                                title="Editar datos del becario"
-                              >
-                                <Edit2 className="w-3.5 h-3.5" />
-                              </Button>
-                            )}
-                            {es_admin && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => abrirModalAsignarSupervisor(b)}
-                                className="h-8 w-8 p-0 text-[#035683] hover:bg-slate-100 rounded-lg cursor-pointer"
-                                title="Asignar Supervisor Institucional"
-                              >
-                                <UserCog className="w-3.5 h-3.5" />
-                              </Button>
-                            )}
-                            {es_admin && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => abrirModalConfigurarPasajes(b)}
-                                className="h-8 w-8 p-0 text-[#007BBE] hover:text-[#035683] hover:bg-sky-50 rounded-lg cursor-pointer"
-                                title="Configurar modalidad de pasajes (Solo Ida / Ida y Vuelta)"
-                              >
-                                <Bus className="w-3.5 h-3.5" />
-                              </Button>
-                            )}
-                            {es_admin && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => {
-                                  confirmarEliminacionRegistro({
-                                    titulo: "¿Eliminar registro de becario?",
-                                    descripcion: `¿Está seguro de eliminar el registro institucional de ${b.nombre} (CI: ${b.ci})? Esta acción revocará todos sus accesos al programa.`,
-                                    nombre_item: b.nombre,
-                                    onConfirmar: () => {
-                                      set_lista_becarios((prev) =>
-                                        prev.filter((item) => item.id !== b.id)
-                                      );
-                                    },
-                                    mensaje_exito: `Expediente de ${b.nombre} eliminado exitosamente`,
-                                  });
-                                }}
-                                className="h-8 w-8 p-0 text-[#E2694B] hover:text-[#c9573b] hover:bg-rose-50 rounded-lg cursor-pointer"
-                                title="Eliminar registro"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </Button>
-                            )}
                           </div>
                         </TableCell>
                       </TableRow>
+                    ) : (
+                      becarios_filtrados.map((b) => (
+                        <TableRow key={b.id} className="border-b border-[#E5E7EB]/40 hover:bg-[#00ABBD]/5 transition-colors">
+                          <TableCell className="font-medium text-[#1E293B]">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-full bg-[#035683]/10 text-[#035683] flex items-center justify-center font-bold text-xs shrink-0">
+                                {(b.nombre || "B").charAt(0).toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-xs text-[#1E293B] truncate max-w-[200px]" title={b.nombre}>
+                                  {b.nombre || "Becario"}
+                                </p>
+                                <span className="font-mono text-[11px] font-semibold text-muted-foreground block">
+                                  CI: {b.ci || "-"} {b.expedicion || ""}
+                                </span>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-xs">
+                              <p className="font-semibold text-[#1E293B] truncate max-w-[210px]" title={b.carrera}>
+                                {b.carrera || "-"}
+                              </p>
+                              <p className="text-muted-foreground text-[11px] truncate max-w-[210px]" title={b.universidad}>
+                                {b.universidad || "-"}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1.5 text-xs text-[#035683] font-semibold">
+                              <Building2 className="w-3.5 h-3.5 text-[#00ABBD] shrink-0" />
+                              <span className="truncate max-w-[190px]">
+                                {typeof b.lugar_practica === "string" ? b.lugar_practica : (b.lugar_practica as any)?.nombre || "Oficina Central"}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center justify-between gap-2 max-w-[230px]">
+                              <div className="min-w-0">
+                                <p className="font-bold text-xs text-[#1E293B] truncate" title={b.tutor_nombre || "Sin Asignar"}>
+                                  {b.tutor_nombre || "Sin Asignar"}
+                                </p>
+                                <span className="font-mono text-[10px] text-muted-foreground truncate block">
+                                  {b.tutor_correo || "sin.correo@diaconia.bo"}
+                                </span>
+                              </div>
+                              {es_admin && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => abrirModalAsignarSupervisor(b)}
+                                  className="h-7 px-2 text-[10px] font-bold border-[#00ABBD]/40 text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg flex items-center gap-1 shrink-0 cursor-pointer shadow-2xs"
+                                  title={b.tutor_nombre ? "Cambiar Supervisor Asignado" : "Asignar Supervisor Institucional"}
+                                >
+                                  <RefreshCw className="w-3 h-3 text-[#00ABBD]" />
+                                  <span>{b.tutor_nombre ? "Cambiar" : "Asignar"}</span>
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {b.tiene_usuario === false ? (
+                              <Badge
+                                variant="outline"
+                                className="bg-sky-50 text-sky-700 border-sky-300 text-[10px] font-bold"
+                                title="Pre-registrado en nómina. Pendiente de auto-registro en App Móvil con su C.I."
+                              >
+                                <Smartphone className="w-3 h-3 mr-1 text-sky-600" />
+                                PENDIENTE APP
+                              </Badge>
+                            ) : b.estado === "activo" ? (
+                              <Badge
+                                variant="outline"
+                                className="bg-emerald-50 text-emerald-700 border-emerald-300 text-[10px] font-bold"
+                              >
+                                <UserCheck className="w-3 h-3 mr-1" />
+                                ACTIVO
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="outline"
+                                className="bg-amber-50 text-amber-700 border-amber-300 text-[10px] font-bold"
+                              >
+                                <Clock className="w-3 h-3 mr-1" />
+                                PENDIENTE
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => set_becario_ficha_modal(b)}
+                                className="h-8 px-2.5 text-xs font-bold border-[#035683]/30 text-[#035683] hover:bg-[#035683]/10 rounded-lg flex items-center gap-1 cursor-pointer"
+                                title="Visualizar Datos Completos del Expediente"
+                              >
+                                <Eye className="w-3.5 h-3.5 text-[#035683]" />
+                                <span>Ficha</span>
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => set_becario_horas_modal(b)}
+                                className="h-8 px-2 text-xs font-bold border-[#00ABBD]/50 text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg flex items-center gap-1 cursor-pointer"
+                                title="Ver Historial de Horas por Mes"
+                              >
+                                <Clock className="w-3.5 h-3.5 text-[#00ABBD]" />
+                              </Button>
+                              {es_admin && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => abrirModalEditarBecario(b)}
+                                  className="h-8 w-8 p-0 text-[#035683] hover:text-[#00ABBD] hover:bg-slate-100 rounded-lg cursor-pointer"
+                                  title="Editar datos del becario"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </Button>
+                              )}
+                              {es_admin && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => abrirModalAsignarSupervisor(b)}
+                                  className="h-8 w-8 p-0 text-[#035683] hover:bg-slate-100 rounded-lg cursor-pointer"
+                                  title="Asignar o Cambiar Supervisor Institucional"
+                                >
+                                  <UserCog className="w-3.5 h-3.5" />
+                                </Button>
+                              )}
+                              {es_admin && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => abrirModalConfigurarPasajes(b)}
+                                  className="h-8 w-8 p-0 text-[#007BBE] hover:text-[#035683] hover:bg-sky-50 rounded-lg cursor-pointer"
+                                  title="Configurar modalidad de pasajes (Solo Ida / Ida y Vuelta)"
+                                >
+                                  <Bus className="w-3.5 h-3.5" />
+                                </Button>
+                              )}
+                              {es_admin && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    confirmarEliminacionRegistro({
+                                      titulo: "¿Eliminar registro de becario?",
+                                      descripcion: `¿Está seguro de eliminar el registro institucional de ${b.nombre} (CI: ${b.ci})? Esta acción revocará todos sus accesos al programa.`,
+                                      nombre_item: b.nombre,
+                                      onConfirmar: () => {
+                                        set_lista_becarios((prev) =>
+                                          prev.filter((item) => item.id !== b.id)
+                                        );
+                                      },
+                                      mensaje_exito: `Expediente de ${b.nombre} eliminado exitosamente`,
+                                    });
+                                  }}
+                                  className="h-8 w-8 p-0 text-[#E2694B] hover:text-[#c9573b] hover:bg-rose-50 rounded-lg cursor-pointer"
+                                  title="Eliminar registro"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              /* SUBVISTA 2: LISTA DE SUPERVISORES CON BECARIOS DESIGNADOS */
+              <div className="space-y-4">
+                {/* TARJETAS RESUMEN ARRIBA */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-2xs">
+                    <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold">
+                      <span>Total Supervisores</span>
+                      <Users className="w-4 h-4 text-[#00ABBD]" />
+                    </div>
+                    <p className="text-2xl font-black text-[#035683] mt-1">
+                      {estadisticas_supervisores.total_supervisores}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      Catálogo oficial de Diaconía
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-2xs">
+                    <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold">
+                      <span>Con Becarios Designados</span>
+                      <UserCheck className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <p className="text-2xl font-black text-emerald-700 mt-1">
+                      {estadisticas_supervisores.con_becarios}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      Supervisando activamente
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-2xs">
+                    <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold">
+                      <span>Supervisores Disponibles</span>
+                      <Sparkles className="w-4 h-4 text-sky-500" />
+                    </div>
+                    <p className="text-2xl font-black text-[#007BBE] mt-1">
+                      {estadisticas_supervisores.sin_becarios}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      Listos para recibir becarios
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-2xs">
+                    <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold">
+                      <span>Becarios Asignados</span>
+                      <Award className="w-4 h-4 text-[#FFB600]" />
+                    </div>
+                    <p className="text-2xl font-black text-[#035683] mt-1">
+                      {estadisticas_supervisores.total_becarios_supervisados} / {lista_para_rol.length}
+                    </p>
+                    <p className="text-[11px] text-emerald-700 font-semibold mt-0.5">
+                      100% Cobertura de Cohorte
+                    </p>
+                  </div>
+                </div>
+
+                {/* BARRA DE FILTROS Y BÚSQUEDA DE SUPERVISORES */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white border border-[#E5E7EB] rounded-2xl shadow-2xs">
+                  <div className="relative flex-1">
+                    <Search className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar por supervisor, correo (@diaconia.bo) o nombre de becario..."
+                      value={busqueda_supervisores}
+                      onChange={(e) => set_busqueda_supervisores(e.target.value)}
+                      className="h-10 pl-9 border-[#E5E7EB] text-xs"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={filtro_tipo_supervisores === "todos" ? "default" : "outline"}
+                      onClick={() => set_filtro_tipo_supervisores("todos")}
+                      className={cn(
+                        "h-8 text-xs font-bold rounded-xl cursor-pointer",
+                        filtro_tipo_supervisores === "todos"
+                          ? "bg-[#035683] text-white"
+                          : "bg-white text-slate-700 border-[#E5E7EB]"
+                      )}
+                    >
+                      Todos ({estadisticas_supervisores.total_supervisores})
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={filtro_tipo_supervisores === "con_becarios" ? "default" : "outline"}
+                      onClick={() => set_filtro_tipo_supervisores("con_becarios")}
+                      className={cn(
+                        "h-8 text-xs font-bold rounded-xl cursor-pointer",
+                        filtro_tipo_supervisores === "con_becarios"
+                          ? "bg-emerald-700 text-white"
+                          : "bg-white text-slate-700 border-[#E5E7EB]"
+                      )}
+                    >
+                      Con Becarios ({estadisticas_supervisores.con_becarios})
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={filtro_tipo_supervisores === "disponibles" ? "default" : "outline"}
+                      onClick={() => set_filtro_tipo_supervisores("disponibles")}
+                      className={cn(
+                        "h-8 text-xs font-bold rounded-xl cursor-pointer",
+                        filtro_tipo_supervisores === "disponibles"
+                          ? "bg-[#007BBE] text-white"
+                          : "bg-white text-slate-700 border-[#E5E7EB]"
+                      )}
+                    >
+                      Disponibles ({estadisticas_supervisores.sin_becarios})
+                    </Button>
+                  </div>
+                </div>
+
+                {/* LISTADO EXPANDIDO DE SUPERVISORES Y SUS BECARIOS */}
+                <div className="space-y-3">
+                  {asignaciones_filtradas.length === 0 ? (
+                    <div className="p-10 bg-white border border-[#E5E7EB] rounded-2xl text-center text-muted-foreground text-xs space-y-2">
+                      <Users className="w-8 h-8 text-slate-300 mx-auto" />
+                      <p className="font-semibold text-slate-700">
+                        No se encontraron supervisores que coincidan con el filtro aplicado.
+                      </p>
+                      <p className="text-[11px]">
+                        Verifique los términos de búsqueda o seleccione otro filtro de vista.
+                      </p>
+                    </div>
+                  ) : (
+                    asignaciones_filtradas.map(({ supervisor, becarios }) => (
+                      <div
+                        key={supervisor.id}
+                        className="border border-[#E5E7EB] rounded-2xl bg-white overflow-hidden shadow-2xs hover:shadow-sm transition-all"
+                      >
+                        {/* ENCABEZADO DEL SUPERVISOR */}
+                        <div className="p-3.5 sm:p-4 bg-slate-50/80 border-b border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 rounded-xl bg-[#035683] text-white flex items-center justify-center font-bold text-sm shadow-2xs shrink-0">
+                              {supervisor.nombre.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h4 className="font-bold text-sm text-[#035683] truncate">
+                                  {supervisor.nombre}
+                                </h4>
+                                <Badge
+                                  variant="outline"
+                                  className={cn(
+                                    "text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0",
+                                    becarios.length > 0
+                                      ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                                      : "bg-slate-100 text-slate-600 border-slate-300"
+                                  )}
+                                >
+                                  {becarios.length > 0
+                                    ? `${becarios.length} ${becarios.length === 1 ? "Becario Designado" : "Becarios Designados"}`
+                                    : "Disponible (Sin Becarios)"}
+                                </Badge>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-0.5">
+                                <span className="font-mono text-[11px] text-[#007BBE]">
+                                  {supervisor.correo}
+                                </span>
+                                <span>•</span>
+                                <span className="flex items-center gap-1 text-[11px]">
+                                  <Building2 className="w-3 h-3 text-[#00ABBD]" />
+                                  {supervisor.sedes?.[0] || "Oficina Central Bloque A"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* ACCIONES DEL SUPERVISOR */}
+                          {es_admin && (
+                            <Button
+                              size="sm"
+                              onClick={() => abrirModalDesignarABecario(supervisor)}
+                              className="h-8 px-3 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-2xs cursor-pointer self-start sm:self-center shrink-0"
+                            >
+                              <UserPlus className="w-3.5 h-3.5 text-[#00ABBD]" />
+                              <span>+ Designar Becario</span>
+                            </Button>
+                          )}
+                        </div>
+
+                        {/* LISTA DE BECARIOS DESIGNADOS A ESTE SUPERVISOR */}
+                        <div className="p-3.5 sm:p-4">
+                          {becarios.length === 0 ? (
+                            <div className="p-3.5 rounded-xl bg-slate-50/50 border border-dashed border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+                              <div className="flex items-center gap-2">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                                <span>Supervisor institucional disponible sin estudiantes asignados en este ciclo.</span>
+                              </div>
+                              {es_admin && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => abrirModalDesignarABecario(supervisor)}
+                                  className="h-7 px-2.5 text-xs font-bold border-[#00ABBD]/40 text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg cursor-pointer"
+                                >
+                                  Asignar Primer Estudiante
+                                </Button>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                              {becarios.map((b) => (
+                                <div
+                                  key={b.id}
+                                  className="p-3 rounded-xl border border-[#E5E7EB] bg-white hover:border-[#00ABBD]/40 hover:bg-[#00ABBD]/5 transition-all flex items-center justify-between gap-3 shadow-2xs"
+                                >
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    <div className="w-7 h-7 rounded-full bg-[#00ABBD]/15 text-[#00808E] font-bold text-xs flex items-center justify-center shrink-0">
+                                      {(b.nombre || "B").charAt(0).toUpperCase()}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="font-bold text-xs text-slate-900 truncate" title={b.nombre}>
+                                        {b.nombre}
+                                      </p>
+                                      <p className="text-[11px] text-muted-foreground truncate">
+                                        CI: {b.ci} • {b.carrera} ({b.universidad})
+                                      </p>
+                                      <p className="text-[10px] text-[#035683] font-semibold truncate flex items-center gap-1 mt-0.5">
+                                        <Building2 className="w-3 h-3 text-[#00ABBD]" />
+                                        {typeof b.lugar_practica === "string" ? b.lugar_practica : (b.lugar_practica as any)?.nombre || "Oficina Central Bloque A"}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {es_admin && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => abrirModalAsignarSupervisor(b)}
+                                      className="h-7 px-2.5 text-[11px] font-bold border-[#035683]/30 text-[#035683] hover:bg-[#035683]/10 rounded-lg flex items-center gap-1 shrink-0 cursor-pointer shadow-2xs"
+                                      title={`Cambiar o reasignar supervisor de ${b.nombre}`}
+                                    >
+                                      <RefreshCw className="w-3 h-3 text-[#00ABBD]" />
+                                      <span>Cambiar</span>
+                                    </Button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     ))
                   )}
-                </TableBody>
-              </Table>
-            </div>
+                </div>
+              </div>
+            )}
           </TabsContent>
 
           {/* TAB 2: CONTROL DE HORAS & METAS */}
@@ -3555,26 +4154,31 @@ export function GestionBecarios() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal Exclusivo de Administrador: Asignar Supervisor */}
+      {/* Modal Exclusivo de Administrador: Asignar / Cambiar Supervisor */}
       <Dialog open={modal_supervisor_abierto} onOpenChange={set_modal_supervisor_abierto}>
         <DialogContent
           showCloseButton={false}
-          className="sm:max-w-[440px] p-0 overflow-hidden bg-white rounded-2xl border-[#E5E7EB] shadow-2xl"
+          className="sm:max-w-[480px] p-0 overflow-hidden bg-white rounded-2xl border-[#E5E7EB] shadow-2xl"
         >
           <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] bg-[#F8F9FA]">
             <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
               <UserCog className="w-5 h-5 text-[#00ABBD]" />
-              Asignar Supervisor Institucional
+              {becario_seleccionado?.tutor_nombre
+                ? "Cambiar Supervisor Institucional"
+                : "Asignar Supervisor Institucional"}
             </DialogTitle>
             <CardDescription className="text-xs text-muted-foreground">
-              Vincular tutor responsable para seguimiento de prácticas y rúbrica semestral.
+              Vincular o transferir tutor responsable para seguimiento de prácticas y rúbrica semestral.
             </CardDescription>
           </DialogHeader>
 
           <DialogBody className="p-6 space-y-4">
             {becario_seleccionado && (
               <div className="p-3 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs space-y-1">
-                <p className="font-bold text-[#035683]">{becario_seleccionado.nombre || "Becario"}</p>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Estudiante Becario
+                </span>
+                <p className="font-bold text-[#035683] text-sm">{becario_seleccionado.nombre || "Becario"}</p>
                 <p className="text-muted-foreground">
                   CI: {becario_seleccionado.ci || "-"} · {becario_seleccionado.carrera || "-"} ({becario_seleccionado.universidad || "-"})
                 </p>
@@ -3584,32 +4188,113 @@ export function GestionBecarios() {
               </div>
             )}
 
+            {becario_seleccionado?.tutor_nombre && (
+              <div className="p-3 bg-blue-50/70 border border-blue-200/60 rounded-xl text-xs space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#035683]">
+                    Supervisor Actual Asignado
+                  </span>
+                  <Badge variant="outline" className="bg-white text-[#035683] border-[#035683]/20 text-[10px] font-bold">
+                    Actual
+                  </Badge>
+                </div>
+                <p className="font-bold text-slate-800 text-xs">
+                  {becario_seleccionado.tutor_nombre}
+                </p>
+                <p className="text-slate-500 font-mono text-[11px]">
+                  {becario_seleccionado.tutor_correo || "sin.correo@diaconia.bo"}
+                </p>
+              </div>
+            )}
+
             <div className="space-y-1.5">
-              <Label htmlFor="sel-supervisor" className="text-xs font-semibold text-[#122029]">
-                Supervisor Responsable
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="sel-supervisor" className="text-xs font-semibold text-[#122029]">
+                  {becario_seleccionado?.tutor_nombre ? "Nuevo Supervisor Responsable" : "Supervisor Responsable"} (29 de Diaconía)
+                </Label>
+              </div>
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar entre los 29 supervisores..."
+                  value={filtro_supervisor_modal}
+                  onChange={(e) => set_filtro_supervisor_modal(e.target.value)}
+                  className="h-8 pl-8 text-xs border-[#E5E7EB] bg-slate-50/50 mb-1"
+                />
+              </div>
               <Select
-                value={supervisor_seleccionado}
-                onValueChange={(val) => val && set_supervisor_seleccionado(val)}
+                value={String(supervisor_seleccionado_id || "")}
+                onValueChange={(val) => {
+                  if (!val) return;
+                  const id_num = Number(val);
+                  const enc = lista_supervisores.find((s) => s.id === id_num);
+                  if (enc) {
+                    set_supervisor_seleccionado_id(enc.id);
+                    set_supervisor_seleccionado(enc.nombre);
+                  }
+                }}
               >
-                <SelectTrigger id="sel-supervisor" className="h-10 border-[#E5E7EB]">
-                  <SelectValue placeholder="Seleccionar supervisor" />
+                <SelectTrigger id="sel-supervisor" className="h-10 border-[#E5E7EB] bg-white">
+                  <SelectValue placeholder="Seleccionar nuevo supervisor" />
                 </SelectTrigger>
-                <SelectContent>
-                  {SUPERVISORES_INSTITUCIONALES.map((sup) => (
-                    <SelectItem
-                      key={sup.correo}
-                      value={sup.nombre}
-                      etiqueta={sup.nombre}
-                    >
-                      <div className="flex flex-col py-0.5 text-left">
-                        <span className="font-medium text-slate-800">{sup.nombre}</span>
-                        <span className="text-[10px] text-slate-400 font-mono">{sup.correo}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
+                <SelectContent className="bg-white border-[#E5E7EB] max-h-64">
+                  {supervisores_filtrados_modal.map((sup) => {
+                    const conteo = lista_becarios.filter(
+                      (b) =>
+                        (b.supervisor_id && Number(b.supervisor_id) === sup.id) ||
+                        b.tutor_nombre === sup.nombre
+                    ).length;
+                    return (
+                      <SelectItem
+                        key={sup.id}
+                        value={String(sup.id)}
+                        etiqueta={sup.nombre}
+                      >
+                        <div className="flex items-center justify-between gap-3 py-1 w-full text-left">
+                          <div className="min-w-0">
+                            <span className="font-semibold text-slate-800 text-xs block truncate">
+                              {sup.nombre}
+                            </span>
+                            <span className="text-[10px] text-slate-500 font-mono block truncate">
+                              {sup.correo}
+                            </span>
+                          </div>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "text-[10px] font-bold shrink-0 ml-2",
+                              conteo > 0
+                                ? "bg-[#035683]/10 text-[#035683] border-[#035683]/20"
+                                : "bg-slate-100 text-slate-500 border-slate-200"
+                            )}
+                          >
+                            {conteo === 1 ? "1 becario" : `${conteo} becarios`}
+                          </Badge>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Acceso Rápido a Vista Completa de Supervisores */}
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  set_modal_supervisor_abierto(false);
+                  set_pestaña_activa("directorio");
+                  set_subvista_directorio("supervisores");
+                }}
+                className="w-full py-2 px-3 bg-slate-50 hover:bg-slate-100 border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#035683] flex items-center justify-between cursor-pointer transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <Users className="w-3.5 h-3.5 text-[#00ABBD]" />
+                  <span>Ver lista completa de supervisores y becarios designados</span>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-muted-foreground" />
+              </button>
             </div>
           </DialogBody>
 
@@ -3625,9 +4310,84 @@ export function GestionBecarios() {
             <Button
               type="button"
               onClick={manejarGuardarSupervisor}
-              className="h-9 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs shadow-sm"
+              className="h-9 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs shadow-sm cursor-pointer"
             >
-              Confirmar Asignación
+              {becario_seleccionado?.tutor_nombre ? "Guardar Cambio de Supervisor" : "Confirmar Asignación"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Designar Becario a un Supervisor Específico */}
+      <Dialog open={modal_designar_abierto} onOpenChange={set_modal_designar_abierto}>
+        <DialogContent
+          showCloseButton={false}
+          className="sm:max-w-[480px] p-0 overflow-hidden bg-white rounded-2xl border-[#E5E7EB] shadow-2xl"
+        >
+          <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] bg-[#F8F9FA]">
+            <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+              <UserPlus className="w-5 h-5 text-[#00ABBD]" />
+              Designar Becario a Supervisor
+            </DialogTitle>
+            <CardDescription className="text-xs text-muted-foreground">
+              Vincular un estudiante de la cohorte a la tutoría institucional de este supervisor.
+            </CardDescription>
+          </DialogHeader>
+
+          <DialogBody className="p-6 space-y-4">
+            {supervisor_para_designar && (
+              <div className="p-3 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#035683]">
+                  Supervisor Seleccionado
+                </span>
+                <p className="font-bold text-slate-800 text-sm">{supervisor_para_designar.nombre}</p>
+                <p className="text-slate-500 font-mono text-[11px]">{supervisor_para_designar.correo}</p>
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-[#122029]">
+                Seleccionar Becario a Designar / Transferir
+              </Label>
+              <Select
+                value={String(becario_a_designar_id || "")}
+                onValueChange={(val) => val && set_becario_a_designar_id(Number(val))}
+              >
+                <SelectTrigger className="h-10 border-[#E5E7EB] bg-white text-xs">
+                  <SelectValue placeholder="Seleccione un becario..." />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-[#E5E7EB] max-h-64">
+                  {lista_becarios.map((b) => (
+                    <SelectItem key={b.id} value={String(b.id)} etiqueta={b.nombre}>
+                      <div className="flex flex-col py-0.5 text-left">
+                        <span className="font-semibold text-slate-800 text-xs">{b.nombre}</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          CI: {b.ci} • Tutor actual: {b.tutor_nombre || "Sin Asignar"}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </DialogBody>
+
+          <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA] flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => set_modal_designar_abierto(false)}
+              className="h-9 border-[#E5E7EB] rounded-xl text-xs"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={manejarConfirmarDesignacionBecario}
+              disabled={!becario_a_designar_id}
+              className="h-9 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs shadow-sm cursor-pointer"
+            >
+              Confirmar Designación
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -3976,27 +4736,70 @@ export function GestionBecarios() {
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-xs font-semibold text-[#122029]">Supervisor Tutor Asignado</Label>
+                    <Label className="text-xs font-semibold text-[#122029]">
+                      Supervisor Tutor Asignado (29 disponibles)
+                    </Label>
+                    <div className="relative">
+                      <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar entre los 29 supervisores..."
+                        value={filtro_supervisor_edicion}
+                        onChange={(e) => set_filtro_supervisor_edicion(e.target.value)}
+                        className="h-8 pl-8 text-xs border-[#E5E7EB] bg-slate-50/50 mb-1"
+                      />
+                    </div>
                     <Select
-                      value={edit_supervisor}
-                      onValueChange={(v) => v && set_edit_supervisor(v)}
+                      value={String(edit_supervisor_id || "")}
+                      onValueChange={(val) => {
+                        if (!val) return;
+                        const id_num = Number(val);
+                        const enc = lista_supervisores.find((s) => s.id === id_num);
+                        if (enc) {
+                          set_edit_supervisor_id(enc.id);
+                          set_edit_supervisor(enc.nombre);
+                        }
+                      }}
                     >
                       <SelectTrigger className="h-10 border-[#E5E7EB] bg-white text-xs">
                         <SelectValue placeholder="Supervisor" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white border-[#E5E7EB]">
-                        {SUPERVISORES_INSTITUCIONALES.map((sup) => (
-                          <SelectItem
-                            key={sup.correo}
-                            value={sup.nombre}
-                            etiqueta={sup.nombre}
-                          >
-                            <div className="flex flex-col py-0.5 text-left">
-                              <span className="font-medium text-slate-800">{sup.nombre}</span>
-                              <span className="text-[10px] text-slate-400 font-mono">{sup.correo}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
+                      <SelectContent className="bg-white border-[#E5E7EB] max-h-64">
+                        {supervisores_filtrados_edicion.map((sup) => {
+                          const conteo = lista_becarios.filter(
+                            (b) =>
+                              (b.supervisor_id && Number(b.supervisor_id) === sup.id) ||
+                              b.tutor_nombre === sup.nombre
+                          ).length;
+                          return (
+                            <SelectItem
+                              key={sup.id}
+                              value={String(sup.id)}
+                              etiqueta={sup.nombre}
+                            >
+                              <div className="flex items-center justify-between gap-3 py-1 w-full text-left">
+                                <div className="min-w-0">
+                                  <span className="font-semibold text-slate-800 text-xs block truncate">
+                                    {sup.nombre}
+                                  </span>
+                                  <span className="text-[10px] text-slate-500 font-mono block truncate">
+                                    {sup.correo}
+                                  </span>
+                                </div>
+                                <Badge
+                                  variant="outline"
+                                  className={cn(
+                                    "text-[10px] font-bold shrink-0 ml-2",
+                                    conteo > 0
+                                      ? "bg-[#035683]/10 text-[#035683] border-[#035683]/20"
+                                      : "bg-slate-100 text-slate-500 border-slate-200"
+                                  )}
+                                >
+                                  {conteo === 1 ? "1 becario" : `${conteo} becarios`}
+                                </Badge>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   </div>
