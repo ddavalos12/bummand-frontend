@@ -395,16 +395,16 @@ export function generarExtractoMensualDeterminista(
       mes_nombre: "Marzo 2026",
       meta: 36.0,
       dias: [
-        { d: 3, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:15", h: 4.25, dist: 32 },
-        { d: 6, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 24 },
-        { d: 10, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 28 },
-        { d: 13, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 20 },
-        { d: 17, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:15", h: 4.25, dist: 35 },
-        { d: 20, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 22 },
-        { d: 24, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 30 },
-        { d: 27, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 25 },
-        { d: 28, dia: "Sábado", tipo: "acciones_servicio", t_etiq: "Acción de Servicio Comunitario", sede: "Comedor Social Ciudad Satélite", ent: "09:00", sal: "13:30", h: 4.5, dist: 40 },
-        { d: 31, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "11:00", h: 3.0, dist: 28 },
+        { d: 3, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "14:30", h: 6.5, dist: 32 },
+        { d: 6, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 24 },
+        { d: 10, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "14:30", h: 6.5, dist: 28 },
+        { d: 13, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 20 },
+        { d: 17, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "14:00", h: 6.0, dist: 35 },
+        { d: 20, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 22 },
+        { d: 24, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "14:30", h: 6.5, dist: 30 },
+        { d: 27, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 25 },
+        { d: 28, dia: "Sábado", tipo: "acciones_servicio", t_etiq: "Acción de Servicio Comunitario", sede: "Comedor Social Ciudad Satélite", ent: "09:00", sal: "14:00", h: 5.0, dist: 40 },
+        { d: 31, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "14:00", h: 6.0, dist: 28 },
       ],
     },
     {
@@ -412,15 +412,15 @@ export function generarExtractoMensualDeterminista(
       mes_nombre: "Abril 2026",
       meta: 36.0,
       dias: [
-        { d: 3, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 22 },
-        { d: 7, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 26 },
-        { d: 10, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 18 },
-        { d: 14, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:15", h: 4.25, dist: 34 },
-        { d: 17, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 20 },
-        { d: 21, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 28 },
-        { d: 24, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 25 },
-        { d: 25, dia: "Sábado", tipo: "acciones_servicio", t_etiq: "Acción de Servicio Comunitario", sede: "Apoyo Escolar Parroquia San Lucas", ent: "08:30", sal: "13:45", h: 5.25, dist: 45 },
-        { d: 28, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "14:00", h: 6.0, dist: 32 },
+        { d: 3, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 22 },
+        { d: 7, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 26 },
+        { d: 10, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 18 },
+        { d: 14, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 34 },
+        { d: 17, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 20 },
+        { d: 21, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 28 },
+        { d: 24, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 25 },
+        { d: 25, dia: "Sábado", tipo: "acciones_servicio", t_etiq: "Acción de Servicio Comunitario", sede: "Apoyo Escolar Parroquia San Lucas", ent: "08:30", sal: "13:30", h: 5.0, dist: 45 },
+        { d: 28, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 32 },
       ],
     },
     {
@@ -428,16 +428,16 @@ export function generarExtractoMensualDeterminista(
       mes_nombre: "Mayo 2026",
       meta: 36.0,
       dias: [
-        { d: 4, dia: "Lunes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:15", h: 4.25, dist: 35 },
-        { d: 8, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 22 },
-        { d: 12, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 28 },
-        { d: 15, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:00", h: 2.5, dist: 19 },
-        { d: 19, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:15", h: 4.25, dist: 32 },
-        { d: 22, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 25 },
-        { d: 26, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 30 },
-        { d: 29, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 24 },
+        { d: 4, dia: "Lunes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "14:30", h: 6.5, dist: 35 },
+        { d: 8, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 22 },
+        { d: 12, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "14:30", h: 6.5, dist: 28 },
+        { d: 15, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:00", h: 0.0, dist: 19 },
+        { d: 19, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "14:30", h: 6.5, dist: 32 },
+        { d: 22, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 25 },
+        { d: 26, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "14:30", h: 6.5, dist: 30 },
+        { d: 29, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 24 },
         { d: 30, dia: "Sábado", tipo: "acciones_servicio", t_etiq: "Acción de Servicio Comunitario", sede: "Comedor Social Ciudad Satélite", ent: "08:30", sal: "13:30", h: 5.0, dist: 48 },
-        { d: 31, dia: "Domingo", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 28 },
+        { d: 31, dia: "Domingo", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "14:00", h: 6.0, dist: 28 },
       ],
     },
     {
@@ -445,15 +445,15 @@ export function generarExtractoMensualDeterminista(
       mes_nombre: "Junio 2026",
       meta: 36.0,
       dias: [
-        { d: 2, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 27 },
-        { d: 5, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 21 },
-        { d: 9, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 31 },
-        { d: 12, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 24 },
-        { d: 16, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 35 },
-        { d: 19, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 26 },
-        { d: 23, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 29 },
-        { d: 26, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 23 },
-        { d: 27, dia: "Sábado", tipo: "acciones_servicio", t_etiq: "Acción de Servicio Comunitario", sede: "Campaña Médica Alto Lima", ent: "08:30", sal: "14:30", h: 6.0, dist: 52 },
+        { d: 2, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 27 },
+        { d: 5, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 21 },
+        { d: 9, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 31 },
+        { d: 12, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 24 },
+        { d: 16, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 35 },
+        { d: 19, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 26 },
+        { d: 23, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 29 },
+        { d: 26, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 23 },
+        { d: 27, dia: "Sábado", tipo: "acciones_servicio", t_etiq: "Acción de Servicio Comunitario", sede: "Campaña Médica Alto Lima", ent: "08:30", sal: "13:30", h: 5.0, dist: 52 },
       ],
     },
     {
@@ -461,16 +461,16 @@ export function generarExtractoMensualDeterminista(
       mes_nombre: "Julio 2026",
       meta: 36.0,
       dias: [
-        { d: 3, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 20 },
-        { d: 7, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 33 },
-        { d: 10, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 25 },
-        { d: 14, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 28 },
-        { d: 17, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 22 },
-        { d: 21, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "13:00", h: 5.0, dist: 30 },
-        { d: 24, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 24 },
-        { d: 25, dia: "Sábado", tipo: "acciones_servicio", t_etiq: "Acción de Servicio Comunitario", sede: "Feria de Salud Integral Diaconía", ent: "08:30", sal: "15:00", h: 6.5, dist: 46 },
-        { d: 28, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 32 },
-        { d: 31, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "16:30", h: 2.0, dist: 21 },
+        { d: 3, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 20 },
+        { d: 7, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 33 },
+        { d: 10, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 25 },
+        { d: 14, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 28 },
+        { d: 17, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 22 },
+        { d: 21, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 30 },
+        { d: 24, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 24 },
+        { d: 25, dia: "Sábado", tipo: "acciones_servicio", t_etiq: "Acción de Servicio Comunitario", sede: "Feria de Salud Integral Diaconía", ent: "08:30", sal: "13:30", h: 5.0, dist: 46 },
+        { d: 28, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 32 },
+        { d: 31, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "16:30", h: 0.0, dist: 21 },
       ],
     },
     {
@@ -478,15 +478,15 @@ export function generarExtractoMensualDeterminista(
       mes_nombre: "Agosto 2026",
       meta: 36.0,
       dias: [
-        { d: 4, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 29 },
-        { d: 7, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 19 },
-        { d: 11, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 34 },
-        { d: 14, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 23 },
-        { d: 18, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 31 },
-        { d: 21, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 22 },
-        { d: 25, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 28 },
-        { d: 28, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 20 },
-        { d: 29, dia: "Sábado", tipo: "acciones_servicio", t_etiq: "Acción de Servicio Comunitario", sede: "Comedor Social Ciudad Satélite", ent: "08:30", sal: "14:30", h: 6.0, dist: 42 },
+        { d: 4, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 29 },
+        { d: 7, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 19 },
+        { d: 11, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 34 },
+        { d: 14, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 23 },
+        { d: 18, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 31 },
+        { d: 21, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 22 },
+        { d: 25, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 28 },
+        { d: 28, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 20 },
+        { d: 29, dia: "Sábado", tipo: "acciones_servicio", t_etiq: "Acción de Servicio Comunitario", sede: "Comedor Social Ciudad Satélite", ent: "08:30", sal: "13:30", h: 5.0, dist: 42 },
       ],
     },
     {
@@ -494,16 +494,15 @@ export function generarExtractoMensualDeterminista(
       mes_nombre: "Septiembre 2026",
       meta: 36.0,
       dias: [
-        { d: 1, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 32 },
-        { d: 4, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 24 },
-        { d: 8, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 30 },
-        { d: 11, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 21 },
-        { d: 15, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 27 },
-        { d: 18, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 22 },
-        { d: 22, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "13:00", h: 5.0, dist: 35 },
-        { d: 25, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 25 },
-        { d: 26, dia: "Sábado", tipo: "acciones_servicio", t_etiq: "Acción de Servicio Comunitario", sede: "Taller Juvenil Parroquia Vida Nueva", ent: "09:00", sal: "15:00", h: 6.0, dist: 44 },
-        { d: 29, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "09:20", sal: "17:00", h: 5.5, dist: 145 },
+        { d: 1, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 32 },
+        { d: 4, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 24 },
+        { d: 8, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 30 },
+        { d: 11, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 21 },
+        { d: 15, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 27 },
+        { d: 18, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 22 },
+        { d: 22, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "16:00", h: 8.0, dist: 35 },
+        { d: 25, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 25 },
+        { d: 26, dia: "Sábado", tipo: "acciones_servicio", t_etiq: "Acción de Servicio Comunitario", sede: "Taller Juvenil Parroquia Vida Nueva", ent: "09:00", sal: "14:00", h: 5.0, dist: 44 },
       ],
     },
     {
@@ -511,12 +510,12 @@ export function generarExtractoMensualDeterminista(
       mes_nombre: "Octubre 2026",
       meta: 36.0,
       dias: [
-        { d: 2, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 22 },
+        { d: 2, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 22 },
         { d: 5, dia: "Lunes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "17:15", h: 8.75, dist: 30 },
         { d: 6, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:30", sal: "17:00", h: 8.0, dist: 135 },
         { d: 7, dia: "Miércoles", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:05", sal: "17:00", h: 8.42, dist: 40 },
         { d: 8, dia: "Jueves", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "17:05", h: 8.5, dist: 48 },
-        { d: 9, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:28", sal: "16:45", h: 2.28, dist: 22 },
+        { d: 9, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:28", sal: "16:45", h: 0.0, dist: 22 },
         { d: 10, dia: "Sábado", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:15", sal: "12:30", h: 4.25, dist: 35 },
       ],
     },
@@ -525,15 +524,9 @@ export function generarExtractoMensualDeterminista(
       mes_nombre: "Noviembre 2026",
       meta: 36.0,
       dias: [
-        { d: 3, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 28 },
-        { d: 6, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 20 },
-        { d: 10, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 33 },
-        { d: 13, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 22 },
-        { d: 17, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "12:30", h: 4.5, dist: 27 },
-        { d: 20, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 25 },
-        { d: 21, dia: "Sábado", tipo: "acciones_servicio", t_etiq: "Acción de Servicio Comunitario", sede: "Comedor Social Ciudad Satélite", ent: "08:30", sal: "14:30", h: 6.0, dist: 40 },
-        { d: 24, dia: "Martes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "13:00", h: 5.0, dist: 31 },
-        { d: 27, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 3.0, dist: 24 },
+        { d: 2, dia: "Lunes", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "11:30", h: 3.5, dist: 28 },
+        { d: 4, dia: "Miércoles", tipo: "practicas", t_etiq: "Prácticas Pre-Profesionales", sede: "Oficina Central Diaconía - Bloque A", ent: "08:00", sal: "11:30", h: 3.5, dist: 33 },
+        { d: 6, dia: "Viernes", tipo: "escuela_lideres", t_etiq: "Escuela de Líderes", sede: "Auditorio Central Diaconía", ent: "14:30", sal: "17:30", h: 0.0, dist: 20 },
       ],
     },
   ];
@@ -545,7 +538,11 @@ export function generarExtractoMensualDeterminista(
     let acumulado_mes = 0;
     const movimientos: MovimientoExtractoAsistencia[] = mes_cfg.dias.map((dia_item) => {
       id_movimiento_gen += 1;
-      acumulado_mes += dia_item.h;
+      const es_lideres = dia_item.tipo === "escuela_lideres";
+      const horas_dia = es_lideres ? 0 : dia_item.h;
+      if (!es_lideres) {
+        acumulado_mes += horas_dia;
+      }
       const dia_dos_digitos = String(dia_item.d).padStart(2, "0");
       const mes_dos_digitos = mes_cfg.periodo.split("-")[1];
       const fecha_completa = `${mes_cfg.periodo}-${dia_dos_digitos}`;
@@ -562,7 +559,7 @@ export function generarExtractoMensualDeterminista(
         sede: dia_item.sede,
         hora_entrada: dia_item.ent,
         hora_salida: dia_item.sal,
-        horas_dia: Number(dia_item.h.toFixed(2)),
+        horas_dia: Number(horas_dia.toFixed(2)),
         saldo_acumulado: Number(acumulado_mes.toFixed(2)),
         minutos_retraso: dia_item.ent > "08:15" && dia_item.tipo === "practicas" ? 15 : 0,
         dentro_de_radio,
@@ -650,6 +647,21 @@ export async function obtenerExtractoMensualAsistencia(
   try {
     const respuesta = await clienteApi.get<RespuestaExtractoMensual>(ruta);
     if (respuesta && respuesta.extractos && respuesta.extractos.length > 0) {
+      respuesta.extractos.forEach((ext) => {
+        let saldo_acum = 0;
+        ext.movimientos.forEach((m) => {
+          const es_lideres = m.tipo === "escuela_lideres" || (m.tipo_etiqueta || "").toLowerCase().includes("lider");
+          if (es_lideres) {
+            m.horas_dia = 0;
+          } else {
+            saldo_acum += (m.horas_dia || 0);
+          }
+          m.saldo_acumulado = Number(saldo_acum.toFixed(2));
+        });
+        ext.horas_acumuladas = Number(saldo_acum.toFixed(2));
+        ext.diferencia_horas = Number((ext.horas_acumuladas - ext.meta_horas).toFixed(2));
+        ext.porcentaje_cumplimiento = Math.round((ext.horas_acumuladas / (ext.meta_horas || 36)) * 100);
+      });
       return respuesta;
     }
     return generarExtractoMensualDeterminista(becario_id || 1, mes);

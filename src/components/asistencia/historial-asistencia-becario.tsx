@@ -609,16 +609,28 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
 
                     {/* 5. Horas del Día (+) */}
                     <TableCell className="py-3.5 text-right">
-                      <span className="font-mono font-extrabold text-sm text-[#007BBE] bg-[#007BBE]/10 px-2.5 py-1 rounded-lg">
-                        +{mov.horas_dia.toFixed(2)} hrs
-                      </span>
+                      {mov.tipo === "escuela_lideres" || (mov.tipo_etiqueta || "").toLowerCase().includes("lider") ? (
+                        <span className="inline-flex items-center gap-1 font-semibold text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                          ✓ Asistencia · Sin multa (0 hrs)
+                        </span>
+                      ) : (
+                        <span className="font-mono font-extrabold text-sm text-[#007BBE] bg-[#007BBE]/10 px-2.5 py-1 rounded-lg">
+                          +{mov.horas_dia.toFixed(2)} hrs
+                        </span>
+                      )}
                     </TableCell>
 
                     {/* 6. Saldo Acumulado Mes */}
                     <TableCell className="py-3.5 text-right">
-                      <span className="font-mono font-bold text-xs text-[#035683] bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg shadow-2xs">
-                        {mov.saldo_acumulado.toFixed(2)} hrs
-                      </span>
+                      {mov.tipo === "escuela_lideres" || (mov.tipo_etiqueta || "").toLowerCase().includes("lider") ? (
+                        <span className="font-sans text-[11px] font-medium text-emerald-700 bg-emerald-50/70 border border-emerald-200 px-2 py-1 rounded-lg">
+                          Prácticas acumuladas: {mov.saldo_acumulado.toFixed(2)} hrs
+                        </span>
+                      ) : (
+                        <span className="font-mono font-bold text-xs text-[#035683] bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg shadow-2xs">
+                          {mov.saldo_acumulado.toFixed(2)} hrs
+                        </span>
+                      )}
                     </TableCell>
 
                     {/* 7. Estado / Geocerca */}
