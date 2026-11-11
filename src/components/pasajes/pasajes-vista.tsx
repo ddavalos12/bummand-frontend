@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Bus,
   MapPin,
@@ -54,6 +54,7 @@ import {
 } from "@/components/ui/select";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
+import { useTiempoReal } from "@/hooks/useTiempoReal";
 import { toast } from "sonner";
 
 // --- DEFINICIONES DE TIPOS ---
@@ -208,9 +209,69 @@ export function PasajesVista() {
 
   // Recorridos mensuales declarados
   const [recorridos, set_recorridos] = useState<RecorridoMensual[]>(RECORRIDOS_INICIALES);
-  const [fecha_recorrido, set_fecha_recorrido] = useState<string>("2026-03-12");
+  const [solicitud_actual, set_solicitud_actual] = useState<any | null>(null);
+  const [cargando_recorridos, set_cargando_recorridos] = useState<boolean>(false);
+  const [fecha_recorrido, set_fecha_recorrido] = useState<string>(() => new Date().toISOString().split("T")[0]);
   const [recorrido_seleccionado, set_recorrido_seleccionado] = useState<RecorridoMensual | null>(null);
   const [descargando_pdf, set_descargando_pdf] = useState<boolean>(false);
+
+  const cargarMisRecorridos = useCallback(async () => {
+    try {
+      set_cargando_recorridos(true);
+      let solicitudes: any[] = [];
+      try {
+        solicitudes = await clienteApi.get<any[]>("/pasajes/mis-solicitudes");
+      } catch {
+        try {
+          solicitudes = await clienteApi.get<any[]>("/pasajes");
+        } catch {
+          solicitudes = [];
+        }
+      }
+
+      if (Array.isArray(solicitudes) && solicitudes.length > 0) {
+        const sol = solicitudes[0];
+        set_solicitud_actual(sol);
+        if (Array.isArray(sol.recorridos) && sol.recorridos.length > 0) {
+          const mapeados: RecorridoMensual[] = sol.recorridos.map((r: any) => {
+            const fecha_str = r.fecha ? String(r.fecha).split("T")[0] : "";
+            const dia_formato = fecha_str ? fecha_str.split("-").slice(1).reverse().join("-") : "";
+            return {
+              id: r.id,
+              fecha: dia_formato || String(r.fecha || ""),
+              descripcion: `${r.origen || "Origen"} – ${r.destino || "Destino"}`,
+              monto: Number(r.tarifa) || 0,
+              tramo: r.tramo,
+              origen: r.origen,
+              destino: r.destino,
+              calles_declaradas: r.calles_declaradas,
+              medio_transporte: r.medio_transporte,
+              apoyo_realizado: r.apoyo_realizado,
+              tipo_actividad: r.tipo_actividad,
+              detalle_tramos_json: r.detalle_tramos_json,
+            };
+          });
+          set_recorridos(mapeados);
+        }
+      }
+    } catch {
+      // Conservar los recorridos actuales en pantalla
+    } finally {
+      set_cargando_recorridos(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    cargarMisRecorridos();
+  }, [cargarMisRecorridos]);
+
+  useTiempoReal({
+    eventos: {
+      pasajes_actualizados: () => {
+        cargarMisRecorridos();
+      },
+    },
+  });
 
   const descargarExpedientePdf = async () => {
     try {
@@ -587,7 +648,7 @@ export function PasajesVista() {
 
   // --- GUARDADO DE RECORRIDOS ---
 
-  const guardarRecorridoDelDia = () => {
+  const guardarRecorridoDelDia = async () => {
     const nombres_ida = paradas_ida.map((p) => p.nombre.trim()).filter(Boolean);
     const nombres_vuelta = paradas_vuelta.map((p) => p.nombre.trim()).filter(Boolean);
 
@@ -642,22 +703,61 @@ export function PasajesVista() {
       .filter(Boolean)
       .join(" | ");
 
-    const dia_formato = fecha_recorrido.split("-").slice(1).reverse().join("-");
-    const nuevo_recorrido: RecorridoMensual = {
-      id: Date.now(),
-      fecha: dia_formato,
-      descripcion,
-      monto: monto_del_dia,
-      tramo: "ida",
-      origen: nombres_ida[0] || "Origen",
-      destino: nombres_ida[nombres_ida.length - 1] || "Destino",
-      calles_declaradas: calles_concatenadas,
-      medio_transporte: medio_transporte_combinado || "Minibús / Teleférico La Paz – El Alto",
-      apoyo_realizado: "Desplazamiento a sede asignada para cumplimiento de prácticas y actividades institucionales",
-      tipo_actividad: "Prácticas",
-    };
+    const items_a_enviar: any[] = [];
+    const apoyo_ida = "Desplazamiento a sede asignada para cumplimiento de prácticas y actividades institucionales";
 
-    set_recorridos((prev) => [nuevo_recorrido, ...prev]);
+    items_a_enviar.push({
+      fecha: fecha_recorrido,
+      tramo: "ida",
+      origen: nombres_ida[0],
+      destino: nombres_ida[nombres_ida.length - 1],
+      tarifa: total_ida,
+      tipo_actividad: "practicas",
+      apoyo_realizado: apoyo_ida,
+      calles_declaradas: nombres_ida.join(" → "),
+      medio_transporte: obtenerNombresTarifas(tramos_ida) || "Minibús Urbano",
+    });
+
+    if (nombres_vuelta.length >= 2 && total_vuelta > 0) {
+      items_a_enviar.push({
+        fecha: fecha_recorrido,
+        tramo: "vuelta",
+        origen: nombres_vuelta[0],
+        destino: nombres_vuelta[nombres_vuelta.length - 1],
+        tarifa: total_vuelta,
+        tipo_actividad: "practicas",
+        apoyo_realizado: "Retorno de prácticas institucionales",
+        calles_declaradas: nombres_vuelta.join(" → "),
+        medio_transporte: obtenerNombresTarifas(tramos_vuelta) || "Minibús Urbano",
+      });
+    }
+
+    try {
+      await clienteApi.post("/pasajes/recorridos", items_a_enviar);
+      toast.success("Recorrido registrado con éxito en el servidor", {
+        description: `Monto agregado: Bs ${monto_del_dia.toFixed(2)}. Suma acumulada sincronizada.`,
+      });
+      await cargarMisRecorridos();
+    } catch (err: any) {
+      const dia_formato = fecha_recorrido.split("-").slice(1).reverse().join("-");
+      const nuevo_recorrido: RecorridoMensual = {
+        id: Date.now(),
+        fecha: dia_formato,
+        descripcion,
+        monto: monto_del_dia,
+        tramo: "ida",
+        origen: nombres_ida[0] || "Origen",
+        destino: nombres_ida[nombres_ida.length - 1] || "Destino",
+        calles_declaradas: calles_concatenadas,
+        medio_transporte: medio_transporte_combinado || "Minibús / Teleférico La Paz – El Alto",
+        apoyo_realizado: apoyo_ida,
+        tipo_actividad: "Prácticas",
+      };
+      set_recorridos((prev) => [nuevo_recorrido, ...prev]);
+      toast.warning("Registrado localmente", {
+        description: err?.mensaje || err?.message || "No se pudo sincronizar de inmediato con el servidor.",
+      });
+    }
 
     // Limpiar para siguiente registro
     set_paradas_ida([
@@ -669,15 +769,11 @@ export function PasajesVista() {
       { id: "vuelta-2", numero: 2, nombre: "Villa Adela, El Alto", confirmada: false },
     ]);
     set_paso_actual("ida");
-
-    toast.success("Recorrido del día registrado con éxito", {
-      description: `Monto agregado: Bs ${monto_del_dia.toFixed(2)}. Suma acumulada actualizada.`,
-    });
   };
 
   // --- ENVÍO DE FORMULARIO MENSUAL (RESTRICCIÓN DÍA 24) ---
 
-  const manejarEnvioMensual = () => {
+  const manejarEnvioMensual = async () => {
     if (!es_dia_habilitado) {
       toast.error("Acción inhabilitada", {
         description: "Se habilita el 24 de cada mes para el envío del formulario.",
@@ -685,9 +781,24 @@ export function PasajesVista() {
       return;
     }
 
-    toast.success("Formulario mensual enviado exitosamente", {
-      description: `El reembolso del 80% (Bs ${devolucion_80.toFixed(2)}) ha pasado a revisión administrativa y contable.`,
-    });
+    if (!solicitud_actual?.id) {
+      toast.info("Formulario mensual validado", {
+        description: `El reembolso del 80% (Bs ${devolucion_80.toFixed(2)}) ha pasado a revisión.`,
+      });
+      return;
+    }
+
+    try {
+      await clienteApi.post(`/pasajes/${solicitud_actual.id}/enviar`, {});
+      toast.success("Formulario mensual enviado exitosamente al servidor", {
+        description: `El reembolso del 80% (Bs ${devolucion_80.toFixed(2)}) ha pasado a revisión administrativa y contable.`,
+      });
+      await cargarMisRecorridos();
+    } catch (err: any) {
+      toast.error("Error al enviar el formulario", {
+        description: err?.mensaje || err?.message || "Ocurrió un error al procesar el envío formal.",
+      });
+    }
   };
 
   return (
@@ -1406,7 +1517,14 @@ export function PasajesVista() {
                               titulo: "¿Eliminar recorrido declarado?",
                               descripcion: `¿Está seguro de eliminar el recorrido "${rec.descripcion}" por Bs ${rec.monto.toFixed(2)}? Esta acción recalculará el monto total del mes.`,
                               nombre_item: rec.descripcion,
-                              onConfirmar: () => {
+                              onConfirmar: async () => {
+                                try {
+                                  if (rec.id && typeof rec.id === "number" && rec.id < 1000000000000) {
+                                    await clienteApi.delete(`/pasajes/recorridos/${rec.id}`);
+                                  }
+                                } catch {
+                                  // Ignorar error y proceder localmente
+                                }
                                 set_recorridos((prev) => prev.filter((r) => r.id !== rec.id));
                               },
                               mensaje_exito: "Recorrido declarado eliminado exitosamente",

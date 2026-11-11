@@ -45,10 +45,31 @@ export function ProveedorAutenticacion({ children }: { children: ReactNode }) {
     set_token(null);
     set_usuario(null);
     if (typeof window !== "undefined") {
-      localStorage.removeItem("bumand_token");
-      localStorage.removeItem("bumand_usuario");
+      try {
+        localStorage.removeItem("bumand_token");
+        localStorage.removeItem("bumand_usuario");
+        localStorage.removeItem("bumand_correos_usuarios_mapa");
+        Object.keys(localStorage).forEach((clave) => {
+          if (
+            clave.startsWith("bumand_token") ||
+            clave.startsWith("bumand_usuario") ||
+            clave.startsWith("bumand_auth")
+          ) {
+            localStorage.removeItem(clave);
+          }
+        });
+      } catch {
+        // Ignorar error al limpiar storage
+      }
+      clienteApi.post("/autenticacion/cerrar-sesion", {}).catch(() => {});
     }
-    enrutador.push("/inicio-sesion");
+    try {
+      enrutador.replace("/inicio-sesion");
+    } catch {
+      if (typeof window !== "undefined") {
+        window.location.href = "/inicio-sesion";
+      }
+    }
   }, [enrutador]);
 
   const renovarSesion = useCallback(async (): Promise<boolean> => {

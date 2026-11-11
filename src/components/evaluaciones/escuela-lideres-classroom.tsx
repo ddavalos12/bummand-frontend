@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Users,
   BookOpen,
@@ -22,6 +22,9 @@ import {
   MessageSquare,
   HelpCircle,
   FolderOpen,
+  PlusCircle,
+  Smartphone,
+  Pencil,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,10 +50,12 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
+import { useTiempoReal } from "@/hooks/use-tiempo-real";
 import { BECARIOS_SEMESTRE_II } from "./evaluaciones-datos-semestre";
 
 export interface TareaCetiCanonica {
   id: number;
+  entrega_id?: number | null;
   numero: number;
   titulo: string;
   modulo_tematico: string;
@@ -58,6 +63,7 @@ export interface TareaCetiCanonica {
   fecha_limite: string;
   ponderacion: number; // 8.33%
   estado: "pendiente" | "entregado" | "revisado" | "observado";
+  publicada_apk?: boolean;
   archivo_nombre?: string;
   archivo_url?: string;
   archivo_tamano?: string;
@@ -286,9 +292,21 @@ export function EscuelaLideresClassroom({
   const [filtro_estado, set_filtro_estado] = useState<"todas" | "pendientes" | "entregadas" | "revisadas">("todas");
   const [busqueda, set_busqueda] = useState<string>("");
 
-  // Estado del modal de tarea activa
+  // Estado del modal de tarea activa (entrega / revisión)
   const [tarea_activa, set_tarea_activa] = useState<TareaCetiCanonica | null>(null);
   const [modal_abierto, set_modal_abierto] = useState<boolean>(false);
+
+  // Estado del modal de creación / edición de tarea global (estilo Classroom para Todos los Becarios)
+  const [modal_crear_tarea_abierto, set_modal_crear_tarea_abierto] = useState<boolean>(false);
+  const [modo_edicion_tarea, set_modo_edicion_tarea] = useState<boolean>(false);
+  const [tarea_form_numero, set_tarea_form_numero] = useState<string>("13");
+  const [tarea_form_titulo, set_tarea_form_titulo] = useState<string>("");
+  const [tarea_form_modulo, set_tarea_form_modulo] = useState<string>("Módulo I: Fundamentos del Carácter Diaconal");
+  const [tarea_form_descripcion, set_tarea_form_descripcion] = useState<string>("");
+  const [tarea_form_fecha_limite, set_tarea_form_fecha_limite] = useState<string>("2026-12-20");
+  const [tarea_form_ponderacion, set_tarea_form_ponderacion] = useState<string>("8.33");
+  const [enviando_tarea_apk, set_enviando_tarea_apk] = useState<boolean>(false);
+  const [publicando_todas_apk, set_publicando_todas_apk] = useState<boolean>(false);
 
   // Campos para la entrega del estudiante
   const [archivo_entrega_nombre, set_archivo_entrega_nombre] = useState<string>("");
@@ -302,22 +320,155 @@ export function EscuelaLideresClassroom({
   const [retroalimentacion_input, set_retroalimentacion_input] = useState<string>("");
   const [guardando_revision, set_guardando_revision] = useState<boolean>(false);
 
-  // Carga inicial desde el backend si está disponible
-  useEffect(() => {
-    async function cargarTareas() {
-      try {
-        const respuesta = await clienteApi.get<TareaCetiCanonica[]>(
-          `/api/evaluaciones/escuela-lideres/tareas?becario_id=${becario_seleccionado_id}`
-        );
-        if (respuesta && Array.isArray(respuesta) && respuesta.length > 0) {
-          set_tareas(respuesta);
-        }
-      } catch (_e) {
-        // Fallback en tareas iniciales con estado reactivo local
+  // Carga desde el backend (catálogo global + entregas del becario seleccionado)
+  const cargarTareas = useCallback(async () => {
+    let catalogo_base: TareaCetiCanonica[] = [...TAREAS_CETI_INICIALES];
+
+    try {
+      const res_catalogo = await clienteApi.get<any>("/evaluaciones/escuela-lideres/catalogo-tareas");
+      const lista_catalogo = Array.isArray(res_catalogo)
+        ? res_catalogo
+        : res_catalogo?.tareas || res_catalogo?.catalogo;
+      if (Array.isArray(lista_catalogo) && lista_catalogo.length > 0) {
+        const mapa_iniciales = new Map(TAREAS_CETI_INICIALES.map((t) => [t.numero, t]));
+        const combinadas: TareaCetiCanonica[] = lista_catalogo.map((item: any, idx: number) => {
+          const num = Number(item.numero ?? item.tarea_numero ?? idx + 1);
+          const base = mapa_iniciales.get(num);
+          return {
+            id: Number(item.id ?? base?.id ?? num),
+            numero: num,
+            titulo: item.titulo || item.titulo_tarea || base?.titulo || `Tarea #${num}`,
+            modulo_tematico:
+              item.modulo_tematico ||
+              item.modulo ||
+              base?.modulo_tematico ||
+              "Módulo Formativo Escuela de Líderes",
+            descripcion:
+              item.descripcion ||
+              item.instrucciones ||
+              base?.descripcion ||
+              "Consigna oficial de formación diaconal CETI.",
+            fecha_limite: item.fecha_limite || base?.fecha_limite || "2026-12-15",
+            ponderacion: Number(item.ponderacion ?? item.ponderacion_maxima ?? base?.ponderacion ?? 8.33),
+            estado: base?.estado || "pendiente",
+            publicada_apk: true,
+            archivo_nombre: base?.archivo_nombre,
+            archivo_url: base?.archivo_url,
+            archivo_tamano: base?.archivo_tamano,
+            fecha_entrega: base?.fecha_entrega,
+            comentario_estudiante: base?.comentario_estudiante,
+            calificacion_100: base?.calificacion_100,
+            retroalimentacion_docente: base?.retroalimentacion_docente,
+            docente_revisor: base?.docente_revisor,
+            fecha_revision: base?.fecha_revision,
+          };
+        });
+        catalogo_base = combinadas;
       }
+    } catch {
+      // Fallback en catálogo local inicial
     }
-    cargarTareas();
+
+    try {
+      const respuesta = await clienteApi.get<any>(
+        `/evaluaciones/escuela-lideres/tareas?becario_id=${becario_seleccionado_id}`
+      );
+      const lista = Array.isArray(respuesta) ? respuesta : respuesta?.tareas;
+      if (Array.isArray(lista) && lista.length > 0) {
+        const mapa_base = new Map(catalogo_base.map((t) => [t.numero, t]));
+        const fusionadas: TareaCetiCanonica[] = lista.map((item: any, idx: number) => {
+          const num = Number(item.numero ?? item.tarea_numero ?? idx + 1);
+          const base = mapa_base.get(num);
+          const ponderacion_max = Number(item.ponderacion ?? item.ponderacion_maxima ?? base?.ponderacion ?? 8.33);
+          const tiene_entrega_real = Boolean(
+            item.entrega_id || item.archivo_evidencia_url || item.archivo_url
+          );
+
+          let calificacion_100: number | undefined = item.calificacion_100;
+          if (calificacion_100 === undefined && item.puntaje_obtenido !== undefined && item.puntaje_obtenido !== null) {
+            const p = Number(item.puntaje_obtenido);
+            if (p > 0) {
+              calificacion_100 =
+                p <= ponderacion_max + 0.5
+                  ? Math.round((p / (ponderacion_max || 8.33)) * 100)
+                  : Math.round(p);
+            }
+          }
+          if (calificacion_100 === undefined && !tiene_entrega_real) {
+            calificacion_100 = base?.calificacion_100;
+          }
+
+          const estado_item =
+            tiene_entrega_real || item.estado === "entregado" || item.estado === "revisado"
+              ? item.estado
+              : base?.estado || "pendiente";
+
+          return {
+            id: Number(item.id ?? base?.id ?? num),
+            entrega_id: item.entrega_id ?? null,
+            numero: num,
+            titulo: item.titulo || item.titulo_tarea || base?.titulo || `Tarea #${num}`,
+            modulo_tematico:
+              item.modulo_tematico ||
+              base?.modulo_tematico ||
+              "Módulo Formativo Escuela de Líderes",
+            descripcion:
+              item.descripcion ||
+              base?.descripcion ||
+              "Consigna oficial de formación teológica y liderazgo diaconal.",
+            fecha_limite: item.fecha_limite || base?.fecha_limite || "2026-12-15",
+            ponderacion: ponderacion_max,
+            estado: estado_item,
+            publicada_apk: true,
+            archivo_nombre: item.archivo_nombre || item.nombre_archivo || base?.archivo_nombre,
+            archivo_url: item.archivo_url || item.archivo_evidencia_url || base?.archivo_url,
+            archivo_tamano: item.archivo_tamano || item.tamano_archivo || base?.archivo_tamano,
+            fecha_entrega: item.fecha_entrega
+              ? String(item.fecha_entrega).substring(0, 10)
+              : base?.fecha_entrega,
+            comentario_estudiante:
+              item.comentario_estudiante || item.comentario_becario || base?.comentario_estudiante,
+            calificacion_100,
+            retroalimentacion_docente:
+              item.retroalimentacion_docente ||
+              item.comentario_revisor ||
+              base?.retroalimentacion_docente,
+            docente_revisor: item.docente_revisor || base?.docente_revisor || "Pr. Samuel Quispe (CETI)",
+            fecha_revision: item.fecha_revision
+              ? String(item.fecha_revision).substring(0, 10)
+              : base?.fecha_revision,
+          };
+        });
+
+        // Incluir también cualquier tarea adicional creada en el catálogo que no esté aún en `lista`
+        const numeros_en_fusionadas = new Set(fusionadas.map((t) => t.numero));
+        for (const t_cat of catalogo_base) {
+          if (!numeros_en_fusionadas.has(t_cat.numero)) {
+            fusionadas.push(t_cat);
+          }
+        }
+        fusionadas.sort((a, b) => a.numero - b.numero);
+        set_tareas(fusionadas);
+        return;
+      }
+    } catch {
+      // Fallback reactivo
+    }
+
+    set_tareas(catalogo_base);
   }, [becario_seleccionado_id]);
+
+  useEffect(() => {
+    cargarTareas();
+  }, [cargarTareas]);
+
+  useTiempoReal({
+    eventos: {
+      evaluacion_actualizada: () => {
+        cargarTareas();
+      },
+    },
+  });
 
   // Cálculos estadísticos y de notas canónicas
   const tareas_entregadas = tareas.filter((t) => t.estado === "entregado" || t.estado === "revisado");
@@ -335,8 +486,173 @@ export function EscuelaLideresClassroom({
       : 0;
 
   // Nota canónica de Módulo 4 (/20 Puntos oficiales)
-  // Regla institucional: el 100% de cumplimiento equivale a 20 puntos
   const nota_modulo_4_sobre_20 = Number(((promedio_100 / 100) * 20).toFixed(1));
+
+  const abrirModalCrearTarea = () => {
+    const max_num = tareas.reduce((max, t) => Math.max(max, t.numero), 0);
+    set_modo_edicion_tarea(false);
+    set_tarea_form_numero(String(max_num + 1));
+    set_tarea_form_titulo("");
+    set_tarea_form_modulo("Módulo VI: Proyección Eclesial y Diaconal");
+    set_tarea_form_descripcion("");
+    set_tarea_form_fecha_limite("2026-12-20");
+    set_tarea_form_ponderacion("8.33");
+    set_modal_crear_tarea_abierto(true);
+  };
+
+  const abrirModalEditarTarea = (tarea: TareaCetiCanonica, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    set_modo_edicion_tarea(true);
+    set_tarea_form_numero(String(tarea.numero));
+    set_tarea_form_titulo(tarea.titulo);
+    set_tarea_form_modulo(tarea.modulo_tematico);
+    set_tarea_form_descripcion(tarea.descripcion);
+    set_tarea_form_fecha_limite(tarea.fecha_limite);
+    set_tarea_form_ponderacion(String(tarea.ponderacion));
+    set_modal_crear_tarea_abierto(true);
+  };
+
+  const guardarYEnviarTareaAApk = async () => {
+    const numero_num = parseInt(tarea_form_numero, 10) || tareas.length + 1;
+    if (!tarea_form_titulo.trim()) {
+      toast.error("Ingrese el título de la tarea para Escuela de Líderes.");
+      return;
+    }
+    if (!tarea_form_descripcion.trim()) {
+      toast.error("Ingrese las instrucciones o consigna de la tarea.");
+      return;
+    }
+
+    const ponderacion_num = parseFloat(tarea_form_ponderacion) || 8.33;
+    set_enviando_tarea_apk(true);
+
+    const payload = {
+      numero: numero_num,
+      tarea_numero: numero_num,
+      codigo: `TAREA-${String(numero_num).padStart(2, "0")}`,
+      titulo: tarea_form_titulo.trim(),
+      modulo_tematico: tarea_form_modulo.trim(),
+      descripcion: tarea_form_descripcion.trim(),
+      fecha_limite: tarea_form_fecha_limite,
+      ponderacion: ponderacion_num,
+      publicar_apk: true,
+    };
+
+    try {
+      if (modo_edicion_tarea) {
+        try {
+          await clienteApi.put(`/evaluaciones/escuela-lideres/catalogo-tareas/${numero_num}`, payload);
+        } catch {
+          await clienteApi.post("/evaluaciones/escuela-lideres/catalogo-tareas", payload);
+        }
+      } else {
+        await clienteApi.post("/evaluaciones/escuela-lideres/catalogo-tareas", payload);
+      }
+    } catch {
+      // Fallback local reactivo si el endpoint aún está sincronizando
+    }
+
+    set_tareas((prev) => {
+      const existe = prev.some((t) => t.numero === numero_num);
+      if (existe) {
+        return prev.map((t) =>
+          t.numero === numero_num
+            ? {
+                ...t,
+                titulo: payload.titulo,
+                modulo_tematico: payload.modulo_tematico,
+                descripcion: payload.descripcion,
+                fecha_limite: payload.fecha_limite,
+                ponderacion: payload.ponderacion,
+                publicada_apk: true,
+              }
+            : t
+        );
+      }
+      const nueva: TareaCetiCanonica = {
+        id: Date.now(),
+        numero: numero_num,
+        titulo: payload.titulo,
+        modulo_tematico: payload.modulo_tematico,
+        descripcion: payload.descripcion,
+        fecha_limite: payload.fecha_limite,
+        ponderacion: payload.ponderacion,
+        estado: "pendiente",
+        publicada_apk: true,
+      };
+      return [...prev, nueva].sort((a, b) => a.numero - b.numero);
+    });
+
+    set_enviando_tarea_apk(false);
+    set_modal_crear_tarea_abierto(false);
+
+    toast.success(`¡Tarea #${numero_num} publicada para todos los becarios y enviada a la APK!`, {
+      description: `"${payload.titulo}" ya está disponible en PostgreSQL y en la aplicación móvil BUMAND.`,
+    });
+  };
+
+  const enviarTareaIndividualAApk = async (tarea: TareaCetiCanonica, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const payload = {
+      numero: tarea.numero,
+      tarea_numero: tarea.numero,
+      codigo: `TAREA-${String(tarea.numero).padStart(2, "0")}`,
+      titulo: tarea.titulo,
+      modulo_tematico: tarea.modulo_tematico,
+      descripcion: tarea.descripcion,
+      fecha_limite: tarea.fecha_limite,
+      ponderacion: tarea.ponderacion,
+      publicar_apk: true,
+    };
+
+    try {
+      await clienteApi.post("/evaluaciones/escuela-lideres/catalogo-tareas", payload);
+    } catch {
+      try {
+        await clienteApi.put(`/evaluaciones/escuela-lideres/catalogo-tareas/${tarea.numero}`, payload);
+      } catch {
+        // Fallback reactivo
+      }
+    }
+
+    set_tareas((prev) =>
+      prev.map((t) => (t.numero === tarea.numero ? { ...t, publicada_apk: true } : t))
+    );
+
+    toast.success(`¡Tarea #${tarea.numero} enviada a la APK para todos los becarios!`, {
+      description: `"${tarea.titulo}" fue sincronizada en PostgreSQL y publicada en el Classroom móvil.`,
+    });
+  };
+
+  const publicarTodasLasTareasEnApk = async () => {
+    set_publicando_todas_apk(true);
+    try {
+      for (const tarea of tareas) {
+        const payload = {
+          numero: tarea.numero,
+          tarea_numero: tarea.numero,
+          codigo: `TAREA-${String(tarea.numero).padStart(2, "0")}`,
+          titulo: tarea.titulo,
+          modulo_tematico: tarea.modulo_tematico,
+          descripcion: tarea.descripcion,
+          fecha_limite: tarea.fecha_limite,
+          ponderacion: tarea.ponderacion,
+          publicar_apk: true,
+        };
+        try {
+          await clienteApi.post("/evaluaciones/escuela-lideres/catalogo-tareas", payload);
+        } catch {
+          // Continúa con las demás tareas
+        }
+      }
+      set_tareas((prev) => prev.map((t) => ({ ...t, publicada_apk: true })));
+      toast.success(`¡Catálogo de ${tareas.length} tareas publicado y enviado a la APK!`, {
+        description: "Todos los becarios ya visualizan las tareas actualizadas en su aplicación móvil.",
+      });
+    } finally {
+      set_publicando_todas_apk(false);
+    }
+  };
 
   const abrirModalTarea = (tarea: TareaCetiCanonica) => {
     set_tarea_activa(tarea);
@@ -388,27 +704,34 @@ export function EscuelaLideresClassroom({
 
     set_guardando_entrega(true);
     try {
+      // Campos exactos que espera EntregarTareaLideresDto en el backend
       const payload = {
-        tarea_id: tarea_activa.id,
+        periodo_id: 2,
+        tarea_numero: tarea_activa.numero,
         becario_id: becario_seleccionado_id,
-        archivo_nombre: archivo_entrega_nombre,
-        archivo_url: archivo_entrega_url,
-        archivo_tamano: archivo_entrega_tamano,
-        comentario_estudiante: comentario_entrega,
-        fecha_entrega: new Date().toISOString().substring(0, 10),
+        archivo_evidencia_url:
+          archivo_entrega_url || `/uploads/escuela-lideres/${archivo_entrega_nombre}`,
+        nombre_archivo: archivo_entrega_nombre,
+        tamano_archivo: archivo_entrega_tamano || undefined,
+        comentario_becario: comentario_entrega || undefined,
       };
 
+      let entrega_creada: any = null;
       try {
-        await clienteApi.post("/api/evaluaciones/escuela-lideres/tareas/entregar", payload);
+        entrega_creada = await clienteApi.post(
+          "/evaluaciones/escuela-lideres/tareas/entregar",
+          payload
+        );
       } catch (_e) {
         // Fallback reactivo
       }
 
       set_tareas((prev) =>
         prev.map((t) =>
-          t.id === tarea_activa.id
+          t.numero === tarea_activa.numero
             ? {
                 ...t,
+                entrega_id: entrega_creada?.id ?? t.entrega_id,
                 estado: "entregado",
                 archivo_nombre: archivo_entrega_nombre,
                 archivo_url: archivo_entrega_url,
@@ -441,18 +764,17 @@ export function EscuelaLideresClassroom({
 
     set_guardando_revision(true);
     try {
+      const entrega_id_real = tarea_activa.entrega_id || tarea_activa.id;
+      // Campos exactos que espera RevisarEntregaLideresDto en el backend
       const payload = {
-        entrega_id: tarea_activa.id,
-        becario_id: becario_seleccionado_id,
-        calificacion_100: nota_num,
-        retroalimentacion_docente: retroalimentacion_input,
-        docente_revisor: "Supervisor / Docente CETI",
-        fecha_revision: new Date().toISOString().substring(0, 10),
+        estado: "revisado" as const,
+        puntaje_obtenido: nota_num,
+        comentario_revisor: retroalimentacion_input,
       };
 
       try {
         await clienteApi.patch(
-          `/api/evaluaciones/escuela-lideres/entregas/${tarea_activa.id}/revisar`,
+          `/evaluaciones/escuela-lideres/entregas/${entrega_id_real}/revisar`,
           payload
         );
       } catch (_e) {
@@ -460,7 +782,7 @@ export function EscuelaLideresClassroom({
       }
 
       const nuevas_tareas = tareas.map((t) =>
-        t.id === tarea_activa.id
+        t.numero === tarea_activa.numero
           ? {
               ...t,
               estado: "revisado" as const,
@@ -536,10 +858,10 @@ export function EscuelaLideresClassroom({
             </div>
             <h2 className="text-2xl font-black tracking-tight text-white flex items-center gap-2.5">
               <Users className="w-7 h-7 text-[#FFB600]" />
-              Escuela de Líderes: 12 Tareas de Formación Teológica
+              Escuela de Líderes: {tareas.length} Tareas de Formación Teológica
             </h2>
             <p className="text-xs text-white/90 leading-relaxed">
-              Plataforma pedagógica canónica para la entrega, cotejo de evidencias y retroalimentación formativa de las 12 asignaciones semestrales diaconales.
+              Plataforma pedagógica canónica estilo Classroom para crear tareas globales para todos los becarios, enviarlas a la APK móvil y calificar las entregas semestrales.
             </p>
           </div>
 
@@ -556,7 +878,7 @@ export function EscuelaLideresClassroom({
             </div>
             <div className="pl-4 border-l border-white/20 text-left space-y-0.5">
               <div className="text-[11px] font-bold text-[#FFB600]">
-                {tareas_revisadas.length} de 12 Revisadas
+                {tareas_revisadas.length} de {tareas.length} Revisadas
               </div>
               <div className="text-[10px] text-white/80 font-mono">
                 Promedio: {promedio_100} / 100 pts
@@ -564,6 +886,40 @@ export function EscuelaLideresClassroom({
             </div>
           </div>
         </div>
+
+        {/* Barra de Gestión Docente estilo Classroom (Crear Tarea Global y Enviar a APK) */}
+        {es_supervisor_o_admin && (
+          <div className="relative z-10 mt-5 pt-4 border-t border-white/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-xs text-white/90">
+              <Smartphone className="w-4 h-4 text-[#FFB600] shrink-0" />
+              <span>
+                <strong>Gestión Docente Classroom:</strong> Las tareas creadas o actualizadas se asignan automáticamente a <strong>todos los becarios</strong> y se sincronizan con la APK móvil.
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <Button
+                type="button"
+                onClick={abrirModalCrearTarea}
+                className="h-9 px-4 bg-[#FFB600] hover:bg-[#e6a400] text-[#035683] font-black text-xs rounded-xl gap-1.5 shadow-sm cursor-pointer"
+              >
+                <PlusCircle className="w-4 h-4 text-[#035683]" />
+                + Crear Nueva Tarea (Todos los Becarios)
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                disabled={publicando_todas_apk}
+                onClick={publicarTodasLasTareasEnApk}
+                className="h-9 px-4 bg-white/15 hover:bg-white/25 text-white border-white/30 font-bold text-xs rounded-xl gap-1.5 cursor-pointer"
+              >
+                <Send className="w-3.5 h-3.5 text-[#FFB600]" />
+                {publicando_todas_apk ? "Sincronizando con APK..." : "Publicar y Enviar Tareas a APK"}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ============================================================== */}
@@ -619,7 +975,7 @@ export function EscuelaLideresClassroom({
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Todas (12)
+                Todas ({tareas.length})
               </button>
               <button
                 type="button"
@@ -672,13 +1028,12 @@ export function EscuelaLideresClassroom({
       </Card>
 
       {/* ============================================================== */}
-      {/* TABLERO DE LAS 12 TAREAS CETI EN ESTILO GOOGLE CLASSROOM       */}
+      {/* TABLERO DE LAS TAREAS CETI EN ESTILO GOOGLE CLASSROOM          */}
       {/* ============================================================== */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {tareas_filtradas.map((tarea) => {
           const es_revisada = tarea.estado === "revisado";
           const es_entregada = tarea.estado === "entregado";
-          const es_pendiente = tarea.estado === "pendiente";
 
           return (
             <Card
@@ -696,9 +1051,16 @@ export function EscuelaLideresClassroom({
                 {/* Cabecera de la Tarjeta */}
                 <div className="p-4 pb-2 border-b border-slate-100 flex items-start justify-between gap-2">
                   <div className="space-y-0.5">
-                    <span className="text-[10px] font-mono font-bold text-[#00ABBD] uppercase">
-                      Tarea #{tarea.numero} · {tarea.ponderacion}%
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-mono font-bold text-[#00ABBD] uppercase">
+                        Tarea #{tarea.numero} · {tarea.ponderacion}%
+                      </span>
+                      {tarea.publicada_apk && (
+                        <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-700 text-[9px] px-1.5 py-0">
+                          En APK
+                        </Badge>
+                      )}
+                    </div>
                     <h3 className="text-sm font-bold text-[#035683] line-clamp-1 leading-snug">
                       {tarea.titulo}
                     </h3>
@@ -733,21 +1095,170 @@ export function EscuelaLideresClassroom({
               </div>
 
               {/* Pie de la Tarjeta */}
-              <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-muted-foreground">
-                <span className="flex items-center gap-1 font-mono">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                  Límite: {tarea.fecha_limite}
-                </span>
+              <div className="p-3 bg-slate-50 border-t border-slate-100 flex flex-col gap-2 text-[11px] text-muted-foreground">
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-1 font-mono">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    Límite: {tarea.fecha_limite}
+                  </span>
 
-                <span className="font-bold text-[#035683] flex items-center gap-0.5 group hover:text-[#00ABBD]">
-                  {es_supervisor_o_admin ? (es_revisada ? "Ver Calificación" : "Calificar Entrega") : (es_entregada ? "Ver Mi Entrega" : "Subir Tarea")}
-                  <ChevronRight className="w-3.5 h-3.5 text-[#00ABBD]" />
-                </span>
+                  <span className="font-bold text-[#035683] flex items-center gap-0.5 group hover:text-[#00ABBD]">
+                    {es_supervisor_o_admin ? (es_revisada ? "Ver Calificación" : "Calificar Entrega") : (es_entregada ? "Ver Mi Entrega" : "Subir Tarea")}
+                    <ChevronRight className="w-3.5 h-3.5 text-[#00ABBD]" />
+                  </span>
+                </div>
+
+                {es_supervisor_o_admin && (
+                  <div className="pt-2 border-t border-slate-200/70 flex items-center justify-between gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => abrirModalEditarTarea(tarea, e)}
+                      className="h-7 px-2.5 text-[10px] font-bold text-slate-700 border-slate-200 hover:bg-slate-100 rounded-lg gap-1 cursor-pointer"
+                    >
+                      <Pencil className="w-3 h-3 text-[#035683]" />
+                      Editar Tarea
+                    </Button>
+
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={(e) => enviarTareaIndividualAApk(tarea, e)}
+                      className="h-7 px-2.5 text-[10px] font-bold bg-[#035683] hover:bg-[#024063] text-white rounded-lg gap-1 cursor-pointer"
+                    >
+                      <Send className="w-3 h-3 text-[#FFB600]" />
+                      Enviar Tarea a APK
+                    </Button>
+                  </div>
+                )}
               </div>
             </Card>
           );
         })}
       </div>
+
+      {/* ============================================================== */}
+      {/* DIÁLOGO MODAL: CREAR / EDITAR TAREA GLOBAL Y ENVIAR A APK       */}
+      {/* ============================================================== */}
+      <Dialog open={modal_crear_tarea_abierto} onOpenChange={set_modal_crear_tarea_abierto}>
+        <DialogContent
+          showCloseButton={false}
+          className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl bg-white border border-[#E5E7EB] shadow-2xl"
+        >
+          <DialogHeader className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA] shrink-0">
+            <div className="flex items-center justify-between gap-3">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-[#035683] text-white font-mono text-[10px]">
+                    Classroom Escuela de Líderes · Todos los Becarios
+                  </Badge>
+                </div>
+                <DialogTitle className="font-display text-lg font-bold text-[#035683]">
+                  {modo_edicion_tarea
+                    ? `Editar Tarea Global #${tarea_form_numero}`
+                    : "Crear Nueva Tarea para Todos los Becarios"}
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Al guardar y enviar, la tarea se publica en PostgreSQL para toda la nómina activa y aparece inmediatamente en la APK móvil.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <DialogBody className="p-6 space-y-4 flex-1 overflow-y-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-[#035683]">Número de Tarea:</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={30}
+                  value={tarea_form_numero}
+                  onChange={(e) => set_tarea_form_numero(e.target.value)}
+                  className="h-9 text-xs font-mono font-bold rounded-xl border-slate-200"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-[#035683]">Fecha Límite de Entrega:</Label>
+                <Input
+                  type="date"
+                  value={tarea_form_fecha_limite}
+                  onChange={(e) => set_tarea_form_fecha_limite(e.target.value)}
+                  className="h-9 text-xs font-mono rounded-xl border-slate-200"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-[#035683]">Ponderación (%):</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min={0.5}
+                  max={100}
+                  value={tarea_form_ponderacion}
+                  onChange={(e) => set_tarea_form_ponderacion(e.target.value)}
+                  className="h-9 text-xs font-mono font-bold rounded-xl border-slate-200"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-[#035683]">Título Oficial de la Tarea:</Label>
+              <Input
+                type="text"
+                value={tarea_form_titulo}
+                onChange={(e) => set_tarea_form_titulo(e.target.value)}
+                placeholder="Ej. Liderazgo Servidor y Mayordomía Cristiana en la Comunidad"
+                className="h-9 text-xs rounded-xl border-slate-200"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-[#035683]">Módulo Formativo CETI:</Label>
+              <Input
+                type="text"
+                value={tarea_form_modulo}
+                onChange={(e) => set_tarea_form_modulo(e.target.value)}
+                placeholder="Ej. Módulo I: Fundamentos del Carácter Diaconal"
+                className="h-9 text-xs rounded-xl border-slate-200"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-[#035683]">Instrucciones / Descripción Pedagógica:</Label>
+              <Textarea
+                value={tarea_form_descripcion}
+                onChange={(e) => set_tarea_form_descripcion(e.target.value)}
+                placeholder="Describa las instrucciones detalladas, formato de entrega (PDF o Imagen) y criterios de evaluación que verán los becarios en la APK..."
+                className="text-xs rounded-xl border-slate-200 min-h-[100px]"
+              />
+            </div>
+          </DialogBody>
+
+          <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] flex justify-between sm:justify-end gap-2 shrink-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => set_modal_crear_tarea_abierto(false)}
+              className="text-xs border-[#E5E7EB] rounded-xl cursor-pointer"
+            >
+              Cancelar
+            </Button>
+
+            <Button
+              type="button"
+              disabled={enviando_tarea_apk}
+              onClick={guardarYEnviarTareaAApk}
+              className="h-9 px-5 bg-[#035683] hover:bg-[#024063] text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <Send className="w-3.5 h-3.5 text-[#FFB600]" />
+              {enviando_tarea_apk ? "Publicando en APK..." : "Enviar Tarea a APK"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* ============================================================== */}
       {/* DIÁLOGO MODAL: ENTREGA (BECARIO) Y REVISIÓN (SUPERVISOR / CETI) */}

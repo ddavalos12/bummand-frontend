@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -147,6 +148,7 @@ function obtenerDetallesSeccion(seccion: string, rol: string, subpestaña?: stri
 
 export default function PaginaInicio() {
   const { usuario, cerrarSesion, cargando, estaAutenticado } = usarAutenticacion();
+  const enrutador = useRouter();
   
   const rol = usuario?.rol || "becario";
   const es_admin = rol === "administrador";
@@ -162,6 +164,18 @@ export default function PaginaInicio() {
   const [dialogo_asistencia_abierto, set_dialogo_asistencia_abierto] = useState<boolean>(false);
   const [dialogo_documentos_abierto, set_dialogo_documentos_abierto] = useState<boolean>(false);
   const [subpestaña_evaluaciones, set_subpestaña_evaluaciones] = useState<"matriz" | "socioeconomica">("matriz");
+
+  useEffect(() => {
+    if (!cargando && (!estaAutenticado || !usuario)) {
+      try {
+        enrutador.replace("/inicio-sesion");
+      } catch {
+        if (typeof window !== "undefined") {
+          window.location.href = "/inicio-sesion";
+        }
+      }
+    }
+  }, [cargando, estaAutenticado, usuario, enrutador]);
 
   useEffect(() => {
     if (usuario) {
@@ -193,7 +207,16 @@ export default function PaginaInicio() {
   }
 
   if (!estaAutenticado || !usuario) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F8F9FA]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-[#035683] flex items-center justify-center text-white font-bold text-xl shadow-md animate-pulse">
+            <span className="text-[#FFB600] font-display">B</span>
+          </div>
+          <p className="text-xs text-[#5B6D77] font-semibold">Redirigiendo a inicio de sesión...</p>
+        </div>
+      </div>
+    );
   }
 
   const detalles_seccion = obtenerDetallesSeccion(pestaña_activa, rol, subpestaña_evaluaciones);

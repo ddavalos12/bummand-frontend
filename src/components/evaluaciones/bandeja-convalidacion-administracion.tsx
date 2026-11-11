@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   FileText,
   Eye,
@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
+import { useTiempoReal } from "@/hooks/use-tiempo-real";
 
 export interface ItemConvalidacionAdmin {
   evaluacion_id: number;
@@ -178,11 +179,108 @@ export function BandejaConvalidacionAdministracion({
   const [busqueda, set_busqueda] = useState<string>("");
   const [convalidando_id, set_convalidando_id] = useState<number | null>(null);
 
+  const cargarPendientesAdministracion = useCallback(async () => {
+    try {
+      const res = await clienteApi.get<any>("/evaluaciones/academica/pendientes-administracion");
+      const lista = Array.isArray(res) ? res : res?.registros;
+      if (Array.isArray(lista) && lista.length > 0) {
+        const mapeados: ItemConvalidacionAdmin[] = lista.map((ev: any, idx: number) => {
+          const datos_form = ev.datos_formulario || {};
+          const bec = ev.becario || {};
+          const per = ev.periodo || {};
+          const prom_final = Number(ev.promedio_academico ?? datos_form.promedio_academico ?? 80);
+          const prom_orig = Number(datos_form.promedio_original ?? prom_final);
+
+          const estado_mapeado: ItemConvalidacionAdmin["estado"] =
+            ev.estado === "completado" || ev.estado === "aprobada"
+              ? "completado"
+              : ev.estado === "observada" || ev.estado === "observado"
+              ? "observado"
+              : ev.estado === "pre_evaluado"
+              ? "pre_evaluado"
+              : "en_revision_supervisor";
+
+          const record_url =
+            ev.archivo_record_academico ||
+            datos_form.archivo_record_academico ||
+            "data:application/pdf;base64,JVBERi0xLjQKJ...";
+          const historial_url =
+            ev.archivo_historial_academico ||
+            datos_form.archivo_historial_academico ||
+            record_url;
+
+          return {
+            evaluacion_id: Number(ev.id ?? 200 + idx),
+            becario_id: Number(ev.becario_id ?? bec.id ?? idx + 1),
+            nombre: bec.nombre_completo || datos_form.nombre_becario || `Becario #${ev.becario_id || idx + 1}`,
+            ci: bec.ci || datos_form.ci || "S/CI",
+            carrera: bec.carrera || datos_form.carrera || "Carrera Universitaria",
+            universidad: bec.universidad || datos_form.universidad || "UMSA",
+            supervisor_nombre:
+              datos_form.supervisor_nombre || "Envío Directo desde APK / Portal",
+            promedio_final: prom_final,
+            promedio_original: prom_orig,
+            hubo_edicion_supervisor: Boolean(datos_form.hubo_edicion_supervisor),
+            periodo_nombre: per.nombre || "Semestre II · 2026",
+            record_academico_nombre:
+              datos_form.record_academico_nombre ||
+              `Record_Academico_${(bec.nombre_completo || "Becario").replace(/\s+/g, "_")}.pdf`,
+            record_academico_url: record_url,
+            historial_academico_nombre:
+              datos_form.historial_academico_nombre ||
+              `Historial_Academico_${(bec.nombre_completo || "Becario").replace(/\s+/g, "_")}.pdf`,
+            historial_academico_url: historial_url,
+            kardex_nombre:
+              datos_form.record_academico_nombre ||
+              `Kardex_${(bec.nombre_completo || "Becario").replace(/\s+/g, "_")}.pdf`,
+            kardex_url: record_url,
+            programacion_nombre:
+              datos_form.programacion_nombre ||
+              `Programacion_${(bec.nombre_completo || "Becario").replace(/\s+/g, "_")}.pdf`,
+            programacion_url: datos_form.archivo_programacion || record_url,
+            carnet_renovado_nombre: datos_form.carnet_renovado_nombre,
+            carnet_renovado_url: datos_form.archivo_carnet_renovado,
+            estado: estado_mapeado,
+            fecha_pre_evaluacion: ev.fecha_actualizacion
+              ? String(ev.fecha_actualizacion).substring(0, 10)
+              : "2026-10-26",
+            observaciones_supervisor:
+              ev.observaciones ||
+              datos_form.observaciones_supervisor ||
+              "Documentos académicos subidos por el becario para convalidación.",
+          };
+        });
+
+        // Combinar registros reales de BD con la base demostrativa sin duplicar becario_id
+        const ids_en_bd = new Set(mapeados.map((m) => m.becario_id));
+        const combinados = [
+          ...mapeados,
+          ...REGISTROS_CONSOLIDADO_ADMIN.filter((r) => !ids_en_bd.has(r.becario_id)),
+        ];
+        set_registros(combinados);
+      }
+    } catch {
+      // Fallback en registros locales
+    }
+  }, []);
+
+  useEffect(() => {
+    cargarPendientesAdministracion();
+  }, [cargarPendientesAdministracion]);
+
+  useTiempoReal({
+    eventos: {
+      evaluacion_actualizada: () => {
+        cargarPendientesAdministracion();
+      },
+    },
+  });
+
   const convalidarOficialmente = async (item: ItemConvalidacionAdmin) => {
     set_convalidando_id(item.evaluacion_id);
     try {
       try {
-        await clienteApi.put(`/api/evaluaciones/academica/${item.evaluacion_id}/convalidar`, {
+        await clienteApi.put(`/evaluaciones/academica/${item.evaluacion_id}/convalidar`, {
           evaluacion_id: item.evaluacion_id,
           accion: "convalidar",
           observaciones_administracion: "Convalidación directa formalizada por Administración Central BUMAND.",

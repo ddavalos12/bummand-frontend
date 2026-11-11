@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
+import { useTiempoReal } from "@/hooks/use-tiempo-real";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import {
   BECARIOS_SEMESTRE_II,
@@ -70,14 +71,50 @@ const OPCIONES_FILTRO_BECA: OpcionCombobox[] = [
 ];
 
 export function SabanaConsolidadoSemestral() {
+  const [registros_sabana, set_registros_sabana] =
+    useState<BecarioEvaluacionSemestral[]>(BECARIOS_SEMESTRE_II);
   const [busqueda, set_busqueda] = useState<string>("");
   const [filtro_calificacion, set_filtro_calificacion] = useState<string>("todos");
   const [becario_detalle, set_becario_detalle] = useState<BecarioEvaluacionSemestral | null>(null);
   const [filtro_beca, set_filtro_beca] = useState<string>("todos");
   const [pestaña_activa, set_pestaña_activa] = useState<string>("consolidado");
 
+  const cargarConsolidadoSemestral = useCallback(async () => {
+    try {
+      const res = await clienteApi.get<any>("/evaluaciones/consolidado-semestral");
+      const lista = Array.isArray(res) ? res : res?.registros;
+      if (Array.isArray(lista) && lista.length > 0) {
+        set_registros_sabana(
+          lista.map((r: any) => ({
+            ...r,
+            escuela_lideres: Number(r.escuela_lideres ?? 0),
+            academica: Number(r.academica ?? 0),
+            liderazgo_iglesia: Number(r.liderazgo_iglesia ?? 0),
+            practicas_preprofesionales: Number(r.practicas_preprofesionales ?? 0),
+            socioeconomico: Number(r.socioeconomico ?? 0),
+            total: Number(r.total ?? 0),
+          }))
+        );
+      }
+    } catch {
+      // Fallback en BECARIOS_SEMESTRE_II
+    }
+  }, []);
+
+  useEffect(() => {
+    cargarConsolidadoSemestral();
+  }, [cargarConsolidadoSemestral]);
+
+  useTiempoReal({
+    eventos: {
+      evaluacion_actualizada: () => {
+        cargarConsolidadoSemestral();
+      },
+    },
+  });
+
   // Filtrado de becarios
-  const becarios_filtrados = BECARIOS_SEMESTRE_II.filter((b) => {
+  const becarios_filtrados = registros_sabana.filter((b) => {
     const coincide_busqueda =
       b.nombre_completo.toLowerCase().includes(busqueda.toLowerCase()) ||
       b.ci.includes(busqueda) ||
@@ -216,7 +253,7 @@ export function SabanaConsolidadoSemestral() {
                 />
 
                 <Badge variant="outline" className="font-mono text-xs shrink-0 self-center">
-                  {becarios_filtrados.length} / {BECARIOS_SEMESTRE_II.length}
+                  {becarios_filtrados.length} / {registros_sabana.length}
                 </Badge>
               </div>
             </div>
@@ -319,7 +356,7 @@ export function SabanaConsolidadoSemestral() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {BECARIOS_SEMESTRE_II.map((b) => (
+                  {registros_sabana.map((b) => (
                     <TableRow key={b.id} className="hover:bg-slate-50 border-b border-[#E5E7EB]/60">
                       <TableCell className="font-bold text-[#035683]">{b.nombre_completo}</TableCell>
                       <TableCell className="text-slate-700">{b.comentario_academico || "-"}</TableCell>

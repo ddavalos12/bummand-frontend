@@ -449,7 +449,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
     async () => {
       try {
         const respuesta = await clienteApi.get<any[]>(
-          `/api/asistencia/horas-mensuales?mes=${mes_seleccionado}`
+          `/asistencia/horas-mensuales?mes=${mes_seleccionado}`
         );
         if (Array.isArray(respuesta) && respuesta.length > 0) {
           return respuesta.map((item, idx) => ({
@@ -733,54 +733,73 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
   const { datos: registros_servidor, invalidar } = useConsulta<RegistroAuditoriaAsistencia[]>(
     "asistencia_auditoria",
     async () => {
-      const respuesta = await clienteApi.get<any[]>("/api/asistencia");
-      if (Array.isArray(respuesta) && respuesta.length > 0) {
-        return respuesta.map((item) => {
-          const estado_calculado = (
-            item.estado_aprobacion === "revisado_supervisor"
-              ? "revisado_supervisor"
-              : item.estado_aprobacion === "aprobado_administracion" || item.estado === "convalidado"
-              ? "convalidado"
-              : !item.hora_salida
-              ? "en_curso"
-              : !item.dentro_de_radio
-              ? "fuera_geocerca"
-              : !item.dentro_de_horario
-              ? "tardanza"
-              : "conforme"
-          ) as RegistroAuditoriaAsistencia["estado"];
+      try {
+        const respuesta = await clienteApi.get<any[]>("/asistencia");
+        if (Array.isArray(respuesta) && respuesta.length > 0) {
+          return respuesta.map((item) => {
+            const becario_match = LISTA_23_BECARIOS_OFICIALES.find(
+              (b) => b.id === item.becario_id || b.id === item.becario?.id
+            );
+            const estado_calculado = (
+              item.estado_aprobacion === "revisado_supervisor"
+                ? "revisado_supervisor"
+                : item.estado_aprobacion === "aprobado_administracion" || item.estado === "convalidado"
+                ? "convalidado"
+                : !item.hora_salida
+                ? "en_curso"
+                : !item.dentro_de_radio
+                ? "fuera_geocerca"
+                : !item.dentro_de_horario
+                ? "tardanza"
+                : "conforme"
+            ) as RegistroAuditoriaAsistencia["estado"];
 
-          return {
-            id: item.id,
-            becario_id: item.becario_id,
-            becario_nombre: item.becario?.nombre || item.becario?.usuario?.nombre || item.becario_nombre || "Becario Institucional",
-            carrera: item.becario?.carrera || "Carrera BUMAND",
-            sede_nombre: item.becario?.lugar_practica?.nombre || item.sede_nombre || "Sede Diaconía",
-            fecha: item.fecha ? String(item.fecha).split("T")[0] : "2026-10-10",
-            hora_ingreso: item.hora_ingreso || "08:00",
-            hora_salida: item.hora_salida || null,
-            horas_trabajadas: item.horas_trabajadas || null,
-            distancia_ingreso_m: item.distancia_ingreso_m ?? (item.dentro_de_radio ? 35 : 175),
-            dentro_de_radio: item.dentro_de_radio ?? true,
-            dentro_de_horario: item.dentro_de_horario ?? true,
-            estado: estado_calculado,
-            revisado_por_supervisor: Boolean(item.revisado_por_supervisor || item.estado_aprobacion === "revisado_supervisor"),
-            supervisor_revisor: item.supervisor_revisor || item.supervisor_nombre || null,
-            fecha_revision_supervisor: item.fecha_revision_supervisor ? String(item.fecha_revision_supervisor) : null,
-            convalidado_por: item.convalidado_por || item.administrador_nombre || null,
-            motivo_convalidacion: item.motivo_convalidacion || null,
-            lat_ingreso: item.lat_ingreso,
-            lng_ingreso: item.lng_ingreso,
-            minutos_retraso: item.minutos_retraso ?? 0,
-            monto_multa_bs: item.monto_multa_bs ?? 0,
-            es_viernes: item.es_viernes ?? false,
-            tipo_actividad: item.tipo_actividad || "practicas",
-          };
-        });
+            const nombre_sede =
+              item.becario?.lugar_practica?.nombre ||
+              item.lugar_practica?.nombre ||
+              item.sede_nombre ||
+              item.lugar_practica ||
+              "Oficina Central Bloque A";
+
+            return {
+              id: item.id,
+              becario_id: item.becario_id,
+              becario_nombre:
+                item.becario?.nombre ||
+                item.becario?.usuario?.nombre ||
+                item.becario_nombre ||
+                becario_match?.nombre ||
+                "Becario Institucional",
+              carrera: item.becario?.carrera || becario_match?.carrera || "Carrera BUMAND",
+              sede_nombre: nombre_sede,
+              fecha: item.fecha ? String(item.fecha).split("T")[0] : new Date().toISOString().split("T")[0],
+              hora_ingreso: item.hora_ingreso || "08:00",
+              hora_salida: item.hora_salida || null,
+              horas_trabajadas: item.horas_trabajadas || null,
+              distancia_ingreso_m: item.distancia_ingreso_m ?? (item.dentro_de_radio ? 35 : 175),
+              dentro_de_radio: item.dentro_de_radio ?? true,
+              dentro_de_horario: item.dentro_de_horario ?? true,
+              estado: estado_calculado,
+              revisado_por_supervisor: Boolean(item.revisado_por_supervisor || item.estado_aprobacion === "revisado_supervisor"),
+              supervisor_revisor: item.supervisor_revisor || item.supervisor_nombre || null,
+              fecha_revision_supervisor: item.fecha_revision_supervisor ? String(item.fecha_revision_supervisor) : null,
+              convalidado_por: item.convalidado_por || item.administrador_nombre || null,
+              motivo_convalidacion: item.motivo_convalidacion || null,
+              lat_ingreso: item.lat_ingreso,
+              lng_ingreso: item.lng_ingreso,
+              minutos_retraso: item.minutos_retraso ?? 0,
+              monto_multa_bs: item.monto_multa_bs ?? 0,
+              es_viernes: item.es_viernes ?? false,
+              tipo_actividad: item.tipo_actividad || "practicas",
+            };
+          });
+        }
+      } catch {
+        // En caso de error de red
       }
       return REGISTROS_AUDITORIA_INICIALES;
     },
-    { datos_iniciales: REGISTROS_AUDITORIA_INICIALES }
+    { datos_iniciales: REGISTROS_AUDITORIA_INICIALES, revalidar_al_montar: true }
   );
 
   useEffect(() => {
@@ -788,6 +807,10 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
       set_registros_locales(registros_servidor);
     }
   }, [registros_servidor]);
+
+  useEffect(() => {
+    invalidar();
+  }, [vista_activa, invalidar]);
 
   const registros = registros_locales;
 

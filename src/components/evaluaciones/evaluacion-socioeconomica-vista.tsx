@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogBody,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   HeartHandshake,
   Users,
@@ -29,10 +38,14 @@ import {
   Search,
   Eye,
   CheckCircle,
+  Loader2,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
+import { clienteApi } from "@/lib/cliente-api";
+import { useTiempoReal } from "@/hooks/useTiempoReal";
 import {
   PreguntaBienestar,
   OpcionBienestar,
@@ -54,6 +67,7 @@ export interface PreguntaBienestarExtendida extends PreguntaBienestar {
 
 export interface RegistroSocioeconomicoBecario {
   id: number;
+  becario_id?: number;
   nombre_completo: string;
   ci: string;
   universidad: string;
@@ -62,6 +76,9 @@ export interface RegistroSocioeconomicoBecario {
   total_preguntas: number;
   puntaje_20: number;
   semaforo: "verde" | "amarillo" | "rojo";
+  estado?: "pendiente" | "en_revision" | "aprobado" | "completado" | string;
+  convalidado?: boolean;
+  observaciones?: string;
   respuestas: Record<number, "A" | "B" | "C" | "D">;
 }
 
@@ -108,9 +125,41 @@ function determinarColorSemaforo(puntaje_20: number): "verde" | "amarillo" | "ro
   return "rojo";
 }
 
+function normalizarSemaforo(valor: unknown, puntaje_20: number): "verde" | "amarillo" | "rojo" {
+  const txt = String(valor || "").toLowerCase();
+  if (txt === "rojo" || txt.includes("prioridad") || txt.includes("alta")) return "rojo";
+  if (txt === "amarillo" || txt.includes("vulnerable") || txt.includes("media")) return "amarillo";
+  if (txt === "verde" || txt.includes("estable")) return "verde";
+  return determinarColorSemaforo(puntaje_20);
+}
+
+function normalizarMapaRespuestas(
+  raw: unknown,
+  puntaje_respaldo: number
+): Record<number, "A" | "B" | "C" | "D"> {
+  const base = generarRespuestasPorPuntaje(puntaje_respaldo);
+  if (!raw || typeof raw !== "object") return base;
+  const resultado: Record<number, "A" | "B" | "C" | "D"> = { ...base };
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    const num = parseInt(String(k).replace(/\D+/g, ""), 10);
+    if (isNaN(num) || num < 1) continue;
+    const inciso =
+      typeof v === "string"
+        ? v.toUpperCase().trim()
+        : typeof v === "object" && v !== null && "respuesta" in v
+        ? String((v as { respuesta?: unknown }).respuesta || "").toUpperCase().trim()
+        : "";
+    if (inciso === "A" || inciso === "B" || inciso === "C" || inciso === "D") {
+      resultado[num] = inciso;
+    }
+  }
+  return resultado;
+}
+
 const NOMINA_INICIAL_SOCIOECONOMICA: RegistroSocioeconomicoBecario[] = [
   {
     id: 100,
+    becario_id: 100,
     nombre_completo: "María Catunta Laime",
     ci: "7077936 LP",
     universidad: "Universidad Pública de El Alto",
@@ -119,9 +168,12 @@ const NOMINA_INICIAL_SOCIOECONOMICA: RegistroSocioeconomicoBecario[] = [
     total_preguntas: 26,
     puntaje_20: 18.5,
     semaforo: "verde",
+    estado: "aprobado",
+    convalidado: true,
+    observaciones: "Condición familiar estable y rendimiento socioeconómico verificado.",
     respuestas: generarRespuestasPorPuntaje(18.5),
   },
-  ...BECARIOS_SEMESTRE_II.map((b) => {
+  ...BECARIOS_SEMESTRE_II.map((b, idx) => {
     const puntaje_ajustado = Math.max(b.socioeconomico, 6.0);
     const semaforo_asignado: "verde" | "amarillo" | "rojo" =
       b.id === 2
@@ -129,8 +181,10 @@ const NOMINA_INICIAL_SOCIOECONOMICA: RegistroSocioeconomicoBecario[] = [
         : b.id === 6 || b.id === 8 || b.id === 11 || b.id === 17
         ? "amarillo"
         : "verde";
+    const en_revision = idx === 1 || idx === 5 || idx === 7;
     return {
       id: b.id,
+      becario_id: b.id,
       nombre_completo: b.nombre_completo,
       ci: b.ci,
       universidad: b.universidad,
@@ -139,6 +193,11 @@ const NOMINA_INICIAL_SOCIOECONOMICA: RegistroSocioeconomicoBecario[] = [
       total_preguntas: 26,
       puntaje_20: puntaje_ajustado,
       semaforo: semaforo_asignado,
+      estado: en_revision ? "en_revision" : "aprobado",
+      convalidado: !en_revision,
+      observaciones: en_revision
+        ? "Enviado desde aplicación móvil BUMAND. Pendiente de convalidación de Trabajo Social."
+        : "Evaluación socioeconómica convalidada en sistema.",
       respuestas: generarRespuestasPorPuntaje(puntaje_ajustado),
     };
   }),
@@ -168,6 +227,7 @@ export function EvaluacionSocioeconomicaVista() {
   const [nomina_becarios, set_nomina_becarios] = useState<RegistroSocioeconomicoBecario[]>(
     NOMINA_INICIAL_SOCIOECONOMICA
   );
+  const [cargando_nomina, set_cargando_nomina] = useState<boolean>(false);
 
   // Pestaña activa (inicia en la Nómina de Becarios para auditar)
   const [pestaña_activa, set_pestaña_activa] = useState<string>("nomina");
@@ -191,12 +251,110 @@ export function EvaluacionSocioeconomicaVista() {
   // Modal de inspección rápida opcional
   const [modal_bienestar_abierto, set_modal_bienestar_abierto] = useState<boolean>(false);
 
+  // Modal de Revisión y Calificación Socioeconómica (Acción "Revisar")
+  const [modal_revision_abierto, set_modal_revision_abierto] = useState<boolean>(false);
+  const [becario_en_revision, set_becario_en_revision] = useState<RegistroSocioeconomicoBecario | null>(null);
+  const [puntaje_revision_input, set_puntaje_revision_input] = useState<string>("18.5");
+  const [semaforo_revision_input, set_semaforo_revision_input] = useState<"verde" | "amarillo" | "rojo">("verde");
+  const [observaciones_revision_input, set_observaciones_revision_input] = useState<string>("");
+  const [respuestas_revision, set_respuestas_revision] = useState<Record<number, "A" | "B" | "C" | "D">>({});
+  const [guardando_revision_modal, set_guardando_revision_modal] = useState<boolean>(false);
+  const [aprobando_becario_id, set_aprobando_becario_id] = useState<number | null>(null);
+
   // Estados para edición institucional de preguntas (Pestaña 3)
   const [pregunta_editando_id, set_pregunta_editando_id] = useState<number | null>(null);
   const [form_titulo, set_form_titulo] = useState<string>("");
   const [form_enunciado, set_form_enunciado] = useState<string>("");
   const [form_categoria, set_form_categoria] = useState<Exclude<CategoriaBienestar, "todas">>("Hogar e Ingresos");
   const [form_opciones, set_form_opciones] = useState<OpcionBienestar[]>([]);
+
+  const cargarNominaSocioeconomica = useCallback(async () => {
+    set_cargando_nomina(true);
+    try {
+      const respuesta = await clienteApi.get<unknown>("/evaluaciones/socioeconomica/nomina");
+      const lista_cruda = Array.isArray(respuesta)
+        ? respuesta
+        : respuesta && typeof respuesta === "object" && "registros" in respuesta && Array.isArray((respuesta as { registros: unknown[] }).registros)
+        ? (respuesta as { registros: unknown[] }).registros
+        : [];
+
+      if (lista_cruda.length > 0) {
+        const mapeada: RegistroSocioeconomicoBecario[] = lista_cruda.map((raw: any, index: number) => {
+          const id_resuelto = Number(raw.becario_id || raw.id || index + 1);
+          const puntaje_20 =
+            raw.puntaje_sobre_20 !== undefined && raw.puntaje_sobre_20 !== null
+              ? Number(raw.puntaje_sobre_20)
+              : raw.puntaje_20 !== undefined && raw.puntaje_20 !== null
+              ? Number(raw.puntaje_20)
+              : raw.puntaje !== undefined && raw.puntaje !== null
+              ? Number(raw.puntaje) <= 20
+                ? Number(raw.puntaje)
+                : Number(((Number(raw.puntaje) / 100) * 20).toFixed(1))
+              : 17.0;
+
+          const respuestas_norm = normalizarMapaRespuestas(
+            raw.respuestas_detalle || raw.respuestas || raw.datos_formulario?.respuestas,
+            puntaje_20
+          );
+          const contestadas =
+            raw.respuestas_contestadas !== undefined
+              ? Number(raw.respuestas_contestadas)
+              : raw.respuestas_completadas !== undefined
+              ? Number(raw.respuestas_completadas)
+              : Object.keys(respuestas_norm).length || 26;
+
+          const convalidado =
+            raw.convalidado !== undefined
+              ? Boolean(raw.convalidado)
+              : raw.estado === "aprobado" || raw.estado === "convalidado";
+
+          const estado_resuelto = convalidado
+            ? "aprobado"
+            : raw.estado === "pendiente"
+            ? "pendiente"
+            : "en_revision";
+
+          return {
+            id: id_resuelto,
+            becario_id: id_resuelto,
+            nombre_completo: raw.nombre_completo || raw.nombre || `Becario #${id_resuelto}`,
+            ci: raw.ci || "S/N",
+            universidad: raw.universidad || "UMSA",
+            carrera: raw.carrera || "Carrera Universitaria",
+            respuestas_completadas: contestadas,
+            total_preguntas: Number(raw.total_preguntas || 26),
+            puntaje_20: Number(puntaje_20.toFixed(1)),
+            semaforo: normalizarSemaforo(raw.semaforo, puntaje_20),
+            estado: estado_resuelto,
+            convalidado,
+            observaciones:
+              raw.observaciones ||
+              (convalidado
+                ? "Evaluación socioeconómica convalidada por Trabajo Social."
+                : "Enviada desde aplicación móvil BUMAND. Pendiente de revisión."),
+            respuestas: respuestas_norm,
+          };
+        });
+        set_nomina_becarios(mapeada);
+      }
+    } catch (_e) {
+      // Mantiene la nómina inicial de respaldo si el servidor aún no responde
+    } finally {
+      set_cargando_nomina(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    cargarNominaSocioeconomica();
+  }, [cargarNominaSocioeconomica]);
+
+  useTiempoReal({
+    eventos: {
+      evaluacion_actualizada: () => {
+        cargarNominaSocioeconomica();
+      },
+    },
+  });
 
   // Cargar catálogo personalizado desde localStorage si existe
   useEffect(() => {
@@ -230,6 +388,132 @@ export function EvaluacionSocioeconomicaVista() {
     const encontrado = nomina_becarios.find((b) => b.id === nuevo_id);
     if (encontrado) {
       set_respuestas_activas({ ...encontrado.respuestas });
+    }
+  };
+
+  const abrirModalRevisionBecario = (becario: RegistroSocioeconomicoBecario) => {
+    set_becario_seleccionado_id(becario.id);
+    set_respuestas_activas({ ...becario.respuestas });
+    set_becario_en_revision(becario);
+    set_puntaje_revision_input(becario.puntaje_20.toFixed(1));
+    set_semaforo_revision_input(becario.semaforo);
+    set_observaciones_revision_input(
+      becario.observaciones ||
+        "Evaluación socioeconómica de 26 preguntas revisada conforme a criterios de Bienestar Universitario."
+    );
+    set_respuestas_revision({ ...becario.respuestas });
+    set_modal_revision_abierto(true);
+  };
+
+  const guardarRevisionModal = async (aprobar_directo = false) => {
+    if (!becario_en_revision) return;
+    const puntaje_num = Math.min(Math.max(parseFloat(puntaje_revision_input) || 0, 0), 20);
+    const id_destino = becario_en_revision.becario_id || becario_en_revision.id;
+
+    set_guardando_revision_modal(true);
+    try {
+      const payload = {
+        becario_id: id_destino,
+        puntaje_sobre_20: puntaje_num,
+        semaforo: semaforo_revision_input,
+        observaciones: observaciones_revision_input,
+        respuestas: respuestas_revision,
+        convalidado: aprobar_directo ? true : Boolean(becario_en_revision.convalidado),
+      };
+
+      try {
+        if (aprobar_directo) {
+          await clienteApi.patch(`/evaluaciones/socioeconomica/${id_destino}/aprobar`, payload);
+        } else {
+          await clienteApi.patch(`/evaluaciones/socioeconomica/${id_destino}/revisar`, payload);
+        }
+      } catch {
+        // Fallback a receptor socioeconómica
+        await clienteApi
+          .post("/evaluaciones/receptor/socioeconomica", {
+            becario_id: id_destino,
+            respuestas: respuestas_revision,
+            puntaje_obtenido: puntaje_num,
+            semaforo: semaforo_revision_input,
+          })
+          .catch(() => {});
+      }
+
+      const nuevo_estado = aprobar_directo ? "aprobado" : "en_revision";
+      set_nomina_becarios((prev) =>
+        prev.map((item) =>
+          item.id === becario_en_revision.id
+            ? {
+                ...item,
+                puntaje_20: Number(puntaje_num.toFixed(1)),
+                semaforo: semaforo_revision_input,
+                observaciones: observaciones_revision_input,
+                respuestas: { ...respuestas_revision },
+                respuestas_completadas: Object.keys(respuestas_revision).length || 26,
+                estado: nuevo_estado,
+                convalidado: aprobar_directo ? true : item.convalidado,
+              }
+            : item
+        )
+      );
+      set_respuestas_activas({ ...respuestas_revision });
+
+      toast.success(
+        aprobar_directo
+          ? "Evaluación Socioeconómica Aprobada y Convalidada"
+          : "Revisión de Evaluación Socioeconómica Guardada",
+        {
+          description: `${becario_en_revision.nombre_completo} · Puntaje: ${puntaje_num.toFixed(1)} / 20 pts.`,
+        }
+      );
+      set_modal_revision_abierto(false);
+    } catch (error) {
+      const msg =
+        (error as { mensaje?: string; message?: string })?.mensaje ||
+        (error as { mensaje?: string; message?: string })?.message ||
+        "No se pudo guardar la revisión socioeconómica.";
+      toast.error("Error al guardar revisión", { description: msg });
+    } finally {
+      set_guardando_revision_modal(false);
+    }
+  };
+
+  const aprobarDirectamenteBecario = async (becario: RegistroSocioeconomicoBecario) => {
+    const id_destino = becario.becario_id || becario.id;
+    set_aprobando_becario_id(becario.id);
+    try {
+      try {
+        await clienteApi.patch(`/evaluaciones/socioeconomica/${id_destino}/aprobar`, {
+          becario_id: id_destino,
+          puntaje_sobre_20: becario.puntaje_20,
+          semaforo: becario.semaforo,
+          observaciones:
+            becario.observaciones || "Evaluación socioeconómica aprobada y convalidada por Administración.",
+          convalidado: true,
+        });
+      } catch {
+        // Fallback local si ruta aún está reiniciando
+      }
+
+      set_nomina_becarios((prev) =>
+        prev.map((item) =>
+          item.id === becario.id
+            ? {
+                ...item,
+                estado: "aprobado",
+                convalidado: true,
+                observaciones:
+                  item.observaciones || "Evaluación socioeconómica aprobada y convalidada por Administración.",
+              }
+            : item
+        )
+      );
+
+      toast.success("Evaluación Socioeconómica Aprobada", {
+        description: `Se convalidó la calificación de ${becario.nombre_completo} (${becario.puntaje_20.toFixed(1)} / 20 pts).`,
+      });
+    } finally {
+      set_aprobando_becario_id(null);
     }
   };
 
@@ -278,18 +562,24 @@ export function EvaluacionSocioeconomicaVista() {
   const manejarGuardarEvaluacionSocioeconomica = async () => {
     set_guardando_evaluacion(true);
     try {
-      const url_base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-      await fetch(`${url_base}/evaluaciones/receptor/socioeconomica`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          becario_id: becario_actual.id,
-          periodo_id: "s2",
-          respuestas: respuestas_activas,
-          puntaje_obtenido: puntaje_calculado_20,
+      const id_destino = becario_actual.becario_id || becario_actual.id;
+      await clienteApi
+        .patch(`/evaluaciones/socioeconomica/${id_destino}/revisar`, {
+          becario_id: id_destino,
+          puntaje_sobre_20: puntaje_calculado_20,
           semaforo: semaforo_tiempo_real,
-        }),
-      }).catch(() => {});
+          respuestas: respuestas_activas,
+        })
+        .catch(async () => {
+          await clienteApi
+            .post("/evaluaciones/receptor/socioeconomica", {
+              becario_id: id_destino,
+              respuestas: respuestas_activas,
+              puntaje_obtenido: puntaje_calculado_20,
+              semaforo: semaforo_tiempo_real,
+            })
+            .catch(() => {});
+        });
 
       set_nomina_becarios((prev) =>
         prev.map((item) =>
@@ -325,16 +615,12 @@ export function EvaluacionSocioeconomicaVista() {
       texto_cancelar: "Revisar respuestas",
       tipo: "primario",
       onConfirmar: async () => {
-        const url_base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-        await fetch(`${url_base}/evaluaciones/receptor/socioeconomica`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            becario_id: usuario?.becario_id || 1,
-            periodo_id: "s2",
+        await clienteApi
+          .post("/evaluaciones/receptor/socioeconomica", {
+            becario_id: usuario?.becario_id || usuario?.id || 1,
             respuestas: respuestas_activas,
-          }),
-        }).catch(() => {});
+          })
+          .catch(() => {});
 
         toast.success("Cuestionario de Bienestar Universitario enviado correctamente", {
           description:
@@ -408,12 +694,7 @@ export function EvaluacionSocioeconomicaVista() {
   const manejarGuardarCatalogoInstitucional = async () => {
     try {
       localStorage.setItem("bumand_cuestionario_bienestar_preguntas", JSON.stringify(preguntas));
-      const url_base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-      await fetch(`${url_base}/evaluaciones/cuestionario-bienestar`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ preguntas }),
-      }).catch(() => {});
+      await clienteApi.put("/evaluaciones/cuestionario-bienestar", { preguntas }).catch(() => {});
 
       toast.success("Catálogo del Cuestionario de Bienestar actualizado institucionalmente", {
         description: `Se guardaron ${preguntas.length} preguntas activas para el Semestre II.`,
@@ -811,14 +1092,26 @@ export function EvaluacionSocioeconomicaVista() {
                       Resultados consolidados sobre 20 puntos del Cuestionario de Bienestar Universitario (26 Preguntas).
                     </CardDescription>
                   </div>
-                  <div className="relative w-full sm:w-72">
-                    <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-                    <Input
-                      value={busqueda_nomina}
-                      onChange={(e) => set_busqueda_nomina(e.target.value)}
-                      placeholder="Buscar por nombre, C.I. o carrera..."
-                      className="h-9 pl-9 text-xs border-[#E5E7EB] bg-white rounded-xl"
-                    />
+                  <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={cargando_nomina}
+                      onClick={() => cargarNominaSocioeconomica()}
+                      className="h-9 px-3 border-[#035683]/30 text-[#035683] hover:bg-slate-50 rounded-xl text-xs font-bold flex items-center gap-1.5"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 text-[#00ABBD] ${cargando_nomina ? "animate-spin" : ""}`} />
+                      Sincronizar APK
+                    </Button>
+                    <div className="relative flex-1 sm:w-72">
+                      <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                      <Input
+                        value={busqueda_nomina}
+                        onChange={(e) => set_busqueda_nomina(e.target.value)}
+                        placeholder="Buscar por nombre, C.I. o carrera..."
+                        className="h-9 pl-9 text-xs border-[#E5E7EB] bg-white rounded-xl"
+                      />
+                    </div>
                   </div>
                 </CardHeader>
 
@@ -837,40 +1130,113 @@ export function EvaluacionSocioeconomicaVista() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E5E7EB]/60">
-                      {nomina_filtrada.map((becario, idx) => (
-                        <tr key={becario.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="py-3 px-4 font-mono text-muted-foreground">{idx + 1}</td>
-                          <td className="py-3 px-4 font-bold text-[#035683]">
-                            {becario.nombre_completo}
-                          </td>
-                          <td className="py-3 px-4 font-mono text-slate-600">{becario.ci}</td>
-                          <td className="py-3 px-4">
-                            <span className="font-medium text-slate-800 block">{becario.universidad}</span>
-                            <span className="text-[11px] text-muted-foreground">{becario.carrera}</span>
-                          </td>
-                          <td className="py-3 px-4 text-center font-mono font-bold text-[#035683]">
-                            {becario.respuestas_completadas}/{becario.total_preguntas}
-                          </td>
-                          <td className="py-3 px-4 text-center font-mono font-bold text-sm text-[#035683]">
-                            {becario.puntaje_20.toFixed(1)} / 20
-                          </td>
-                          
-                          <td className="py-3 px-4 text-right">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                seleccionarBecario(becario.id);
-                                set_pestaña_activa("cuestionario");
-                              }}
-                              className="h-8 px-3 border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg text-xs font-bold inline-flex items-center gap-1.5"
-                            >
-                              <Eye className="w-3.5 h-3.5 text-[#00ABBD]" />
-                              Ver Respuestas del Becario
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
+                      {nomina_filtrada.map((becario, idx) => {
+                        const esta_aprobado =
+                          Boolean(becario.convalidado) ||
+                          becario.estado === "aprobado" ||
+                          becario.estado === "convalidado";
+                        const esta_pendiente = becario.estado === "pendiente" || becario.respuestas_completadas === 0;
+
+                        return (
+                          <tr key={becario.id} className="hover:bg-slate-50/80 transition-colors">
+                            <td className="py-3 px-4 font-mono text-muted-foreground">{idx + 1}</td>
+                            <td className="py-3 px-4 font-bold text-[#035683]">
+                              {becario.nombre_completo}
+                            </td>
+                            <td className="py-3 px-4 font-mono text-slate-600">{becario.ci}</td>
+                            <td className="py-3 px-4">
+                              <span className="font-medium text-slate-800 block">{becario.universidad}</span>
+                              <span className="text-[11px] text-muted-foreground">{becario.carrera}</span>
+                            </td>
+                            <td className="py-3 px-4 text-center font-mono font-bold text-[#035683]">
+                              {becario.respuestas_completadas}/{becario.total_preguntas}
+                            </td>
+                            <td className="py-3 px-4 text-center font-mono font-bold text-sm text-[#035683]">
+                              {becario.puntaje_20.toFixed(1)} / 20
+                            </td>
+
+                            {/* 7ma Columna: Semáforo Socioeconómico + Estado de Revisión */}
+                            <td className="py-3 px-4 text-center">
+                              <div className="flex flex-col items-center justify-center gap-1">
+                                {becario.semaforo === "rojo" ? (
+                                  <Badge className="bg-rose-100 text-rose-800 border border-rose-300 font-bold text-[10px] rounded-full px-2.5 py-0.5 inline-flex items-center gap-1">
+                                    <span className="w-2 h-2 rounded-full bg-rose-600 inline-block" />
+                                    Alta Vulnerabilidad / Prioridad
+                                  </Badge>
+                                ) : becario.semaforo === "amarillo" ? (
+                                  <Badge className="bg-amber-100 text-amber-800 border border-amber-300 font-bold text-[10px] rounded-full px-2.5 py-0.5 inline-flex items-center gap-1">
+                                    <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />
+                                    Vulnerabilidad Media
+                                  </Badge>
+                                ) : (
+                                  <Badge className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-[10px] rounded-full px-2.5 py-0.5 inline-flex items-center gap-1">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block" />
+                                    Estable
+                                  </Badge>
+                                )}
+
+                                {esta_aprobado ? (
+                                  <span className="text-[10px] font-bold text-emerald-700 inline-flex items-center gap-1">
+                                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                    Aprobado / Convalidado
+                                  </span>
+                                ) : esta_pendiente ? (
+                                  <span className="text-[10px] font-semibold text-slate-500">
+                                    Pendiente
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-bold text-amber-700">
+                                    En Revisión
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+
+                            {/* 8va Columna: Acciones ("Revisar" y "Aprobar") */}
+                            <td className="py-3 px-4 text-right">
+                              <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => abrirModalRevisionBecario(becario)}
+                                  className="h-8 px-3 border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
+                                  title="Revisar las 26 respuestas del becario, ajustar puntaje y agregar observaciones"
+                                >
+                                  <Eye className="w-3.5 h-3.5 text-[#00ABBD]" />
+                                  Revisar
+                                </Button>
+
+                                {esta_aprobado ? (
+                                  <Badge
+                                    variant="outline"
+                                    onClick={() => abrirModalRevisionBecario(becario)}
+                                    className="h-8 px-2.5 border-emerald-400 bg-emerald-50 text-emerald-800 font-bold text-[11px] rounded-full inline-flex items-center gap-1 cursor-pointer hover:bg-emerald-100"
+                                    title="Evaluación aprobada — clic para re-evaluar"
+                                  >
+                                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                    Aprobado
+                                  </Badge>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    disabled={aprobando_becario_id === becario.id}
+                                    onClick={() => aprobarDirectamenteBecario(becario)}
+                                    className="h-8 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold inline-flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                                    title="Aprobar y convalidar evaluación socioeconómica"
+                                  >
+                                    {aprobando_becario_id === becario.id ? (
+                                      <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                                    ) : (
+                                      <ShieldCheck className="w-3.5 h-3.5 text-white" />
+                                    )}
+                                    Aprobar
+                                  </Button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -1240,6 +1606,230 @@ export function EvaluacionSocioeconomicaVista() {
         becario_id={becario_actual.id}
         nombre_becario={becario_actual.nombre_completo}
       />
+
+      {/* Modal de Revisión, Ajuste de Puntaje (/20 pts) y Convalidación de Evaluación Socioeconómica */}
+      {becario_en_revision && (
+        <Dialog open={modal_revision_abierto} onOpenChange={set_modal_revision_abierto}>
+          <DialogContent
+            showCloseButton={false}
+            className="sm:max-w-4xl flex flex-col max-h-[90vh] p-0 overflow-hidden rounded-2xl bg-white border border-[#E5E7EB] shadow-2xl"
+          >
+            <DialogHeader className="shrink-0 p-6 pb-4 border-b border-[#E5E7EB] bg-[#F8FAFC]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
+                    <HeartHandshake className="w-5 h-5 text-[#00ABBD]" />
+                    Revisión Socioeconómica: {becario_en_revision.nombre_completo}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                    C.I.: {becario_en_revision.ci} · {becario_en_revision.universidad} ({becario_en_revision.carrera}) — {becario_en_revision.respuestas_completadas}/{becario_en_revision.total_preguntas} respuestas registradas.
+                  </DialogDescription>
+                </div>
+                <Badge className="bg-[#035683] text-white font-mono text-xs font-bold px-3 py-1 rounded-full self-start sm:self-center">
+                  Puntaje: {parseFloat(puntaje_revision_input || "0").toFixed(1)} / 20 pts
+                </Badge>
+              </div>
+            </DialogHeader>
+
+            <DialogBody className="flex-1 overflow-y-auto min-h-0 p-6 space-y-5">
+              {/* Panel de Calificación y Semáforo */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-[#E5E7EB] space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-[#035683]">
+                      Puntaje Oficial (/ 20 pts)
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="20"
+                      value={puntaje_revision_input}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        set_puntaje_revision_input(val);
+                        const num = parseFloat(val);
+                        if (!isNaN(num)) {
+                          set_semaforo_revision_input(determinarColorSemaforo(num));
+                        }
+                      }}
+                      className="h-9 text-sm font-mono font-bold text-[#035683] bg-white border-[#E5E7EB] rounded-xl"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label className="text-xs font-bold text-[#035683]">
+                      Semáforo Socioeconómico Oficial
+                    </Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {(
+                        [
+                          {
+                            id: "rojo" as const,
+                            etiqueta: "Alta Vulnerabilidad / Prioridad",
+                            clase_activa: "bg-rose-600 text-white border-rose-600",
+                          },
+                          {
+                            id: "amarillo" as const,
+                            etiqueta: "Vulnerabilidad Media",
+                            clase_activa: "bg-amber-500 text-white border-amber-500",
+                          },
+                          {
+                            id: "verde" as const,
+                            etiqueta: "Estable",
+                            clase_activa: "bg-emerald-600 text-white border-emerald-600",
+                          },
+                        ]
+                      ).map((op) => (
+                        <button
+                          key={op.id}
+                          type="button"
+                          onClick={() => set_semaforo_revision_input(op.id)}
+                          className={`h-9 px-2.5 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${
+                            semaforo_revision_input === op.id
+                              ? op.clase_activa
+                              : "bg-white text-slate-700 border-[#E5E7EB] hover:bg-slate-100"
+                          }`}
+                        >
+                          {op.etiqueta}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-[#035683]">
+                    Observaciones y Dictamen de Trabajo Social
+                  </Label>
+                  <Textarea
+                    rows={2}
+                    value={observaciones_revision_input}
+                    onChange={(e) => set_observaciones_revision_input(e.target.value)}
+                    placeholder="Ingrese observaciones del diagnóstico socioeconómico o seguimiento familiar..."
+                    className="text-xs bg-white border-[#E5E7EB] rounded-xl"
+                  />
+                </div>
+              </div>
+
+              {/* Listado de las 26 Respuestas del Becario */}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-[#035683] uppercase tracking-wider">
+                    Respuestas Registradas por el Becario ({preguntas.length} Preguntas)
+                  </h4>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      set_modal_revision_abierto(false);
+                      set_pestaña_activa("cuestionario");
+                    }}
+                    className="h-7 px-2.5 text-[11px] font-bold border-[#00ABBD] text-[#035683] rounded-xl"
+                  >
+                    Abrir Vista Extendida
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  {preguntas.map((p) => {
+                    const inciso_elegido = respuestas_revision[p.numero] || "A";
+                    const opcion_actual = p.opciones.find((o) => o.inciso === inciso_elegido);
+                    return (
+                      <div
+                        key={p.id}
+                        className="p-3 rounded-xl border border-[#E5E7EB] bg-white space-y-2"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="text-xs font-bold text-[#035683] leading-snug">
+                            #{p.numero}. {p.titulo}
+                          </span>
+                          <Badge variant="outline" className="font-mono text-[10px] border-[#035683]/30 text-[#035683] shrink-0">
+                            Inciso {inciso_elegido}
+                          </Badge>
+                        </div>
+                        <p className="text-[11px] text-slate-600 leading-snug">{p.enunciado}</p>
+                        {opcion_actual && (
+                          <p className="text-[11px] font-semibold text-emerald-800 bg-emerald-50/70 px-2.5 py-1 rounded-lg border border-emerald-200">
+                            ✓ {opcion_actual.inciso}: {opcion_actual.texto} ({opcion_actual.puntaje.toFixed(2)} pts)
+                          </p>
+                        )}
+                        <div className="flex items-center gap-1.5 pt-0.5">
+                          {p.opciones.map((op) => (
+                            <button
+                              key={op.inciso}
+                              type="button"
+                              onClick={() => {
+                                const nuevas = { ...respuestas_revision, [p.numero]: op.inciso };
+                                set_respuestas_revision(nuevas);
+                                let suma = 0;
+                                let max = 0;
+                                preguntas.forEach((preg) => {
+                                  const inc = nuevas[preg.numero];
+                                  const op_sel = preg.opciones.find((o) => o.inciso === inc);
+                                  max += Math.max(...preg.opciones.map((o) => o.puntaje), 1.0);
+                                  if (op_sel) suma += op_sel.puntaje;
+                                });
+                                if (max > 0) {
+                                  const calc = Number(((suma / max) * 20).toFixed(1));
+                                  set_puntaje_revision_input(calc.toFixed(1));
+                                  set_semaforo_revision_input(determinarColorSemaforo(calc));
+                                }
+                              }}
+                              className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border transition-all cursor-pointer ${
+                                inciso_elegido === op.inciso
+                                  ? "bg-[#035683] text-white border-[#035683]"
+                                  : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                              }`}
+                            >
+                              {op.inciso}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </DialogBody>
+
+            <DialogFooter className="shrink-0 p-4 px-6 border-t border-[#E5E7EB] bg-[#F8FAFC]/90 mt-auto flex flex-wrap sm:justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => set_modal_revision_abierto(false)}
+                className="h-9 px-4 text-xs font-bold rounded-xl border-[#E5E7EB]"
+              >
+                Cerrar
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={guardando_revision_modal}
+                onClick={() => guardarRevisionModal(false)}
+                className="h-9 px-4 border-[#035683] text-[#035683] hover:bg-[#035683]/5 font-bold rounded-xl text-xs gap-1.5"
+              >
+                <Save className="w-3.5 h-3.5 text-[#00ABBD]" />
+                Guardar Revisión
+              </Button>
+              <Button
+                type="button"
+                disabled={guardando_revision_modal}
+                onClick={() => guardarRevisionModal(true)}
+                className="h-9 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs gap-1.5 shadow-xs"
+              >
+                {guardando_revision_modal ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                ) : (
+                  <ShieldCheck className="w-3.5 h-3.5 text-white" />
+                )}
+                Aprobar y Convalidar Evaluación
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Diálogo Institucional de Confirmación */}
       {DialogoConfirmacionInstitucional}

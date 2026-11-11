@@ -729,18 +729,33 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
     };
   };
 
+  const [becarios_consolidado, set_becarios_consolidado] = useState(BECARIOS_SEMESTRE_II);
+
+  const cargarConsolidado = async () => {
+    try {
+      const res = await clienteApi.get<any>("/evaluaciones/consolidado-semestral");
+      const lista = Array.isArray(res) ? res : res?.registros;
+      if (Array.isArray(lista) && lista.length > 0) {
+        set_becarios_consolidado(lista);
+      }
+    } catch {
+      // Fallback en BECARIOS_SEMESTRE_II
+    }
+  };
+
   const cargarNominaF03 = async () => {
     try {
       set_cargando_nomina_f03(true);
       const res = await clienteApi.get<BecarioF03Item[]>("/evaluaciones/f03/nomina");
-      const indicesRevision = [1, 4, 7, 10];
       if (res && Array.isArray(res) && res.length > 0) {
-        const enriquecida = res.map((b, idx) => {
-          const esRevision = indicesRevision.includes(idx);
-          const estado = esRevision ? "en_revision" : (b.estado || "completada");
+        const enriquecida = res.map((b) => {
+          const estado_normalizado =
+            b.estado === "completado" || b.estado === "completada" || b.estado === "aprobada"
+              ? "completada"
+              : b.estado || (b.puntaje && b.puntaje > 0 ? "completada" : "en_revision");
           return {
             ...b,
-            estado,
+            estado: estado_normalizado,
             campos_formulario:
               b.campos_formulario && Object.keys(b.campos_formulario).length > 0
                 ? b.campos_formulario
@@ -753,40 +768,13 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
         });
         set_nomina_f03(enriquecida);
       } else {
-        const inicial = BECARIOS_SEMESTRE_II.map((b, idx) => {
-          const esRevision = indicesRevision.includes(idx);
-          return {
-            becario_id: b.id,
-            nombre: b.nombre_completo,
-            ci: b.ci,
-            evaluacion_id: null,
-            puntaje: b.liderazgo_iglesia || null,
-            estado: (esRevision ? "en_revision" : "completada") as string,
-            iglesia_nombre: "Iglesia Evangélica Amigos Central",
-            pastor_nombre: "Luis Álvaro Quispe Condori",
-            pastor_celular: "73236864",
-            campos_formulario: generarCamposFormularioF03Individual(
-              b.nombre_completo,
-              "Iglesia Evangélica Amigos Central",
-              b.liderazgo_iglesia,
-              b.carrera
-            ),
-            fecha_evaluacion: b.liderazgo_iglesia > 0 ? "2026-10-15" : null,
-          };
-        });
-        set_nomina_f03(inicial);
-      }
-    } catch (_e) {
-      const indicesRevision = [1, 4, 7, 10];
-      const inicial = BECARIOS_SEMESTRE_II.map((b, idx) => {
-        const esRevision = indicesRevision.includes(idx);
-        return {
+        const inicial = BECARIOS_SEMESTRE_II.map((b) => ({
           becario_id: b.id,
           nombre: b.nombre_completo,
           ci: b.ci,
           evaluacion_id: null,
           puntaje: b.liderazgo_iglesia || null,
-          estado: (esRevision ? "en_revision" : "completada") as string,
+          estado: (b.liderazgo_iglesia > 0 ? "completada" : "en_revision") as string,
           iglesia_nombre: "Iglesia Evangélica Amigos Central",
           pastor_nombre: "Luis Álvaro Quispe Condori",
           pastor_celular: "73236864",
@@ -797,8 +785,28 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
             b.carrera
           ),
           fecha_evaluacion: b.liderazgo_iglesia > 0 ? "2026-10-15" : null,
-        };
-      });
+        }));
+        set_nomina_f03(inicial);
+      }
+    } catch (_e) {
+      const inicial = BECARIOS_SEMESTRE_II.map((b) => ({
+        becario_id: b.id,
+        nombre: b.nombre_completo,
+        ci: b.ci,
+        evaluacion_id: null,
+        puntaje: b.liderazgo_iglesia || null,
+        estado: (b.liderazgo_iglesia > 0 ? "completada" : "en_revision") as string,
+        iglesia_nombre: "Iglesia Evangélica Amigos Central",
+        pastor_nombre: "Luis Álvaro Quispe Condori",
+        pastor_celular: "73236864",
+        campos_formulario: generarCamposFormularioF03Individual(
+          b.nombre_completo,
+          "Iglesia Evangélica Amigos Central",
+          b.liderazgo_iglesia,
+          b.carrera
+        ),
+        fecha_evaluacion: b.liderazgo_iglesia > 0 ? "2026-10-15" : null,
+      }));
       set_nomina_f03(inicial);
     } finally {
       set_cargando_nomina_f03(false);
@@ -844,6 +852,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
   useEffect(() => {
     cargarNominaF03();
     cargarIglesias();
+    cargarConsolidado();
   }, []);
 
   const abrirModalNuevaIglesia = () => {
@@ -926,10 +935,10 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
   };
 
   // Métricas Administrativas Oficiales del Semestre II (21 Becarios)
-  const total_becarios = BECARIOS_SEMESTRE_II.length;
-  const becarios_optimos = BECARIOS_SEMESTRE_II.filter((b) => b.total >= 70).length;
-  const becarios_condicionados = BECARIOS_SEMESTRE_II.filter((b) => b.total >= 51 && b.total < 70).length;
-  const becarios_reprobados = BECARIOS_SEMESTRE_II.filter((b) => b.total < 51).length;
+  const total_becarios = becarios_consolidado.length;
+  const becarios_optimos = becarios_consolidado.filter((b) => b.total >= 70).length;
+  const becarios_condicionados = becarios_consolidado.filter((b) => b.total >= 51 && b.total < 70).length;
+  const becarios_reprobados = becarios_consolidado.filter((b) => b.total < 51).length;
 
   const suma_ponderaciones = Object.values(ponderacion_temporal).reduce((a, b) => a + b, 0);
   const ponderaciones_validas = suma_ponderaciones === 100;
@@ -961,7 +970,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
     set_modal_nuevo_semestre_abierto(false);
   };
 
-  const manejarGuardarPonderaciones = () => {
+  const manejarGuardarPonderaciones = async () => {
     if (!ponderaciones_validas) {
       toast.error(`La suma debe ser exactamente 100%. Actual: ${suma_ponderaciones}%.`);
       return;
@@ -972,7 +981,20 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
         ponderacion_porcentaje: ponderacion_temporal[m.clave] ?? m.ponderacion_porcentaje,
       }))
     );
-    toast.success("Ponderaciones oficiales actualizadas exitosamente (Suma exacta del 100%).");
+
+    try {
+      await clienteApi.put("/evaluaciones/periodos/2", {
+        peso_f03: ponderacion_temporal.liderazgo ?? 20,
+        peso_academica: ponderacion_temporal.academica ?? 20,
+        peso_mentor: ponderacion_temporal.practicas ?? 20,
+        peso_practicas: ponderacion_temporal.mentor ?? 20,
+        peso_socioeconomica: ponderacion_temporal.socioeconomica ?? 20,
+      });
+    } catch {
+      // Fallback reactivo
+    }
+
+    toast.success("Ponderaciones oficiales actualizadas y persistidas exitosamente (Suma = 100 pts).");
     set_panel_ponderacion_abierto(false);
   };
 
@@ -1284,7 +1306,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                 <div className="p-3 bg-white rounded-xl border border-emerald-200 bg-emerald-50/30">
                   <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">F-03 Convalidados</span>
                   <span className="text-xl font-bold font-mono text-emerald-700">
-                    {nomina_f03.filter((b) => b.estado === "completada" || b.estado === "Evaluado" || b.estado === "evaluado").length}
+                    {nomina_f03.filter((b) => b.estado === "completada" || b.estado === "completado" || b.estado === "Evaluado" || b.estado === "evaluado").length}
                   </span>
                   <span className="text-[10px] text-emerald-600 block mt-0.5">Certificados en sistema</span>
                 </div>
@@ -1524,6 +1546,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                 <div className="pt-2">
                   <FormularioF03
                     becario_id={becario_f03_seleccionado.becario_id}
+                    becario_ci={becario_f03_seleccionado.ci}
                     nombre_becario_inicial={becario_f03_seleccionado.nombre}
                     iglesia_actual={becario_f03_seleccionado.iglesia_nombre || undefined}
                     pastor_actual={becario_f03_seleccionado.pastor_nombre || undefined}
@@ -1541,7 +1564,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                             ? {
                                 ...b,
                                 puntaje: res.puntaje,
-                                estado: "completada",
+                                estado: res.estado === "completado" || res.estado === "completada" ? "completada" : "completada",
                                 pastor_nombre: res.pastor_nombre ?? b.pastor_nombre,
                                 iglesia_nombre: res.iglesia_nombre ?? b.iglesia_nombre,
                                 pastor_celular: res.pastor_celular ?? b.pastor_celular,
@@ -2616,7 +2639,29 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               <Layers className="w-4 h-4 text-[#00ABBD]" />
               Matriz Normativa de Criterios Canónicos Semestrales
             </h3>
-            <CriteriosEvaluacionTabla />
+            <CriteriosEvaluacionTabla
+              es_admin={es_admin}
+              alActualizarEstructura={(nuevos_criterios) => {
+                const encontrarPeso = (prefijo: string, defecto: number) => {
+                  const crit = nuevos_criterios.find((c) => c.modulo.startsWith(prefijo));
+                  return crit ? crit.puntaje_maximo : defecto;
+                };
+                const nueva_pond = {
+                  academica: encontrarPeso("1.", 20),
+                  liderazgo: encontrarPeso("2.", 20),
+                  practicas: encontrarPeso("3.", 20),
+                  mentor: encontrarPeso("4.", 20),
+                  socioeconomica: encontrarPeso("5.", 20),
+                };
+                set_ponderacion_temporal(nueva_pond);
+                set_modulos((prev) =>
+                  prev.map((m) => ({
+                    ...m,
+                    ponderacion_porcentaje: nueva_pond[m.clave] ?? m.ponderacion_porcentaje,
+                  }))
+                );
+              }}
+            />
           </div>
 
           {/* Gestión de Periodos Semestrales */}

@@ -91,7 +91,7 @@ export interface SolicitudPasajeVista {
   tipo_actividad?: "Prácticas" | "Escuela de Líderes" | "Acciones de Servicio";
   monto_total_centavos: number;
   monto_devolucion_centavos: number;
-  estado: "pendiente" | "revisado_supervisor" | "aprobado_administracion" | "aprobado" | "rechazado";
+  estado: "borrador" | "pendiente" | "revisado_supervisor" | "aprobado_administracion" | "aprobado" | "rechazado";
   observaciones?: string;
   fecha_envio: string;
   revisado_por_supervisor?: boolean;
@@ -352,8 +352,18 @@ export function AprobacionPasajes() {
   useEffect(() => {
     if (solicitudes_servidor && solicitudes_servidor.length > 0) {
       set_solicitudes_locales(solicitudes_servidor);
+      if (id_seleccionado) {
+        const encontrada = solicitudes_servidor.find((s) => s.id === id_seleccionado);
+        if (encontrada) {
+          set_solicitud_seleccionada(encontrada);
+        }
+      }
     }
-  }, [solicitudes_servidor]);
+  }, [solicitudes_servidor, id_seleccionado]);
+
+  useEffect(() => {
+    invalidar();
+  }, [subpestana, invalidar]);
 
   const solicitudes = solicitudes_locales;
 
@@ -364,13 +374,13 @@ export function AprobacionPasajes() {
   const es_admin = usuario?.rol === "administrador";
   const es_supervisor = usuario?.rol === "supervisor" || (!es_admin && usuario?.rol !== "becario");
 
-  const total_pendientes = solicitudes.filter((s) => s.estado === "pendiente").length;
+  const total_pendientes = solicitudes.filter((s) => s.estado === "pendiente" || s.estado === "borrador").length;
   const total_revisados_supervisor = solicitudes.filter((s) => s.estado === "revisado_supervisor").length;
   const total_aprobados = solicitudes.filter((s) => s.estado === "aprobado" || s.estado === "aprobado_administracion").length;
-  const total_formularios = 16; // Conforme a la nómina institucional de Marzo 2026
+  const total_formularios = solicitudes.length > 0 ? solicitudes.length : 16;
 
   const solicitudes_filtradas = solicitudes.filter((s) => {
-    if (filtro_estado === "pendientes") return s.estado === "pendiente";
+    if (filtro_estado === "pendientes") return s.estado === "pendiente" || s.estado === "borrador";
     if (filtro_estado === "revisado_supervisor") return s.estado === "revisado_supervisor";
     if (filtro_estado === "aprobados") return s.estado === "aprobado" || s.estado === "aprobado_administracion";
     return true;
@@ -621,10 +631,20 @@ export function AprobacionPasajes() {
               <span>Ver Paradas</span>
             </Button>
 
-            {solicitud_activa.estado === "pendiente" ? (
+            {solicitud_activa.estado === "borrador" ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-[#007BBE] border border-[#00ABBD]/30 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#007BBE] animate-pulse" />
+                En Curso (APK)
+              </span>
+            ) : solicitud_activa.estado === "pendiente" ? (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#FBF4E4] text-[#92400E] border border-[#FDE68A]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
                 Pendiente
+              </span>
+            ) : solicitud_activa.estado === "revisado_supervisor" ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-sky-50 text-sky-800 border border-sky-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+                Revisado Sup.
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]">
@@ -1173,6 +1193,7 @@ export function AprobacionPasajes() {
                     ) : (
                       solicitudes_filtradas.map((item) => {
                         const es_seleccionado = Boolean(solicitud_activa && item.id === solicitud_activa.id);
+                        const es_borrador = item.estado === "borrador";
                         const es_pendiente = item.estado === "pendiente";
                         const es_revisado = item.estado === "revisado_supervisor";
                         const es_aprobado = item.estado === "aprobado" || item.estado === "aprobado_administracion";
@@ -1241,7 +1262,12 @@ export function AprobacionPasajes() {
 
                             {/* ESTADO CON PUNTO */}
                             <td className="py-3.5 px-4">
-                              {es_pendiente ? (
+                              {es_borrador ? (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-[#007BBE] border border-[#00ABBD]/30 shadow-2xs">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-[#007BBE] animate-pulse" />
+                                  En Curso (APK)
+                                </span>
+                              ) : es_pendiente ? (
                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#FBF4E4] text-[#92400E] border border-[#FDE68A]">
                                   <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
                                   Pendiente

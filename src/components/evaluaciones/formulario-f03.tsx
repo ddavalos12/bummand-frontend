@@ -27,6 +27,7 @@ import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 
 export interface PropiedadesFormularioF03 {
   becario_id?: number;
+  becario_ci?: string;
   nombre_becario_inicial?: string;
   iglesia_actual?: string;
   pastor_actual?: string;
@@ -83,6 +84,7 @@ function generarRespuestasPorDefecto(nombre_becario: string, nombre_iglesia?: st
  */
 export function FormularioF03({
   becario_id = 1,
+  becario_ci,
   nombre_becario_inicial = "Becario Institucional",
   iglesia_actual,
   pastor_actual,
@@ -329,7 +331,12 @@ export function FormularioF03({
     set_error_formulario(null);
     set_guardando(true);
 
-    const iglesia_resuelta = iglesia_nombre?.trim() || "Iglesia Evangélica Local";
+    const iglesia_resuelta = (iglesia_nombre?.trim() || "Iglesia Evangélica Local").slice(0, 150);
+    const pastor_nombre_limpio = pastor_nombre.trim().slice(0, 150);
+    const pastor_correo_limpio = (pastor_correo || "").trim().slice(0, 150);
+    const pastor_celular_limpio = (pastor_celular || "").trim().slice(0, 30);
+    const iglesia_direccion_limpia = (iglesia_direccion || "").trim().slice(0, 255);
+
     const campos_respuestas = {
       lider_nombre,
       lider_cargo,
@@ -354,12 +361,13 @@ export function FormularioF03({
 
     const cuerpo = {
       becario_id: becario_id || 1,
+      becario_ci: becario_ci || undefined,
       becario_nombre: becario_nombre || nombre_becario_inicial,
-      pastor_nombre,
-      pastor_correo,
-      pastor_celular,
+      pastor_nombre: pastor_nombre_limpio,
+      pastor_correo: pastor_correo_limpio,
+      pastor_celular: pastor_celular_limpio,
       iglesia_nombre: iglesia_resuelta,
-      iglesia_direccion,
+      iglesia_direccion: iglesia_direccion_limpia,
       puntaje: Number(puntaje_f03),
       observaciones: pregunta_opinion,
       campos_formulario: campos_respuestas,
@@ -381,16 +389,23 @@ export function FormularioF03({
         alGuardar({
           becario_id: becario_id || 1,
           puntaje: Number(puntaje_f03),
-          estado: "completada",
-          pastor_nombre,
+          estado: "completado",
+          pastor_nombre: pastor_nombre_limpio,
           iglesia_nombre: iglesia_resuelta,
-          pastor_celular,
+          pastor_celular: pastor_celular_limpio,
           campos_formulario: campos_respuestas,
         });
       }
       if (alEnviarExito) alEnviarExito();
-    } catch (_error) {
-      toast.error("Error al registrar la evaluación pastoral en el servidor.");
+    } catch (error) {
+      const detalle_error =
+        (error as { mensaje?: string; message?: string })?.mensaje ||
+        (error as { mensaje?: string; message?: string })?.message ||
+        "Error al registrar la evaluación pastoral en el servidor.";
+      set_error_formulario(detalle_error);
+      toast.error("Error al registrar la evaluación pastoral en el servidor.", {
+        description: detalle_error,
+      });
     } finally {
       set_guardando(false);
     }

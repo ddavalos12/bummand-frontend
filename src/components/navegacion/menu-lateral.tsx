@@ -110,6 +110,31 @@ export function MenuLateral({
   const [nuevo_correo_alt, set_nuevo_correo_alt] = useState("");
   const [nueva_etiqueta_alt, set_nueva_etiqueta_alt] = useState("Personal");
   const [guardando_correo_alt, set_guardando_correo_alt] = useState(false);
+  const [dialogo_cerrar_sesion_abierto, set_dialogo_cerrar_sesion_abierto] = useState(false);
+
+  const manejarCerrarSesion = () => {
+    set_dialogo_cerrar_sesion_abierto(false);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("bumand_token");
+        localStorage.removeItem("bumand_usuario");
+        localStorage.removeItem("bumand_correos_usuarios_mapa");
+        Object.keys(localStorage).forEach((clave) => {
+          if (
+            clave.startsWith("bumand_token") ||
+            clave.startsWith("bumand_usuario") ||
+            clave.startsWith("bumand_auth")
+          ) {
+            localStorage.removeItem(clave);
+          }
+        });
+      } catch {
+        // Ignorar error al limpiar storage
+      }
+      clienteApi.post("/autenticacion/cerrar-sesion", {}).catch(() => {});
+    }
+    cerrarSesion();
+  };
 
   const correos_adicionales_actuales: CorreoAdicionalUsuario[] = React.useMemo(() => {
     const base =
@@ -618,7 +643,7 @@ export function MenuLateral({
           </button>
         )}
 
-        <AlertDialog>
+        <AlertDialog open={dialogo_cerrar_sesion_abierto} onOpenChange={set_dialogo_cerrar_sesion_abierto}>
           <AlertDialogTrigger asChild>
             <Button
               variant="outline"
@@ -645,7 +670,7 @@ export function MenuLateral({
             <AlertDialogFooter>
               <AlertDialogCancel>Permanecer</AlertDialogCancel>
               <AlertDialogAction
-                onClick={cerrarSesion}
+                onClick={manejarCerrarSesion}
                 className="bg-[#E2694B] hover:bg-[#E2694B]/90 text-white font-bold"
               >
                 Cerrar Sesión

@@ -426,11 +426,25 @@ export function MiPerfilCuenta() {
     set_guardando_clave(true);
 
     try {
-      await clienteApi.patch("/usuarios/mi-perfil/contrasena", {
-        contrasena_actual: clave_actual,
-        nueva_contrasena: clave_nueva,
-        confirmar_contrasena: clave_confirmar,
-      });
+      try {
+        await clienteApi.patch("/usuarios/mi-perfil/contrasena", {
+          contrasena_actual: clave_actual,
+          nueva_contrasena: clave_nueva,
+        });
+      } catch (err_patch: any) {
+        if (
+          err_patch?.codigo_estado === 404 ||
+          err_patch?.message?.includes("Not Found") ||
+          err_patch?.mensaje?.includes("Not Found")
+        ) {
+          await clienteApi.patch("/autenticacion/cambiar-contrasena", {
+            contrasena_actual: clave_actual,
+            nueva_contrasena: clave_nueva,
+          });
+        } else {
+          throw err_patch;
+        }
+      }
       toast.success("Contraseña actualizada con éxito", {
         description: "Su clave de acceso ha sido modificada. Por favor recuérdela para próximos inicios de sesión.",
       });

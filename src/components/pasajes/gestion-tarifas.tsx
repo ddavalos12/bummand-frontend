@@ -27,6 +27,7 @@ import {
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
 import { useConsulta } from "@/hooks/useConsulta";
+import { useTiempoReal } from "@/hooks/useTiempoReal";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 
 export interface TarifaItem {
@@ -49,20 +50,27 @@ export function GestionTarifas() {
     "todas_las_tarifas",
     async () => {
       try {
-        const respuesta = await clienteApi.get<TarifaItem[]>("/api/pasajes/tarifas/todas");
+        const respuesta = await clienteApi.get<TarifaItem[]>("/pasajes/tarifas/todas");
         return Array.isArray(respuesta) ? respuesta : [];
       } catch (_e) {
-        // Fallback a ruta de tarifas estándar si /todas no responde
         try {
-          const respuesta_estandar = await clienteApi.get<TarifaItem[]>("/api/pasajes/tarifas");
+          const respuesta_estandar = await clienteApi.get<TarifaItem[]>("/pasajes/tarifas");
           return Array.isArray(respuesta_estandar) ? respuesta_estandar : [];
         } catch {
           return [];
         }
       }
     },
-    { datos_iniciales: [] }
+    { datos_iniciales: [], revalidar_al_montar: true }
   );
+
+  useTiempoReal({
+    eventos: {
+      pasajes_actualizados: () => {
+        invalidar();
+      },
+    },
+  });
 
   const lista_tarifas = tarifas_servidor || [];
 
@@ -118,7 +126,7 @@ export function GestionTarifas() {
     set_guardando(true);
     try {
       if (tarifa_editar) {
-        await clienteApi.patch(`/api/pasajes/tarifas/${tarifa_editar.id}`, {
+        await clienteApi.patch(`/pasajes/tarifas/${tarifa_editar.id}`, {
           medio_transporte: medio_transporte.trim(),
           descripcion: descripcion.trim() || `Ruta oficial para ${medio_transporte.trim()}`,
           costo_bs: monto,
@@ -128,7 +136,7 @@ export function GestionTarifas() {
         });
         toast.success("Tarifa actualizada exitosamente.");
       } else {
-        await clienteApi.post<any>("/api/pasajes/tarifas", {
+        await clienteApi.post<any>("/pasajes/tarifas", {
           medio_transporte: medio_transporte.trim(),
           descripcion: descripcion.trim() || `Ruta oficial para ${medio_transporte.trim()}`,
           costo_bs: monto,

@@ -138,7 +138,7 @@ export function BandejaJustificaciones() {
   useEffect(() => {
     async function cargarBecarios() {
       try {
-        const respuesta = await clienteApi.get<any[]>("/api/becarios");
+        const respuesta = await clienteApi.get<any[]>("/becarios");
         if (Array.isArray(respuesta) && respuesta.length > 0) {
           const formateados = respuesta.map((b) => ({
             id: b.id,
@@ -253,35 +253,54 @@ export function BandejaJustificaciones() {
   const { datos: justificaciones_servidor, invalidar } = useConsulta<JustificacionIncidencia[]>(
     "justificaciones_todas",
     async () => {
-      const respuesta = await clienteApi.get<any[]>("/api/justificaciones");
-      if (Array.isArray(respuesta) && respuesta.length > 0) {
-        return respuesta.map((item) => ({
-          id: item.id,
-          becario_id: item.becario_id,
-          becario_nombre: item.becario?.nombre || item.becario?.usuario?.nombre || "Becario Institucional",
-          carrera: item.becario?.carrera || "Carrera BUMAND",
-          sede_nombre: item.becario?.lugar_practica?.nombre || "Sede Diaconía",
-          tipo_incidencia: item.tipo_incidencia || "asistencia_practicas",
-          fecha_incidencia: item.fecha_incidencia ? String(item.fecha_incidencia).split("T")[0] : "2026-10-01",
-          motivo: item.motivo,
-          descripcion: item.descripcion,
-          documento_adjunto: item.documento_adjunto || item.nombre_archivo_prueba,
-          archivo_prueba_url: item.archivo_prueba_url,
-          nombre_archivo_prueba: item.nombre_archivo_prueba || item.documento_adjunto,
-          estado: (item.estado || "pendiente").toLowerCase() as JustificacionIncidencia["estado"],
-          supervisor_nombre: item.supervisor?.nombre || item.supervisor_nombre || null,
-          observacion_supervisor: item.observacion_supervisor || null,
-          fecha_revision_supervisor: item.fecha_revision_supervisor ? String(item.fecha_revision_supervisor) : null,
-          administrador_nombre: item.administrador?.nombre || item.administrador_nombre || null,
-          observacion_admin: item.observacion_admin || null,
-          fecha_resolucion: item.fecha_resolucion ? String(item.fecha_resolucion) : null,
-          exime_multa_viernes: Boolean(item.exime_multa_viernes || item.tipo_incidencia === "escuela_lideres"),
-          created_at: item.created_at ? String(item.created_at) : "2026-10-01",
-        }));
+      try {
+        const respuesta = await clienteApi.get<any[]>("/justificaciones");
+        if (Array.isArray(respuesta) && respuesta.length > 0) {
+          return respuesta.map((item) => {
+            const becario_match = lista_becarios.find(
+              (b) => b.id === item.becario_id || b.id === item.becario?.id
+            );
+            return {
+              id: item.id,
+              becario_id: item.becario_id,
+              becario_nombre:
+                item.becario?.nombre ||
+                item.becario?.usuario?.nombre ||
+                item.becario_nombre ||
+                becario_match?.nombre ||
+                "Becario Institucional",
+              carrera: item.becario?.carrera || becario_match?.carrera || "Carrera BUMAND",
+              sede_nombre:
+                item.becario?.lugar_practica?.nombre ||
+                item.lugar_practica_nombre ||
+                item.sede_nombre ||
+                becario_match?.sede ||
+                "Sede Diaconía",
+              tipo_incidencia: item.tipo_incidencia || "asistencia_practicas",
+              fecha_incidencia: item.fecha_incidencia ? String(item.fecha_incidencia).split("T")[0] : new Date().toISOString().split("T")[0],
+              motivo: item.motivo,
+              descripcion: item.descripcion,
+              documento_adjunto: item.documento_adjunto || item.nombre_archivo_prueba,
+              archivo_prueba_url: item.archivo_prueba_url,
+              nombre_archivo_prueba: item.nombre_archivo_prueba || item.documento_adjunto,
+              estado: (item.estado || "pendiente").toLowerCase() as JustificacionIncidencia["estado"],
+              supervisor_nombre: item.supervisor?.nombre || item.supervisor_nombre || null,
+              observacion_supervisor: item.observacion_supervisor || null,
+              fecha_revision_supervisor: item.fecha_revision_supervisor ? String(item.fecha_revision_supervisor) : null,
+              administrador_nombre: item.administrador?.nombre || item.administrador_nombre || null,
+              observacion_admin: item.observacion_admin || null,
+              fecha_resolucion: item.fecha_resolucion ? String(item.fecha_resolucion) : null,
+              exime_multa_viernes: Boolean(item.exime_multa_viernes || item.tipo_incidencia === "escuela_lideres"),
+              created_at: item.created_at ? String(item.created_at) : new Date().toISOString(),
+            };
+          });
+        }
+      } catch {
+        // En caso de fallo de red
       }
       return [];
     },
-    { datos_iniciales: [] }
+    { datos_iniciales: [], revalidar_al_montar: true }
   );
 
   useEffect(() => {
