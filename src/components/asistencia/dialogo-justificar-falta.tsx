@@ -46,6 +46,8 @@ export interface IncidenciaAsistenciaInicial {
   hora?: string;
   sede?: string;
   referencia_id?: number;
+  becario_id?: number;
+  becario_nombre?: string;
   motivo_sugerido?: string;
 }
 
@@ -184,7 +186,7 @@ export function DialogoJustificarFalta({
     set_enviando(true);
 
     const payload = {
-      becario_id: usuario?.becario_id || usuario?.id || 1,
+      becario_id: incidencia?.becario_id || usuario?.becario_id || usuario?.id || 1,
       tipo_incidencia,
       referencia_id: incidencia?.referencia_id || incidencia?.id || undefined,
       fecha_incidencia,
@@ -238,6 +240,11 @@ export function DialogoJustificarFalta({
               Reglamento BUMAND
             </Badge>
           </div>
+          {incidencia?.becario_nombre && (
+            <p className="text-xs font-semibold text-[#00808E] mt-1">
+              Becario: {incidencia.becario_nombre}
+            </p>
+          )}
           <p className="text-xs text-muted-foreground mt-1">
             Radicación oficial de justificativo con respaldo documental probatorio (receta médica, boleta académica o constancia oficial).
           </p>

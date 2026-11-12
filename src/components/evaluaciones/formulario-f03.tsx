@@ -374,11 +374,21 @@ export function FormularioF03({
     };
 
     try {
+      const id_becario_destino = becario_id || 1;
       try {
-        await clienteApi.post(`/evaluaciones/f03/becario/${becario_id || 1}`, cuerpo);
-      } catch {
-        // Fallback endpoint alternativo
-        await clienteApi.post(`/evaluaciones/${becario_id || 1}/formulario-f03`, cuerpo);
+        await clienteApi.post(`/api/evaluaciones/f03/becario/${id_becario_destino}`, cuerpo);
+      } catch (error_principal) {
+        // Fallback endpoint alternativo (solo ante ruta no encontrada o error de red);
+        // errores de validación/autorización del endpoint principal se propagan tal cual.
+        const codigo_estado = (error_principal as { codigo_estado?: number })?.codigo_estado ?? 0;
+        if (codigo_estado !== 404 && codigo_estado !== 0) {
+          throw error_principal;
+        }
+        try {
+          await clienteApi.post(`/api/evaluaciones/${id_becario_destino}/formulario-f03`, cuerpo);
+        } catch {
+          throw error_principal;
+        }
       }
 
       toast.success("Evaluación F-03 guardada con éxito", {

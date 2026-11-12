@@ -44,7 +44,7 @@ export class ClienteApi {
       url_base ||
       (typeof process !== "undefined" && process.env.NEXT_PUBLIC_API_URL
         ? process.env.NEXT_PUBLIC_API_URL
-        : "http://localhost:3000");
+        : "http://localhost:3002");
   }
 
   private normalizarRuta(ruta: string): string {

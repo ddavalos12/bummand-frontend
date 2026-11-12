@@ -618,6 +618,8 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
       hora: item.hora_ingreso,
       sede: item.sede_nombre,
       referencia_id: item.id,
+      becario_id: item.becario_id,
+      becario_nombre: item.becario_nombre,
       motivo_sugerido:
         item.motivo_convalidacion ||
         (item.minutos_retraso
@@ -736,7 +738,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
       try {
         const respuesta = await clienteApi.get<any[]>("/asistencia");
         if (Array.isArray(respuesta) && respuesta.length > 0) {
-          return respuesta.map((item) => {
+          const mapeados = respuesta.map((item) => {
             const becario_match = LISTA_23_BECARIOS_OFICIALES.find(
               (b) => b.id === item.becario_id || b.id === item.becario?.id
             );
@@ -793,13 +795,14 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
               tipo_actividad: item.tipo_actividad || "practicas",
             };
           });
+          return [...REGISTROS_AUDITORIA_INICIALES, ...mapeados];
         }
       } catch {
         // En caso de error de red
       }
       return REGISTROS_AUDITORIA_INICIALES;
     },
-    { datos_iniciales: REGISTROS_AUDITORIA_INICIALES, revalidar_al_montar: true }
+    { datos_iniciales: REGISTROS_AUDITORIA_INICIALES, revalidar_al_montar: true, tiempo_vida_cache_ms: 0 }
   );
 
   useEffect(() => {
@@ -917,14 +920,24 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
   const manejarAprobarAdministracion = async (item: RegistroAuditoriaAsistencia) => {
     const nombre_admin = usuario?.nombre || "Administración Central";
     const fecha_actual = new Date().toISOString().split("T")[0];
+    const observacion_admin = "Convalidado y aprobado por Administración (exento de multa)";
     try {
-      await clienteApi.patch(`/api/asistencia/${item.id}/convalidar`, {
-        administrador_id: usuario?.id || 1,
-        administrador_nombre: nombre_admin,
-        estado: "convalidado",
+      await clienteApi.patch(`/api/asistencia/${item.id}/aprobar-administracion`, {
+        estado: "aprobado_administracion",
+        observacion_admin,
       });
-    } catch {
-      // Fallback reactivo
+    } catch (error) {
+      const codigo_estado = (error as { codigo_estado?: number })?.codigo_estado ?? 0;
+      // Los registros semilla institucionales no existen en BD (404): se convalidan solo en la interfaz.
+      if (codigo_estado !== 404) {
+        toast.error("No se pudo aprobar la asistencia en el servidor", {
+          description:
+            (error as { mensaje?: string; message?: string })?.mensaje ||
+            (error as { message?: string })?.message ||
+            "Intente nuevamente.",
+        });
+        return;
+      }
     }
     set_registros_locales((prev) =>
       prev.map((r) =>
