@@ -43,6 +43,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
+import { BotonesAccionEvaluacion } from "./botones-accion-evaluacion";
 import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
 import { clienteApi } from "@/lib/cliente-api";
 import { useTiempoReal } from "@/hooks/useTiempoReal";
@@ -247,6 +248,7 @@ export function EvaluacionSocioeconomicaVista() {
   );
 
   const [guardando_evaluacion, set_guardando_evaluacion] = useState<boolean>(false);
+  const [becario_enviado, set_becario_enviado] = useState<boolean>(false);
 
   // Modal de inspección rápida opcional
   const [modal_bienestar_abierto, set_modal_bienestar_abierto] = useState<boolean>(false);
@@ -622,6 +624,7 @@ export function EvaluacionSocioeconomicaVista() {
           })
           .catch(() => {});
 
+        set_becario_enviado(true);
         toast.success("Cuestionario de Bienestar Universitario enviado correctamente", {
           description:
             "Sus 26 respuestas han sido registradas en su expediente semestral de Trabajo Social.",
@@ -1194,45 +1197,18 @@ export function EvaluacionSocioeconomicaVista() {
 
                             {/* 8va Columna: Acciones ("Revisar" y "Aprobar") */}
                             <td className="py-3 px-4 text-right">
-                              <div className="flex items-center justify-end gap-1.5 flex-wrap">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => abrirModalRevisionBecario(becario)}
-                                  className="h-8 px-3 border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
-                                  title="Revisar las 26 respuestas del becario, ajustar puntaje y agregar observaciones"
-                                >
-                                  <Eye className="w-3.5 h-3.5 text-[#00ABBD]" />
-                                  Revisar
-                                </Button>
-
-                                {esta_aprobado ? (
-                                  <Badge
-                                    variant="outline"
-                                    onClick={() => abrirModalRevisionBecario(becario)}
-                                    className="h-8 px-2.5 border-emerald-400 bg-emerald-50 text-emerald-800 font-bold text-[11px] rounded-full inline-flex items-center gap-1 cursor-pointer hover:bg-emerald-100"
-                                    title="Evaluación aprobada — clic para re-evaluar"
-                                  >
-                                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                                    Aprobado
-                                  </Badge>
-                                ) : (
-                                  <Button
-                                    size="sm"
-                                    disabled={aprobando_becario_id === becario.id}
-                                    onClick={() => aprobarDirectamenteBecario(becario)}
-                                    className="h-8 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold inline-flex items-center gap-1.5 shadow-2xs cursor-pointer"
-                                    title="Aprobar y convalidar evaluación socioeconómica"
-                                  >
-                                    {aprobando_becario_id === becario.id ? (
-                                      <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
-                                    ) : (
-                                      <ShieldCheck className="w-3.5 h-3.5 text-white" />
-                                    )}
-                                    Aprobar
-                                  </Button>
-                                )}
-                              </div>
+                              <BotonesAccionEvaluacion
+                                estado={esta_aprobado ? "completado" : "pendiente"}
+                                alRevisar={() => abrirModalRevisionBecario(becario)}
+                                titulo_revisar="Revisar las 26 respuestas del becario, ajustar puntaje y agregar observaciones"
+                                texto_pendiente="Aprobar"
+                                titulo_pendiente="Aprobar y convalidar evaluación socioeconómica"
+                                alEjecutarPendiente={() => aprobarDirectamenteBecario(becario)}
+                                texto_completado="Aprobado"
+                                titulo_completado="Evaluación aprobada — clic para revisar o re-evaluar"
+                                alHacerClicCompletado={() => abrirModalRevisionBecario(becario)}
+                                cargando={aprobando_becario_id === becario.id}
+                              />
                             </td>
                           </tr>
                         );
@@ -1587,13 +1563,20 @@ export function EvaluacionSocioeconomicaVista() {
                   Verifique que las {total_preguntas} preguntas estén respondidas antes de remitir su formulario a Trabajo Social.
                 </p>
               </div>
-              <Button
-                onClick={manejarEnviarAutollenadoBecario}
-                className="h-11 px-6 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs flex items-center gap-2 shrink-0 shadow-sm"
-              >
-                <CheckCircle2 className="w-4 h-4 text-[#FFB600]" />
-                Enviar Mi Evaluación Socioeconómica (26 Preguntas)
-              </Button>
+              <BotonesAccionEvaluacion
+                tamano="md"
+                estado={becario_enviado ? "completado" : "pendiente"}
+                texto_revisar="Revisar Respuestas"
+                titulo_revisar="Revisar el cuestionario socioeconómico completo"
+                alRevisar={() => set_modal_bienestar_abierto(true)}
+                texto_pendiente="Enviar Evaluación (26P)"
+                titulo_pendiente="Remitir las 26 respuestas a Trabajo Social"
+                icono_pendiente="enviar"
+                alEjecutarPendiente={manejarEnviarAutollenadoBecario}
+                texto_completado="Enviado a Revisión"
+                titulo_completado="Cuestionario enviado — clic para reenviar o actualizar"
+                alHacerClicCompletado={manejarEnviarAutollenadoBecario}
+              />
             </CardContent>
           </Card>
         </div>
@@ -1813,19 +1796,21 @@ export function EvaluacionSocioeconomicaVista() {
                 <Save className="w-3.5 h-3.5 text-[#00ABBD]" />
                 Guardar Revisión
               </Button>
-              <Button
-                type="button"
-                disabled={guardando_revision_modal}
-                onClick={() => guardarRevisionModal(true)}
-                className="h-9 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs gap-1.5 shadow-xs"
-              >
-                {guardando_revision_modal ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
-                ) : (
-                  <ShieldCheck className="w-3.5 h-3.5 text-white" />
-                )}
-                Aprobar y Convalidar Evaluación
-              </Button>
+              <BotonesAccionEvaluacion
+                tamano="md"
+                mostrar_revisar={false}
+                estado={
+                  becario_en_revision.convalidado || becario_en_revision.estado === "aprobado"
+                    ? "completado"
+                    : "pendiente"
+                }
+                texto_pendiente="Aprobar y Convalidar Evaluación"
+                alEjecutarPendiente={() => guardarRevisionModal(true)}
+                texto_completado="Aprobado"
+                titulo_completado="Evaluación convalidada — clic para actualizar aprobación"
+                alHacerClicCompletado={() => guardarRevisionModal(true)}
+                cargando={guardando_revision_modal}
+              />
             </DialogFooter>
           </DialogContent>
         </Dialog>

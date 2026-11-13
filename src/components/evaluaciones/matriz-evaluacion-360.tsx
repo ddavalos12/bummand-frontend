@@ -24,6 +24,7 @@ import { CuestionarioBienestarModal } from "./cuestionario-bienestar-modal";
 import { FormularioMentorModal } from "./formulario-mentor-modal";
 import { EscuelaLideresClassroom } from "./escuela-lideres-classroom";
 import { SabanaConsolidadoSemestral } from "./sabana-consolidado-semestral";
+import { BotonesAccionEvaluacion } from "./botones-accion-evaluacion";
 import {
   Award,
   CheckCircle,
@@ -705,18 +706,21 @@ export function MatrizEvaluacion360() {
               </p>
             </div>
 
-            <Button
-              onClick={() => {
+            <BotonesAccionEvaluacion
+              tamano="md"
+              mostrar_revisar={false}
+              estado={evaluacion_convalidada ? "completado" : "pendiente"}
+              texto_pendiente="Convalidar Evaluación"
+              titulo_pendiente="Acreditar el cierre de la evaluación semestral en sistema"
+              alEjecutarPendiente={() => {
                 set_evaluacion_convalidada(true);
                 toast.success("Evaluación convalidada en sistema", {
                   description: "La evaluación semestral ha sido acreditada formalmente.",
                 });
               }}
-              className="h-10 px-5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl flex items-center gap-2"
-            >
-              <ShieldCheck className="w-4 h-4 text-[#FFB600]" />
-              {evaluacion_convalidada ? "Evaluación Convalidada" : "Convalidar Evaluación"}
-            </Button>
+              texto_completado="Convalidado"
+              titulo_completado="Evaluación semestral convalidada"
+            />
           </div>
         </CardContent>
       </Card>

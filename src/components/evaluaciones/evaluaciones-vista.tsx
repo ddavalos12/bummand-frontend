@@ -90,6 +90,7 @@ import { BandejaPreEvaluacionSupervisor } from "./bandeja-pre-evaluacion-supervi
 import { BandejaConvalidacionAdministracion } from "./bandeja-convalidacion-administracion";
 import { FormularioMentorModal, EvaluacionInicialMentor } from "./formulario-mentor-modal";
 import { EscuelaLideresClassroom } from "./escuela-lideres-classroom";
+import { BotonesAccionEvaluacion } from "./botones-accion-evaluacion";
 import {
   BECARIOS_SEMESTRE_II,
   CATALOGO_IGLESIAS_INSTITUCIONALES,
@@ -1287,18 +1288,21 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               </div>
 
               {(es_admin || es_supervisor) && (
-                <Button
-                  onClick={() => {
+                <BotonesAccionEvaluacion
+                  tamano="md"
+                  mostrar_revisar={false}
+                  estado={acta_convalidada ? "completado" : "pendiente"}
+                  texto_pendiente="Convalidar Acta"
+                  titulo_pendiente="Acreditar formalmente el consolidado semestral en sistema"
+                  alEjecutarPendiente={() => {
                     set_acta_convalidada(true);
                     toast.success("Acta semestral convalidada en sistema", {
                       description: "El consolidado semestral ha sido acreditado formalmente con trazabilidad de sistema.",
                     });
                   }}
-                  className="h-9 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs gap-2 shadow-xs shrink-0"
-                >
-                  <ShieldCheck className="w-4 h-4 text-[#FFB600]" />
-                  {acta_convalidada ? "Acta Convalidada en Sistema" : "Convalidar Acta en Sistema"}
-                </Button>
+                  texto_completado="Convalidado"
+                  titulo_completado="Acta semestral convalidada en sistema"
+                />
               )}
             </div>
 
@@ -1468,50 +1472,24 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                             {item.puntaje !== null && item.puntaje !== undefined ? `${Number(item.puntaje).toFixed(1)} pts` : "-"}
                           </TableCell>
                           <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-1.5 flex-wrap">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  set_becario_f03_seleccionado(item);
-                                  set_modal_evaluar_f03_abierto(true);
-                                }}
-                                className="h-8 px-3 border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
-                              >
-                                <Eye className="w-3.5 h-3.5 text-[#00ABBD]" />
-                                <span>Revisar</span>
-                              </Button>
-
-                              {esEvaluado ? (
-                                <Badge
-                                  variant="outline"
-                                  onClick={() => {
-                                    set_becario_f03_seleccionado(item);
-                                    set_modal_evaluar_f03_abierto(true);
-                                  }}
-                                  className="h-8 px-2.5 border-emerald-400 bg-emerald-50 text-emerald-800 font-bold text-[11px] rounded-full inline-flex items-center gap-1 cursor-pointer hover:bg-emerald-100"
-                                  title="Evaluación convalidada. Clic para re-evaluar o editar respuestas"
-                                >
-                                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                                  <span>Aprobado</span>
-                                </Badge>
-                              ) : (
-                                <Button
-                                  size="sm"
-                                  disabled={aprobando_f03_id === item.becario_id}
-                                  onClick={() => aprobarDirectamenteF03(item)}
-                                  className="h-8 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold inline-flex items-center gap-1.5 shadow-2xs cursor-pointer"
-                                  title="Aprobar y convalidar directamente la evaluación F-03"
-                                >
-                                  {aprobando_f03_id === item.becario_id ? (
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
-                                  ) : (
-                                    <ShieldCheck className="w-3.5 h-3.5 text-white" />
-                                  )}
-                                  <span>Aprobar</span>
-                                </Button>
-                              )}
-                            </div>
+                            <BotonesAccionEvaluacion
+                              estado={esEvaluado ? "completado" : "pendiente"}
+                              alRevisar={() => {
+                                set_becario_f03_seleccionado(item);
+                                set_modal_evaluar_f03_abierto(true);
+                              }}
+                              titulo_revisar="Revisar respuestas del formulario pastoral F-03"
+                              texto_pendiente="Aprobar"
+                              titulo_pendiente="Aprobar y convalidar directamente la evaluación F-03"
+                              alEjecutarPendiente={() => aprobarDirectamenteF03(item)}
+                              texto_completado="Aprobado"
+                              titulo_completado="Evaluación convalidada. Clic para revisar o editar respuestas"
+                              alHacerClicCompletado={() => {
+                                set_becario_f03_seleccionado(item);
+                                set_modal_evaluar_f03_abierto(true);
+                              }}
+                              cargando={aprobando_f03_id === item.becario_id}
+                            />
                           </TableCell>
                         </TableRow>
                       );
@@ -2248,7 +2226,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                     <TableHead className="text-xs font-bold text-slate-600">Unidad o Agencia Asignada</TableHead>
                     <TableHead className="text-center text-xs font-bold text-slate-600">Estado Módulo 3</TableHead>
                     <TableHead className="text-center text-xs font-bold text-slate-600">Nota (/20 Pts)</TableHead>
-                    <TableHead className="text-right text-xs font-bold text-slate-600 pr-5">Acción Directa</TableHead>
+                    <TableHead className="text-right text-xs font-bold text-[#035683] pr-5">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -2302,109 +2280,70 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                         </TableCell>
                         <TableCell className="text-right pr-5">
                           {es_admin ? (
-                            /* VISTA DEL ADMINISTRADOR: APRUEBA Y REVISA (NO EDITA) */
-                            <div className="flex items-center justify-end gap-1.5">
-                              {bec.estado === "aprobado" && (
-                                <>
-                                  <Badge variant="outline" className="border-emerald-500 bg-emerald-50 text-emerald-800 text-[11px] font-bold py-1 px-2.5">
-                                    ✓ Aprobada
-                                  </Badge>
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => {
-                                      set_modal_modo_lectura(true);
-                                      set_becario_mentor_seleccionado(bec);
-                                      set_modal_formulario_mentor_abierto(true);
-                                    }}
-                                    className="h-8 px-2.5 rounded-xl text-xs font-semibold text-[#035683] border-[#035683]/30 hover:bg-slate-50 gap-1"
-                                  >
-                                    <Eye className="w-3.5 h-3.5" />
-                                    Ver Rúbrica
-                                  </Button>
-                                </>
-                              )}
-
-                              {bec.estado === "evaluado" && (
-                                <>
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => {
-                                      set_modal_modo_lectura(true);
-                                      set_becario_mentor_seleccionado(bec);
-                                      set_modal_formulario_mentor_abierto(true);
-                                    }}
-                                    className="h-8 px-2.5 rounded-xl text-xs font-semibold text-[#035683] border-[#035683]/30 hover:bg-slate-50 gap-1"
-                                  >
-                                    <Eye className="w-3.5 h-3.5" />
-                                    Revisar Rúbrica
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    onClick={() => manejarAprobarEvaluacion(bec.id)}
-                                    className="h-8 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs gap-1.5 shadow-2xs"
-                                  >
-                                    <ShieldCheck className="w-3.5 h-3.5 text-white" />
-                                    Aprobar Evaluación
-                                  </Button>
-                                </>
-                              )}
-
-                              {bec.estado === "pendiente" && (
-                                <Badge variant="outline" className="border-slate-300 bg-slate-50 text-slate-500 text-[11px] font-medium py-1 px-2.5">
-                                  Esperando Llenado del Supervisor
-                                </Badge>
-                              )}
-                            </div>
+                            /* VISTA DEL ADMINISTRADOR: REVISA Y APRUEBA SEGÚN ESTADO */
+                            <BotonesAccionEvaluacion
+                              estado={
+                                bec.estado === "aprobado"
+                                  ? "completado"
+                                  : bec.estado === "evaluado"
+                                  ? "pendiente"
+                                  : "esperando"
+                              }
+                              mostrar_revisar={bec.estado !== "pendiente"}
+                              texto_revisar="Revisar"
+                              titulo_revisar="Revisar rúbrica del mentor (Módulo 3)"
+                              alRevisar={() => {
+                                set_modal_modo_lectura(true);
+                                set_becario_mentor_seleccionado(bec);
+                                set_modal_formulario_mentor_abierto(true);
+                              }}
+                              texto_pendiente="Aprobar"
+                              titulo_pendiente="Aprobar y convalidar evaluación del mentor"
+                              alEjecutarPendiente={() => manejarAprobarEvaluacion(bec.id)}
+                              texto_completado="Aprobado"
+                              titulo_completado="Evaluación aprobada — clic para ver rúbrica"
+                              alHacerClicCompletado={() => {
+                                set_modal_modo_lectura(true);
+                                set_becario_mentor_seleccionado(bec);
+                                set_modal_formulario_mentor_abierto(true);
+                              }}
+                              texto_esperando="Pendiente del Tutor"
+                            />
                           ) : (
-                            /* VISTA DEL SUPERVISOR: EDITA Y LLENA (NO APRUEBA) */
-                            <div className="flex items-center justify-end gap-1.5">
-                              {bec.estado === "aprobado" ? (
-                                <>
-                                  <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] font-bold gap-1 py-1 px-2">
-                                    <Lock className="w-3 h-3 text-emerald-700" /> Aprobada (Cerrada)
-                                  </Badge>
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => {
-                                      set_modal_modo_lectura(true);
-                                      set_becario_mentor_seleccionado(bec);
-                                      set_modal_formulario_mentor_abierto(true);
-                                    }}
-                                    className="h-8 px-2.5 rounded-xl text-xs font-semibold text-[#035683] border-[#035683]/30 hover:bg-slate-50 gap-1"
-                                  >
-                                    <Eye className="w-3.5 h-3.5" />
-                                    Ver Rúbrica
-                                  </Button>
-                                </>
-                              ) : (
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  onClick={() => {
-                                    set_modal_modo_lectura(false);
-                                    set_becario_mentor_seleccionado(bec);
-                                    set_modal_formulario_mentor_abierto(true);
-                                  }}
-                                  className={`h-8 px-3 rounded-xl font-bold text-xs gap-1.5 shadow-2xs ${
-                                    bec.estado === "evaluado"
-                                      ? "bg-white hover:bg-slate-50 text-[#035683] border border-[#035683]/40"
-                                      : "bg-[#035683] hover:bg-[#024063] text-white"
-                                  }`}
-                                >
-                                  <UserCheck className="w-3.5 h-3.5 text-[#FFB600]" />
-                                  {bec.estado === "evaluado"
-                                    ? "Editar Evaluación (Módulo 3)"
-                                    : "Llenar Evaluación (Módulo 3)"}
-                                </Button>
-                              )}
-                            </div>
+                            /* VISTA DEL SUPERVISOR: REVISA Y EVALÚA SEGÚN ESTADO */
+                            <BotonesAccionEvaluacion
+                              estado={bec.estado === "pendiente" ? "pendiente" : "completado"}
+                              texto_revisar="Revisar"
+                              titulo_revisar={
+                                bec.estado === "aprobado"
+                                  ? "Ver rúbrica aprobada (solo lectura)"
+                                  : "Revisar o editar evaluación del mentor"
+                              }
+                              alRevisar={() => {
+                                set_modal_modo_lectura(bec.estado === "aprobado");
+                                set_becario_mentor_seleccionado(bec);
+                                set_modal_formulario_mentor_abierto(true);
+                              }}
+                              texto_pendiente="Evaluar"
+                              titulo_pendiente="Llenar evaluación de mentoría (Módulo 3)"
+                              icono_pendiente="usuario"
+                              alEjecutarPendiente={() => {
+                                set_modal_modo_lectura(false);
+                                set_becario_mentor_seleccionado(bec);
+                                set_modal_formulario_mentor_abierto(true);
+                              }}
+                              texto_completado={bec.estado === "aprobado" ? "Aprobado" : "Evaluado"}
+                              titulo_completado={
+                                bec.estado === "aprobado"
+                                  ? "Evaluación aprobada y cerrada — clic para revisar"
+                                  : "Evaluación registrada — clic para editar"
+                              }
+                              alHacerClicCompletado={() => {
+                                set_modal_modo_lectura(bec.estado === "aprobado");
+                                set_becario_mentor_seleccionado(bec);
+                                set_modal_formulario_mentor_abierto(true);
+                              }}
+                            />
                           )}
                         </TableCell>
                       </TableRow>

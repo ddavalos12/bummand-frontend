@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
+import { BotonesAccionEvaluacion } from "./botones-accion-evaluacion";
 
 export interface MateriaPreEvaluacion {
   id: string;
@@ -622,27 +623,40 @@ export function BandejaPreEvaluacionSupervisor({
                 />
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={observarEvaluacion}
-                  disabled={guardando}
-                  className="w-full sm:w-auto h-10 px-4 rounded-xl border-rose-300 text-rose-700 hover:bg-rose-50 font-bold text-xs gap-2"
-                >
-                  <AlertTriangle className="w-4 h-4 text-rose-600" />
-                  Observar y Devolver al Estudiante
-                </Button>
-
-                <Button
-                  type="button"
-                  onClick={aprobarPreEvaluacion}
-                  disabled={guardando}
-                  className="w-full sm:w-auto h-10 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm gap-2"
-                >
-                  <CheckCircle2 className="w-4 h-4 text-white" />
-                  {guardando ? "Procesando..." : "Aprobar Pre-evaluación y Remitir a Administración"}
-                </Button>
+              <div className="pt-3 border-t border-slate-100">
+                <BotonesAccionEvaluacion
+                  tamano="md"
+                  alineacion="entre"
+                  estado={
+                    registro_activo.estado === "pre_evaluado"
+                      ? "completado"
+                      : registro_activo.estado === "observado"
+                      ? "observado"
+                      : "pendiente"
+                  }
+                  texto_revisar="Revisar Kárdex"
+                  titulo_revisar="Abrir documento digital del Kárdex para verificación"
+                  alRevisar={() =>
+                    alAbrirVisor(
+                      `Kárdex Oficial - ${registro_activo.nombre}`,
+                      registro_activo.kardex_nombre,
+                      registro_activo.kardex_url
+                    )
+                  }
+                  mostrar_observar_secundario
+                  texto_observar="Observar y Devolver"
+                  alObservar={observarEvaluacion}
+                  texto_pendiente={guardando ? "Procesando..." : "Aprobar Pre-evaluación"}
+                  titulo_pendiente="Aprobar pre-evaluación y remitir a Administración"
+                  alEjecutarPendiente={aprobarPreEvaluacion}
+                  texto_completado="Pre-evaluado (Remitido)"
+                  titulo_completado="Pre-evaluación aprobada — clic para re-validar y actualizar"
+                  alHacerClicCompletado={aprobarPreEvaluacion}
+                  texto_observado="Observado (Devuelto)"
+                  titulo_observado="Devuelto al estudiante — clic para aprobar tras corrección"
+                  alHacerClicObservado={aprobarPreEvaluacion}
+                  cargando={guardando}
+                />
               </div>
             </CardContent>
           </Card>

@@ -52,6 +52,7 @@ import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
 import { useTiempoReal } from "@/hooks/use-tiempo-real";
 import { BECARIOS_SEMESTRE_II } from "./evaluaciones-datos-semestre";
+import { BotonesAccionEvaluacion } from "./botones-accion-evaluacion";
 
 export interface TareaCetiCanonica {
   id: number;
@@ -1095,17 +1096,60 @@ export function EscuelaLideresClassroom({
               </div>
 
               {/* Pie de la Tarjeta */}
-              <div className="p-3 bg-slate-50 border-t border-slate-100 flex flex-col gap-2 text-[11px] text-muted-foreground">
-                <div className="flex items-center justify-between">
+              <div
+                className="p-3 bg-slate-50 border-t border-slate-100 flex flex-col gap-2 text-[11px] text-muted-foreground"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between gap-2 flex-wrap">
                   <span className="flex items-center gap-1 font-mono">
                     <Calendar className="w-3.5 h-3.5 text-slate-400" />
                     Límite: {tarea.fecha_limite}
                   </span>
 
-                  <span className="font-bold text-[#035683] flex items-center gap-0.5 group hover:text-[#00ABBD]">
-                    {es_supervisor_o_admin ? (es_revisada ? "Ver Calificación" : "Calificar Entrega") : (es_entregada ? "Ver Mi Entrega" : "Subir Tarea")}
-                    <ChevronRight className="w-3.5 h-3.5 text-[#00ABBD]" />
-                  </span>
+                  {es_supervisor_o_admin ? (
+                    <BotonesAccionEvaluacion
+                      estado={
+                        es_revisada
+                          ? "completado"
+                          : tarea.estado === "observado"
+                          ? "observado"
+                          : "pendiente"
+                      }
+                      alRevisar={() => abrirModalTarea(tarea)}
+                      titulo_revisar="Inspeccionar entrega y retroalimentación de la tarea"
+                      texto_pendiente={es_entregada ? "Calificar" : "Revisar / Nota"}
+                      titulo_pendiente="Calificar y marcar entrega como revisada"
+                      alEjecutarPendiente={() => abrirModalTarea(tarea)}
+                      texto_completado="Revisado"
+                      titulo_completado="Tarea revisada y calificada — clic para ver o ajustar nota"
+                      alHacerClicCompletado={() => abrirModalTarea(tarea)}
+                      alHacerClicObservado={() => abrirModalTarea(tarea)}
+                    />
+                  ) : (
+                    <BotonesAccionEvaluacion
+                      estado={
+                        es_revisada || es_entregada
+                          ? "completado"
+                          : tarea.estado === "observado"
+                          ? "observado"
+                          : "pendiente"
+                      }
+                      alRevisar={() => abrirModalTarea(tarea)}
+                      titulo_revisar="Ver consigna y detalle de mi entrega"
+                      texto_pendiente="Entregar"
+                      titulo_pendiente="Subir evidencia y entregar tarea"
+                      icono_pendiente="enviar"
+                      alEjecutarPendiente={() => abrirModalTarea(tarea)}
+                      texto_completado={es_revisada ? "Revisado" : "Entregado"}
+                      titulo_completado={
+                        es_revisada
+                          ? "Tarea calificada — clic para ver retroalimentación"
+                          : "Tarea entregada — clic para ver o actualizar archivo"
+                      }
+                      alHacerClicCompletado={() => abrirModalTarea(tarea)}
+                      alHacerClicObservado={() => abrirModalTarea(tarea)}
+                    />
+                  )}
                 </div>
 
                 {es_supervisor_o_admin && (
@@ -1115,7 +1159,7 @@ export function EscuelaLideresClassroom({
                       size="sm"
                       variant="outline"
                       onClick={(e) => abrirModalEditarTarea(tarea, e)}
-                      className="h-7 px-2.5 text-[10px] font-bold text-slate-700 border-slate-200 hover:bg-slate-100 rounded-lg gap-1 cursor-pointer"
+                      className="h-7 px-2.5 text-[10px] font-bold text-slate-700 border-slate-200 hover:bg-slate-100 rounded-full gap-1 cursor-pointer"
                     >
                       <Pencil className="w-3 h-3 text-[#035683]" />
                       Editar Tarea
@@ -1125,10 +1169,14 @@ export function EscuelaLideresClassroom({
                       type="button"
                       size="sm"
                       onClick={(e) => enviarTareaIndividualAApk(tarea, e)}
-                      className="h-7 px-2.5 text-[10px] font-bold bg-[#035683] hover:bg-[#024063] text-white rounded-lg gap-1 cursor-pointer"
+                      className={`h-7 px-2.5 text-[10px] font-bold rounded-full gap-1 cursor-pointer ${
+                        tarea.publicada_apk
+                          ? "bg-emerald-50 text-emerald-800 border border-emerald-400 hover:bg-emerald-100"
+                          : "bg-[#035683] hover:bg-[#024063] text-white"
+                      }`}
                     >
-                      <Send className="w-3 h-3 text-[#FFB600]" />
-                      Enviar Tarea a APK
+                      <Send className={`w-3 h-3 ${tarea.publicada_apk ? "text-emerald-600" : "text-[#FFB600]"}`} />
+                      {tarea.publicada_apk ? "Publicado en APK" : "Enviar Tarea a APK"}
                     </Button>
                   </div>
                 )}
@@ -1454,31 +1502,58 @@ export function EscuelaLideresClassroom({
                 type="button"
                 variant="outline"
                 onClick={() => set_modal_abierto(false)}
-                className="text-xs border-[#E5E7EB] rounded-xl"
+                className="h-10 px-4 text-xs border-[#E5E7EB] rounded-full font-bold"
               >
                 Cerrar
               </Button>
 
               {es_supervisor_o_admin ? (
-                <Button
-                  type="button"
-                  onClick={calificarYRevisarSupervisor}
-                  disabled={guardando_revision}
-                  className="h-9 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm"
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                  {guardando_revision ? "Guardando Nota..." : "Marcar como Revisado y Calificar"}
-                </Button>
+                <BotonesAccionEvaluacion
+                  tamano="md"
+                  mostrar_revisar={false}
+                  estado={tarea_activa.estado === "revisado" ? "completado" : "pendiente"}
+                  texto_pendiente={
+                    guardando_revision ? "Guardando Nota..." : "Marcar como Revisado"
+                  }
+                  titulo_pendiente="Asentar calificación y marcar tarea como revisada"
+                  alEjecutarPendiente={calificarYRevisarSupervisor}
+                  texto_completado={guardando_revision ? "Actualizando..." : "Revisado"}
+                  titulo_completado="Tarea ya revisada — clic para guardar cambios en la nota"
+                  alHacerClicCompletado={calificarYRevisarSupervisor}
+                  cargando={guardando_revision}
+                />
               ) : (
-                <Button
-                  type="button"
-                  onClick={entregarTareaEstudiante}
-                  disabled={guardando_entrega || !archivo_entrega_nombre}
-                  className="h-9 px-5 bg-[#035683] hover:bg-[#024063] text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm"
-                >
-                  <Send className="w-3.5 h-3.5 text-[#FFB600]" />
-                  {guardando_entrega ? "Enviando Tarea..." : "Entregar Tarea a Escuela de Líderes"}
-                </Button>
+                <BotonesAccionEvaluacion
+                  tamano="md"
+                  mostrar_revisar={false}
+                  estado={
+                    tarea_activa.estado === "revisado" || tarea_activa.estado === "entregado"
+                      ? "completado"
+                      : tarea_activa.estado === "observado"
+                      ? "observado"
+                      : "pendiente"
+                  }
+                  texto_pendiente={
+                    guardando_entrega ? "Enviando Tarea..." : "Entregar Tarea"
+                  }
+                  titulo_pendiente="Enviar evidencia de tarea a Escuela de Líderes"
+                  icono_pendiente="enviar"
+                  alEjecutarPendiente={entregarTareaEstudiante}
+                  texto_completado={
+                    tarea_activa.estado === "revisado" ? "Revisado" : "Entregado"
+                  }
+                  titulo_completado={
+                    tarea_activa.estado === "revisado"
+                      ? "Tarea calificada por el docente"
+                      : "Entrega registrada — clic para reenviar si actualizaste el archivo"
+                  }
+                  alHacerClicCompletado={
+                    tarea_activa.estado === "entregado" ? entregarTareaEstudiante : undefined
+                  }
+                  alHacerClicObservado={entregarTareaEstudiante}
+                  deshabilitado={!archivo_entrega_nombre}
+                  cargando={guardando_entrega}
+                />
               )}
             </DialogFooter>
           </DialogContent>

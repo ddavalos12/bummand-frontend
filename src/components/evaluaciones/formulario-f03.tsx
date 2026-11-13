@@ -24,6 +24,7 @@ import { CATALOGO_IGLESIAS_INSTITUCIONALES, IglesiaInstitucional } from "./evalu
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
+import { BotonesAccionEvaluacion } from "./botones-accion-evaluacion";
 
 export interface PropiedadesFormularioF03 {
   becario_id?: number;
@@ -952,19 +953,25 @@ export function FormularioF03({
           </Button>
 
           {puede_calificar && (
-            <Button
-              type="button"
-              disabled={guardando}
-              onClick={guardarEvaluacionF03}
-              className="bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl h-10 px-5 shadow-sm gap-2"
-            >
-              {guardando ? (
-                <Loader2 className="w-4 h-4 animate-spin text-[#FFB600]" />
-              ) : (
-                <Save className="w-4 h-4 text-[#FFB600]" />
-              )}
-              <span>Convalidar y Guardar Calificación F-03</span>
-            </Button>
+            <BotonesAccionEvaluacion
+              tamano="md"
+              mostrar_revisar={false}
+              estado={
+                estado_actual === "completada" ||
+                estado_actual === "completado" ||
+                estado_actual === "aprobada" ||
+                estado_actual === "aprobado"
+                  ? "completado"
+                  : "pendiente"
+              }
+              texto_pendiente={guardando ? "Guardando..." : "Aprobar y Guardar F-03"}
+              titulo_pendiente="Convalidar y guardar calificación del formulario F-03"
+              alEjecutarPendiente={guardarEvaluacionF03}
+              texto_completado={guardando ? "Actualizando..." : "Aprobado"}
+              titulo_completado="F-03 convalidado — clic para guardar cambios y actualizar calificación"
+              alHacerClicCompletado={guardarEvaluacionF03}
+              cargando={guardando}
+            />
           )}
         </div>
       </div>

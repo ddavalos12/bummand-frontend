@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
+import { BotonesAccionEvaluacion } from "./botones-accion-evaluacion";
 
 export interface MateriaInput {
   id: string;
@@ -102,6 +103,7 @@ export function FormularioCargaNotasEstudiante({
   const [renovar_carnet, set_renovar_carnet] = useState<boolean>(false);
   const [observaciones, set_observaciones] = useState<string>("");
   const [enviando, set_enviando] = useState<boolean>(false);
+  const [expediente_enviado, set_expediente_enviado] = useState<boolean>(false);
 
   // TAREA-13: Documentos Semestrales (Récord Académico e Historial Académico con revisión directa por Administración)
   const [record_academico_nombre, set_record_academico_nombre] = useState<string>(
@@ -163,6 +165,7 @@ export function FormularioCargaNotasEstudiante({
     else if (val === "s1_2026") set_semestre_etiqueta("Semestre I · 2026");
     else if (val === "s2_2025") set_semestre_etiqueta("Semestre II · 2025");
     else if (val === "s1_2025") set_semestre_etiqueta("Semestre I · 2025");
+    set_expediente_enviado(false);
     toast.info(`Semestre cambiado a: ${val}`, {
       description: "Visualizando y cargando documentación para este ciclo académico.",
     });
@@ -340,6 +343,7 @@ export function FormularioCargaNotasEstudiante({
         // Fallback local en caso de entorno desacoplado
       }
 
+      set_expediente_enviado(true);
       toast.success("¡Notas y documentación académica enviadas a Administración!", {
         description: `Promedio registrado: ${promedio} pts. Expediente disponible para convalidación directa.`,
       });
@@ -912,15 +916,37 @@ export function FormularioCargaNotasEstudiante({
             Su Récord e Historial quedarán asentados para revisión directa e inmediata por el equipo administrativo nacional.
           </p>
         </div>
-        <Button
-          type="button"
-          onClick={enviarAPreEvaluacion}
-          disabled={enviando || materias_validas.length === 0}
-          className="h-11 px-6 rounded-xl bg-[#035683] hover:bg-[#024063] text-white font-bold text-xs shadow-sm gap-2 shrink-0"
-        >
-          <Send className="w-4 h-4 text-[#FFB600]" />
-          {enviando ? "Enviando..." : "Enviar a Revisión Directa de Administración"}
-        </Button>
+        <BotonesAccionEvaluacion
+          tamano="md"
+          estado={
+            record_academico_estado === "aprobado_administracion" || expediente_enviado
+              ? "completado"
+              : "pendiente"
+          }
+          mostrar_revisar={Boolean(alAbrirVisor && (record_academico_nombre || kardex_nombre))}
+          texto_revisar="Revisar Récord"
+          titulo_revisar="Previsualizar el documento académico adjunto"
+          alRevisar={() => {
+            if (alAbrirVisor) {
+              alAbrirVisor(
+                `Récord Académico - ${becario_nombre}`,
+                record_academico_nombre || kardex_nombre,
+                record_academico_url || kardex_url
+              );
+            }
+          }}
+          texto_pendiente={enviando ? "Enviando..." : "Enviar a Administración"}
+          titulo_pendiente="Enviar notas y documentación a revisión directa de Administración"
+          icono_pendiente="enviar"
+          alEjecutarPendiente={enviarAPreEvaluacion}
+          texto_completado={
+            record_academico_estado === "aprobado_administracion" ? "Aprobado" : "Enviado"
+          }
+          titulo_completado="Documentación enviada — clic para actualizar envío con nuevos cambios"
+          alHacerClicCompletado={enviarAPreEvaluacion}
+          cargando={enviando}
+          deshabilitado={materias_validas.length === 0}
+        />
       </div>
     </div>
   );

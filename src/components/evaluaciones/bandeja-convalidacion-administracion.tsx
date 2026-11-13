@@ -34,6 +34,7 @@ import {
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
 import { useTiempoReal } from "@/hooks/use-tiempo-real";
+import { BotonesAccionEvaluacion } from "./botones-accion-evaluacion";
 
 export interface ItemConvalidacionAdmin {
   evaluacion_id: number;
@@ -451,7 +452,7 @@ export function BandejaConvalidacionAdministracion({
               <TableHead className="text-center text-xs font-bold text-slate-600">Promedio</TableHead>
               <TableHead className="text-center text-xs font-bold text-slate-600">Récord e Historial Semestral</TableHead>
               <TableHead className="text-center text-xs font-bold text-slate-600">Estado</TableHead>
-              <TableHead className="text-right text-xs font-bold text-slate-600 pr-5">Acción Oficial</TableHead>
+              <TableHead className="text-right text-xs font-bold text-[#035683] pr-5">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -595,27 +596,44 @@ export function BandejaConvalidacionAdministracion({
                       )}
                     </TableCell>
                     <TableCell className="text-right pr-5">
-                      {item.estado === "pre_evaluado" || item.estado === "en_revision_supervisor" ? (
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={() => convalidarOficialmente(item)}
-                          disabled={convalidando_id === item.evaluacion_id}
-                          className="h-8 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5 shadow-2xs"
-                          title="Convalidar directamente sin requerir filtro intermedio del supervisor"
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                          {convalidando_id === item.evaluacion_id ? "Convalidando..." : "Convalidar Directo (Administración)"}
-                        </Button>
-                      ) : item.estado === "completado" ? (
-                        <span className="text-[11px] font-bold text-emerald-700 flex items-center justify-end gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Convalidado Oficial
-                        </span>
-                      ) : (
-                        <span className="text-[11px] text-muted-foreground italic">
-                          Observado
-                        </span>
-                      )}
+                      <BotonesAccionEvaluacion
+                        estado={
+                          item.estado === "completado"
+                            ? "completado"
+                            : item.estado === "observado"
+                            ? "observado"
+                            : "pendiente"
+                        }
+                        alRevisar={() =>
+                          alAbrirVisor(
+                            `Récord Académico - ${item.nombre}`,
+                            nombre_record,
+                            url_record
+                          )
+                        }
+                        titulo_revisar="Inspeccionar Récord Académico oficial del becario"
+                        texto_pendiente="Aprobar"
+                        titulo_pendiente="Convalidar directamente sin requerir filtro intermedio del supervisor"
+                        alEjecutarPendiente={() => convalidarOficialmente(item)}
+                        texto_completado="Aprobado"
+                        titulo_completado="Evaluación convalidada oficialmente — clic para revisar documento"
+                        alHacerClicCompletado={() =>
+                          alAbrirVisor(
+                            `Récord Académico - ${item.nombre}`,
+                            nombre_record,
+                            url_record
+                          )
+                        }
+                        texto_observado="Observado"
+                        alHacerClicObservado={() =>
+                          alAbrirVisor(
+                            `Récord Académico Observado - ${item.nombre}`,
+                            nombre_record,
+                            url_record
+                          )
+                        }
+                        cargando={convalidando_id === item.evaluacion_id}
+                      />
                     </TableCell>
                   </TableRow>
                 );

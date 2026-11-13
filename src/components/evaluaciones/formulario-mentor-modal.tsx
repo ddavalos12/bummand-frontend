@@ -38,6 +38,7 @@ import {
 import { toast } from "sonner";
 import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
 import { clienteApi } from "@/lib/cliente-api";
+import { BotonesAccionEvaluacion } from "./botones-accion-evaluacion";
 import {
   PREGUNTAS_MENTOR_ESCALA,
   PREGUNTAS_ABIERTAS_MENTOR,
@@ -863,18 +864,29 @@ export function FormularioMentorModal({
                 >
                   Cerrar
                 </Button>
-                {estado_actual === "evaluado" && alAprobar && (
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      alAprobar();
-                      alCambiarAbierto(false);
-                    }}
-                    className="h-9 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm"
-                  >
-                    <CheckCircle className="w-3.5 h-3.5" />
-                    Aprobar Evaluación (Módulo 3)
-                  </Button>
+                {estado_actual === "aprobado" ? (
+                  <BotonesAccionEvaluacion
+                    tamano="md"
+                    mostrar_revisar={false}
+                    estado="completado"
+                    texto_completado="Aprobado"
+                    titulo_completado="Evaluación aprobada y consolidada en el kárdex"
+                  />
+                ) : (
+                  estado_actual === "evaluado" &&
+                  alAprobar && (
+                    <BotonesAccionEvaluacion
+                      tamano="md"
+                      mostrar_revisar={false}
+                      estado="pendiente"
+                      texto_pendiente="Aprobar Evaluación"
+                      titulo_pendiente="Aprobar y convalidar evaluación de mentoría (Módulo 3)"
+                      alEjecutarPendiente={() => {
+                        alAprobar();
+                        alCambiarAbierto(false);
+                      }}
+                    />
+                  )
                 )}
               </div>
             </>
@@ -884,18 +896,23 @@ export function FormularioMentorModal({
                 type="button"
                 variant="outline"
                 onClick={intentarCerrarModal}
-                className="text-xs border-[#E5E7EB] rounded-xl"
+                className="text-xs border-[#E5E7EB] rounded-full"
               >
                 Cancelar
               </Button>
-              <Button
-                disabled={guardando}
-                onClick={manejarGuardarEvaluacionMentor}
-                className="h-9 px-5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm"
-              >
-                <CheckCircle className="w-3.5 h-3.5 text-[#00ABBD]" />
-                {guardando ? "Guardando..." : "Asentar Calificación (/20 Puntos)"}
-              </Button>
+              <BotonesAccionEvaluacion
+                tamano="md"
+                mostrar_revisar={false}
+                estado={estado_actual === "evaluado" ? "completado" : "pendiente"}
+                texto_pendiente={guardando ? "Guardando..." : "Asentar Calificación"}
+                titulo_pendiente="Registrar calificación del mentor sobre 20 puntos"
+                icono_pendiente="check"
+                alEjecutarPendiente={manejarGuardarEvaluacionMentor}
+                texto_completado={guardando ? "Actualizando..." : "Evaluado (Actualizar)"}
+                titulo_completado="Evaluación asentada — clic para guardar modificaciones"
+                alHacerClicCompletado={manejarGuardarEvaluacionMentor}
+                cargando={guardando}
+              />
             </>
           )}
         </DialogFooter>
