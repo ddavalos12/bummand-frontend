@@ -411,6 +411,13 @@ export function EvaluacionSocioeconomicaVista() {
     if (!becario_en_revision) return;
     const puntaje_num = Math.min(Math.max(parseFloat(puntaje_revision_input) || 0, 0), 20);
     const id_destino = becario_en_revision.becario_id || becario_en_revision.id;
+    const puntaje_modificado =
+      Number(puntaje_num.toFixed(1)) !== Number(becario_en_revision.puntaje_20.toFixed(1));
+    const convalidado_final = aprobar_directo
+      ? true
+      : puntaje_modificado
+      ? false
+      : Boolean(becario_en_revision.convalidado);
 
     set_guardando_revision_modal(true);
     try {
@@ -420,7 +427,7 @@ export function EvaluacionSocioeconomicaVista() {
         semaforo: semaforo_revision_input,
         observaciones: observaciones_revision_input,
         respuestas: respuestas_revision,
-        convalidado: aprobar_directo ? true : Boolean(becario_en_revision.convalidado),
+        convalidado: convalidado_final,
       };
 
       try {
@@ -441,7 +448,7 @@ export function EvaluacionSocioeconomicaVista() {
           .catch(() => {});
       }
 
-      const nuevo_estado = aprobar_directo ? "aprobado" : "en_revision";
+      const nuevo_estado = convalidado_final ? "aprobado" : "en_revision";
       set_nomina_becarios((prev) =>
         prev.map((item) =>
           item.id === becario_en_revision.id
@@ -453,7 +460,7 @@ export function EvaluacionSocioeconomicaVista() {
                 respuestas: { ...respuestas_revision },
                 respuestas_completadas: Object.keys(respuestas_revision).length || 26,
                 estado: nuevo_estado,
-                convalidado: aprobar_directo ? true : item.convalidado,
+                convalidado: convalidado_final,
               }
             : item
         )
@@ -1800,7 +1807,9 @@ export function EvaluacionSocioeconomicaVista() {
                 tamano="md"
                 mostrar_revisar={false}
                 estado={
-                  becario_en_revision.convalidado || becario_en_revision.estado === "aprobado"
+                  (becario_en_revision.convalidado || becario_en_revision.estado === "aprobado") &&
+                  Number((parseFloat(puntaje_revision_input) || 0).toFixed(1)) ===
+                    Number(becario_en_revision.puntaje_20.toFixed(1))
                     ? "completado"
                     : "pendiente"
                 }

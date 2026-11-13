@@ -661,6 +661,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
     evaluacion_id?: number | null;
     puntaje?: number | null;
     estado: string;
+    convalidado?: boolean;
     iglesia_nombre?: string | null;
     pastor_nombre?: string | null;
     pastor_celular?: string | null;
@@ -752,13 +753,18 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
       const res = await clienteApi.get<BecarioF03Item[]>("/evaluaciones/f03/nomina");
       if (res && Array.isArray(res) && res.length > 0) {
         const enriquecida = res.map((b) => {
-          const estado_normalizado =
-            b.estado === "completado" || b.estado === "completada" || b.estado === "aprobada"
-              ? "completada"
-              : b.estado || (b.puntaje && b.puntaje > 0 ? "completada" : "en_revision");
+          const campos_ev = (b.campos_formulario || {}) as Record<string, unknown>;
+          const es_convalidado =
+            b.convalidado !== undefined
+              ? Boolean(b.convalidado)
+              : campos_ev.convalidado !== undefined
+              ? Boolean(campos_ev.convalidado)
+              : b.estado === "completado" || b.estado === "completada" || b.estado === "aprobada" || b.estado === "aprobado";
+          const estado_normalizado = es_convalidado ? "completada" : "en_revision";
           return {
             ...b,
             estado: estado_normalizado,
+            convalidado: es_convalidado,
             campos_formulario:
               b.campos_formulario && Object.keys(b.campos_formulario).length > 0
                 ? b.campos_formulario
@@ -771,13 +777,41 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
         });
         set_nomina_f03(enriquecida);
       } else {
-        const inicial = BECARIOS_SEMESTRE_II.map((b) => ({
+        const inicial = BECARIOS_SEMESTRE_II.map((b, idx) => {
+          const pre_aprobado = idx === 3;
+          return {
+            becario_id: b.id,
+            nombre: b.nombre_completo,
+            ci: b.ci,
+            evaluacion_id: null,
+            puntaje: b.liderazgo_iglesia || null,
+            estado: pre_aprobado ? "completada" : "en_revision",
+            convalidado: pre_aprobado,
+            iglesia_nombre: "Iglesia Evangélica Amigos Central",
+            pastor_nombre: "Luis Álvaro Quispe Condori",
+            pastor_celular: "73236864",
+            campos_formulario: generarCamposFormularioF03Individual(
+              b.nombre_completo,
+              "Iglesia Evangélica Amigos Central",
+              b.liderazgo_iglesia,
+              b.carrera
+            ),
+            fecha_evaluacion: b.liderazgo_iglesia > 0 ? "2026-10-15" : null,
+          };
+        });
+        set_nomina_f03(inicial);
+      }
+    } catch (_e) {
+      const inicial = BECARIOS_SEMESTRE_II.map((b, idx) => {
+        const pre_aprobado = idx === 3;
+        return {
           becario_id: b.id,
           nombre: b.nombre_completo,
           ci: b.ci,
           evaluacion_id: null,
           puntaje: b.liderazgo_iglesia || null,
-          estado: (b.liderazgo_iglesia > 0 ? "completada" : "en_revision") as string,
+          estado: pre_aprobado ? "completada" : "en_revision",
+          convalidado: pre_aprobado,
           iglesia_nombre: "Iglesia Evangélica Amigos Central",
           pastor_nombre: "Luis Álvaro Quispe Condori",
           pastor_celular: "73236864",
@@ -788,28 +822,8 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
             b.carrera
           ),
           fecha_evaluacion: b.liderazgo_iglesia > 0 ? "2026-10-15" : null,
-        }));
-        set_nomina_f03(inicial);
-      }
-    } catch (_e) {
-      const inicial = BECARIOS_SEMESTRE_II.map((b) => ({
-        becario_id: b.id,
-        nombre: b.nombre_completo,
-        ci: b.ci,
-        evaluacion_id: null,
-        puntaje: b.liderazgo_iglesia || null,
-        estado: (b.liderazgo_iglesia > 0 ? "completada" : "en_revision") as string,
-        iglesia_nombre: "Iglesia Evangélica Amigos Central",
-        pastor_nombre: "Luis Álvaro Quispe Condori",
-        pastor_celular: "73236864",
-        campos_formulario: generarCamposFormularioF03Individual(
-          b.nombre_completo,
-          "Iglesia Evangélica Amigos Central",
-          b.liderazgo_iglesia,
-          b.carrera
-        ),
-        fecha_evaluacion: b.liderazgo_iglesia > 0 ? "2026-10-15" : null,
-      }));
+        };
+      });
       set_nomina_f03(inicial);
     } finally {
       set_cargando_nomina_f03(false);
@@ -870,8 +884,9 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
           pastor_celular: item.pastor_celular || "73236864",
           iglesia_nombre: item.iglesia_nombre || "Iglesia Evangélica Amigos Central",
           puntaje: puntaje_final,
-          campos_formulario: campos,
+          campos_formulario: { ...campos, convalidado: true },
           estado: "completada",
+          convalidado: true,
         });
       } catch {
         // Fallback local resiliente ante reinicio o indisponibilidad temporal del backend
@@ -883,8 +898,9 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
             ? {
                 ...b,
                 estado: "completada",
+                convalidado: true,
                 puntaje: puntaje_final,
-                campos_formulario: campos,
+                campos_formulario: { ...campos, convalidado: true },
                 fecha_evaluacion: b.fecha_evaluacion || new Date().toISOString().substring(0, 10),
               }
             : b
@@ -1359,14 +1375,14 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                 <div className="p-3 bg-white rounded-xl border border-emerald-200 bg-emerald-50/30">
                   <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">F-03 Convalidados</span>
                   <span className="text-xl font-bold font-mono text-emerald-700">
-                    {nomina_f03.filter((b) => b.estado === "completada" || b.estado === "completado" || b.estado === "Evaluado" || b.estado === "evaluado").length}
+                    {nomina_f03.filter((b) => Boolean(b.convalidado) || b.estado === "completada" || b.estado === "completado" || b.estado === "aprobada" || b.estado === "aprobado").length}
                   </span>
                   <span className="text-[10px] text-emerald-600 block mt-0.5">Certificados en sistema</span>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-amber-200 bg-amber-50/30">
                   <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">F-03 En Revisión</span>
                   <span className="text-xl font-bold font-mono text-amber-700">
-                    {nomina_f03.filter((b) => b.estado === "en_revision" || b.estado === "Pendiente").length}
+                    {nomina_f03.filter((b) => !(Boolean(b.convalidado) || b.estado === "completada" || b.estado === "completado" || b.estado === "aprobada" || b.estado === "aprobado")).length}
                   </span>
                   <span className="text-[10px] text-amber-600 block mt-0.5">Por convalidar pastoral</span>
                 </div>
@@ -1427,8 +1443,13 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                           b.ci.toLowerCase().includes(busqueda_f03.toLowerCase())
                     )
                     .map((item, index) => {
-                      const esEnRevision = item.estado === "en_revision";
-                      const esEvaluado = !esEnRevision && (item.estado === "completada" || item.estado === "Evaluado" || item.estado === "evaluado" || (item.puntaje !== null && item.puntaje !== undefined && item.puntaje > 0));
+                      const esta_convalidado =
+                        Boolean(item.convalidado) ||
+                        item.estado === "completada" ||
+                        item.estado === "completado" ||
+                        item.estado === "aprobada" ||
+                        item.estado === "aprobado";
+                      const esEnRevision = !esta_convalidado;
                       return (
                         <TableRow key={item.becario_id} className="text-xs hover:bg-slate-50/80 border-b border-slate-100">
                           <TableCell className="text-center font-mono font-bold text-slate-500">{index + 1}</TableCell>
@@ -1473,17 +1494,17 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                           </TableCell>
                           <TableCell className="text-right">
                             <BotonesAccionEvaluacion
-                              estado={esEvaluado ? "completado" : "pendiente"}
+                              estado={esta_convalidado ? "completado" : "pendiente"}
                               alRevisar={() => {
                                 set_becario_f03_seleccionado(item);
                                 set_modal_evaluar_f03_abierto(true);
                               }}
-                              titulo_revisar="Revisar respuestas del formulario pastoral F-03"
+                              titulo_revisar="Revisar respuestas del formulario pastoral F-03 y ajustar puntaje"
                               texto_pendiente="Aprobar"
-                              titulo_pendiente="Aprobar y convalidar directamente la evaluación F-03"
+                              titulo_pendiente="Aprobar y convalidar evaluación F-03"
                               alEjecutarPendiente={() => aprobarDirectamenteF03(item)}
                               texto_completado="Aprobado"
-                              titulo_completado="Evaluación convalidada. Clic para revisar o editar respuestas"
+                              titulo_completado="Evaluación convalidada — clic para revisar o re-evaluar"
                               alHacerClicCompletado={() => {
                                 set_becario_f03_seleccionado(item);
                                 set_modal_evaluar_f03_abierto(true);
@@ -1616,15 +1637,24 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                     solo_lectura={true}
                     modo_revision_admin={es_admin || es_supervisor}
                     estado_actual={becario_f03_seleccionado.estado}
+                    convalidado_actual={becario_f03_seleccionado.convalidado}
                     catalogo_iglesias={iglesias}
                     alGuardar={(res) => {
+                      const es_convalidado_nuevo =
+                        res.convalidado !== undefined
+                          ? Boolean(res.convalidado)
+                          : res.estado === "completado" ||
+                            res.estado === "completada" ||
+                            res.estado === "aprobada" ||
+                            res.estado === "aprobado";
                       set_nomina_f03((prev) =>
                         prev.map((b) =>
                           b.becario_id === res.becario_id
                             ? {
                                 ...b,
                                 puntaje: res.puntaje,
-                                estado: res.estado === "completado" || res.estado === "completada" ? "completada" : "completada",
+                                estado: es_convalidado_nuevo ? "completada" : "en_revision",
+                                convalidado: es_convalidado_nuevo,
                                 pastor_nombre: res.pastor_nombre ?? b.pastor_nombre,
                                 iglesia_nombre: res.iglesia_nombre ?? b.iglesia_nombre,
                                 pastor_celular: res.pastor_celular ?? b.pastor_celular,

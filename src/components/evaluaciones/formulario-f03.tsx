@@ -38,6 +38,7 @@ export interface PropiedadesFormularioF03 {
   solo_lectura?: boolean;
   modo_revision_admin?: boolean;
   estado_actual?: string;
+  convalidado_actual?: boolean;
   catalogo_iglesias?: Array<{
     id: number | string;
     nombre: string;
@@ -50,6 +51,7 @@ export interface PropiedadesFormularioF03 {
     becario_id: number;
     puntaje: number;
     estado: string;
+    convalidado?: boolean;
     pastor_nombre?: string;
     iglesia_nombre?: string;
     pastor_celular?: string;
@@ -95,6 +97,7 @@ export function FormularioF03({
   solo_lectura = false,
   modo_revision_admin = false,
   estado_actual,
+  convalidado_actual,
   catalogo_iglesias,
   alGuardar,
   alEnviarExito,
@@ -319,7 +322,7 @@ export function FormularioF03({
     }
   };
 
-  const guardarEvaluacionF03 = async () => {
+  const guardarEvaluacionF03 = async (aprobar_directo = true) => {
     if (!pastor_nombre.trim()) {
       set_error_formulario("Debe completar el nombre del pastor evaluador.");
       return;
@@ -358,7 +361,10 @@ export function FormularioF03({
       declara_nombre,
       declara_ci,
       declara_aceptada,
+      convalidado: aprobar_directo,
     };
+
+    const nuevo_estado = aprobar_directo ? "completada" : "en_revision";
 
     const cuerpo = {
       becario_id: becario_id || 1,
@@ -371,6 +377,8 @@ export function FormularioF03({
       iglesia_direccion: iglesia_direccion_limpia,
       puntaje: Number(puntaje_f03),
       observaciones: pregunta_opinion,
+      estado: aprobar_directo ? "completado" : "en_revision",
+      convalidado: aprobar_directo,
       campos_formulario: campos_respuestas,
     };
 
@@ -392,15 +400,23 @@ export function FormularioF03({
         }
       }
 
-      toast.success("Evaluación F-03 guardada con éxito", {
-        description: `Calificación oficial de ${puntaje_f03} / 20 pts registrada para ${becario_nombre}.`,
-      });
+      toast.success(
+        aprobar_directo
+          ? "Evaluación F-03 aprobada y guardada con éxito"
+          : "Revisión de Evaluación F-03 guardada",
+        {
+          description: aprobar_directo
+            ? `Calificación oficial de ${puntaje_f03} / 20 pts convalidada para ${becario_nombre}.`
+            : `Puntaje actualizado a ${puntaje_f03} / 20 pts para ${becario_nombre} (En Revisión para aprobar).`,
+        }
+      );
 
       if (alGuardar) {
         alGuardar({
           becario_id: becario_id || 1,
           puntaje: Number(puntaje_f03),
-          estado: "completado",
+          estado: nuevo_estado,
+          convalidado: aprobar_directo,
           pastor_nombre: pastor_nombre_limpio,
           iglesia_nombre: iglesia_resuelta,
           pastor_celular: pastor_celular_limpio,
@@ -952,27 +968,49 @@ export function FormularioF03({
             <span>Exportar PDF</span>
           </Button>
 
-          {puede_calificar && (
-            <BotonesAccionEvaluacion
-              tamano="md"
-              mostrar_revisar={false}
-              estado={
-                estado_actual === "completada" ||
-                estado_actual === "completado" ||
-                estado_actual === "aprobada" ||
-                estado_actual === "aprobado"
-                  ? "completado"
-                  : "pendiente"
-              }
-              texto_pendiente={guardando ? "Guardando..." : "Aprobar y Guardar F-03"}
-              titulo_pendiente="Convalidar y guardar calificación del formulario F-03"
-              alEjecutarPendiente={guardarEvaluacionF03}
-              texto_completado={guardando ? "Actualizando..." : "Aprobado"}
-              titulo_completado="F-03 convalidado — clic para guardar cambios y actualizar calificación"
-              alHacerClicCompletado={guardarEvaluacionF03}
-              cargando={guardando}
-            />
+          {puede_calificar && modo_revision_admin && (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={guardando || cargando_pdf}
+              onClick={() => guardarEvaluacionF03(false)}
+              className="h-10 px-4 border-[#035683] text-[#035683] hover:bg-[#035683]/5 font-bold rounded-xl text-xs gap-1.5 cursor-pointer"
+              title="Guardar cambios de puntaje como revisión pendiente de aprobación"
+            >
+              <Save className="w-3.5 h-3.5 text-[#00ABBD]" />
+              <span>Guardar Revisión</span>
+            </Button>
           )}
+
+          {puede_calificar && (() => {
+            const esta_convalidado_inicial =
+              convalidado_actual !== undefined
+                ? Boolean(convalidado_actual)
+                : estado_actual === "completada" ||
+                  estado_actual === "completado" ||
+                  estado_actual === "aprobada" ||
+                  estado_actual === "aprobado";
+            const puntaje_modificado =
+              puntaje_inicial !== undefined &&
+              puntaje_inicial !== null &&
+              Number(puntaje_f03) !== Number(puntaje_inicial);
+            const mostrar_completado = esta_convalidado_inicial && !puntaje_modificado;
+
+            return (
+              <BotonesAccionEvaluacion
+                tamano="md"
+                mostrar_revisar={false}
+                estado={mostrar_completado ? "completado" : "pendiente"}
+                texto_pendiente={guardando ? "Guardando..." : "Aprobar y Guardar F-03"}
+                titulo_pendiente="Convalidar y guardar calificación oficial del formulario F-03"
+                alEjecutarPendiente={() => guardarEvaluacionF03(true)}
+                texto_completado={guardando ? "Actualizando..." : "Aprobado"}
+                titulo_completado="F-03 convalidado — clic para confirmar calificación"
+                alHacerClicCompletado={() => guardarEvaluacionF03(true)}
+                cargando={guardando}
+              />
+            );
+          })()}
         </div>
       </div>
     </Card>

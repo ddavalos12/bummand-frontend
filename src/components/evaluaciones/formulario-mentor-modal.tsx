@@ -903,7 +903,7 @@ export function FormularioMentorModal({
               <BotonesAccionEvaluacion
                 tamano="md"
                 mostrar_revisar={false}
-                estado={estado_actual === "evaluado" ? "completado" : "pendiente"}
+                estado={estado_actual === "evaluado" && !hay_modificaciones ? "completado" : "pendiente"}
                 texto_pendiente={guardando ? "Guardando..." : "Asentar Calificación"}
                 titulo_pendiente="Registrar calificación del mentor sobre 20 puntos"
                 icono_pendiente="check"
