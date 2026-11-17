@@ -23,10 +23,12 @@ import {
   Route,
   ArrowRight,
   Printer,
+  FileSpreadsheet,
   Loader2,
 } from "lucide-react";
 import { clienteApi } from "@/lib/cliente-api";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
+import { exportarFormularioContabilidadSrdExcel } from "@/lib/generador-excel-cliente";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
@@ -214,6 +216,8 @@ export function PasajesVista() {
   const [fecha_recorrido, set_fecha_recorrido] = useState<string>(() => new Date().toISOString().split("T")[0]);
   const [recorrido_seleccionado, set_recorrido_seleccionado] = useState<RecorridoMensual | null>(null);
   const [descargando_pdf, set_descargando_pdf] = useState<boolean>(false);
+  const [multas_vigentes_bs, set_multas_vigentes_bs] = useState<number>(0);
+  const [descontar_multas_srd, set_descontar_multas_srd] = useState<boolean>(true);
 
   const cargarMisRecorridos = useCallback(async () => {
     try {
@@ -232,6 +236,21 @@ export function PasajesVista() {
       if (Array.isArray(solicitudes) && solicitudes.length > 0) {
         const sol = solicitudes[0];
         set_solicitud_actual(sol);
+        if (sol.multas_asistencia_bs !== undefined) {
+          set_multas_vigentes_bs(Number(sol.multas_asistencia_bs) || 0);
+        } else {
+          try {
+            const multas_res = await clienteApi.get<any[]>("/api/asistencia/multas/mis-multas");
+            if (Array.isArray(multas_res)) {
+              const suma_multas = multas_res
+                .filter((m) => m.estado !== "condonada" && m.estado !== "pagada")
+                .reduce((acc, m) => acc + Number(m.monto_bs ?? m.monto ?? 0), 0);
+              set_multas_vigentes_bs(Number(suma_multas.toFixed(2)));
+            }
+          } catch {
+            // Sin multas
+          }
+        }
         if (Array.isArray(sol.recorridos) && sol.recorridos.length > 0) {
           const mapeados: RecorridoMensual[] = sol.recorridos.map((r: any) => {
             const fecha_str = r.fecha ? String(r.fecha).split("T")[0] : "";
@@ -322,6 +341,8 @@ export function PasajesVista() {
   // Monto acumulado del mes
   const monto_total_pasajes = recorridos.reduce((acc, r) => acc + r.monto, 0);
   const devolucion_80 = monto_total_pasajes * 0.8;
+  const multas_descontadas_srd = descontar_multas_srd ? multas_vigentes_bs : 0;
+  const liquido_pagable_srd = Math.max(0, devolucion_80 - multas_descontadas_srd);
 
   // Conteo de puntos capturados
   const total_puntos_capturados =
@@ -1387,16 +1408,16 @@ export function PasajesVista() {
         <div className="lg:col-span-5 space-y-6">
           <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl flex flex-col">
             <CardHeader className="pb-3 border-b border-[#E5E7EB]/60 bg-[#F8F9FA]/80">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <div>
                   <CardTitle className="font-display text-base text-[#035683]">
-                    Formulario Mensual de Pasajes
+                    Formulario para Contabilidad y SRD
                   </CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
-                    Liquidación para el reembolso institucional del 80%.
+                    Liquidación mensual del 80% de pasajes y cálculo líquido descontando multas de asistencia para Contabilidad y SRD.
                   </CardDescription>
                 </div>
-                <Badge className="bg-[#00ABBD] text-white font-mono text-[11px]">
+                <Badge className="bg-[#00ABBD] text-white font-mono text-[11px] shrink-0">
                   {recorridos.length} Recorridos
                 </Badge>
               </div>
@@ -1427,25 +1448,55 @@ export function PasajesVista() {
 
               {/* LISTA DE RECORRIDOS DECLARADOS DEL MES */}
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
                   <Label className="text-xs font-mono uppercase font-bold text-muted-foreground block">
                     Recorridos Declarados en el Mes
                   </Label>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={descargarExpedientePdf}
-                    disabled={descargando_pdf}
-                    className="h-7 px-2.5 text-[11px] font-bold border-[#035683] text-[#035683] hover:bg-slate-100 rounded-lg gap-1.5 shadow-2xs"
-                    title="Exportar expediente mensual de recorridos a PDF con Puppeteer"
-                  >
-                    {descargando_pdf ? (
-                      <Loader2 className="w-3 h-3 animate-spin text-[#00ABBD]" />
-                    ) : (
-                      <Printer className="w-3 h-3 text-[#00ABBD]" />
-                    )}
-                    <span>Exportar PDF</span>
-                  </Button>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        exportarFormularioContabilidadSrdExcel(
+                          [
+                            {
+                              becario_nombre: usuario?.nombre || "Becario en Sesión",
+                              unidad: "Unidad Diaconía",
+                              tipo_actividad: "Prácticas",
+                              recorridos,
+                              monto_total_centavos: Math.round(monto_total_pasajes * 100),
+                              monto_devolucion_centavos: Math.round(devolucion_80 * 100),
+                              multas_asistencia_bs: multas_vigentes_bs,
+                              estado: solicitud_actual?.estado || "borrador",
+                            },
+                          ],
+                          solicitud_actual?.periodo || "2026-10",
+                          descontar_multas_srd
+                        );
+                        toast.success("Formulario Contabilidad/SRD exportado en Excel (.xls)");
+                      }}
+                      className="h-7 px-2.5 text-[11px] font-bold border-emerald-600 text-emerald-700 hover:bg-emerald-50 rounded-lg gap-1.5 shadow-2xs"
+                      title="Exportar liquidación a Excel (.xls)"
+                    >
+                      <FileSpreadsheet className="w-3 h-3 text-emerald-600" />
+                      <span>Exportar Excel</span>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={descargarExpedientePdf}
+                      disabled={descargando_pdf}
+                      className="h-7 px-2.5 text-[11px] font-bold border-[#035683] text-[#035683] hover:bg-slate-100 rounded-lg gap-1.5 shadow-2xs"
+                      title="Exportar expediente mensual de recorridos a PDF con Puppeteer"
+                    >
+                      {descargando_pdf ? (
+                        <Loader2 className="w-3 h-3 animate-spin text-[#00ABBD]" />
+                      ) : (
+                        <Printer className="w-3 h-3 text-[#00ABBD]" />
+                      )}
+                      <span>Exportar PDF</span>
+                    </Button>
+                  </div>
                 </div>
                 <div className="overflow-y-auto max-h-[250px] space-y-2 border border-[#E5E7EB]/80 rounded-xl p-2 bg-white">
                   {recorridos.map((rec) => (
@@ -1541,25 +1592,52 @@ export function PasajesVista() {
                 </div>
               </div>
 
-              {/* TARJETA DE CÁLCULO DEL 80% */}
-              <div className="p-4 rounded-xl border border-[#E5E7EB] bg-gradient-to-br from-[#035683] to-[#035683] text-white space-y-2">
+              {/* TARJETA DE CÁLCULO DEL 80% Y LÍQUIDO SRD */}
+              <div className="p-4 rounded-xl border border-[#E5E7EB] bg-gradient-to-br from-[#035683] to-[#035683] text-white space-y-2.5">
+                <div className="flex items-center justify-between gap-2 pb-2 border-b border-white/15">
+                  <Label
+                    htmlFor="switch-descontar-multas-vista"
+                    className="text-[11px] font-medium text-white/90 cursor-pointer"
+                  >
+                    Descontar multas de asistencia en el pago de pasajes (Cálculo SRD)
+                  </Label>
+                  <Switch
+                    id="switch-descontar-multas-vista"
+                    checked={descontar_multas_srd}
+                    onCheckedChange={set_descontar_multas_srd}
+                  />
+                </div>
                 <div className="flex justify-between items-baseline">
-                  <span className="text-xs font-mono text-white/80">Monto total de pasajes:</span>
-                  <span className="text-base font-mono font-bold text-white">
+                  <span className="text-xs font-mono text-white/80">Total (100%):</span>
+                  <span className="text-sm font-mono font-bold text-white">
                     Bs {monto_total_pasajes.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-baseline">
+                  <span className="text-xs font-mono text-[#00ABBD] font-bold uppercase">
+                    80% Reconocido:
+                  </span>
+                  <span className="text-base font-mono font-bold text-[#FFB600]">
+                    Bs {devolucion_80.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-baseline">
+                  <span className="text-xs font-mono text-rose-200">(-) Multas Asistencia:</span>
+                  <span className="text-sm font-mono font-bold text-rose-200">
+                    - Bs {multas_descontadas_srd.toFixed(2)}
                   </span>
                 </div>
                 <Separator className="bg-white/20 my-1" />
                 <div className="flex justify-between items-baseline">
-                  <span className="text-xs font-mono text-[#00ABBD] font-bold uppercase">
-                    Devolución del 80%:
+                  <span className="text-xs font-mono text-emerald-300 font-bold uppercase">
+                    Líquido Pagable (Neto SRD):
                   </span>
-                  <span className="text-2xl font-display font-bold text-[#FFB600]">
-                    Bs {devolucion_80.toFixed(2)}
+                  <span className="text-2xl font-display font-bold text-emerald-300">
+                    Bs {liquido_pagable_srd.toFixed(2)}
                   </span>
                 </div>
                 <p className="text-[10px] font-mono text-white/60 pt-1">
-                  * Liquidación conforme a reglamento Diaconía FRIF-IFD.
+                  * Liquidación para Contabilidad y SRD conforme a reglamento Diaconía FRIF-IFD.
                 </p>
               </div>
 

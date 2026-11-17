@@ -236,7 +236,7 @@ export function ModalVisorDocumentoBecario({
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7.5);
     doc.setTextColor(100, 116, 139);
-    doc.text("Supervisor de Becas BUMAND", 52.5, y_pie + 8, { align: "center" });
+    doc.text("Mentor de Becas BUMAND", 52.5, y_pie + 8, { align: "center" });
     doc.text("Fundación Diaconía FRIF-IFD", 157.5, y_pie + 8, { align: "center" });
 
     doc.setFontSize(7);

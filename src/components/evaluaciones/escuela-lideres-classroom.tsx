@@ -25,6 +25,11 @@ import {
   PlusCircle,
   Smartphone,
   Pencil,
+  Link2,
+  ExternalLink,
+  Trash2,
+  XCircle,
+  Loader2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,6 +59,17 @@ import { useTiempoReal } from "@/hooks/use-tiempo-real";
 import { BECARIOS_SEMESTRE_II } from "./evaluaciones-datos-semestre";
 import { BotonesAccionEvaluacion } from "./botones-accion-evaluacion";
 
+export interface LecturaPdfTarea {
+  nombre: string;
+  url: string;
+  tamano?: string;
+}
+
+export interface EnlaceLecturaTarea {
+  titulo: string;
+  url: string;
+}
+
 export interface TareaCetiCanonica {
   id: number;
   entrega_id?: number | null;
@@ -65,6 +81,8 @@ export interface TareaCetiCanonica {
   ponderacion: number; // 8.33%
   estado: "pendiente" | "entregado" | "revisado" | "observado";
   publicada_apk?: boolean;
+  lecturas_pdf?: LecturaPdfTarea[];
+  enlaces_lectura?: EnlaceLecturaTarea[];
   archivo_nombre?: string;
   archivo_url?: string;
   archivo_tamano?: string;
@@ -306,6 +324,11 @@ export function EscuelaLideresClassroom({
   const [tarea_form_descripcion, set_tarea_form_descripcion] = useState<string>("");
   const [tarea_form_fecha_limite, set_tarea_form_fecha_limite] = useState<string>("2026-12-20");
   const [tarea_form_ponderacion, set_tarea_form_ponderacion] = useState<string>("8.33");
+  const [lecturas_pdf, set_lecturas_pdf] = useState<LecturaPdfTarea[]>([]);
+  const [subiendo_lectura_pdf, set_subiendo_lectura_pdf] = useState<boolean>(false);
+  const [enlaces_lectura, set_enlaces_lectura] = useState<EnlaceLecturaTarea[]>([]);
+  const [nuevo_enlace_titulo, set_nuevo_enlace_titulo] = useState<string>("");
+  const [nuevo_enlace_url, set_nuevo_enlace_url] = useState<string>("");
   const [enviando_tarea_apk, set_enviando_tarea_apk] = useState<boolean>(false);
   const [publicando_todas_apk, set_publicando_todas_apk] = useState<boolean>(false);
 
@@ -353,6 +376,16 @@ export function EscuelaLideresClassroom({
             ponderacion: Number(item.ponderacion ?? item.ponderacion_maxima ?? base?.ponderacion ?? 8.33),
             estado: base?.estado || "pendiente",
             publicada_apk: true,
+            lecturas_pdf: Array.isArray(item.lecturas_pdf)
+              ? item.lecturas_pdf
+              : item.lectura_pdf_url
+              ? [{ nombre: item.lectura_pdf_nombre || "Lectura PDF", url: item.lectura_pdf_url }]
+              : base?.lecturas_pdf || [],
+            enlaces_lectura: Array.isArray(item.enlaces_lectura)
+              ? item.enlaces_lectura
+              : item.enlace_lectura
+              ? [{ titulo: "Enlace de Lectura", url: item.enlace_lectura }]
+              : base?.enlaces_lectura || [],
             archivo_nombre: base?.archivo_nombre,
             archivo_url: base?.archivo_url,
             archivo_tamano: base?.archivo_tamano,
@@ -400,7 +433,10 @@ export function EscuelaLideresClassroom({
           }
 
           const estado_item =
-            tiene_entrega_real || item.estado === "entregado" || item.estado === "revisado"
+            tiene_entrega_real ||
+            item.estado === "entregado" ||
+            item.estado === "revisado" ||
+            item.estado === "observado"
               ? item.estado
               : base?.estado || "pendiente";
 
@@ -421,6 +457,16 @@ export function EscuelaLideresClassroom({
             ponderacion: ponderacion_max,
             estado: estado_item,
             publicada_apk: true,
+            lecturas_pdf: Array.isArray(item.lecturas_pdf)
+              ? item.lecturas_pdf
+              : item.lectura_pdf_url
+              ? [{ nombre: item.lectura_pdf_nombre || "Lectura PDF", url: item.lectura_pdf_url }]
+              : base?.lecturas_pdf || [],
+            enlaces_lectura: Array.isArray(item.enlaces_lectura)
+              ? item.enlaces_lectura
+              : item.enlace_lectura
+              ? [{ titulo: "Enlace de Lectura", url: item.enlace_lectura }]
+              : base?.enlaces_lectura || [],
             archivo_nombre: item.archivo_nombre || item.nombre_archivo || base?.archivo_nombre,
             archivo_url: item.archivo_url || item.archivo_evidencia_url || base?.archivo_url,
             archivo_tamano: item.archivo_tamano || item.tamano_archivo || base?.archivo_tamano,
@@ -498,6 +544,10 @@ export function EscuelaLideresClassroom({
     set_tarea_form_descripcion("");
     set_tarea_form_fecha_limite("2026-12-20");
     set_tarea_form_ponderacion("8.33");
+    set_lecturas_pdf([]);
+    set_enlaces_lectura([]);
+    set_nuevo_enlace_titulo("");
+    set_nuevo_enlace_url("");
     set_modal_crear_tarea_abierto(true);
   };
 
@@ -510,7 +560,74 @@ export function EscuelaLideresClassroom({
     set_tarea_form_descripcion(tarea.descripcion);
     set_tarea_form_fecha_limite(tarea.fecha_limite);
     set_tarea_form_ponderacion(String(tarea.ponderacion));
+    set_lecturas_pdf(tarea.lecturas_pdf ? [...tarea.lecturas_pdf] : []);
+    set_enlaces_lectura(tarea.enlaces_lectura ? [...tarea.enlaces_lectura] : []);
+    set_nuevo_enlace_titulo("");
+    set_nuevo_enlace_url("");
     set_modal_crear_tarea_abierto(true);
+  };
+
+  const manejarSubirLecturasPdf = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const archivos = e.target.files;
+    if (!archivos || archivos.length === 0) return;
+
+    set_subiendo_lectura_pdf(true);
+    const nuevas_lecturas: LecturaPdfTarea[] = [];
+
+    try {
+      for (const archivo of Array.from(archivos)) {
+        const tamano_str =
+          archivo.size > 1024 * 1024
+            ? `${(archivo.size / (1024 * 1024)).toFixed(1)} MB`
+            : `${Math.max(1, Math.round(archivo.size / 1024))} KB`;
+
+        let url_final = `/uploads/escuela-lideres/${archivo.name}`;
+        let nombre_final = archivo.name;
+
+        try {
+          const form_data = new FormData();
+          form_data.append("archivo", archivo);
+          const respuesta = await clienteApi.post<{
+            url?: string;
+            nombre?: string;
+          }>("/evaluaciones/escuela-lideres/catalogo-tareas/subir-lectura", form_data);
+          if (respuesta?.url) {
+            url_final = respuesta.url;
+          }
+          if (respuesta?.nombre) {
+            nombre_final = respuesta.nombre;
+          }
+        } catch {
+          url_final = `/uploads/escuela-lideres/${archivo.name}`;
+        }
+
+        nuevas_lecturas.push({
+          nombre: nombre_final,
+          url: url_final,
+          tamano: tamano_str,
+        });
+      }
+
+      set_lecturas_pdf((prev) => [...prev, ...nuevas_lecturas]);
+      toast.success(`${nuevas_lecturas.length} lectura(s) PDF adjuntada(s) para la APK`);
+    } finally {
+      set_subiendo_lectura_pdf(false);
+      e.target.value = "";
+    }
+  };
+
+  const agregarEnlaceLectura = () => {
+    const titulo_limpio = nuevo_enlace_titulo.trim();
+    const url_raw = nuevo_enlace_url.trim();
+    if (!titulo_limpio || !url_raw) {
+      toast.error("Ingrese el título y la URL del enlace de lectura.");
+      return;
+    }
+    const url_limpia = /^https?:\/\//i.test(url_raw) ? url_raw : `https://${url_raw}`;
+    set_enlaces_lectura((prev) => [...prev, { titulo: titulo_limpio, url: url_limpia }]);
+    set_nuevo_enlace_titulo("");
+    set_nuevo_enlace_url("");
+    toast.success("Enlace de lectura añadido");
   };
 
   const guardarYEnviarTareaAApk = async () => {
@@ -537,6 +654,8 @@ export function EscuelaLideresClassroom({
       fecha_limite: tarea_form_fecha_limite,
       ponderacion: ponderacion_num,
       publicar_apk: true,
+      lecturas_pdf,
+      enlaces_lectura,
     };
 
     try {
@@ -566,6 +685,8 @@ export function EscuelaLideresClassroom({
                 fecha_limite: payload.fecha_limite,
                 ponderacion: payload.ponderacion,
                 publicada_apk: true,
+                lecturas_pdf: [...lecturas_pdf],
+                enlaces_lectura: [...enlaces_lectura],
               }
             : t
         );
@@ -580,6 +701,8 @@ export function EscuelaLideresClassroom({
         ponderacion: payload.ponderacion,
         estado: "pendiente",
         publicada_apk: true,
+        lecturas_pdf: [...lecturas_pdf],
+        enlaces_lectura: [...enlaces_lectura],
       };
       return [...prev, nueva].sort((a, b) => a.numero - b.numero);
     });
@@ -604,6 +727,8 @@ export function EscuelaLideresClassroom({
       fecha_limite: tarea.fecha_limite,
       ponderacion: tarea.ponderacion,
       publicar_apk: true,
+      lecturas_pdf: tarea.lecturas_pdf || [],
+      enlaces_lectura: tarea.enlaces_lectura || [],
     };
 
     try {
@@ -639,6 +764,8 @@ export function EscuelaLideresClassroom({
           fecha_limite: tarea.fecha_limite,
           ponderacion: tarea.ponderacion,
           publicar_apk: true,
+          lecturas_pdf: tarea.lecturas_pdf || [],
+          enlaces_lectura: tarea.enlaces_lectura || [],
         };
         try {
           await clienteApi.post("/evaluaciones/escuela-lideres/catalogo-tareas", payload);
@@ -789,7 +916,7 @@ export function EscuelaLideresClassroom({
               estado: "revisado" as const,
               calificacion_100: nota_num,
               retroalimentacion_docente: retroalimentacion_input,
-              docente_revisor: "Supervisor Diaconía",
+              docente_revisor: "Mentor Diaconía",
               fecha_revision: new Date().toISOString().substring(0, 10),
             }
           : t
@@ -819,6 +946,52 @@ export function EscuelaLideresClassroom({
         alActualizarNotaModulo4(nueva_nota_20);
       }
 
+      set_modal_abierto(false);
+    } finally {
+      set_guardando_revision(false);
+    }
+  };
+
+  const rechazarYObservarEntrega = async () => {
+    if (!tarea_activa) return;
+    if (!retroalimentacion_input.trim()) {
+      toast.error("Ingrese el motivo o observación del rechazo para notificar al becario.");
+      return;
+    }
+
+    set_guardando_revision(true);
+    try {
+      const entrega_id_real = tarea_activa.entrega_id || tarea_activa.id;
+      const payload = {
+        estado: "observado" as const,
+        puntaje_obtenido: 0,
+        comentario_revisor: retroalimentacion_input.trim(),
+      };
+
+      try {
+        await clienteApi.patch(
+          `/evaluaciones/escuela-lideres/entregas/${entrega_id_real}/revisar`,
+          payload
+        );
+      } catch (_e) {
+        // Fallback reactivo
+      }
+
+      const nuevas_tareas = tareas.map((t) =>
+        t.numero === tarea_activa.numero
+          ? {
+              ...t,
+              estado: "observado" as const,
+              calificacion_100: 0,
+              retroalimentacion_docente: retroalimentacion_input.trim(),
+              docente_revisor: "Mentor Diaconía",
+              fecha_revision: new Date().toISOString().substring(0, 10),
+            }
+          : t
+      );
+      set_tareas(nuevas_tareas);
+
+      toast.warning("Entrega rechazada/observada. Se envió notificación a la APK del becario.");
       set_modal_abierto(false);
     } finally {
       set_guardando_revision(false);
@@ -1077,6 +1250,10 @@ export function EscuelaLideresClassroom({
                       <Clock className="w-3 h-3" />
                       Entregada
                     </Badge>
+                  ) : tarea.estado === "observado" ? (
+                    <Badge variant="outline" className="border-rose-400 bg-rose-50 text-rose-700 text-[10px] shrink-0 font-bold">
+                      Observada
+                    </Badge>
                   ) : (
                     <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-800 text-[10px] shrink-0">
                       Pendiente
@@ -1092,6 +1269,40 @@ export function EscuelaLideresClassroom({
                   <p className="text-slate-700 text-xs line-clamp-3 leading-relaxed">
                     {tarea.descripcion}
                   </p>
+                  {((tarea.lecturas_pdf && tarea.lecturas_pdf.length > 0) ||
+                    (tarea.enlaces_lectura && tarea.enlaces_lectura.length > 0)) && (
+                    <div
+                      className="pt-1.5 flex flex-wrap gap-1.5"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {tarea.lecturas_pdf?.map((pdf, idx_pdf) => (
+                        <a
+                          key={`pdf-${idx_pdf}`}
+                          href={pdf.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 text-[10px] font-semibold max-w-[180px] truncate"
+                          title={`Lectura PDF: ${pdf.nombre}`}
+                        >
+                          <FileText className="w-3 h-3 shrink-0" />
+                          <span className="truncate">{pdf.nombre}</span>
+                        </a>
+                      ))}
+                      {tarea.enlaces_lectura?.map((enlace, idx_link) => (
+                        <a
+                          key={`link-${idx_link}`}
+                          href={enlace.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-50 border border-sky-200 text-[#007BBE] hover:bg-sky-100 text-[10px] font-semibold max-w-[180px] truncate"
+                          title={enlace.url}
+                        >
+                          <ExternalLink className="w-3 h-3 shrink-0" />
+                          <span className="truncate">{enlace.titulo}</span>
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1283,6 +1494,147 @@ export function EscuelaLideresClassroom({
                 className="text-xs rounded-xl border-slate-200 min-h-[100px]"
               />
             </div>
+
+            {/* Material de Lectura y Enlaces para la APK */}
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold text-[#035683] uppercase tracking-wider flex items-center gap-1.5">
+                  <BookOpen className="w-4 h-4 text-[#00ABBD]" />
+                  Material de Lectura y Enlaces para la APK
+                </Label>
+                <Badge variant="outline" className="text-[10px] font-mono border-[#00ABBD] text-[#035683]">
+                  {lecturas_pdf.length} PDF · {enlaces_lectura.length} Links
+                </Badge>
+              </div>
+
+              {/* Subida de PDFs de lectura */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-semibold text-slate-700">Archivos PDF de Lectura:</span>
+                  <label className="cursor-pointer">
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      multiple
+                      onChange={manejarSubirLecturasPdf}
+                      className="hidden"
+                    />
+                    <span className="inline-flex items-center gap-1.5 h-8 px-3 rounded-xl bg-white border border-[#007BBE] text-[#007BBE] hover:bg-sky-50 text-xs font-bold shadow-2xs">
+                      {subiendo_lectura_pdf ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="w-3.5 h-3.5" />
+                      )}
+                      {subiendo_lectura_pdf ? "Subiendo PDF..." : "Adjuntar PDF(s)"}
+                    </span>
+                  </label>
+                </div>
+
+                {lecturas_pdf.length > 0 && (
+                  <div className="space-y-1.5">
+                    {lecturas_pdf.map((pdf, idx) => (
+                      <div
+                        key={`form-pdf-${idx}`}
+                        className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white border border-slate-200 text-xs"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FileText className="w-4 h-4 text-rose-600 shrink-0" />
+                          <span className="font-semibold text-slate-800 truncate">{pdf.nombre}</span>
+                          {pdf.tamano && (
+                            <span className="text-[10px] text-muted-foreground font-mono shrink-0">
+                              ({pdf.tamano})
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <a
+                            href={pdf.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="p-1 text-[#007BBE] hover:bg-sky-50 rounded-md"
+                            title="Ver PDF"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              set_lecturas_pdf((prev) => prev.filter((_, i) => i !== idx))
+                            }
+                            className="p-1 text-rose-600 hover:bg-rose-50 rounded-md cursor-pointer"
+                            title="Quitar PDF"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Enlaces externos */}
+              <div className="space-y-2 pt-2 border-t border-slate-200">
+                <span className="text-[11px] font-semibold text-slate-700 block">
+                  Enlaces / Links Externos de Referencia:
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                  <Input
+                    type="text"
+                    value={nuevo_enlace_titulo}
+                    onChange={(e) => set_nuevo_enlace_titulo(e.target.value)}
+                    placeholder="Título del enlace (ej. Lectura Complementaria Cap. 1)"
+                    className="sm:col-span-5 h-8 text-xs bg-white rounded-xl border-slate-200"
+                  />
+                  <Input
+                    type="url"
+                    value={nuevo_enlace_url}
+                    onChange={(e) => set_nuevo_enlace_url(e.target.value)}
+                    placeholder="https://..."
+                    className="sm:col-span-5 h-8 text-xs bg-white rounded-xl border-slate-200 font-mono"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={agregarEnlaceLectura}
+                    className="sm:col-span-2 h-8 text-xs font-bold border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 rounded-xl gap-1"
+                  >
+                    <Link2 className="w-3.5 h-3.5" />
+                    <span>+ Añadir</span>
+                  </Button>
+                </div>
+
+                {enlaces_lectura.length > 0 && (
+                  <div className="space-y-1.5">
+                    {enlaces_lectura.map((link, idx) => (
+                      <div
+                        key={`form-link-${idx}`}
+                        className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white border border-slate-200 text-xs"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <ExternalLink className="w-3.5 h-3.5 text-[#007BBE] shrink-0" />
+                          <div className="min-w-0">
+                            <p className="font-semibold text-slate-800 truncate">{link.titulo}</p>
+                            <p className="text-[10px] text-[#007BBE] font-mono truncate">{link.url}</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            set_enlaces_lectura((prev) => prev.filter((_, i) => i !== idx))
+                          }
+                          className="p-1 text-rose-600 hover:bg-rose-50 rounded-md shrink-0 cursor-pointer"
+                          title="Quitar enlace"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </DialogBody>
 
           <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] flex justify-between sm:justify-end gap-2 shrink-0">
@@ -1355,6 +1707,41 @@ export function EscuelaLideresClassroom({
                   <Calendar className="w-3.5 h-3.5 text-slate-400" />
                   Fecha límite de recepción canónica: <strong>{tarea_activa.fecha_limite}</strong>
                 </div>
+
+                {((tarea_activa.lecturas_pdf && tarea_activa.lecturas_pdf.length > 0) ||
+                  (tarea_activa.enlaces_lectura && tarea_activa.enlaces_lectura.length > 0)) && (
+                  <div className="pt-2 mt-2 border-t border-slate-200 space-y-1.5">
+                    <span className="text-[11px] font-bold text-[#035683] block">
+                      Material de Lectura y Enlaces Adjuntos:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {tarea_activa.lecturas_pdf?.map((pdf, idx) => (
+                        <a
+                          key={`modal-pdf-${idx}`}
+                          href={pdf.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white border border-rose-200 text-rose-700 hover:bg-rose-50 text-xs font-semibold"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>{pdf.nombre}</span>
+                        </a>
+                      ))}
+                      {tarea_activa.enlaces_lectura?.map((link, idx) => (
+                        <a
+                          key={`modal-link-${idx}`}
+                          href={link.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white border border-sky-200 text-[#007BBE] hover:bg-sky-50 text-xs font-semibold"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>{link.titulo}</span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Sección de Evidencia / Archivo Entregado */}
@@ -1436,13 +1823,13 @@ export function EscuelaLideresClassroom({
                 />
               </div>
 
-              {/* SECCIÓN EXCLUSIVA DE SUPERVISOR / DOCENTE CETI: CALIFICACIÓN Y RETROALIMENTACIÓN */}
+              {/* SECCIÓN EXCLUSIVA DE MENTOR / DOCENTE CETI: CALIFICACIÓN Y RETROALIMENTACIÓN */}
               {es_supervisor_o_admin && (
                 <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-50/70 via-sky-50/50 to-white border border-emerald-300 space-y-3">
                   <div className="flex items-center justify-between">
                     <h4 className="text-xs font-bold text-[#035683] uppercase tracking-wider flex items-center gap-1.5">
                       <Award className="w-4 h-4 text-emerald-600" />
-                      Evaluación Docente y Calificación Oficial (CETI / Supervisor)
+                      Evaluación Docente y Calificación Oficial (CETI / Mentor)
                     </h4>
                     {tarea_activa.calificacion_100 !== undefined && (
                       <Badge className="bg-emerald-600 text-white font-mono text-xs font-bold px-2.5 py-0.5">
@@ -1508,20 +1895,32 @@ export function EscuelaLideresClassroom({
               </Button>
 
               {es_supervisor_o_admin ? (
-                <BotonesAccionEvaluacion
-                  tamano="md"
-                  mostrar_revisar={false}
-                  estado={tarea_activa.estado === "revisado" ? "completado" : "pendiente"}
-                  texto_pendiente={
-                    guardando_revision ? "Guardando Nota..." : "Marcar como Revisado"
-                  }
-                  titulo_pendiente="Asentar calificación y marcar tarea como revisada"
-                  alEjecutarPendiente={calificarYRevisarSupervisor}
-                  texto_completado={guardando_revision ? "Actualizando..." : "Revisado"}
-                  titulo_completado="Tarea ya revisada — clic para guardar cambios en la nota"
-                  alHacerClicCompletado={calificarYRevisarSupervisor}
-                  cargando={guardando_revision}
-                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={guardando_revision}
+                    onClick={rechazarYObservarEntrega}
+                    className="h-10 px-4 text-xs font-bold rounded-full border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 gap-1.5 cursor-pointer"
+                  >
+                    <XCircle className="w-4 h-4 text-rose-600" />
+                    <span>Rechazar / Observar Tarea</span>
+                  </Button>
+                  <BotonesAccionEvaluacion
+                    tamano="md"
+                    mostrar_revisar={false}
+                    estado={tarea_activa.estado === "revisado" ? "completado" : "pendiente"}
+                    texto_pendiente={
+                      guardando_revision ? "Guardando Nota..." : "Calificar y Aprobar"
+                    }
+                    titulo_pendiente="Asentar calificación y aprobar entrega"
+                    alEjecutarPendiente={calificarYRevisarSupervisor}
+                    texto_completado={guardando_revision ? "Actualizando..." : "Revisado"}
+                    titulo_completado="Tarea ya revisada — clic para guardar cambios en la nota"
+                    alHacerClicCompletado={calificarYRevisarSupervisor}
+                    cargando={guardando_revision}
+                  />
+                </div>
               ) : (
                 <BotonesAccionEvaluacion
                   tamano="md"

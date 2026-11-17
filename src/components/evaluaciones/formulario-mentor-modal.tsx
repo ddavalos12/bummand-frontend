@@ -284,7 +284,7 @@ export function FormularioMentorModal({
       // Si se está en modo prueba o desarrollo, aceptamos si coincide o tiene 6 dígitos
       if (valido || (codigo_verificacion.trim().length === 6 && !codigo_esperado)) {
         set_identidad_verificada(true);
-        toast.success("¡Identidad de Supervisor Verificada!", {
+        toast.success("¡Identidad de Mentor Verificada!", {
           description: "Autorización concedida para asentar la evaluación oficial en el sistema.",
         });
       } else {
@@ -307,7 +307,7 @@ export function FormularioMentorModal({
       () => {
         alCambiarAbierto(false);
       },
-      "Evaluación del Supervisor / Mentor"
+      "Evaluación del Mentor"
     );
   };
 
@@ -340,7 +340,7 @@ export function FormularioMentorModal({
         })
         .catch(() => {});
 
-      toast.success("Evaluación de Supervisor asentada exitosamente", {
+      toast.success("Evaluación de Mentor asentada exitosamente", {
         description: `Nota Oficial: ${nota_final_sobre_20} / 20 Puntos asignada a ${nombre_becario}.`,
       });
 
@@ -378,7 +378,7 @@ export function FormularioMentorModal({
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-mono uppercase tracking-wider text-[#00ABBD] font-bold block">
-                    Módulo 03 · Evaluación del Becario por el Supervisor / Mentor
+                    Módulo 03 · Evaluación del Becario por el Mentor
                   </span>
                   <Badge
                     variant="outline"
@@ -389,15 +389,15 @@ export function FormularioMentorModal({
                         ? "Aprobado por Administración"
                         : "Revisión de Administración"
                       : modalidad_llenado === "perfil_supervisor"
-                      ? "Perfil Web Supervisor"
+                      ? "Perfil Web Mentor"
                       : "Móvil Estudiante"}
                   </Badge>
                 </div>
                 <DialogTitle className="font-display text-lg font-bold text-[#035683]">
                   {solo_lectura
                     ? estado_actual === "aprobado"
-                      ? "Evaluación de Supervisor Aprobada (Módulo 3)"
-                      : "Revisar y Convalidar Evaluación de Supervisor (Módulo 3)"
+                      ? "Evaluación de Mentor Aprobada (Módulo 3)"
+                      : "Revisar y Convalidar Evaluación de Mentor (Módulo 3)"
                     : evaluacion_inicial
                     ? "Editar Evaluación de Desempeño Diaconal (Módulo 3)"
                     : "Llenar Evaluación de Desempeño Diaconal (Módulo 3)"}
@@ -505,7 +505,7 @@ export function FormularioMentorModal({
                 </div>
                 <div>
                   <h4 className="text-xs font-bold text-[#035683] uppercase tracking-wider">
-                    Validación de Identidad del Supervisor
+                    Validación de Identidad del Mentor
                   </h4>
                   <p className="text-[11px] text-slate-600">
                     Firma electrónica y código OTP respaldado por el supervisor evaluador:
@@ -530,7 +530,7 @@ export function FormularioMentorModal({
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-[#035683] uppercase tracking-wider flex items-center gap-1.5">
-                      Validación Obligatoria de Identidad (Supervisor / Mentor)
+                      Validación Obligatoria de Identidad (Mentor)
                     </h4>
                     <p className="text-[11px] text-muted-foreground">
                       Verifique su identidad mediante código seguro de 6 dígitos para validar la autoría de la calificación.
@@ -837,7 +837,7 @@ export function FormularioMentorModal({
 
             <div className="text-right">
               <span className="text-[11px] text-emerald-800 uppercase tracking-wider block font-bold">
-                Calificación Definitiva Supervisor
+                Calificación Definitiva Mentor
               </span>
               <span className="font-mono text-2xl font-bold text-[#035683]">
                 {nota_final_sobre_20} <span className="text-xs font-normal text-slate-600">/ 20 Pts</span>

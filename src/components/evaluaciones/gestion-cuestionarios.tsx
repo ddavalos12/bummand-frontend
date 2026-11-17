@@ -474,7 +474,7 @@ export function GestionCuestionarios() {
                   <SelectContent>
                     <SelectItem value="becario">Estudiante / Becario</SelectItem>
                     <SelectItem value="pastor">Pastor de la Iglesia</SelectItem>
-                    <SelectItem value="supervisor">Supervisor / Mentor</SelectItem>
+                    <SelectItem value="supervisor">Mentor</SelectItem>
                     <SelectItem value="social">Trabajo Social</SelectItem>
                   </SelectContent>
                 </Select>

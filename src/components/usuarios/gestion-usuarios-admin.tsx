@@ -121,7 +121,7 @@ const USUARIOS_SEMILLA: UsuarioInstitucional[] = [
     ],
     rol: "supervisor",
     estado: "activo",
-    cargo: "Supervisor de Operaciones y Red de Agencias",
+    cargo: "Mentor de Operaciones y Red de Agencias",
     unidad: "Gerencia de Operaciones",
   },
   {
@@ -284,7 +284,7 @@ const USUARIOS_SEMILLA: UsuarioInstitucional[] = [
     correo_alternativo: "sonia.aguilar.eval@gmail.com",
     rol: "supervisor",
     estado: "activo",
-    cargo: "Supervisora de Calidad en Atención al Cliente",
+    cargo: "Mentora de Calidad en Atención al Cliente",
     unidad: "Atención al Consumidor Financiero",
   },
   {
@@ -344,7 +344,7 @@ const USUARIOS_SEMILLA: UsuarioInstitucional[] = [
     correo_alternativo: "monica.nina.salud@gmail.com",
     rol: "supervisor",
     estado: "activo",
-    cargo: "Supervisora Médica Ocupacional",
+    cargo: "Mentora Médica Ocupacional",
     unidad: "Seguridad y Salud en el Trabajo",
   },
   {
@@ -364,7 +364,7 @@ const USUARIOS_SEMILLA: UsuarioInstitucional[] = [
     correo_alternativo: "carmen.alave.adm@gmail.com",
     rol: "supervisor",
     estado: "activo",
-    cargo: "Supervisora Administrativa de Agencias La Paz",
+    cargo: "Mentora Administrativa de Agencias La Paz",
     unidad: "Coordinación Regional La Paz",
   },
   {
@@ -1008,7 +1008,7 @@ export function GestionUsuariosAdmin() {
         : [],
       rol: nuevo_rol,
       estado: "activo",
-      cargo: nuevo_rol === "administrador" ? "Administrador Institucional" : "Supervisor Institucional",
+      cargo: nuevo_rol === "administrador" ? "Administrador Institucional" : "Mentor Institucional",
       unidad: "Programa BUMAND · Diaconía FRIF-IFD",
     };
 
@@ -1252,7 +1252,7 @@ export function GestionUsuariosAdmin() {
           <CardHeader className="p-4 pb-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                Supervisores
+                Mentores
               </span>
               <div className="w-8 h-8 rounded-xl bg-[#00ABBD]/10 text-[#00ABBD] flex items-center justify-center">
                 <UserCheck className="w-4 h-4" />
@@ -1339,7 +1339,7 @@ export function GestionUsuariosAdmin() {
                 <SelectContent className="rounded-xl border-[#E5E7EB]">
                   <SelectItem value="todos">Todos los Roles</SelectItem>
                   <SelectItem value="administrador">Administrador</SelectItem>
-                  <SelectItem value="supervisor">Supervisor</SelectItem>
+                  <SelectItem value="supervisor">Mentor</SelectItem>
                   <SelectItem value="becario">Becario</SelectItem>
                 </SelectContent>
               </Select>
@@ -1460,7 +1460,7 @@ export function GestionUsuariosAdmin() {
                               )}
                               {usr.rol === "supervisor" && (
                                 <Badge variant="outline" className="text-[10px] font-mono border-sky-300 bg-sky-50 text-sky-800 font-bold">
-                                  Supervisor / Mentor
+                                  Mentor
                                 </Badge>
                               )}
                               {usr.rol === "becario" && (
@@ -1624,7 +1624,7 @@ export function GestionUsuariosAdmin() {
                     <SelectValue placeholder="Seleccionar Rol" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-[#E5E7EB]">
-                    <SelectItem value="supervisor">Supervisor / Tutor Institucional</SelectItem>
+                    <SelectItem value="supervisor">Mentor / Tutor Institucional</SelectItem>
                     <SelectItem value="administrador">Administrador General del Sistema</SelectItem>
                   </SelectContent>
                 </Select>
@@ -1777,7 +1777,7 @@ export function GestionUsuariosAdmin() {
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-[#E5E7EB]">
                       <SelectItem value="administrador">Administrador</SelectItem>
-                      <SelectItem value="supervisor">Supervisor</SelectItem>
+                      <SelectItem value="supervisor">Mentor</SelectItem>
                       <SelectItem value="becario">Becario</SelectItem>
                     </SelectContent>
                   </Select>

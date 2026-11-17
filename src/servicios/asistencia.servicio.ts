@@ -357,6 +357,7 @@ export interface MovimientoExtractoAsistencia {
   distancia_metros: number;
   estado: "acreditado" | "en_curso" | "convalidado" | "observado" | "falta";
   estado_aprobacion: "pendiente" | "aprobado" | "revisado";
+  permiso_aprobado?: boolean;
 }
 
 export interface ExtractoMensualItem {
@@ -369,6 +370,8 @@ export interface ExtractoMensualItem {
   estado_meta: "cumplido" | "en_progreso" | "en_riesgo";
   jornadas_totales: number;
   tasa_puntualidad: number;
+  dias_permiso_aprobado?: number;
+  horas_compensadas_permiso?: number;
   movimientos: MovimientoExtractoAsistencia[];
 }
 
@@ -649,18 +652,48 @@ export async function obtenerExtractoMensualAsistencia(
     if (respuesta && respuesta.extractos && respuesta.extractos.length > 0) {
       respuesta.extractos.forEach((ext) => {
         let saldo_acum = 0;
+        let dias_permiso = 0;
+        let horas_permiso = 0;
+        let puntuales_compensados = 0;
+
         ext.movimientos.forEach((m) => {
           const es_lideres = m.tipo === "escuela_lideres" || (m.tipo_etiqueta || "").toLowerCase().includes("lider");
+          const tiene_permiso_aprobado = Boolean(
+            m.permiso_aprobado ||
+              m.estado === "convalidado" ||
+              (m.estado_aprobacion === "aprobado" && (m.estado === "falta" || (m.tipo_etiqueta || "").toLowerCase().includes("permiso")))
+          );
+
+          if (tiene_permiso_aprobado) {
+            m.permiso_aprobado = true;
+            m.minutos_retraso = 0;
+            dias_permiso += 1;
+            if (!es_lideres && (m.horas_dia || 0) === 0) {
+              m.horas_dia = 4.0;
+            }
+            horas_permiso += m.horas_dia || 0;
+          }
+
           if (es_lideres) {
             m.horas_dia = 0;
           } else {
             saldo_acum += (m.horas_dia || 0);
           }
+
+          if ((m.minutos_retraso || 0) === 0 || tiene_permiso_aprobado) {
+            puntuales_compensados += 1;
+          }
           m.saldo_acumulado = Number(saldo_acum.toFixed(2));
         });
+
+        ext.dias_permiso_aprobado = ext.dias_permiso_aprobado ?? dias_permiso;
+        ext.horas_compensadas_permiso = ext.horas_compensadas_permiso ?? Number(horas_permiso.toFixed(2));
         ext.horas_acumuladas = Number(saldo_acum.toFixed(2));
         ext.diferencia_horas = Number((ext.horas_acumuladas - ext.meta_horas).toFixed(2));
         ext.porcentaje_cumplimiento = Math.round((ext.horas_acumuladas / (ext.meta_horas || 36)) * 100);
+        if (ext.movimientos.length > 0) {
+          ext.tasa_puntualidad = Math.round((puntuales_compensados / ext.movimientos.length) * 100);
+        }
       });
       return respuesta;
     }

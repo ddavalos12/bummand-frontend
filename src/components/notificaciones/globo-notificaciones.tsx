@@ -138,7 +138,7 @@ export function GloboNotificaciones({
         };
         set_notificaciones((prev) => [nueva, ...prev]);
         set_abierto(true);
-        toast.info(`Código de Verificación (Supervisor): ${codigo_str}`, {
+        toast.info(`Código de Verificación (Mentor): ${codigo_str}`, {
           description: `Ingresa el código ${codigo_str} en el celular para autorizar la evaluación de ${becario_str}.`,
           duration: 15000,
         });
@@ -167,7 +167,7 @@ export function GloboNotificaciones({
           return {
             id: r.id + 10000,
             tipo: tipo_item,
-            titulo: es_codigo ? "🔐 Código de Autorización de Supervisor" : "Notificación Institucional",
+            titulo: es_codigo ? "🔐 Código de Autorización de Mentor" : "Notificación Institucional",
             mensaje: r.mensaje,
             tiempo: "Reciente",
             leido: Boolean(r.leido),

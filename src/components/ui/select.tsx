@@ -145,7 +145,7 @@ const DICCIONARIO_ETIQUETAS: Record<string, string> = {
   todos: "Todos los Estados",
   todas: "Todas las Sedes",
   todas_areas: "Todas las Áreas",
-  todos_supervisores: "Todos los Supervisores",
+  todos_supervisores: "Todos los Mentores",
   todos_meses: "Todos los Meses",
 
   // Refrigerios y Servicios de Comedor
@@ -180,7 +180,7 @@ const DICCIONARIO_ETIQUETAS: Record<string, string> = {
   otro_motivo: "Otro Motivo",
   otro: "Otra Actividad Formativa",
   pendiente_aprobacion: "Pendiente de Aprobación",
-  aprobado_supervisor: "Aprobado por Supervisor",
+  aprobado_supervisor: "Aprobado por Mentor",
   rechazado_supervisor: "Rechazado",
   justificacion_general: "Justificación General",
   permiso_previo: "Permiso Previo",
@@ -208,7 +208,7 @@ const DICCIONARIO_ETIQUETAS: Record<string, string> = {
   // Roles y Actores
   becario: "Estudiante / Becario",
   pastor: "Pastor de la Iglesia",
-  supervisor: "Supervisor / Mentor",
+  supervisor: "Mentor",
   social: "Trabajo Social",
   administrador: "Administrador",
 

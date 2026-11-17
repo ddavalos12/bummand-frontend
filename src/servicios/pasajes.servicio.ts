@@ -61,6 +61,10 @@ export interface SolicitudPasajes {
   periodo: string;
   total_declarado: number;
   total_reembolso_80: number;
+  multas_asistencia_bs?: number;
+  multas_asistencia_centavos?: number;
+  monto_liquido_pagable?: number;
+  monto_liquido_pagable_centavos?: number;
   estado: EstadoSolicitudPasaje;
   observaciones?: string | null;
   fecha_envio?: string | null;

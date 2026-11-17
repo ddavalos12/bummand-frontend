@@ -448,7 +448,7 @@ export function BandejaConvalidacionAdministracion({
             <TableRow>
               <TableHead className="w-12 text-center text-xs font-bold text-slate-600">#</TableHead>
               <TableHead className="text-xs font-bold text-slate-600">Becario y Universidad</TableHead>
-              <TableHead className="text-xs font-bold text-slate-600">Supervisor / Tutor</TableHead>
+              <TableHead className="text-xs font-bold text-slate-600">Mentor / Tutor</TableHead>
               <TableHead className="text-center text-xs font-bold text-slate-600">Promedio</TableHead>
               <TableHead className="text-center text-xs font-bold text-slate-600">Récord e Historial Semestral</TableHead>
               <TableHead className="text-center text-xs font-bold text-slate-600">Estado</TableHead>

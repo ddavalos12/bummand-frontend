@@ -31,6 +31,7 @@ import {
   Coins,
   Receipt,
   FileCheck2,
+  FileSpreadsheet,
 } from "lucide-react";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
@@ -38,6 +39,11 @@ import {
   descargarPdfConResiliencia,
   BECARIOS_EXPEDIENTES_COMPLETOS,
 } from "@/lib/generador-pdf-cliente";
+import {
+  exportarFormularioContabilidadSrdExcel,
+  exportarSabanaEvaluacionesExcel,
+  exportarAuditoriaAsistenciaExcel,
+} from "@/lib/generador-excel-cliente";
 
 interface ReporteItem {
   id: number;
@@ -538,18 +544,78 @@ export function VisorReportesPdf() {
               </button>
             </div>
 
-            <Button
-              disabled={descargando_auditoria}
-              onClick={() => descargarReporteAuditoriaIntervalo()}
-              className="h-10 px-5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl shadow-sm gap-2 shrink-0 cursor-pointer"
-            >
-              {descargando_auditoria ? (
-                <Loader2 className="w-4 h-4 animate-spin text-[#FFB600]" />
-              ) : (
-                <Printer className="w-4 h-4 text-[#FFB600]" />
-              )}
-              <span>Extraer Reporte PDF para Auditoría</span>
-            </Button>
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const periodo = `${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}`;
+                  if (modulo_auditoria === "pasajes") {
+                    const solicitudes_mock = BECARIOS_EXPEDIENTES_COMPLETOS.map((b) => ({
+                      becario_nombre: b.nombre,
+                      unidad: b.sede,
+                      tipo_actividad: "Prácticas",
+                      recorridos: Array.from({ length: 40 }),
+                      monto_total_centavos: 12000,
+                      monto_devolucion_centavos: 9600,
+                      multas_asistencia_bs: 0,
+                      estado: "aprobado_administracion",
+                    }));
+                    exportarFormularioContabilidadSrdExcel(solicitudes_mock, periodo, true);
+                  } else if (modulo_auditoria === "evaluaciones") {
+                    exportarSabanaEvaluacionesExcel(
+                      BECARIOS_EXPEDIENTES_COMPLETOS.map((b) => ({
+                        nombre_completo: b.nombre,
+                        ci: b.ci,
+                        universidad: b.universidad,
+                        carrera: b.carrera,
+                        tipo_beca: 650,
+                        liderazgo_iglesia: b.m1,
+                        academica: b.m2,
+                        practicas_preprofesionales: b.m3,
+                        escuela_lideres: b.m4,
+                        socioeconomico: b.m5,
+                        total: Number((b.m1 + b.m2 + b.m3 + b.m4 + b.m5).toFixed(1)),
+                        total_calificacion: b.m1 + b.m2 + b.m3 + b.m4 + b.m5 >= 80 ? "APROBACIÓN ÓPTIMA" : "CONDICIONADA",
+                      })),
+                      periodo
+                    );
+                  } else {
+                    exportarAuditoriaAsistenciaExcel(
+                      BECARIOS_EXPEDIENTES_COMPLETOS.map((b) => ({
+                        becario_nombre: b.nombre,
+                        carrera: b.carrera,
+                        sede_nombre: b.sede,
+                        fecha: fecha_inicio_auditoria,
+                        hora_ingreso: "08:00",
+                        hora_salida: "12:00",
+                        horas_trabajadas: 80,
+                        monto_multa_bs: 0,
+                        estado: "conforme",
+                      })),
+                      periodo
+                    );
+                  }
+                  toast.success("Reporte de auditoría exportado a Excel (.xls)");
+                }}
+                className="h-10 px-4 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold text-xs rounded-xl shadow-xs gap-2 cursor-pointer"
+              >
+                <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                <span>Exportar Excel</span>
+              </Button>
+
+              <Button
+                disabled={descargando_auditoria}
+                onClick={() => descargarReporteAuditoriaIntervalo()}
+                className="h-10 px-5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl shadow-sm gap-2 shrink-0 cursor-pointer"
+              >
+                {descargando_auditoria ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-[#FFB600]" />
+                ) : (
+                  <Printer className="w-4 h-4 text-[#FFB600]" />
+                )}
+                <span>Extraer Reporte PDF para Auditoría</span>
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -593,14 +659,14 @@ export function VisorReportesPdf() {
               <span>Semestre II (2 Páginas)</span>
             </Button>
 
-            {/* Botón: Reporte General de Pasajes (Liquidación 80%) */}
+            {/* Botón: Formulario para Contabilidad y SRD (Pasajes General 80%) */}
             <Button
               disabled={descargando_id !== null}
               onClick={() =>
                 descargarReportePuppeteer(
                   "pasajes_general",
                   `/pdf/pasajes-general?fecha_inicio=${fecha_inicio_global}&fecha_fin=${fecha_fin_global}`,
-                  `Reporte_General_Pasajes_${fecha_inicio_global}_al_${fecha_fin_global}.pdf`,
+                  `Formulario_Contabilidad_SRD_Pasajes_${fecha_inicio_global}_al_${fecha_fin_global}.pdf`,
                   "pasajes_general",
                   { fecha_inicio: fecha_inicio_global, fecha_fin: fecha_fin_global }
                 )
@@ -613,7 +679,7 @@ export function VisorReportesPdf() {
               ) : (
                 <Bus className="w-4 h-4 text-[#035683]" />
               )}
-              <span>Pasajes General (80%)</span>
+              <span>Formulario Contabilidad y SRD</span>
             </Button>
 
             {/* Botón: Reporte de Permisos y Justificaciones */}
@@ -898,6 +964,34 @@ export function VisorReportesPdf() {
                   <Clock className="w-3.5 h-3.5 text-[#00ABBD]" />
                 )}
                 <span>Asistencia Mensual (PDF)</span>
+              </Button>
+
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  exportarFormularioContabilidadSrdExcel(
+                    [
+                      {
+                        becario_nombre: estudiante_actual.nombre,
+                        unidad: estudiante_actual.sede,
+                        tipo_actividad: "Prácticas",
+                        recorridos: Array.from({ length: 40 }),
+                        monto_total_centavos: 12000,
+                        monto_devolucion_centavos: 9600,
+                        multas_asistencia_bs: 0,
+                        estado: "aprobado_administracion",
+                      },
+                    ],
+                    mes_individual,
+                    true
+                  );
+                  toast.success("Excel Contabilidad y SRD del becario exportado");
+                }}
+                className="h-9 px-3 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold text-xs rounded-xl shadow-2xs gap-1.5 cursor-pointer"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Exportar Excel</span>
               </Button>
             </div>
           </div>

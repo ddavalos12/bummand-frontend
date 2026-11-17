@@ -331,7 +331,7 @@ export function BandejaPreEvaluacionSupervisor({
           <div>
             <CardTitle className="text-sm font-bold text-[#035683] flex items-center gap-2">
               <UserCheck className="w-4 h-4 text-[#00ABBD]" />
-              Bandeja de Pre-Evaluación Académica del Supervisor
+              Bandeja de Pre-Evaluación Académica del Mentor
             </CardTitle>
             <CardDescription className="text-xs text-muted-foreground mt-0.5">
               Coteje las notas ingresadas por sus becarios contra el Kárdex digital. Tiene permisos para editar cualquier calificación antes de remitir a Administración.
@@ -490,7 +490,7 @@ export function BandejaPreEvaluacionSupervisor({
               <div>
                 <CardTitle className="text-sm font-bold text-[#035683] flex items-center gap-2">
                   <Edit3 className="w-4 h-4 text-[#00ABBD]" />
-                  Cotejo y Edición de Calificaciones (Supervisor)
+                  Cotejo y Edición de Calificaciones (Mentor)
                 </CardTitle>
                 <CardDescription className="text-xs text-muted-foreground mt-0.5">
                   Modifique la nota si detecta un error de transcripción respecto al Kárdex. El sistema registrará el cambio de auditoría.
@@ -613,7 +613,7 @@ export function BandejaPreEvaluacionSupervisor({
             <CardContent className="p-5 space-y-4">
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold text-[#035683]">
-                  Observaciones de Pre-evaluación del Supervisor (Constancia Oficial)
+                  Observaciones de Pre-evaluación del Mentor (Constancia Oficial)
                 </Label>
                 <Textarea
                   value={observaciones_supervisor}

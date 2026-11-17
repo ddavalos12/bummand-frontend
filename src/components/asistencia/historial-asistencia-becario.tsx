@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Coins,
   Printer,
+  FileSpreadsheet,
   Loader2,
   ClipboardCheck,
   Search,
@@ -19,6 +20,7 @@ import {
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
+import { exportarAuditoriaAsistenciaExcel } from "@/lib/generador-excel-cliente";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -214,6 +216,19 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
+          <Button
+            variant="outline"
+            onClick={() => {
+              exportarAuditoriaAsistenciaExcel(movimientos_filtrados, extracto_activo.periodo);
+              toast.success("Extracto de asistencia exportado a Excel (.xls)");
+            }}
+            className="h-10 text-xs font-bold px-3.5 gap-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50 rounded-xl shadow-2xs shrink-0"
+            title="Exportar extracto mensual de asistencia a Excel (.xls)"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <span>Exportar Excel</span>
+          </Button>
+
           <Button
             variant="outline"
             onClick={descargarAsistenciaMensualPdf}
@@ -475,7 +490,9 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
           <div className="text-3xl font-bold font-display text-emerald-600">
             <ContadorRodilloAnimado valor={extracto_activo.tasa_puntualidad} sufijo="%" />
           </div>
-          <p className="text-[11px] text-emerald-700 font-medium">Cumplimiento excelente</p>
+          <p className="text-[11px] text-emerald-700 font-medium">
+            Permisos aprobados compensados al 100%
+          </p>
         </TarjetaSpotlight>
 
         {/* KPI 4: Sede Asignada */}
@@ -725,7 +742,7 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
         incidencia={incidencia_a_justificar}
         alCompletar={() => {
           set_dialogo_justificar_abierto(false);
-          toast.success("Justificación enviada a revisión de supervisor");
+          toast.success("Justificación enviada a revisión de mentor");
         }}
       />
     </div>

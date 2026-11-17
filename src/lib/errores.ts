@@ -49,7 +49,7 @@ export const MENSAJES_AMIGABLES_ERROR: Record<CodigoError, InformacionErrorAmiga
   [CODIGOS_ERROR.ERR_1003]: {
     titulo: "Acceso Restringido",
     descripcion: "Su cuenta institucional no cuenta con los permisos requeridos para esta sección.",
-    sugerencia: "Si considera que debería tener acceso, solicite autorización a su supervisor de Diaconía.",
+    sugerencia: "Si considera que debería tener acceso, solicite autorización a su mentor de Diaconía.",
   },
   [CODIGOS_ERROR.ERR_1004]: {
     titulo: "Cuenta Deshabilitada",

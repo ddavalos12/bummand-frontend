@@ -139,8 +139,8 @@ const MODULOS_OFICIALES: ModuloPonderado[] = [
   {
     id: 3,
     clave: "mentor",
-    nombre: "3. Mentor / Supervisor vía QR (21 Preguntas)",
-    evaluador_rol: "Supervisor Diaconía y Mentor en Terreno",
+    nombre: "3. Mentor vía QR (21 Preguntas)",
+    evaluador_rol: "Mentor Diaconía en Terreno",
     ponderacion_porcentaje: 20,
     descripcion: "18 reactivos en escala 1-10 más 3 preguntas abiertas de desempeño laboral.",
   },
@@ -1912,7 +1912,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               <Info className="w-5 h-5 text-[#007BBE] shrink-0 mt-0.5" />
               <div className="space-y-1">
                 <p className="text-xs font-bold text-[#035683]">
-                  Aviso Operativo para Supervisores — Convalidación Académica Centralizada
+                  Aviso Operativo para Mentores — Convalidación Académica Centralizada
                 </p>
                 <p className="text-xs text-slate-700 leading-relaxed">
                   Los expedientes académicos y Kárdex radicados por los becarios son convalidados directamente por Administración central. La revisión tutorial (Pestaña 2) es de carácter complementario si el becario requiere apoyo. Su responsabilidad primordial asignada como evaluador está concentrada en el <strong>Módulo 3: Mentoría en Terreno (Rúbrica QR)</strong>.
@@ -2221,13 +2221,13 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               <div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-[#035683] text-white font-bold text-[10px]">
-                    {es_admin ? "Bandeja de Aprobación de Administración" : "Perfil Web del Supervisor"}
+                    {es_admin ? "Bandeja de Aprobación de Administración" : "Perfil Web del Mentor"}
                   </Badge>
                   <span className="text-xs text-muted-foreground">Módulo 03 · 20% Oficial BUMAND</span>
                 </div>
                 <CardTitle className="text-base font-bold text-[#035683] flex items-center gap-2 mt-1">
                   <UserCheck className="w-5 h-5 text-[#00ABBD]" />
-                  Mis Becarios Asignados — Evaluación de Supervisor (Módulo 3)
+                  Mis Becarios Asignados — Evaluación de Mentor (Módulo 3)
                 </CardTitle>
                 <CardDescription className="text-xs text-muted-foreground">
                   {es_admin
@@ -2428,7 +2428,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                     <Badge variant="outline" className="border-[#00ABBD] text-[#035683] font-bold text-[10px]">
                       Módulo 03 · 20% Oficial
                     </Badge>
-                    <span className="text-xs text-muted-foreground">Evaluador: Mentor / Supervisor Diaconía en Terreno</span>
+                    <span className="text-xs text-muted-foreground">Evaluador: Mentor Diaconía en Terreno</span>
                   </div>
                   <CardTitle className="text-lg font-bold text-[#035683] flex items-center gap-2">
                     <QrCode className="w-5 h-5 text-[#00ABBD]" />

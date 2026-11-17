@@ -322,9 +322,9 @@ export const CRITERIOS_EVALUACION_OFICIALES = [
     modulo: "PP² (Prácticas Preprofesionales)",
     puntaje_maximo: 20,
     reglas: [
-      { condicion: "% Evaluación del Tutor / Supervisor (sobre 20 pts)", puntos: 20 },
+      { condicion: "% Evaluación del Tutor / Mentor (sobre 20 pts)", puntos: 20 },
     ],
-    nota: "Evaluación del Mentor y Supervisor con las 18 preguntas en escala 1-10 y 3 abiertas.",
+    nota: "Evaluación del Mentor con las 18 preguntas en escala 1-10 y 3 abiertas.",
   },
   {
     modulo: "Escuela de Líderes",

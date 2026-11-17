@@ -262,7 +262,7 @@ export function DialogoJustificarRetraso({
             <div className="p-3 bg-blue-50/60 border border-blue-200 rounded-xl text-xs text-blue-900">
               <p className="font-semibold flex items-center gap-1.5 text-[11px]">
                 <ShieldCheck className="w-3.5 h-3.5 text-blue-700" />
-                Permiso de Supervisor:
+                Permiso de Mentor:
               </p>
               <p className="text-[11px] text-blue-800 mt-0.5">
                 Usted puede elevar la justificación para revisión. La rectificación directa de la hora oficial de ingreso y condonación de multas es potestad exclusiva del Administrador.

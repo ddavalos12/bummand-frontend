@@ -94,7 +94,7 @@ function agregarPiePaginaYFirmas(doc: jsPDF, apaisado = false) {
   const y_firma = alto_pagina - 26;
   const ancho_linea = apaisado ? 75 : 55;
 
-  // Firma 1: Supervisor
+  // Firma 1: Mentor
   const x_firma1 = apaisado ? 40 : 25;
   doc.setDrawColor(...COLOR_PRIMARIO);
   doc.setLineWidth(0.5);
@@ -106,7 +106,7 @@ function agregarPiePaginaYFirmas(doc: jsPDF, apaisado = false) {
   doc.text("Lic. Angel Javier Ali Paz", x_firma1 + ancho_linea / 2, y_firma + 4, { align: "center" });
   doc.setFont("helvetica", "normal");
   doc.setFontSize(6.5);
-  doc.text("SUPERVISOR GENERAL BUMAND", x_firma1 + ancho_linea / 2, y_firma + 7.5, { align: "center" });
+  doc.text("MENTOR GENERAL BUMAND", x_firma1 + ancho_linea / 2, y_firma + 7.5, { align: "center" });
 
   // Firma 2: Administración / Directiva
   const x_firma2 = apaisado ? ancho_pagina - 40 - ancho_linea : ancho_pagina - 25 - ancho_linea;
@@ -141,7 +141,7 @@ export function generarPdfEvaluacionSemestral(): Blob {
   agregarMembreteInstitucional(
     doc,
     "CONSOLIDADO GENERAL DE EVALUACIÓN SEMESTRAL — GESTIÓN II - 2026",
-    "Sábana Oficial de Calificaciones 360° (5 Módulos de Formación: Iglesia, Académica, Supervisor, Líderes, Socioeconómica)",
+    "Sábana Oficial de Calificaciones 360° (5 Módulos de Formación: Iglesia, Académica, Mentor, Líderes, Socioeconómica)",
     true
   );
 
@@ -176,7 +176,7 @@ export function generarPdfEvaluacionSemestral(): Blob {
         "Carrera",
         "M1\nIglesia\n(20p)",
         "M2\nAcad.\n(20p)",
-        "M3\nSuperv.\n(20p)",
+        "M3\nMentor\n(20p)",
         "M4\nLíderes\n(20p)",
         "M5\nSocioec.\n(20p)",
         "TOTAL\n(/100p)",
@@ -519,8 +519,8 @@ export function generarPdfExpedienteRecorridos(
 
   agregarMembreteInstitucional(
     doc,
-    "EXPEDIENTE INDIVIDUAL DE RECORRIDOS Y LIQUIDACIÓN DE PASAJES",
-    `Subsidio Institucional de Transporte al 80% · Periodo: ${mes}`
+    "FORMULARIO PARA CONTABILIDAD Y SRD — EXPEDIENTE DE PASAJES",
+    `Liquidación mensual del 80% de pasajes y cálculo líquido descontando multas de asistencia · Periodo: ${mes}`
   );
 
   // Ficha del Estudiante
@@ -602,22 +602,23 @@ export function generarPdfExpedienteRecorridos(
   // Resumen Financiero al final
   const total_gastado = 120.0;
   const total_subsidio = 96.0;
-  const aporte_estudiante = 24.0;
+  const multas_asistencia = 0.0;
+  const liquido_pagable = Math.max(0, total_subsidio - multas_asistencia);
 
   // Calculamos la posición después de la tabla
   const autoTableDoc = doc as jsPDF & { lastAutoTable?: { finalY?: number } };
   const y_resumen = Math.min(autoTableDoc.lastAutoTable?.finalY ? autoTableDoc.lastAutoTable.finalY + 4 : 220, 240);
 
   doc.setFillColor(...COLOR_PRIMARIO);
-  doc.roundedRect(14, y_resumen, 182, 16, 2, 2, "F");
+  doc.roundedRect(14, y_resumen, 182, 18, 2, 2, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
-  doc.text(`TOTAL DECLARADO: Bs ${total_gastado.toFixed(2)} (40 Tramos)`, 18, y_resumen + 6);
-  doc.text(`SUBSIDIO 80% A LIQUIDAR: Bs ${total_subsidio.toFixed(2)}`, 18, y_resumen + 11);
+  doc.text(`TOTAL (100%): Bs ${total_gastado.toFixed(2)} (40 Tramos) · 80% RECONOCIDO: Bs ${total_subsidio.toFixed(2)}`, 18, y_resumen + 6.5);
+  doc.text(`(-) MULTAS ASISTENCIA: Bs ${multas_asistencia.toFixed(2)} · LÍQUIDO PAGABLE (NETO SRD): Bs ${liquido_pagable.toFixed(2)}`, 18, y_resumen + 12.5);
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.5);
-  doc.text(`Aporte Estudiante (20%): Bs ${aporte_estudiante.toFixed(2)} · Regla del día 24: Verificada y cumplida`, 105, y_resumen + 11);
+  doc.setFontSize(6.5);
+  doc.text("Regla del día 24 verificada · Formulario para Contabilidad y SRD", 132, y_resumen + 12.5);
 
   agregarPiePaginaYFirmas(doc, false);
   return doc.output("blob");
@@ -798,7 +799,7 @@ export function generarPdfAuditoriaIntervalo(
 }
 
 // ============================================================================
-// 9. REPORTE GENERAL DE PASAJES (LIQUIDACIÓN 80%)
+// 9. FORMULARIO PARA CONTABILIDAD Y SRD — LIQUIDACIÓN GENERAL DE PASAJES
 // ============================================================================
 export function generarPdfPasajesGeneral(
   fecha_inicio = "2026-10-01",
@@ -807,8 +808,8 @@ export function generarPdfPasajesGeneral(
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   agregarMembreteInstitucional(
     doc,
-    "REPORTE GENERAL DE LIQUIDACIÓN DE PASAJES (80%)",
-    `Consolidado Institucional BUMAND · Intervalo: ${fecha_inicio} al ${fecha_fin}`,
+    "FORMULARIO PARA CONTABILIDAD Y SRD — LIQUIDACIÓN DE PASAJES",
+    `Liquidación mensual del 80% de pasajes y cálculo líquido descontando multas de asistencia · Intervalo: ${fecha_inicio} al ${fecha_fin}`,
     true
   );
 
@@ -816,7 +817,8 @@ export function generarPdfPasajesGeneral(
     const tramos = 40;
     const gasto_total = 120.0;
     const subsidio_80 = 96.0;
-    const aporte_20 = 24.0;
+    const multas_bs = 0.0;
+    const liquido_srd = Math.max(0, subsidio_80 - multas_bs);
     return [
       String(idx + 1),
       b.nombre,
@@ -825,38 +827,40 @@ export function generarPdfPasajesGeneral(
       String(tramos),
       `Bs ${gasto_total.toFixed(2)}`,
       `Bs ${subsidio_80.toFixed(2)}`,
-      `Bs ${aporte_20.toFixed(2)}`,
+      `Bs ${multas_bs.toFixed(2)}`,
+      `Bs ${liquido_srd.toFixed(2)}`,
       "APROBADO ADMIN",
     ];
   });
 
   autoTable(doc, {
     startY: 38,
-    head: [["#", "Estudiante Becario", "C.I.", "Unidad Asignada", "Tramos", "Total Gasto", "Subsidio (80%)", "Aporte (20%)", "Estado"]],
+    head: [["#", "Estudiante Becario", "C.I.", "Unidad Asignada", "Tramos", "Total (100%)", "80% Reconocido", "(-) Multas Asist.", "Líquido Pagable (Neto SRD)", "Estado"]],
     body: filas,
     theme: "striped",
     headStyles: {
       fillColor: COLOR_PRIMARIO,
       textColor: [255, 255, 255],
       fontStyle: "bold",
-      fontSize: 8,
+      fontSize: 7.5,
       halign: "center",
     },
     bodyStyles: {
-      fontSize: 7.5,
+      fontSize: 7.2,
       textColor: COLOR_TEXTO_OSCURO,
       cellPadding: 2,
     },
     columnStyles: {
-      0: { halign: "center", cellWidth: 10 },
-      1: { fontStyle: "bold", cellWidth: 60 },
-      2: { halign: "center", cellWidth: 24 },
-      3: { cellWidth: 50 },
-      4: { halign: "center", cellWidth: 18 },
-      5: { halign: "right", cellWidth: 26 },
-      6: { halign: "right", fontStyle: "bold", textColor: COLOR_PRIMARIO, cellWidth: 28 },
-      7: { halign: "right", cellWidth: 24 },
-      8: { halign: "center", fontStyle: "bold", textColor: [16, 185, 129], cellWidth: 30 },
+      0: { halign: "center", cellWidth: 9 },
+      1: { fontStyle: "bold", cellWidth: 52 },
+      2: { halign: "center", cellWidth: 20 },
+      3: { cellWidth: 42 },
+      4: { halign: "center", cellWidth: 15 },
+      5: { halign: "right", cellWidth: 23 },
+      6: { halign: "right", fontStyle: "bold", textColor: COLOR_PRIMARIO, cellWidth: 25 },
+      7: { halign: "right", textColor: [220, 38, 38], cellWidth: 24 },
+      8: { halign: "right", fontStyle: "bold", textColor: [16, 185, 129], cellWidth: 30 },
+      9: { halign: "center", fontStyle: "bold", textColor: [16, 185, 129], cellWidth: 28 },
     },
     margin: { left: 14, right: 14, bottom: 28 },
   });

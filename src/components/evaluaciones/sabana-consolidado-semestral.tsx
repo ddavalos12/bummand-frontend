@@ -22,11 +22,13 @@ import {
   BookOpen,
   Award,
   Eye,
+  FileSpreadsheet,
 } from "lucide-react";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
 import { useTiempoReal } from "@/hooks/use-tiempo-real";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
+import { exportarSabanaEvaluacionesExcel } from "@/lib/generador-excel-cliente";
 import {
   BECARIOS_SEMESTRE_II,
   NOTAS_CETI_SEMESTRE_II,
@@ -182,6 +184,19 @@ export function SabanaConsolidadoSemestral() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                exportarSabanaEvaluacionesExcel(becarios_filtrados, "Semestre II - 2026");
+                toast.success("Sábana de evaluaciones exportada en Excel (.xls)");
+              }}
+              className="h-10 px-4 bg-white hover:bg-emerald-50 text-emerald-700 border-emerald-300 font-bold rounded-xl text-xs flex items-center gap-2 shadow-xs"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <span>Exportar Excel</span>
+            </Button>
+
             <Button
               size="sm"
               disabled={descargando_pdf}
@@ -482,7 +497,7 @@ export function SabanaConsolidadoSemestral() {
 
                   <div className="pt-2 border-t border-[#E5E7EB]/60 flex justify-between items-center text-[10px] text-muted-foreground font-mono">
                     <span>Promedio Bloque 1 (1-18): {em.promedio_10} / 10 pts</span>
-                    <span className="text-emerald-700 font-bold">Acreditado por Supervisor</span>
+                    <span className="text-emerald-700 font-bold">Acreditado por Mentor</span>
                   </div>
                 </div>
               ))}

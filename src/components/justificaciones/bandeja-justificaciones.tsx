@@ -344,7 +344,7 @@ export function BandejaJustificaciones() {
     },
     {
       id: "revisado_supervisor",
-      etiqueta: "Revisado por Supervisor",
+      etiqueta: "Revisado por Mentor",
       contador: contarPorEstado("revisado_supervisor"),
       clase_contador: "bg-sky-100 text-sky-800 border border-sky-200",
       clase_contador_activo: "bg-white text-sky-700 font-bold shadow-xs",
@@ -384,18 +384,18 @@ export function BandejaJustificaciones() {
 
   const manejarRevisarSupervisor = async (_id: number) => {
     const fecha_actual = format(new Date(), "yyyy-MM-dd HH:mm");
-    const nombre_sup = usuario?.nombre || "Supervisor Diaconía";
+    const nombre_sup = usuario?.nombre || "Mentor Diaconía";
     try {
       await clienteApi.patch(`/api/justificaciones/${_id}/revisar-supervisor`, {
         supervisor_id: usuario?.id || 1,
-        observacion_supervisor: "Permiso revisado y verificado técnicamente por Supervisor.",
+        observacion_supervisor: "Permiso revisado y verificado técnicamente por Mentor.",
       });
       invalidar();
     } catch {
       try {
         await clienteApi.patch(`/api/justificaciones/${_id}/resolver`, {
           estado: "revisado_supervisor",
-          observacion_supervisor: "Permiso revisado y verificado técnicamente por Supervisor.",
+          observacion_supervisor: "Permiso revisado y verificado técnicamente por Mentor.",
         });
         invalidar();
       } catch {
@@ -409,13 +409,13 @@ export function BandejaJustificaciones() {
               ...j,
               estado: "revisado_supervisor",
               supervisor_nombre: nombre_sup,
-              observacion_supervisor: "Permiso revisado y verificado técnicamente por Supervisor.",
+              observacion_supervisor: "Permiso revisado y verificado técnicamente por Mentor.",
               fecha_revision_supervisor: fecha_actual,
             }
           : j
       )
     );
-    toast.success("Permiso marcado como Revisado por Supervisor", {
+    toast.success("Permiso marcado como Revisado por Mentor", {
       description: "Nivel 1 completado. La solicitud ha sido remitida a la bandeja de Aprobación por Administración.",
     });
   };
@@ -455,7 +455,7 @@ export function BandejaJustificaciones() {
       )
     );
     toast.success("Permiso Aprobado por Administración", {
-      description: "Se convalidó la justificación formalmente con estado Aprobada y exención de multa para este viernes.",
+      description: "Se convalidó la justificación con compensación al 100% en asistencia y exención de multa.",
     });
     await invalidar();
   };
@@ -475,7 +475,7 @@ export function BandejaJustificaciones() {
             ? {
                 ...j,
                 estado: "aprobada",
-                supervisor_nombre: usuario?.nombre || "Supervisor en Sesión",
+                supervisor_nombre: usuario?.nombre || "Mentor en Sesión",
                 observacion_supervisor: "Justificación aprobada en conformidad institucional.",
                 fecha_resolucion: fecha_actual,
               }
@@ -512,7 +512,7 @@ export function BandejaJustificaciones() {
             ? {
                 ...j,
                 estado: "rechazada",
-                supervisor_nombre: usuario?.nombre || "Supervisor en Sesión",
+                supervisor_nombre: usuario?.nombre || "Mentor en Sesión",
                 observacion_supervisor: observacion_rechazo.trim(),
                 fecha_resolucion: fecha_actual,
               }
@@ -620,7 +620,7 @@ export function BandejaJustificaciones() {
             ) : es_revisado ? (
               <Badge className="bg-sky-50 text-sky-800 border-sky-300 gap-1 text-[11px]">
                 <CheckCircle2 className="w-3 h-3 text-sky-600" />
-                Revisado por Supervisor
+                Revisado por Mentor
               </Badge>
             ) : es_aprobada ? (
               <Badge className="bg-emerald-50 text-emerald-700 border-emerald-300 gap-1 text-[11px]">
@@ -686,7 +686,7 @@ export function BandejaJustificaciones() {
                               ? "Nivel 1 Listo · En espera de Admin"
                               : es_rechazada
                               ? "Dictamen emitido (Rechazado)"
-                              : "En espera de Nivel 1 (Supervisor)"}
+                              : "En espera de Nivel 1 (Mentor)"}
                           </span>
                         </div>
                         <div className="grid grid-cols-3 gap-2 text-center text-[10.5px]">
@@ -704,7 +704,7 @@ export function BandejaJustificaciones() {
                               : "bg-amber-50 border-amber-200 text-amber-700"
                           }`}>
                             {(es_revisado || es_aprobada) ? <Check className="w-3 h-3 text-sky-600" /> : <Clock className="w-3 h-3 text-amber-500" />}
-                            <span>2. Supervisor</span>
+                            <span>2. Mentor</span>
                           </div>
                           <div className={`p-1.5 rounded-lg border flex items-center justify-center gap-1 ${
                             es_aprobada
@@ -736,12 +736,12 @@ export function BandejaJustificaciones() {
                       {just.observacion_supervisor && (
                         <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-700">
                           <span className="font-semibold text-[#035683] block mb-0.5">
-                            Revisión de Supervisión ({just.supervisor_nombre || "Supervisor"}):
+                            Revisión de Mentoría ({just.supervisor_nombre || "Mentor"}):
                           </span>
                           <p className="italic">{just.observacion_supervisor}</p>
                           {just.fecha_revision_supervisor && (
                             <span className="text-[10px] text-muted-foreground font-mono block mt-1">
-                              Fecha revisión supervisor: {just.fecha_revision_supervisor}
+                              Fecha revisión mentor: {just.fecha_revision_supervisor}
                             </span>
                           )}
                         </div>

@@ -1469,7 +1469,7 @@ export function GestionBecarios() {
               const existente = mapa.get(item.id);
               mapa.set(item.id, {
                 id: item.id,
-                nombre: item.nombre || existente?.nombre || "Supervisor",
+                nombre: item.nombre || existente?.nombre || "Mentor",
                 correo: item.correo || existente?.correo || "",
                 sedes: existente?.sedes || ["Oficina Central Bloque A"],
               });
@@ -1977,7 +1977,7 @@ export function GestionBecarios() {
     );
 
     toast.success(
-      `Supervisor ${supervisor_encontrado.nombre} asignado a ${becario_seleccionado.nombre}`
+      `Mentor ${supervisor_encontrado.nombre} asignado a ${becario_seleccionado.nombre}`
     );
     set_modal_supervisor_abierto(false);
     set_becario_seleccionado(null);
@@ -2262,7 +2262,7 @@ export function GestionBecarios() {
                   )}
                 >
                   <UserCog className="w-4 h-4 text-[#00ABBD]" />
-                  <span>👥 Supervisores con Becarios Designados ({lista_supervisores.length})</span>
+                  <span>👥 Mentores con Becarios Designados ({lista_supervisores.length})</span>
                 </Button>
               </div>
 
@@ -2280,7 +2280,7 @@ export function GestionBecarios() {
                       <TableHead className="w-[260px] font-bold text-[#035683]">Becario & Documento</TableHead>
                       <TableHead className="font-bold text-[#035683]">Carrera / Universidad</TableHead>
                       <TableHead className="font-bold text-[#035683]">Sede Asignada</TableHead>
-                      <TableHead className="w-[240px] font-bold text-[#035683]">Supervisor / Tutor Asignado</TableHead>
+                      <TableHead className="w-[240px] font-bold text-[#035683]">Mentor / Tutor Asignado</TableHead>
                       <TableHead className="w-[120px] font-bold text-[#035683] text-center">Estado</TableHead>
                       <TableHead className="w-[190px] font-bold text-[#035683] text-right">Acciones</TableHead>
                     </TableRow>
@@ -2356,7 +2356,7 @@ export function GestionBecarios() {
                                   variant="outline"
                                   onClick={() => abrirModalAsignarSupervisor(b)}
                                   className="h-7 px-2 text-[10px] font-bold border-[#00ABBD]/40 text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg flex items-center gap-1 shrink-0 cursor-pointer shadow-2xs"
-                                  title={b.tutor_nombre ? "Cambiar Supervisor Asignado" : "Asignar Supervisor Institucional"}
+                                  title={b.tutor_nombre ? "Cambiar Mentor Asignado" : "Asignar Mentor Institucional"}
                                 >
                                   <RefreshCw className="w-3 h-3 text-[#00ABBD]" />
                                   <span>{b.tutor_nombre ? "Cambiar" : "Asignar"}</span>
@@ -2430,7 +2430,7 @@ export function GestionBecarios() {
                                   variant="ghost"
                                   onClick={() => abrirModalAsignarSupervisor(b)}
                                   className="h-8 w-8 p-0 text-[#035683] hover:bg-slate-100 rounded-lg cursor-pointer"
-                                  title="Asignar o Cambiar Supervisor Institucional"
+                                  title="Asignar o Cambiar Mentor Institucional"
                                 >
                                   <UserCog className="w-3.5 h-3.5" />
                                 </Button>
@@ -2484,7 +2484,7 @@ export function GestionBecarios() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-2xs">
                     <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold">
-                      <span>Total Supervisores</span>
+                      <span>Total Mentores</span>
                       <Users className="w-4 h-4 text-[#00ABBD]" />
                     </div>
                     <p className="text-2xl font-black text-[#035683] mt-1">
@@ -2510,7 +2510,7 @@ export function GestionBecarios() {
 
                   <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-2xs">
                     <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold">
-                      <span>Supervisores Disponibles</span>
+                      <span>Mentores Disponibles</span>
                       <Sparkles className="w-4 h-4 text-sky-500" />
                     </div>
                     <p className="text-2xl font-black text-[#007BBE] mt-1">
@@ -2668,7 +2668,7 @@ export function GestionBecarios() {
                             <div className="p-3.5 rounded-xl bg-slate-50/50 border border-dashed border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
                               <div className="flex items-center gap-2">
                                 <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                                <span>Supervisor institucional disponible sin estudiantes asignados en este ciclo.</span>
+                                <span>Mentor institucional disponible sin estudiantes asignados en este ciclo.</span>
                               </div>
                               {es_admin && (
                                 <Button
@@ -2740,7 +2740,7 @@ export function GestionBecarios() {
                     <TableHead className="w-[280px] font-bold text-[#035683]">Becario & Documento</TableHead>
                     <TableHead className="font-bold text-[#035683]">Sede Asignada</TableHead>
                     <TableHead className="w-[240px] font-bold text-[#035683]">Horas del Mes & Cumplimiento</TableHead>
-                    <TableHead className="font-bold text-[#035683]">Supervisor Asignado</TableHead>
+                    <TableHead className="font-bold text-[#035683]">Mentor Asignado</TableHead>
                     <TableHead className="w-[180px] font-bold text-[#035683] text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -2869,7 +2869,7 @@ export function GestionBecarios() {
                 </div>
                 <div>
                   <h4 className="text-xs font-bold text-[#035683]">
-                    Asignación de Sedes y Supervisores Institucionales
+                    Asignación de Sedes y Mentores Institucionales
                   </h4>
                   <p className="text-[11px] text-muted-foreground">
                     Los 25 becarios oficiales cuentan con sede asignada y tutor institucional de Diaconía.
@@ -2887,7 +2887,7 @@ export function GestionBecarios() {
                   className="h-8 text-xs font-bold border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 rounded-xl flex items-center gap-1.5 shrink-0 cursor-pointer shadow-2xs"
                 >
                   <UserCheck className="w-3.5 h-3.5 text-[#00ABBD]" />
-                  <span>Ver Supervisores con Becarios Designados</span>
+                  <span>Ver Mentores con Becarios Designados</span>
                 </Button>
               )}
             </div>
@@ -2898,7 +2898,7 @@ export function GestionBecarios() {
                   <TableRow>
                     <TableHead className="w-[280px] font-bold text-[#035683]">Becario & Documento</TableHead>
                     <TableHead className="font-bold text-[#035683]">Sede de Prácticas</TableHead>
-                    <TableHead className="font-bold text-[#035683]">Supervisor Institucional</TableHead>
+                    <TableHead className="font-bold text-[#035683]">Mentor Institucional</TableHead>
                     <TableHead className="font-bold text-[#035683]">Iglesia de Procedencia</TableHead>
                     <TableHead className="w-[180px] font-bold text-[#035683] text-right">Acciones</TableHead>
                   </TableRow>
@@ -2983,7 +2983,7 @@ export function GestionBecarios() {
                                 title="Reasignar o Cambiar Tutor"
                               >
                                 <UserCog className="w-3.5 h-3.5" />
-                                <span>Supervisor</span>
+                                <span>Mentor</span>
                               </Button>
                             )}
                             {es_admin && (
@@ -4066,7 +4066,7 @@ export function GestionBecarios() {
                       <p className="font-bold text-[#035683]">{typeof becario_ficha_modal.lugar_practica === "string" ? becario_ficha_modal.lugar_practica : (becario_ficha_modal.lugar_practica as any)?.nombre || "Oficina Central Bloque A"}</p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground block text-[11px]">Supervisor Tutor Asignado</span>
+                      <span className="text-muted-foreground block text-[11px]">Mentor Tutor Asignado</span>
                       <p className="font-bold text-[#1E293B]">{becario_ficha_modal.tutor_nombre || "Sin Asignar"}</p>
                       <p className="text-[11px] font-mono text-muted-foreground">{becario_ficha_modal.tutor_correo || ""}</p>
                     </div>
@@ -4278,8 +4278,8 @@ export function GestionBecarios() {
             <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
               <UserCog className="w-5 h-5 text-[#00ABBD]" />
               {becario_seleccionado?.tutor_nombre
-                ? "Cambiar Supervisor Institucional"
-                : "Asignar Supervisor Institucional"}
+                ? "Cambiar Mentor Institucional"
+                : "Asignar Mentor Institucional"}
             </DialogTitle>
             <CardDescription className="text-xs text-muted-foreground">
               Vincular o transferir tutor responsable para seguimiento de prácticas y rúbrica semestral.
@@ -4306,7 +4306,7 @@ export function GestionBecarios() {
               <div className="p-3 bg-blue-50/70 border border-blue-200/60 rounded-xl text-xs space-y-1">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#035683]">
-                    Supervisor Actual Asignado
+                    Mentor Actual Asignado
                   </span>
                   <Badge variant="outline" className="bg-white text-[#035683] border-[#035683]/20 text-[10px] font-bold">
                     Actual
@@ -4324,7 +4324,7 @@ export function GestionBecarios() {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label htmlFor="sel-supervisor" className="text-xs font-semibold text-[#122029]">
-                  {becario_seleccionado?.tutor_nombre ? "Nuevo Supervisor Responsable" : "Supervisor Responsable"} (29 de Diaconía)
+                  {becario_seleccionado?.tutor_nombre ? "Nuevo Mentor Responsable" : "Mentor Responsable"} (29 de Diaconía)
                 </Label>
               </div>
               <div className="relative">
@@ -4426,7 +4426,7 @@ export function GestionBecarios() {
               onClick={manejarGuardarSupervisor}
               className="h-9 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs shadow-sm cursor-pointer"
             >
-              {becario_seleccionado?.tutor_nombre ? "Guardar Cambio de Supervisor" : "Confirmar Asignación"}
+              {becario_seleccionado?.tutor_nombre ? "Guardar Cambio de Mentor" : "Confirmar Asignación"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -4441,7 +4441,7 @@ export function GestionBecarios() {
           <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] bg-[#F8F9FA]">
             <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
               <UserPlus className="w-5 h-5 text-[#00ABBD]" />
-              Designar Becario a Supervisor
+              Designar Becario a Mentor
             </DialogTitle>
             <CardDescription className="text-xs text-muted-foreground">
               Vincular un estudiante de la cohorte a la tutoría institucional de este supervisor.
@@ -4452,7 +4452,7 @@ export function GestionBecarios() {
             {supervisor_para_designar && (
               <div className="p-3 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs space-y-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#035683]">
-                  Supervisor Seleccionado
+                  Mentor Seleccionado
                 </span>
                 <p className="font-bold text-slate-800 text-sm">{supervisor_para_designar.nombre}</p>
                 <p className="text-slate-500 font-mono text-[11px]">{supervisor_para_designar.correo}</p>
@@ -4851,7 +4851,7 @@ export function GestionBecarios() {
 
                   <div className="space-y-1">
                     <Label className="text-xs font-semibold text-[#122029]">
-                      Supervisor Tutor Asignado (29 disponibles)
+                      Mentor Tutor Asignado (29 disponibles)
                     </Label>
                     <div className="relative">
                       <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-muted-foreground" />
@@ -4875,7 +4875,7 @@ export function GestionBecarios() {
                       }}
                     >
                       <SelectTrigger id="sel-supervisor-edicion" className="h-10 border-[#E5E7EB] bg-white text-xs">
-                        <SelectValue placeholder="Supervisor" />
+                        <SelectValue placeholder="Mentor" />
                       </SelectTrigger>
                       <SelectContent className="bg-white border-[#E5E7EB] max-h-64">
                         {supervisores_filtrados_edicion.map((sup) => {

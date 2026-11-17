@@ -85,8 +85,8 @@ const MODULOS_INICIALES_BASE_20: ModuloPonderado[] = [
   {
     id: 3,
     clave: "mentor",
-    nombre: "3. Mentor / Supervisor vía QR",
-    evaluador_rol: "Supervisor Diaconía",
+    nombre: "3. Mentor vía QR",
+    evaluador_rol: "Mentor Diaconía",
     ponderacion_porcentaje: 20,
     puntaje_obtenido: 92,
     estado: "completado",
@@ -395,7 +395,7 @@ export function MatrizEvaluacion360() {
               {[
                 { clave: "liderazgo", label: "1. Iglesia (F-03)", rol: "Pastor de la Congregación" },
                 { clave: "academica", label: "2. Académica (≥75 Pts)", rol: "Estudiante / Kárdex" },
-                { clave: "mentor", label: "3. Mentor (QR)", rol: "Supervisor Diaconía" },
+                { clave: "mentor", label: "3. Mentor (QR)", rol: "Mentor Diaconía" },
                 { clave: "practicas", label: "4. Esc. Líderes", rol: "Coordinación" },
                 { clave: "socioeconomica", label: "5. Socioeconómica", rol: "Trabajo Social" },
               ].map((item) => (

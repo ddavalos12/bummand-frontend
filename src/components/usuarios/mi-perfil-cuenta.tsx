@@ -497,7 +497,7 @@ export function MiPerfilCuenta() {
                   className="border-white/40 bg-white/15 text-white font-mono text-[10px] uppercase font-bold"
                 >
                   {es_admin && "Administrador General"}
-                  {es_supervisor && "Supervisor / Tutor"}
+                  {es_supervisor && "Mentor / Tutor"}
                   {es_becario && "Becario Universitario"}
                 </Badge>
               </div>
@@ -710,7 +710,7 @@ export function MiPerfilCuenta() {
 
                     {/* Supervisor Asignado */}
                     <div className="space-y-1">
-                      <Label className="text-xs font-bold text-[#035683]">Supervisor / Tutor Asignado</Label>
+                      <Label className="text-xs font-bold text-[#035683]">Mentor / Tutor Asignado</Label>
                       <Input
                         type="text"
                         value={supervisor_asignado}

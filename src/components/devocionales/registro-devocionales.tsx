@@ -144,7 +144,7 @@ const CITAS_SEGUIMIENTO_SEMILLA: CitaSeguimiento[] = [
   {
     id: 1,
     supervisor_id: 10,
-    nombre_supervisor: "Pastor David Mendoza (Supervisor)",
+    nombre_supervisor: "Pastor David Mendoza (Mentor)",
     becario_id: 1,
     nombre_becario: "Nilda Amalia Churata Paye",
     carrera_becario: "Estadística e Informática",
@@ -161,7 +161,7 @@ const CITAS_SEGUIMIENTO_SEMILLA: CitaSeguimiento[] = [
   {
     id: 2,
     supervisor_id: 10,
-    nombre_supervisor: "Pastor David Mendoza (Supervisor)",
+    nombre_supervisor: "Pastor David Mendoza (Mentor)",
     becario_id: 2,
     nombre_becario: "Edgar Elias Alarcon Huanca",
     carrera_becario: "Medicina y Salud Comunitaria",
@@ -178,7 +178,7 @@ const CITAS_SEGUIMIENTO_SEMILLA: CitaSeguimiento[] = [
   {
     id: 3,
     supervisor_id: 10,
-    nombre_supervisor: "Pastor David Mendoza (Supervisor)",
+    nombre_supervisor: "Pastor David Mendoza (Mentor)",
     becario_id: 3,
     nombre_becario: "Adai Belen Huayta Cardozo",
     carrera_becario: "Administración y Gestión de Proyectos",
@@ -529,7 +529,7 @@ export function RegistroDevocionales() {
     const nueva_cita_payload: CitaSeguimiento = {
       id: Date.now(),
       supervisor_id: usuario?.id || 10,
-      nombre_supervisor: usuario?.nombre || "Supervisor Pastoral",
+      nombre_supervisor: usuario?.nombre || "Mentor Pastoral",
       becario_id: becario_id_num,
       nombre_becario: becario_encontrado?.nombre || "Becario Supervisado",
       carrera_becario: becario_encontrado?.carrera || "Carrera Institucional",
@@ -678,7 +678,7 @@ export function RegistroDevocionales() {
         </h3>
         <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-6">
           Este espacio de acompañamiento pastoral, consejería y retroalimentación personalizada es un ámbito estrictamente
-          confidencial reservado para la interacción directa entre cada <strong>Supervisor pastoral</strong> y sus{" "}
+          confidencial reservado para la interacción directa entre cada <strong>Mentor pastoral</strong> y sus{" "}
           <strong>Becarios supervisados</strong>.
         </p>
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 text-xs font-semibold text-slate-600">
@@ -1189,7 +1189,7 @@ export function RegistroDevocionales() {
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-[#007BBE]" />
                 <h3 className="text-base font-bold text-[#035683]">
-                  📅 Mis Citas de Seguimiento con mi Supervisor
+                  📅 Mis Citas de Seguimiento con mi Mentor
                 </h3>
               </div>
               <Badge className="bg-[#00ABBD]/10 text-[#00808E] border-[#00ABBD]/20 font-bold text-xs px-2.5 py-0.5">
@@ -1215,7 +1215,7 @@ export function RegistroDevocionales() {
                             Próxima Cita Programada
                           </span>
                           <h4 className="text-sm font-bold text-[#122029]">
-                            {cita.nombre_supervisor || "Supervisor Pastoral"}
+                            {cita.nombre_supervisor || "Mentor Pastoral"}
                           </h4>
                         </div>
                       </div>
@@ -1311,7 +1311,7 @@ export function RegistroDevocionales() {
                       </div>
 
                       <div className="text-[11px] text-slate-600">
-                        <strong>Supervisor:</strong> {cita.nombre_supervisor}
+                        <strong>Mentor:</strong> {cita.nombre_supervisor}
                       </div>
 
                       {cita.acuerdos_retroalimentacion && (
@@ -1439,7 +1439,7 @@ export function RegistroDevocionales() {
                         <div className="bg-[#F0FDF4] p-3 rounded-xl border border-[#86EFAC] text-xs mt-2 space-y-1 shadow-2xs">
                           <div className="flex items-center gap-1.5 text-[#15803D] font-bold text-[11px]">
                             <Church className="w-3.5 h-3.5" />
-                            <span>Acompañamiento de tu Supervisor:</span>
+                            <span>Acompañamiento de tu Mentor:</span>
                           </div>
                           <p className="text-[#166534] leading-relaxed">{item.comentario_pastoral}</p>
                         </div>

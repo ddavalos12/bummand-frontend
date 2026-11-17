@@ -369,7 +369,7 @@ export default function PaginaInicioSesion() {
                   }}
                   className="p-1.5 text-center rounded-lg border border-[#00ABBD]/20 bg-[#00ABBD]/5 hover:bg-[#00ABBD]/10 text-[10px] font-medium text-[#00808E] transition-colors cursor-pointer"
                 >
-                  <div className="font-bold">Supervisor</div>
+                  <div className="font-bold">Mentor</div>
                   <div className="text-[9px] text-muted-foreground truncate">angel.ali@...</div>
                 </button>
                 <button

@@ -348,7 +348,7 @@ export function MenuLateral({
           elementos: [
             {
               id: "administracion",
-              etiqueta: es_admin ? "Dashboard General" : "Panel Supervisor",
+              etiqueta: es_admin ? "Dashboard General" : "Panel Mentor",
               descripcion: es_admin ? "Métricas analíticas globales" : "Becarios asignados y horas",
               icono: LayoutDashboard,
             },

@@ -792,6 +792,8 @@ export function PanelControlVista() {
   const [cargando_metricas, set_cargando_metricas] = useState<boolean>(false);
   const [multas_recaudadas, set_multas_recaudadas] = useState<number>(850);
   const [incidencias_multas, set_incidencias_multas] = useState<number>(17);
+  const [porcentaje_asistencia_api, set_porcentaje_asistencia_api] = useState<number | null>(null);
+  const [dias_permiso_compensados, set_dias_permiso_compensados] = useState<number>(0);
 
   const parsearFechaCadena = (str: string): Date => {
     const partes = str.split("-").map(Number);
@@ -815,11 +817,21 @@ export function PanelControlVista() {
         multas_recaudadas_bs?: number;
         incidencias_multas?: number;
         total_becarios?: number;
+        porcentaje_puntualidad?: number;
+        dias_permiso_aprobado?: number;
       }>(`/dashboard/estadisticas?fecha_inicio=${inicio}&fecha_fin=${fin}`);
 
-      if (respuesta && typeof respuesta.multas_recaudadas_bs === "number") {
-        set_multas_recaudadas(respuesta.multas_recaudadas_bs);
-        set_incidencias_multas(respuesta.incidencias_multas || 0);
+      if (respuesta) {
+        if (typeof respuesta.multas_recaudadas_bs === "number") {
+          set_multas_recaudadas(respuesta.multas_recaudadas_bs);
+          set_incidencias_multas(respuesta.incidencias_multas || 0);
+        }
+        if (typeof respuesta.porcentaje_puntualidad === "number") {
+          set_porcentaje_asistencia_api(Math.round(respuesta.porcentaje_puntualidad));
+        }
+        if (typeof respuesta.dias_permiso_aprobado === "number") {
+          set_dias_permiso_compensados(respuesta.dias_permiso_aprobado);
+        }
       }
     } catch {
       // Cálculo algorítmico institucional según días de rango seleccionado
@@ -921,12 +933,21 @@ export function PanelControlVista() {
   );
 
   const es_supervisor = usuario?.rol === "supervisor";
-  const nombre_usuario = usuario?.nombre || "Supervisor";
+  const nombre_usuario = usuario?.nombre || "Mentor";
 
-  // Conteos dinámicos de asistencia semanal
+  // Conteos dinámicos de asistencia semanal con compensación al 100% por permisos aprobados
   const total_registros = REGISTROS_ASISTENCIA_SEMANAL.length;
   const total_asistieron = REGISTROS_ASISTENCIA_SEMANAL.filter((r) => r.asistio).length;
   const total_no_asistieron = REGISTROS_ASISTENCIA_SEMANAL.filter((r) => !r.asistio).length;
+  const permisos_justificados_locales = lista_retrasos.filter((r) => r.justificado).length;
+  const total_permisos_compensados = Math.max(dias_permiso_compensados, permisos_justificados_locales);
+  const porcentaje_asistencia_semanal =
+    porcentaje_asistencia_api !== null
+      ? Math.min(100, porcentaje_asistencia_api)
+      : Math.min(
+          100,
+          Math.round(((total_asistieron + total_permisos_compensados) / (total_registros || 1)) * 100)
+        );
 
   const registros_filtrados = REGISTROS_ASISTENCIA_SEMANAL.filter((r) => {
     if (filtro_asistencia === "asistieron") return r.asistio;
@@ -1148,18 +1169,25 @@ export function PanelControlVista() {
                         Asistencia Semanal
                       </p>
                       <p className="text-3xl font-display font-bold text-[#035683]">
-                        <ContadorAnimado valor={87} sufijo="%" />
+                        <ContadorAnimado valor={porcentaje_asistencia_semanal} sufijo="%" />
                       </p>
                     </div>
                     <div className="p-2.5 bg-[#00ABBD]/10 rounded-xl">
                       <Clock className="w-5 h-5 text-[#00ABBD]" />
                     </div>
                   </div>
-                  <div className="mt-3 flex items-center text-xs">
-                    <span className="text-amber-600 font-bold">5 con retraso</span>
-                    <span className="text-muted-foreground ml-1">esta semana</span>
+                  <div className="mt-3 flex flex-col gap-0.5 text-xs">
+                    <div className="flex items-center">
+                      <span className="text-amber-600 font-bold">
+                        {becarios_retraso_filtrados.length} con retraso
+                      </span>
+                      <span className="text-muted-foreground ml-1">esta semana</span>
+                    </div>
+                    <span className="text-[10px] text-emerald-700 font-semibold">
+                      Permisos aprobados compensados al 100%
+                    </span>
                   </div>
-                  <Progress value={87} className="h-1.5 mt-2 bg-slate-100" />
+                  <Progress value={porcentaje_asistencia_semanal} className="h-1.5 mt-2 bg-slate-100" />
                 </CardContent>
               </Card>
             </ElementoEscalonado>

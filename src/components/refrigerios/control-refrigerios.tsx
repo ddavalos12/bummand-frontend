@@ -411,7 +411,7 @@ export function ControlRefrigerios() {
 
   // Flujo de 2 pasos: Nivel 1 - Revisado por Supervisor
   const manejarRevisarSupervisor = async (item: RegistroRacionRefrigerio) => {
-    const nombre_revisor = usuario?.nombre || "Supervisor Diaconía";
+    const nombre_revisor = usuario?.nombre || "Mentor Diaconía";
     const fecha_actual = new Date().toISOString().split("T")[0];
 
     try {
@@ -435,7 +435,7 @@ export function ControlRefrigerios() {
       )
     );
 
-    toast.success("Planilla marcada como Revisada por Supervisor", {
+    toast.success("Planilla marcada como Revisada por Mentor", {
       description: `Se validó el descargo de insumos de ${item.becario_encargado}. Listo para aprobación de Administración.`,
     });
   };
@@ -862,7 +862,7 @@ export function ControlRefrigerios() {
 
                   {/* Fila 5: Supervisor / Responsable de Entrega */}
                   <div className="space-y-1">
-                    <Label className="text-xs font-semibold">Supervisor / Responsable de Entrega</Label>
+                    <Label className="text-xs font-semibold">Mentor / Responsable de Entrega</Label>
                     <Input
                       placeholder="Coordinación General BUMAND"
                       value={nuevo_responsable_entrega}
@@ -1100,7 +1100,7 @@ export function ControlRefrigerios() {
                     ) : item.estado_reposicion === "revisado_supervisor" ? (
                       <Badge className="bg-sky-100 text-sky-800 border-sky-300 font-bold text-xs gap-1 py-1 px-2.5">
                         <Check className="w-3.5 h-3.5 text-sky-700" />
-                        <span>Revisado por Supervisor</span>
+                        <span>Revisado por Mentor</span>
                       </Badge>
                     ) : item.estado_reposicion === "sorteado_programado" ? (
                       <Badge className="bg-purple-100 text-purple-800 border-purple-300 font-bold text-xs gap-1 py-1 px-2.5">

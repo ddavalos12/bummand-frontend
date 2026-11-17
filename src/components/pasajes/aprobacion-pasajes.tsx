@@ -46,14 +46,17 @@ import {
   ChevronRight,
   Columns,
   FileText,
+  FileSpreadsheet,
   Printer,
   Loader2,
   ShieldCheck,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
+import { exportarFormularioContabilidadSrdExcel } from "@/lib/generador-excel-cliente";
 import { useConsulta } from "@/hooks/useConsulta";
 import { useTiempoReal } from "@/hooks/useTiempoReal";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
@@ -91,6 +94,10 @@ export interface SolicitudPasajeVista {
   tipo_actividad?: "Prácticas" | "Escuela de Líderes" | "Acciones de Servicio";
   monto_total_centavos: number;
   monto_devolucion_centavos: number;
+  multas_asistencia_bs?: number;
+  multas_asistencia_centavos?: number;
+  monto_liquido_pagable?: number;
+  monto_liquido_pagable_centavos?: number;
   estado: "borrador" | "pendiente" | "revisado_supervisor" | "aprobado_administracion" | "aprobado" | "rechazado";
   observaciones?: string;
   fecha_envio: string;
@@ -229,6 +236,7 @@ export function AprobacionPasajes() {
   const [fecha_inicio_auditoria, set_fecha_inicio_auditoria] = useState<string>("2026-10-01");
   const [fecha_fin_auditoria, set_fecha_fin_auditoria] = useState<string>("2026-10-31");
   const [descargando_pdf_auditoria, set_descargando_pdf_auditoria] = useState<boolean>(false);
+  const [descontar_multas_srd, set_descontar_multas_srd] = useState<boolean>(true);
 
   const manejarDescargarPdfAuditoria = async () => {
     try {
@@ -297,49 +305,95 @@ export function AprobacionPasajes() {
       try {
         const respuesta = await clienteApi.get<any[]>("/api/pasajes");
         if (Array.isArray(respuesta) && respuesta.length > 0) {
-          return respuesta.map((item, idx) => ({
-            id: item.id || 100 + idx,
-            becario_nombre: item.becario?.nombre || item.becario?.usuario?.nombre || item.becario_nombre || `Becario ${idx + 1}`,
-            iniciales: (item.becario?.nombre || item.becario?.usuario?.nombre || item.becario_nombre || "BE")
-              .split(" ")
-              .map((p: string) => p[0])
-              .join("")
-              .slice(0, 2)
-              .toUpperCase(),
-            carrera: item.becario?.carrera || "Carrera BUMAND",
-            unidad: item.becario?.unidad || "Unidad Diaconía",
-            lugar_practicas: item.becario?.lugar_practica?.nombre || "Oficina Central - Bloque A",
-            responsable_mentor: item.becario?.supervisor?.nombre || item.becario?.supervisor?.usuario?.nombre || "Supervisor Diaconía",
-            apoyo_resumen: item.apoyo_realizado || "Actividades de apoyo institucional preprofesional",
-            periodo: item.periodo || "Marzo 2026",
-            tipo_actividad: item.tipo_actividad || "Prácticas",
-            monto_total_centavos: Math.round(Number(item.monto_total || 0) * 100) || 3500,
-            monto_devolucion_centavos: Math.round(Number(item.monto_devolucion || 0) * 100) || 2800,
-            estado: (item.estado || "pendiente").toLowerCase() as SolicitudPasajeVista["estado"],
-            observaciones: item.observaciones,
-            fecha_envio: item.fecha_envio ? String(item.fecha_envio).split("T")[0] : "2026-03-24",
-            revisado_por_supervisor: Boolean(item.revisado_por_supervisor || item.estado === "revisado_supervisor"),
-            supervisor_revisor: item.supervisor_revisor || item.supervisor?.nombre || null,
-            fecha_revision_supervisor: item.fecha_revision_supervisor ? String(item.fecha_revision_supervisor).split("T")[0] : null,
-            administrador_nombre: item.administrador_nombre || item.administrador?.nombre || null,
-            fecha_aprobacion_admin: item.fecha_aprobacion_admin ? String(item.fecha_aprobacion_admin).split("T")[0] : null,
-            recorridos: (item.recorridos || []).map((r: any) => ({
-              id: r.id,
-              fecha: r.fecha ? String(r.fecha).split("T")[0] : "2026-03-10",
-              tramo: (r.tramo || "ida") as "ida" | "vuelta",
-              origen: r.origen || "Origen",
-              destino: r.destino || "Destino",
-              tarifa: Number(r.tarifa || 2.5),
-              apoyo_realizado: r.apoyo_realizado || "Apoyo institucional",
-              tiene_gps: Boolean(r.lat_origen || r.lat_destino),
-              calles_declaradas:
-                r.calles_declaradas ||
-                `${r.origen || "Origen"} → Av. Troncal → Parada Central → ${r.destino || "Destino"}`,
-              medio_transporte: r.medio_transporte || "Minibús Urbano",
-              tipo_actividad: r.tipo_actividad || item.tipo_actividad || "Prácticas",
-              detalle_tramos_json: r.detalle_tramos_json,
-            })),
-          }));
+          let multas_por_becario: Record<number, number> = {};
+          const falta_multa_en_respuesta = respuesta.some((item) => item.multas_asistencia_bs === undefined);
+          if (falta_multa_en_respuesta) {
+            try {
+              const multas_res = await clienteApi.get<any[]>("/api/asistencia/multas");
+              if (Array.isArray(multas_res)) {
+                multas_res.forEach((m) => {
+                  const id_becario = Number(m.becario_id || m.becario?.id || 0);
+                  const monto_m = Number(m.monto_bs ?? m.monto ?? 0);
+                  if (id_becario > 0 && monto_m > 0 && m.estado !== "condonada" && m.estado !== "pagada") {
+                    multas_por_becario[id_becario] = (multas_por_becario[id_becario] || 0) + monto_m;
+                  }
+                });
+              }
+            } catch {
+              multas_por_becario = {};
+            }
+          }
+
+          return respuesta.map((item, idx) => {
+            const id_becario = Number(item.becario_id || item.becario?.id || 0);
+            const total_centavos = Math.round(Number(item.monto_total || 0) * 100) || 3500;
+            const devolucion_centavos = Math.round(Number(item.monto_devolucion || 0) * 100) || 2800;
+            const multas_bs =
+              item.multas_asistencia_bs !== undefined
+                ? Number(item.multas_asistencia_bs)
+                : Number((multas_por_becario[id_becario] || 0).toFixed(2));
+            const multas_centavos =
+              item.multas_asistencia_centavos !== undefined
+                ? Number(item.multas_asistencia_centavos)
+                : Math.round(multas_bs * 100);
+            const liquido_centavos =
+              item.monto_liquido_pagable_centavos !== undefined
+                ? Number(item.monto_liquido_pagable_centavos)
+                : Math.max(0, devolucion_centavos - multas_centavos);
+            const liquido_bs =
+              item.monto_liquido_pagable !== undefined
+                ? Number(item.monto_liquido_pagable)
+                : Number((liquido_centavos / 100).toFixed(2));
+
+            return {
+              id: item.id || 100 + idx,
+              becario_id: id_becario || undefined,
+              becario_nombre: item.becario?.nombre || item.becario?.usuario?.nombre || item.becario_nombre || `Becario ${idx + 1}`,
+              iniciales: (item.becario?.nombre || item.becario?.usuario?.nombre || item.becario_nombre || "BE")
+                .split(" ")
+                .map((p: string) => p[0])
+                .join("")
+                .slice(0, 2)
+                .toUpperCase(),
+              carrera: item.becario?.carrera || "Carrera BUMAND",
+              unidad: item.becario?.unidad || "Unidad Diaconía",
+              lugar_practicas: item.becario?.lugar_practica?.nombre || "Oficina Central - Bloque A",
+              responsable_mentor: item.becario?.supervisor?.nombre || item.becario?.supervisor?.usuario?.nombre || "Mentor Diaconía",
+              apoyo_resumen: item.apoyo_realizado || "Actividades de apoyo institucional preprofesional",
+              periodo: item.periodo || "Marzo 2026",
+              tipo_actividad: item.tipo_actividad || "Prácticas",
+              monto_total_centavos: total_centavos,
+              monto_devolucion_centavos: devolucion_centavos,
+              multas_asistencia_bs: multas_bs,
+              multas_asistencia_centavos: multas_centavos,
+              monto_liquido_pagable: liquido_bs,
+              monto_liquido_pagable_centavos: liquido_centavos,
+              estado: (item.estado || "pendiente").toLowerCase() as SolicitudPasajeVista["estado"],
+              observaciones: item.observaciones,
+              fecha_envio: item.fecha_envio ? String(item.fecha_envio).split("T")[0] : "2026-03-24",
+              revisado_por_supervisor: Boolean(item.revisado_por_supervisor || item.estado === "revisado_supervisor"),
+              supervisor_revisor: item.supervisor_revisor || item.supervisor?.nombre || null,
+              fecha_revision_supervisor: item.fecha_revision_supervisor ? String(item.fecha_revision_supervisor).split("T")[0] : null,
+              administrador_nombre: item.administrador_nombre || item.administrador?.nombre || null,
+              fecha_aprobacion_admin: item.fecha_aprobacion_admin ? String(item.fecha_aprobacion_admin).split("T")[0] : null,
+              recorridos: (item.recorridos || []).map((r: any) => ({
+                id: r.id,
+                fecha: r.fecha ? String(r.fecha).split("T")[0] : "2026-03-10",
+                tramo: (r.tramo || "ida") as "ida" | "vuelta",
+                origen: r.origen || "Origen",
+                destino: r.destino || "Destino",
+                tarifa: Number(r.tarifa || 2.5),
+                apoyo_realizado: r.apoyo_realizado || "Apoyo institucional",
+                tiene_gps: Boolean(r.lat_origen || r.lat_destino),
+                calles_declaradas:
+                  r.calles_declaradas ||
+                  `${r.origen || "Origen"} → Av. Troncal → Parada Central → ${r.destino || "Destino"}`,
+                medio_transporte: r.medio_transporte || "Minibús Urbano",
+                tipo_actividad: r.tipo_actividad || item.tipo_actividad || "Prácticas",
+                detalle_tramos_json: r.detalle_tramos_json,
+              })),
+            };
+          });
         }
       } catch {
         // Usa datos semilla enriquecidos
@@ -407,12 +461,12 @@ export function AprobacionPasajes() {
   });
 
   const manejarRevisarSupervisor = async (id: number) => {
-    const nombre_supervisor = usuario?.nombre || "Supervisor Diaconía";
+    const nombre_supervisor = usuario?.nombre || "Mentor Diaconía";
     const fecha_actual = new Date().toISOString().split("T")[0];
     try {
       await clienteApi.patch(`/api/pasajes/${id}/revisar-supervisor`, {
         supervisor_id: usuario?.id || 1,
-        observaciones: "Revisado conforme en campo por supervisor",
+        observaciones: "Revisado conforme en campo por mentor",
       });
       invalidar();
     } catch {
@@ -435,13 +489,13 @@ export function AprobacionPasajes() {
               revisado_por_supervisor: true,
               supervisor_revisor: nombre_supervisor,
               fecha_revision_supervisor: fecha_actual,
-              observaciones: "Revisado conforme por supervisor · Remitido a Administración",
+              observaciones: "Revisado conforme por mentor · Remitido a Administración",
             }
           : s
       )
     );
 
-    toast.success("Planilla marcada como Revisada por Supervisor", {
+    toast.success("Planilla marcada como Revisada por Mentor", {
       description: "Nivel 1 completado. La planilla fue elevada para dictamen de Administración.",
     });
     await invalidar();
@@ -619,6 +673,20 @@ export function AprobacionPasajes() {
               <span>Expediente PDF</span>
             </Button>
 
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                exportarFormularioContabilidadSrdExcel([solicitud_activa], solicitud_activa.periodo, descontar_multas_srd);
+                toast.success("Excel de Contabilidad y SRD exportado");
+              }}
+              className="h-8 px-2.5 text-xs font-bold border-emerald-600 text-emerald-700 hover:bg-emerald-50 rounded-xl gap-1.5 shadow-2xs"
+              title="Exportar liquidación individual a Excel (.xls)"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Exportar Excel</span>
+            </Button>
+
             {/* Acceso directo a Historial de Paradas e Intervalo */}
             <Button
               size="sm"
@@ -644,7 +712,7 @@ export function AprobacionPasajes() {
             ) : solicitud_activa.estado === "revisado_supervisor" ? (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-sky-50 text-sky-800 border border-sky-300">
                 <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
-                Revisado Sup.
+                Revisado Ment.
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]">
@@ -771,17 +839,29 @@ export function AprobacionPasajes() {
                 </p>
               </div>
 
-              <div className="pt-2 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="pt-2 border-t border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
-                  <span className="text-slate-500 font-medium">Monto total liquidado (100%): </span>
+                  <span className="text-slate-500 font-medium block">Total (100%):</span>
                   <span className="font-mono font-bold text-slate-800">
                     Bs {(solicitud_activa.monto_total_centavos / 100).toFixed(2)}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-500 font-medium">Reembolso institucional oficial (80%): </span>
-                  <span className="font-mono font-bold text-base text-[#D97706]">
+                  <span className="text-slate-500 font-medium block">80% Reconocido:</span>
+                  <span className="font-mono font-bold text-[#D97706]">
                     Bs {(solicitud_activa.monto_devolucion_centavos / 100).toFixed(2)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-500 font-medium block">(-) Multas Asistencia:</span>
+                  <span className={`font-mono font-bold ${(descontar_multas_srd ? (solicitud_activa.multas_asistencia_bs || 0) : 0) > 0 ? "text-rose-600" : "text-slate-500"}`}>
+                    Bs {(descontar_multas_srd ? (solicitud_activa.multas_asistencia_bs || 0) : 0).toFixed(2)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-500 font-medium block">Líquido Pagable (Neto SRD):</span>
+                  <span className="font-mono font-bold text-base text-emerald-700">
+                    Bs {Math.max(0, (solicitud_activa.monto_devolucion_centavos / 100) - (descontar_multas_srd ? (solicitud_activa.multas_asistencia_bs || 0) : 0)).toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -800,7 +880,7 @@ export function AprobacionPasajes() {
                     ? "Nivel 1 Completo · En espera de dictamen de Administración"
                     : solicitud_activa.estado === "rechazado"
                     ? "Planilla Observada / Rechazada"
-                    : "En espera de revisión por Supervisor (Nivel 1)"}
+                    : "En espera de revisión por Mentor (Nivel 1)"}
                 </span>
               </div>
 
@@ -820,7 +900,7 @@ export function AprobacionPasajes() {
                   {(solicitud_activa.estado === "revisado_supervisor" || solicitud_activa.estado === "aprobado" || solicitud_activa.estado === "aprobado_administracion")
                     ? <Check className="w-3.5 h-3.5 text-sky-600" />
                     : <Clock className="w-3.5 h-3.5 text-amber-500" />}
-                  <span>2. Supervisor</span>
+                  <span>2. Mentor</span>
                 </div>
                 <div className={`p-2 rounded-xl border flex items-center justify-center gap-1 ${
                   solicitud_activa.estado === "aprobado" || solicitud_activa.estado === "aprobado_administracion"
@@ -857,7 +937,7 @@ export function AprobacionPasajes() {
                   <div className="text-xs space-y-0.5">
                     <p className="font-bold text-[#035683] flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-sky-600" />
-                      Revisado por Supervisor ({solicitud_activa.supervisor_revisor || solicitud_activa.responsable_mentor})
+                      Revisado por Mentor ({solicitud_activa.supervisor_revisor || solicitud_activa.responsable_mentor})
                     </p>
                     <p className="text-slate-600">
                       Nivel 1 completado. En espera de la aprobación formal por parte de Administración.
@@ -879,7 +959,7 @@ export function AprobacionPasajes() {
                   <div className="text-xs space-y-0.5">
                     <p className="font-bold text-slate-800">Pendiente de revisión en Nivel 1</p>
                     <p className="text-slate-500">
-                      El supervisor verifica los tramos y tarifas urbanas para elevar la solicitud a Administración.
+                      El mentor verifica los tramos y tarifas urbanas para elevar la solicitud a Administración.
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -890,7 +970,7 @@ export function AprobacionPasajes() {
                         className="bg-[#007BBE] hover:bg-[#035683] text-white text-xs font-bold py-2 px-4 rounded-xl shadow-xs shrink-0 gap-1.5"
                       >
                         <Check className="w-4 h-4 text-[#FFB600]" />
-                        <span>Marcar Revisado por Supervisor</span>
+                        <span>Marcar Revisado por Mentor</span>
                       </Button>
                     ) : (
                       <Button
@@ -927,10 +1007,10 @@ export function AprobacionPasajes() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold font-display text-[#0F172A] tracking-tight">
-            Pasajes
+            Pasajes — Contabilidad y SRD
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Formularios mensuales de devolución del 80% de pasajes — Marzo 2026
+            Liquidación mensual del 80% de pasajes y cálculo líquido descontando multas de asistencia para Contabilidad y SRD
           </p>
         </div>
 
@@ -981,19 +1061,38 @@ export function AprobacionPasajes() {
           </div>
         </div>
 
-        <Button
-          size="sm"
-          disabled={descargando_pdf_auditoria}
-          onClick={manejarDescargarPdfAuditoria}
-          className="h-8 px-3.5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl shadow-xs gap-1.5 shrink-0 cursor-pointer"
-        >
-          {descargando_pdf_auditoria ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-[#FFB600]" />
-          ) : (
-            <Printer className="w-3.5 h-3.5 text-[#FFB600]" />
-          )}
-          <span>Extraer Reporte PDF para Auditoría</span>
-        </Button>
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              exportarFormularioContabilidadSrdExcel(
+                solicitudes_filtradas,
+                `${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}`,
+                descontar_multas_srd
+              );
+              toast.success("Formulario para Contabilidad y SRD exportado en Excel (.xls)");
+            }}
+            className="h-8 px-3 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold text-xs rounded-xl shadow-xs gap-1.5 cursor-pointer"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Exportar Excel</span>
+          </Button>
+
+          <Button
+            size="sm"
+            disabled={descargando_pdf_auditoria}
+            onClick={manejarDescargarPdfAuditoria}
+            className="h-8 px-3.5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl shadow-xs gap-1.5 cursor-pointer"
+          >
+            {descargando_pdf_auditoria ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#FFB600]" />
+            ) : (
+              <Printer className="w-3.5 h-3.5 text-[#FFB600]" />
+            )}
+            <span>Extraer Reporte PDF para Auditoría</span>
+          </Button>
+        </div>
       </div>
 
       {/* ============================================================== */}
@@ -1012,7 +1111,7 @@ export function AprobacionPasajes() {
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
-              <span>Formularios del Mes</span>
+              <span>Formulario para Contabilidad y SRD</span>
               <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
                 subpestana === "planillas" ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
               }`}>
@@ -1104,15 +1203,18 @@ export function AprobacionPasajes() {
           {/* TARJETA 1: FORMULARIOS DEL MES (TABLA PRINCIPAL)              */}
           {/* ============================================================== */}
           <Card className="border-[#E5E7EB] shadow-xs bg-white rounded-2xl overflow-hidden">
-            <CardHeader className="pb-3 pt-5 px-6">
+            <CardHeader className="pb-3 pt-5 px-6 space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <CardTitle className="text-base font-bold text-[#0F172A] flex items-center gap-2">
-                    Formularios del mes
+                    Formulario para Contabilidad y SRD
                     <Badge variant="outline" className="text-xs font-mono border-slate-200 text-slate-500">
                       {solicitudes_filtradas.length} de {solicitudes.length}
                     </Badge>
                   </CardTitle>
+                  <CardDescription className="text-xs text-slate-500 mt-0.5">
+                    Liquidación mensual del 80% de pasajes y cálculo líquido descontando multas de asistencia para Contabilidad y SRD
+                  </CardDescription>
                 </div>
 
                 {/* Pestañas de Filtrado por Estado */}
@@ -1166,6 +1268,41 @@ export function AprobacionPasajes() {
                   </button>
                 </div>
               </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                <div className="flex items-center gap-2.5">
+                  <Switch
+                    id="switch-descontar-multas-srd"
+                    checked={descontar_multas_srd}
+                    onCheckedChange={set_descontar_multas_srd}
+                  />
+                  <Label
+                    htmlFor="switch-descontar-multas-srd"
+                    className="text-xs font-semibold text-[#035683] cursor-pointer"
+                  >
+                    Descontar multas de asistencia en el pago de pasajes (Cálculo SRD)
+                  </Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      exportarFormularioContabilidadSrdExcel(
+                        solicitudes_filtradas,
+                        solicitudes_filtradas[0]?.periodo || "2026-10",
+                        descontar_multas_srd
+                      );
+                      toast.success("Planilla para Contabilidad y SRD exportada a Excel (.xls)");
+                    }}
+                    className="h-8 px-3 text-xs font-bold border-emerald-600 text-emerald-700 hover:bg-emerald-50 rounded-xl gap-1.5"
+                  >
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Exportar Excel</span>
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
 
             <CardContent className="p-0">
@@ -1177,8 +1314,10 @@ export function AprobacionPasajes() {
                       <th className="py-3 px-4">UNIDAD</th>
                       <th className="py-3 px-4">ACTIVIDAD</th>
                       <th className="py-3 px-4 text-center">RECORRIDOS</th>
-                      <th className="py-3 px-4">TOTAL</th>
-                      <th className="py-3 px-4 text-[#D97706]">80%</th>
+                      <th className="py-3 px-4">TOTAL (100%)</th>
+                      <th className="py-3 px-4 text-[#D97706]">80% RECONOCIDO</th>
+                      <th className="py-3 px-4 text-rose-600">(-) MULTAS ASISTENCIA</th>
+                      <th className="py-3 px-4 text-emerald-700">LÍQUIDO PAGABLE (NETO SRD)</th>
                       <th className="py-3 px-4">ESTADO</th>
                       <th className="py-3 px-6 text-right">ACCIONES</th>
                     </tr>
@@ -1186,7 +1325,7 @@ export function AprobacionPasajes() {
                   <tbody className="divide-y divide-slate-100">
                     {solicitudes_filtradas.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="py-8 text-center text-xs text-slate-500">
+                        <td colSpan={10} className="py-8 text-center text-xs text-slate-500">
                           No se encontraron formularios con el estado seleccionado ({filtro_estado}).
                         </td>
                       </tr>
@@ -1197,6 +1336,9 @@ export function AprobacionPasajes() {
                         const es_pendiente = item.estado === "pendiente";
                         const es_revisado = item.estado === "revisado_supervisor";
                         const es_aprobado = item.estado === "aprobado" || item.estado === "aprobado_administracion";
+                        const monto_80_bs = item.monto_devolucion_centavos / 100;
+                        const multas_bs = descontar_multas_srd ? (item.multas_asistencia_bs ?? 0) : 0;
+                        const liquido_pagable = Math.max(0, monto_80_bs - multas_bs);
 
                         return (
                           <tr
@@ -1250,14 +1392,32 @@ export function AprobacionPasajes() {
                               {item.recorridos.length}
                             </td>
 
-                            {/* TOTAL */}
+                            {/* TOTAL (100%) */}
                             <td className="py-3.5 px-4 text-xs font-mono text-slate-700 whitespace-nowrap">
                               Bs {(item.monto_total_centavos / 100).toFixed(2)}
                             </td>
 
-                            {/* 80% (DESTACADO EN DORADO/ÁMBAR) */}
+                            {/* 80% RECONOCIDO */}
                             <td className="py-3.5 px-4 text-xs font-mono font-bold text-[#D97706] whitespace-nowrap">
-                              Bs {(item.monto_devolucion_centavos / 100).toFixed(2)}
+                              Bs {monto_80_bs.toFixed(2)}
+                            </td>
+
+                            {/* (-) MULTAS ASISTENCIA */}
+                            <td className="py-3.5 px-4 text-xs font-mono whitespace-nowrap">
+                              {multas_bs > 0 ? (
+                                <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-300 font-mono text-[11px] font-bold">
+                                  - Bs. {multas_bs.toFixed(2)}
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-slate-50 text-slate-500 border-slate-200 font-mono text-[11px]">
+                                  Bs. 0.00
+                                </Badge>
+                              )}
+                            </td>
+
+                            {/* LÍQUIDO PAGABLE (NETO SRD) */}
+                            <td className="py-3.5 px-4 text-xs font-mono font-extrabold text-emerald-700 whitespace-nowrap">
+                              Bs {liquido_pagable.toFixed(2)}
                             </td>
 
                             {/* ESTADO CON PUNTO */}
@@ -1275,7 +1435,7 @@ export function AprobacionPasajes() {
                               ) : es_revisado ? (
                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-sky-50 text-sky-800 border border-sky-300">
                                   <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
-                                  Revisado Sup.
+                                  Revisado Ment.
                                 </span>
                               ) : es_aprobado ? (
                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]">
@@ -1317,7 +1477,7 @@ export function AprobacionPasajes() {
                                         manejarRevisarSupervisor(item.id);
                                       }}
                                       className="bg-[#007BBE] hover:bg-[#035683] text-white text-xs font-bold py-1.5 px-2.5 rounded-lg transition-all shadow-xs h-8 gap-1"
-                                      title="Marcar Revisado por Supervisor"
+                                      title="Marcar Revisado por Mentor"
                                     >
                                       <Check className="w-3.5 h-3.5 text-[#FFB600]" />
                                       <span>Revisar</span>
@@ -1494,20 +1654,31 @@ export function AprobacionPasajes() {
               </div>
             </div>
 
-            {/* Liquidación institucional del 80% */}
-            <div className="p-4 rounded-xl bg-gradient-to-br from-[#035683] to-[#035683] text-white flex items-center justify-between">
+            {/* Liquidación institucional del 80% y Neto SRD */}
+            <div className="p-4 rounded-xl bg-gradient-to-br from-[#035683] to-[#035683] text-white grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
               <div>
-                <span className="text-[11px] font-mono text-white/80 block">Monto total de pasajes declarados:</span>
+                <span className="text-[11px] font-mono text-white/80 block">Total Declarado (100%):</span>
                 <span className="text-lg font-mono font-bold text-white">
                   Bs {((solicitud_seleccionada?.monto_total_centavos || 0) / 100).toFixed(2)}
                 </span>
-              </div>
-              <div className="text-right">
-                <span className="text-[11px] font-mono text-[#00ABBD] font-bold uppercase block">
-                  Reembolso Institucional del 80%:
+                <span className="text-[11px] font-mono text-rose-200 block mt-1">
+                  (-) Multas Asistencia: Bs {(descontar_multas_srd ? (solicitud_seleccionada?.multas_asistencia_bs || 0) : 0).toFixed(2)}
                 </span>
-                <span className="text-2xl font-display font-bold text-[#FFB600]">
+              </div>
+              <div>
+                <span className="text-[11px] font-mono text-[#00ABBD] font-bold uppercase block">
+                  80% Reconocido:
+                </span>
+                <span className="text-xl font-display font-bold text-[#FFB600]">
                   Bs {((solicitud_seleccionada?.monto_devolucion_centavos || 0) / 100).toFixed(2)}
+                </span>
+              </div>
+              <div className="sm:text-right">
+                <span className="text-[11px] font-mono text-emerald-300 font-bold uppercase block">
+                  Líquido Pagable (Neto SRD):
+                </span>
+                <span className="text-2xl font-display font-bold text-emerald-300">
+                  Bs {Math.max(0, ((solicitud_seleccionada?.monto_devolucion_centavos || 0) / 100) - (descontar_multas_srd ? (solicitud_seleccionada?.multas_asistencia_bs || 0) : 0)).toFixed(2)}
                 </span>
               </div>
             </div>

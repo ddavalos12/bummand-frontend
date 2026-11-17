@@ -26,6 +26,7 @@ import {
   ClipboardCheck,
   Printer,
   Download,
+  FileSpreadsheet,
   Loader2,
 } from "lucide-react";
 import {
@@ -69,6 +70,7 @@ import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { toast } from "sonner";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
+import { exportarAuditoriaAsistenciaExcel } from "@/lib/generador-excel-cliente";
 
 export interface RegistroAuditoriaAsistencia {
   id: number;
@@ -863,7 +865,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
       return;
     }
 
-    const nombre_supervisor = usuario?.nombre || "Supervisor Diaconía";
+    const nombre_supervisor = usuario?.nombre || "Mentor Diaconía";
 
     set_registros_locales((prev) =>
       prev.map((r) =>
@@ -888,7 +890,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
   };
 
   const manejarRevisarSupervisor = async (item: RegistroAuditoriaAsistencia) => {
-    const nombre_supervisor = usuario?.nombre || "Supervisor Diaconía";
+    const nombre_supervisor = usuario?.nombre || "Mentor Diaconía";
     const fecha_actual = new Date().toISOString().split("T")[0];
     try {
       await clienteApi.patch(`/api/asistencia/${item.id}/revisar-supervisor`, {
@@ -911,7 +913,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
           : r
       )
     );
-    toast.success("Marcación revisada por Supervisor", {
+    toast.success("Marcación revisada por Mentor", {
       description: `Se registró la verificación técnica de ${item.becario_nombre} y se elevó a Administración.`,
     });
     await invalidar();
@@ -1092,19 +1094,36 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
           </div>
         </div>
 
-        <Button
-          size="sm"
-          disabled={descargando_pdf_auditoria}
-          onClick={manejarDescargarPdfAuditoria}
-          className="h-8 px-3.5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl shadow-xs gap-1.5 shrink-0 cursor-pointer"
-        >
-          {descargando_pdf_auditoria ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-[#FFB600]" />
-          ) : (
-            <Printer className="w-3.5 h-3.5 text-[#FFB600]" />
-          )}
-          <span>Extraer Reporte PDF para Auditoría</span>
-        </Button>
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              const fuente = vista_activa === "mensual" ? lista_horas_mensuales : registros_filtrados;
+              const periodo = vista_activa === "mensual" ? mes_seleccionado : `${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}`;
+              exportarAuditoriaAsistenciaExcel(fuente, periodo);
+              toast.success("Auditoría de asistencia exportada a Excel (.xls)");
+            }}
+            className="h-8 px-3 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold text-xs rounded-xl shadow-xs gap-1.5 cursor-pointer"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Exportar Excel</span>
+          </Button>
+
+          <Button
+            size="sm"
+            disabled={descargando_pdf_auditoria}
+            onClick={manejarDescargarPdfAuditoria}
+            className="h-8 px-3.5 bg-[#035683] hover:bg-[#035683]/90 text-white font-bold text-xs rounded-xl shadow-xs gap-1.5 cursor-pointer"
+          >
+            {descargando_pdf_auditoria ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#FFB600]" />
+            ) : (
+              <Printer className="w-3.5 h-3.5 text-[#FFB600]" />
+            )}
+            <span>Extraer Reporte PDF para Auditoría</span>
+          </Button>
+        </div>
       </div>
 
       {vista_activa === "en_vivo" ? (
@@ -1328,7 +1347,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                             {item.estado === "revisado_supervisor" && (
                               <Badge className="bg-sky-50 text-sky-800 border-sky-300 font-bold text-xs gap-1">
                                 <CheckCircle2 className="w-3.5 h-3.5 text-sky-600" />
-                                Revisado por Supervisor
+                                Revisado por Mentor
                               </Badge>
                             )}
                           </div>
@@ -1402,10 +1421,10 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                                   variant="outline"
                                   onClick={() => manejarRevisarSupervisor(item)}
                                   className="h-8 px-2.5 text-xs font-bold border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg gap-1"
-                                  title="Marcar Revisado por Supervisor"
+                                  title="Marcar Revisado por Mentor"
                                 >
                                   <Check className="w-3.5 h-3.5 text-[#00ABBD]" />
-                                  <span>Marcar Revisado por Supervisor</span>
+                                  <span>Marcar Revisado por Mentor</span>
                                 </Button>
                               ) : (
                                 <Button
@@ -2184,7 +2203,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   Llamada de Lista en Vivo (Viernes de Formación / Práctica)
                 </DialogTitle>
                 <CardDescription className="text-xs text-muted-foreground">
-                  Confirmación presencial ágil para supervisores de becarios que ya marcaron por geocerca.
+                  Confirmación presencial ágil para mentores de becarios que ya marcaron por geocerca.
                 </CardDescription>
               </div>
               <Button
@@ -2291,7 +2310,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   Registrar Asistencia Manual — Contingencia sin Megas / Olvido
                 </DialogTitle>
                 <CardDescription className="text-xs text-muted-foreground">
-                  Habilitado exclusivamente en plataforma web para Administradores y Supervisores.
+                  Habilitado exclusivamente en plataforma web para Administradores y Mentores.
                 </CardDescription>
               </div>
             </div>
@@ -2689,7 +2708,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   ? {
                       ...r,
                       estado: "convalidado",
-                      convalidado_por: usuario?.nombre || "Supervisor Diaconía",
+                      convalidado_por: usuario?.nombre || "Mentor Diaconía",
                       motivo_convalidacion: "Justificación radicada con respaldo documental probatorio",
                     }
                   : r
