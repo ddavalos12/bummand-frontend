@@ -205,3 +205,157 @@ export async function descargarPdfAsistenciaGeneral(
   }
   return blob;
 }
+
+export type ClaveFirmanteDonacion = "ruth" | "pamela" | "samuel";
+
+export interface InformacionFirmanteDonacion {
+  clave: ClaveFirmanteDonacion;
+  nombre: string;
+  cargo: string;
+}
+
+export const FIRMANTES_OFICIALES_DONACION: readonly InformacionFirmanteDonacion[] = [
+  {
+    clave: "pamela",
+    nombre: "Pamela Sanchez Cachi",
+    cargo: "Encargado de Responsabilidad Social Diaconal",
+  },
+  {
+    clave: "ruth",
+    nombre: "Ruth Alesandra Choque Huanca",
+    cargo: "Asistente de Sostenibilidad y Responsabilidad Diaconal",
+  },
+  {
+    clave: "samuel",
+    nombre: "Samuel Martín Durán Baspineiro",
+    cargo: "Subgerente Nacional de Sostenibilidad y Responsabilidad Diaconal",
+  },
+] as const;
+
+export interface ParametrosPlanillaDonacion {
+  fecha_inicio?: string;
+  fecha_fin?: string;
+  mes?: string;
+  con_firma?: boolean;
+  firmante_1?: ClaveFirmanteDonacion;
+  firmante_2?: ClaveFirmanteDonacion;
+  descargar_inmediatamente?: boolean;
+}
+
+function construirConsultaPlanillaDonacion(
+  parametros: ParametrosPlanillaDonacion
+): string {
+  const consulta = new URLSearchParams();
+  if (parametros.fecha_inicio) {
+    consulta.append("fecha_inicio", parametros.fecha_inicio);
+  }
+  if (parametros.fecha_fin) {
+    consulta.append("fecha_fin", parametros.fecha_fin);
+  }
+  if (parametros.mes) {
+    consulta.append("mes", parametros.mes);
+  }
+  if (parametros.con_firma !== undefined) {
+    consulta.append("con_firma", parametros.con_firma ? "true" : "false");
+  }
+  if (parametros.firmante_1) {
+    consulta.append("firmante_1", parametros.firmante_1);
+  }
+  if (parametros.firmante_2) {
+    consulta.append("firmante_2", parametros.firmante_2);
+  }
+  const texto_consulta = consulta.toString();
+  return texto_consulta ? `?${texto_consulta}` : "";
+}
+
+async function descargarPlanillaDonacion(
+  ruta_base: string,
+  prefijo_archivo: string,
+  parametros: ParametrosPlanillaDonacion = {}
+): Promise<Blob> {
+  const {
+    con_firma = false,
+    firmante_1 = "pamela",
+    firmante_2 = "samuel",
+    descargar_inmediatamente = true,
+  } = parametros;
+
+  const consulta = construirConsultaPlanillaDonacion({
+    ...parametros,
+    con_firma,
+    firmante_1,
+    firmante_2,
+  });
+  const ruta = `${ruta_base}${consulta}`;
+
+  try {
+    const blob = await clienteApi.descargarBlob(ruta);
+    if (!blob || blob.size === 0) {
+      throw new Error("El servidor devolvió un documento PDF vacío.");
+    }
+    if (blob.type && blob.type.includes("application/json")) {
+      const texto_error = await blob.text();
+      let mensaje_error = "No se pudo generar la planilla oficial en PDF.";
+      try {
+        const datos = JSON.parse(texto_error);
+        mensaje_error = datos.mensaje || datos.message || mensaje_error;
+      } catch {
+        // Mantiene mensaje predeterminado
+      }
+      throw new Error(mensaje_error);
+    }
+
+    if (descargar_inmediatamente) {
+      const sufijo_firma = con_firma ? "Archivo_Con_Firma" : "Contabilidad_Sin_Firma";
+      const sufijo_periodo =
+        parametros.mes ||
+        (parametros.fecha_inicio && parametros.fecha_fin
+          ? `${parametros.fecha_inicio}_al_${parametros.fecha_fin}`
+          : "Vigente");
+      activarDescargaNavegador(
+        blob,
+        `${prefijo_archivo}_${sufijo_firma}_${sufijo_periodo}.pdf`
+      );
+    }
+
+    return blob;
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.includes("Failed to fetch")) {
+        throw new Error(
+          "No se pudo conectar con el servidor para generar el PDF oficial."
+        );
+      }
+      throw error;
+    }
+    throw new Error(
+      "Ocurrió un error inesperado al descargar la planilla oficial en PDF."
+    );
+  }
+}
+
+/**
+ * Descargar planilla oficial de donación de refrigerio en PDF.
+ */
+export async function descargarPdfDonacionRefrigerio(
+  parametros: ParametrosPlanillaDonacion = {}
+): Promise<Blob> {
+  return descargarPlanillaDonacion(
+    RUTAS_API.PDF.DONACION_REFRIGERIO,
+    "Planilla_Donacion_Refrigerio_BUMAND",
+    parametros
+  );
+}
+
+/**
+ * Descargar planilla oficial de donación de transporte en PDF.
+ */
+export async function descargarPdfDonacionTransporte(
+  parametros: ParametrosPlanillaDonacion = {}
+): Promise<Blob> {
+  return descargarPlanillaDonacion(
+    RUTAS_API.PDF.DONACION_TRANSPORTE,
+    "Planilla_Donacion_Transporte_BUMAND",
+    parametros
+  );
+}

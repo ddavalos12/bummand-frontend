@@ -70,6 +70,8 @@ import { RafagaCelebracion } from "@/components/animaciones";
 import { RegistroRecorrido } from "./registro-recorrido";
 import { GestionTarifas } from "./gestion-tarifas";
 import { HistorialParadasEstudiante } from "./historial-paradas-estudiante";
+import { RUTAS_API } from "@/servicios/rutas-api.constantes";
+import { SelectorPlanillaDonacion } from "@/components/reportes/selector-planilla-donacion";
 
 export interface RecorridoItem {
   id: number;
@@ -250,20 +252,18 @@ export function AprobacionPasajes() {
   const manejarDescargarPdfAuditoria = async () => {
     try {
       set_descargando_pdf_auditoria(true);
-      toast.info("Generando Formulario de Recorridos y Pasajes en PDF para Contabilidad...", {
+      toast.info("Generando Formulario Consolidado de Pasajes en PDF para Contabilidad...", {
         description: `Intervalo: Desde ${fecha_inicio_auditoria} hasta ${fecha_fin_auditoria}.`,
       });
 
-      const id_becario = solicitud_activa?.becario_id || solicitud_activa?.id || 1;
-      const endpoint = `/pdf/recorridos-estudiante/${id_becario}?fecha_inicio=${fecha_inicio_auditoria}&fecha_fin=${fecha_fin_auditoria}`;
-      const nombre_archivo = `Formulario_Contabilidad_Pasajes_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
+      const endpoint = `${RUTAS_API.PDF.PASAJES_GENERAL}?fecha_inicio=${fecha_inicio_auditoria}&fecha_fin=${fecha_fin_auditoria}`;
+      const nombre_archivo = `Formulario_Contabilidad_SRD_Pasajes_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
 
       await descargarPdfConResiliencia(
         endpoint,
         nombre_archivo,
-        "recorridos_estudiante",
+        "pasajes_general",
         {
-          becario_id: String(id_becario),
           fecha_inicio: fecha_inicio_auditoria,
           fecha_fin: fecha_fin_auditoria,
         }
@@ -1219,6 +1219,20 @@ export function AprobacionPasajes() {
         renderizarDetalleCard(true)
       ) : (
         <div className="space-y-6">
+          <SelectorPlanillaDonacion
+            tipo_disponible="transporte"
+            fecha_inicio={fecha_inicio_auditoria}
+            fecha_fin={fecha_fin_auditoria}
+            al_cambiar_fechas={(ini, fin) => {
+              set_fecha_inicio_auditoria(ini);
+              set_fecha_fin_auditoria(fin);
+            }}
+            mostrar_selector_periodo={false}
+            titulo="Planilla Donación Transporte BUMAN-D (80% sin multas)"
+            subtitulo="Emite la planilla oficial consolidada de transporte al 80% sin multas para Contabilidad (Sin firma de becarios) o Archivo del Área (Con firma de becarios), con las fechas activas y los 2 firmantes."
+            etiqueta_insignia="PLANILLA OFICIAL · TRANSPORTE 80%"
+          />
+
           {/* ============================================================== */}
           {/* TARJETA 1: FORMULARIOS DEL MES (TABLA PRINCIPAL)              */}
           {/* ============================================================== */}

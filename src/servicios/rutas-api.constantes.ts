@@ -176,6 +176,8 @@ export const RUTAS_API = {
     REFRIGERIOS_ID: (id: number) => `/pdf/refrigerios/${id}`,
     REFRIGERIOS_CONSOLIDADO: '/pdf/refrigerios/consolidado',
     REFRIGERIOS_GENERAL: '/pdf/refrigerios',
+    DONACION_REFRIGERIO: '/pdf/donacion-refrigerio',
+    DONACION_TRANSPORTE: '/pdf/donacion-transporte',
     CONSOLIDADO_AUDITORIA: '/pdf/consolidado-auditoria',
     PASAJES_GENERAL: '/pdf/pasajes-general',
     JUSTIFICACIONES_GENERAL: '/pdf/justificaciones-general',

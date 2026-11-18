@@ -44,6 +44,7 @@ import {
   exportarSabanaEvaluacionesExcel,
   exportarAuditoriaAsistenciaExcel,
 } from "@/lib/generador-excel-cliente";
+import { SelectorPlanillaDonacion } from "@/components/reportes/selector-planilla-donacion";
 
 interface ReporteItem {
   id: number;
@@ -429,6 +430,20 @@ export function VisorReportesPdf() {
           </div>
         </CardContent>
       </Card>
+
+      <SelectorPlanillaDonacion
+        tipo_disponible="ambos"
+        fecha_inicio={fecha_inicio_global}
+        fecha_fin={fecha_fin_global}
+        al_cambiar_fechas={(ini, fin) => {
+          set_fecha_inicio_global(ini);
+          set_fecha_fin_global(fin);
+          set_fecha_inicio_auditoria(ini);
+          set_fecha_fin_auditoria(fin);
+        }}
+        titulo="Planillas Oficiales de Donación (Contabilidad y Archivo del Área)"
+        subtitulo="Emite las planillas oficiales de Donación para Refrigerio BUMAN-D y Donación para Transporte BUMAN-D eligiendo mes o rango de fechas, destino (Sin firma / Con firma) y los 2 firmantes."
+      />
 
       {/* ============================================================== */}
       {/* PANEL DESTACADO: EXTRACCIÓN DE REPORTES POR INTERVALO DE FECHA */}

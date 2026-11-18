@@ -63,6 +63,7 @@ import { clienteApi } from "@/lib/cliente-api";
 import { useConsulta } from "@/hooks/useConsulta";
 import { toast } from "sonner";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
+import { SelectorPlanillaDonacion } from "@/components/reportes/selector-planilla-donacion";
 
 export type ModalidadPreparacionRefrigerio =
   | "cocina_diaconia"
@@ -948,6 +949,20 @@ export function ControlRefrigerios() {
           <span>Extraer Reporte PDF para Contabilidad</span>
         </Button>
       </div>
+
+      <SelectorPlanillaDonacion
+        tipo_disponible="refrigerio"
+        fecha_inicio={fecha_inicio_auditoria}
+        fecha_fin={fecha_fin_auditoria}
+        al_cambiar_fechas={(ini, fin) => {
+          set_fecha_inicio_auditoria(ini);
+          set_fecha_fin_auditoria(fin);
+        }}
+        mostrar_selector_periodo={false}
+        titulo="Planilla Donación Refrigerio BUMAN-D"
+        subtitulo="Emite la planilla oficial para Contabilidad (Sin firma de becarios) o Archivo del Área (Con firma de becarios) con las fechas activas y los 2 firmantes."
+        etiqueta_insignia="PLANILLA OFICIAL · REFRIGERIOS"
+      />
 
       {/* ============================================================== */}
       {/* TARJETAS DE MÉTRICAS EJECUTIVAS DE REFRIGERIOS                 */}
