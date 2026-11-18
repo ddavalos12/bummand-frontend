@@ -55,7 +55,10 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
-import { usarBecariosDesignadosMentor } from "@/lib/filtro-mentor";
+import {
+  normalizarTextoComparacion,
+  usarBecariosDesignadosMentor,
+} from "@/lib/filtro-mentor";
 import { InsigniaBecariosDesignados } from "@/components/ui/insignia-becarios-designados";
 import { useTiempoReal } from "@/hooks/use-tiempo-real";
 import { BECARIOS_SEMESTRE_II } from "./evaluaciones-datos-semestre";
@@ -298,6 +301,16 @@ export interface EscuelaLideresClassroomProps {
   alActualizarNotaModulo4?: (nota_20: number) => void;
 }
 
+interface BecarioSelectorItem {
+  id: number;
+  nombre_completo: string;
+  ci: string;
+  carrera: string;
+  supervisor_id?: number | null;
+  supervisor_nombre?: string | null;
+  tutor_correo?: string | null;
+}
+
 export function EscuelaLideresClassroom({
   becario_id_actual = 1,
   nombre_becario_actual = "Ruddy Flores Tapia",
@@ -305,9 +318,60 @@ export function EscuelaLideresClassroom({
   alActualizarNotaModulo4,
 }: EscuelaLideresClassroomProps) {
   const { es_mentor, filtrarPorMentor } = usarBecariosDesignadosMentor();
+  const [becarios_crudos, set_becarios_crudos] =
+    useState<BecarioSelectorItem[]>(BECARIOS_SEMESTRE_II);
+
+  useEffect(() => {
+    let montado = true;
+    clienteApi
+      .get<any>("/becarios")
+      .then((respuesta) => {
+        if (!montado) return;
+        const lista = Array.isArray(respuesta)
+          ? respuesta
+          : respuesta?.becarios || respuesta?.data;
+        if (Array.isArray(lista) && lista.length > 0) {
+          const mapeados: BecarioSelectorItem[] = lista
+            .filter((b: any) => b && b.id !== undefined && b.id !== null)
+            .map((b: any) => ({
+              id: Number(b.id),
+              nombre_completo:
+                b.nombre ||
+                b.nombre_completo ||
+                b.usuario?.nombre ||
+                `Becario #${b.id}`,
+              ci: b.ci || "",
+              carrera: b.carrera || "BUMAND",
+              supervisor_id: b.supervisor_id ?? b.supervisor?.id ?? null,
+              supervisor_nombre:
+                b.supervisor_nombre ||
+                b.tutor_nombre ||
+                b.supervisor?.nombre ||
+                b.supervisor?.usuario?.nombre ||
+                null,
+              tutor_correo:
+                b.tutor_correo ||
+                b.supervisor_correo ||
+                b.supervisor?.correo ||
+                b.supervisor?.usuario?.correo ||
+                null,
+            }));
+          if (mapeados.length > 0) {
+            set_becarios_crudos(mapeados);
+          }
+        }
+      })
+      .catch(() => {
+        // Mantiene BECARIOS_SEMESTRE_II como respaldo si falla
+      });
+    return () => {
+      montado = false;
+    };
+  }, []);
+
   const becarios_disponibles = useMemo(
-    () => filtrarPorMentor(BECARIOS_SEMESTRE_II),
-    [filtrarPorMentor]
+    () => filtrarPorMentor(becarios_crudos),
+    [filtrarPorMentor, becarios_crudos]
   );
 
   // Selector de becario (para supervisores y administradores)
@@ -316,14 +380,20 @@ export function EscuelaLideresClassroom({
 
   useEffect(() => {
     if (
-      es_mentor &&
       becarios_disponibles.length > 0 &&
       !becarios_disponibles.some((b) => b.id === becario_seleccionado_id)
     ) {
-      set_becario_seleccionado_id(becarios_disponibles[0].id);
-      set_nombre_becario_activo(becarios_disponibles[0].nombre_completo);
+      const nombre_norm = normalizarTextoComparacion(nombre_becario_activo);
+      const coincidencia = nombre_norm
+        ? becarios_disponibles.find(
+            (b) => normalizarTextoComparacion(b.nombre_completo) === nombre_norm
+          )
+        : undefined;
+      const elegido = coincidencia || becarios_disponibles[0];
+      set_becario_seleccionado_id(elegido.id);
+      set_nombre_becario_activo(elegido.nombre_completo);
     }
-  }, [es_mentor, becarios_disponibles, becario_seleccionado_id]);
+  }, [becarios_disponibles, becario_seleccionado_id, nombre_becario_activo]);
 
   // Lista canónica de tareas
   const [tareas, set_tareas] = useState<TareaCetiCanonica[]>(TAREAS_CETI_INICIALES);
@@ -449,17 +519,14 @@ export function EscuelaLideresClassroom({
                   : Math.round(p);
             }
           }
-          if (calificacion_100 === undefined && !tiene_entrega_real) {
+          const estado_item: TareaCetiCanonica["estado"] =
+            item.estado || "pendiente";
+          const es_pendiente_real =
+            estado_item === "pendiente" && !tiene_entrega_real;
+
+          if (calificacion_100 === undefined && !es_pendiente_real && !tiene_entrega_real) {
             calificacion_100 = base?.calificacion_100;
           }
-
-          const estado_item =
-            tiene_entrega_real ||
-            item.estado === "entregado" ||
-            item.estado === "revisado" ||
-            item.estado === "observado"
-              ? item.estado
-              : base?.estado || "pendiente";
 
           return {
             id: Number(item.id ?? base?.id ?? num),
@@ -488,22 +555,39 @@ export function EscuelaLideresClassroom({
               : item.enlace_lectura
               ? [{ titulo: "Enlace de Lectura", url: item.enlace_lectura }]
               : base?.enlaces_lectura || [],
-            archivo_nombre: item.archivo_nombre || item.nombre_archivo || base?.archivo_nombre,
-            archivo_url: item.archivo_url || item.archivo_evidencia_url || base?.archivo_url,
-            archivo_tamano: item.archivo_tamano || item.tamano_archivo || base?.archivo_tamano,
+            archivo_nombre:
+              item.archivo_nombre ||
+              item.nombre_archivo ||
+              (es_pendiente_real ? undefined : base?.archivo_nombre),
+            archivo_url:
+              item.archivo_url ||
+              item.archivo_evidencia_url ||
+              (es_pendiente_real ? undefined : base?.archivo_url),
+            archivo_tamano:
+              item.archivo_tamano ||
+              item.tamano_archivo ||
+              (es_pendiente_real ? undefined : base?.archivo_tamano),
             fecha_entrega: item.fecha_entrega
               ? String(item.fecha_entrega).substring(0, 10)
+              : es_pendiente_real
+              ? undefined
               : base?.fecha_entrega,
             comentario_estudiante:
-              item.comentario_estudiante || item.comentario_becario || base?.comentario_estudiante,
+              item.comentario_estudiante ||
+              item.comentario_becario ||
+              (es_pendiente_real ? undefined : base?.comentario_estudiante),
             calificacion_100,
             retroalimentacion_docente:
               item.retroalimentacion_docente ||
               item.comentario_revisor ||
-              base?.retroalimentacion_docente,
-            docente_revisor: item.docente_revisor || base?.docente_revisor || "Pr. Samuel Quispe (CETI)",
+              (es_pendiente_real ? undefined : base?.retroalimentacion_docente),
+            docente_revisor:
+              item.docente_revisor ||
+              (es_pendiente_real ? undefined : base?.docente_revisor || "Pr. Samuel Quispe (CETI)"),
             fecha_revision: item.fecha_revision
               ? String(item.fecha_revision).substring(0, 10)
+              : es_pendiente_real
+              ? undefined
               : base?.fecha_revision,
           };
         });
@@ -914,9 +998,15 @@ export function EscuelaLideresClassroom({
     set_guardando_revision(true);
     try {
       const entrega_id_real = tarea_activa.entrega_id || tarea_activa.id;
+      const becario_activo_obj = becarios_disponibles.find(
+        (b) => b.id === becario_seleccionado_id
+      );
       // Campos exactos que espera RevisarEntregaLideresDto en el backend
       const payload = {
         becario_id: becario_seleccionado_id,
+        becario_nombre:
+          becario_activo_obj?.nombre_completo || nombre_becario_activo,
+        ...(becario_activo_obj?.ci ? { becario_ci: becario_activo_obj.ci } : {}),
         tarea_numero: tarea_activa.numero,
         estado: "revisado" as const,
         puntaje_obtenido: nota_num,
@@ -996,8 +1086,14 @@ export function EscuelaLideresClassroom({
     set_guardando_revision(true);
     try {
       const entrega_id_real = tarea_activa.entrega_id || tarea_activa.id;
+      const becario_activo_obj = becarios_disponibles.find(
+        (b) => b.id === becario_seleccionado_id
+      );
       const payload = {
         becario_id: becario_seleccionado_id,
+        becario_nombre:
+          becario_activo_obj?.nombre_completo || nombre_becario_activo,
+        ...(becario_activo_obj?.ci ? { becario_ci: becario_activo_obj.ci } : {}),
         tarea_numero: tarea_activa.numero,
         estado: "observado" as const,
         puntaje_obtenido: 0,
