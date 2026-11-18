@@ -327,7 +327,9 @@ export function EscuelaLideresClassroom({
 
   // Lista canónica de tareas
   const [tareas, set_tareas] = useState<TareaCetiCanonica[]>(TAREAS_CETI_INICIALES);
-  const [filtro_estado, set_filtro_estado] = useState<"todas" | "pendientes" | "entregadas" | "revisadas">("todas");
+  const [filtro_estado, set_filtro_estado] = useState<
+    "todas" | "pendientes" | "entregadas" | "revisadas" | "observadas"
+  >("todas");
   const [busqueda, set_busqueda] = useState<string>("");
 
   // Estado del modal de tarea activa (entrega / revisión)
@@ -914,24 +916,37 @@ export function EscuelaLideresClassroom({
       const entrega_id_real = tarea_activa.entrega_id || tarea_activa.id;
       // Campos exactos que espera RevisarEntregaLideresDto en el backend
       const payload = {
+        becario_id: becario_seleccionado_id,
+        tarea_numero: tarea_activa.numero,
         estado: "revisado" as const,
         puntaje_obtenido: nota_num,
         comentario_revisor: retroalimentacion_input,
       };
 
+      let respuesta: any = null;
       try {
-        await clienteApi.patch(
+        respuesta = await clienteApi.patch(
           `/evaluaciones/escuela-lideres/entregas/${entrega_id_real}/revisar`,
           payload
         );
-      } catch (_e) {
-        // Fallback reactivo
+      } catch (error: any) {
+        const codigo = error?.codigo_estado;
+        const detalle =
+          error?.message || "No se pudo guardar la calificación en el servidor.";
+        toast.error(
+          codigo && codigo >= 400
+            ? `Error (${codigo}) al calificar la tarea`
+            : "Error de red al calificar la tarea",
+          { description: detalle }
+        );
+        return;
       }
 
       const nuevas_tareas = tareas.map((t) =>
         t.numero === tarea_activa.numero
           ? {
               ...t,
+              entrega_id: respuesta?.entrega?.id ?? t.entrega_id,
               estado: "revisado" as const,
               calificacion_100: nota_num,
               retroalimentacion_docente: retroalimentacion_input,
@@ -982,24 +997,37 @@ export function EscuelaLideresClassroom({
     try {
       const entrega_id_real = tarea_activa.entrega_id || tarea_activa.id;
       const payload = {
+        becario_id: becario_seleccionado_id,
+        tarea_numero: tarea_activa.numero,
         estado: "observado" as const,
         puntaje_obtenido: 0,
         comentario_revisor: retroalimentacion_input.trim(),
       };
 
+      let respuesta: any = null;
       try {
-        await clienteApi.patch(
+        respuesta = await clienteApi.patch(
           `/evaluaciones/escuela-lideres/entregas/${entrega_id_real}/revisar`,
           payload
         );
-      } catch (_e) {
-        // Fallback reactivo
+      } catch (error: any) {
+        const codigo = error?.codigo_estado;
+        const detalle =
+          error?.message || "No se pudo registrar el rechazo en el servidor.";
+        toast.error(
+          codigo && codigo >= 400
+            ? `Error (${codigo}) al rechazar/observar la tarea`
+            : "Error de red al rechazar/observar la tarea",
+          { description: detalle }
+        );
+        return;
       }
 
       const nuevas_tareas = tareas.map((t) =>
         t.numero === tarea_activa.numero
           ? {
               ...t,
+              entrega_id: respuesta?.entrega?.id ?? t.entrega_id,
               estado: "observado" as const,
               calificacion_100: 0,
               retroalimentacion_docente: retroalimentacion_input.trim(),
@@ -1021,6 +1049,7 @@ export function EscuelaLideresClassroom({
     if (filtro_estado === "pendientes" && t.estado !== "pendiente") return false;
     if (filtro_estado === "entregadas" && t.estado !== "entregado") return false;
     if (filtro_estado === "revisadas" && t.estado !== "revisado") return false;
+    if (filtro_estado === "observadas" && t.estado !== "observado") return false;
     if (busqueda.trim() === "") return true;
 
     const q = busqueda.toLowerCase();
@@ -1163,7 +1192,7 @@ export function EscuelaLideresClassroom({
             )}
 
             {/* Pestañas de Filtro Rápido */}
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+            <div className="flex flex-wrap items-center gap-1 bg-slate-100 p-1 rounded-xl">
               <button
                 type="button"
                 onClick={() => set_filtro_estado("todas")}
@@ -1208,6 +1237,17 @@ export function EscuelaLideresClassroom({
               >
                 Revisadas ({tareas.filter((t) => t.estado === "revisado").length})
               </button>
+              <button
+                type="button"
+                onClick={() => set_filtro_estado("observadas")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  filtro_estado === "observadas"
+                    ? "bg-rose-600 text-white shadow-xs"
+                    : "text-rose-700 hover:text-rose-900"
+                }`}
+              >
+                Observadas / Rechazadas ({tareas.filter((t) => t.estado === "observado").length})
+              </button>
             </div>
           </div>
 
@@ -1232,6 +1272,7 @@ export function EscuelaLideresClassroom({
         {tareas_filtradas.map((tarea) => {
           const es_revisada = tarea.estado === "revisado";
           const es_entregada = tarea.estado === "entregado";
+          const es_observada = tarea.estado === "observado";
 
           return (
             <Card
@@ -1241,6 +1282,8 @@ export function EscuelaLideresClassroom({
                   ? "border-emerald-200 bg-white"
                   : es_entregada
                   ? "border-sky-300 bg-sky-50/20"
+                  : es_observada
+                  ? "border-rose-300 bg-rose-50/20"
                   : "border-slate-200 bg-white"
               }`}
               onClick={() => abrirModalTarea(tarea)}
@@ -1888,8 +1931,31 @@ export function EscuelaLideresClassroom({
                 </div>
               )}
 
+              {/* Si fue rechazada/observada y es becario, banner rojo destacado */}
+              {!es_supervisor_o_admin && tarea_activa.estado === "observado" && (
+                <div className="p-4 rounded-xl bg-rose-50 border-2 border-rose-300 space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-rose-900 flex items-center gap-1.5">
+                      <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                      Tarea Rechazada / Observada por el Mentor
+                    </span>
+                    <Badge className="bg-rose-600 text-white font-bold text-[10px]">
+                      Requiere Corrección
+                    </Badge>
+                  </div>
+                  <p className="text-rose-800 italic mt-1">
+                    &quot;{tarea_activa.retroalimentacion_docente || "Sin observaciones detalladas."}&quot;
+                  </p>
+                  {tarea_activa.fecha_revision && (
+                    <p className="text-[10px] text-rose-700 pt-1 font-medium">
+                      Revisado{tarea_activa.docente_revisor ? ` por ${tarea_activa.docente_revisor}` : ""} el {tarea_activa.fecha_revision}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Si ya fue calificada y es becario, visualización de la retroalimentación */}
-              {!es_supervisor_o_admin && tarea_activa.calificacion_100 !== undefined && (
+              {!es_supervisor_o_admin && tarea_activa.estado === "revisado" && tarea_activa.calificacion_100 !== undefined && (
                 <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 space-y-1 text-xs">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-emerald-900">Devolución del Docente CETI:</span>
