@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Clock,
   CheckCircle2,
@@ -771,7 +771,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
     "asistencia_auditoria",
     async () => {
       try {
-        const respuesta = await clienteApi.get<any[]>("/asistencia");
+        const respuesta = await clienteApi.get<any[]>("/asistencia?limite=100");
         if (Array.isArray(respuesta) && respuesta.length > 0) {
           const mapeados = respuesta.map((item) => {
             const becario_match = LISTA_23_BECARIOS_OFICIALES.find(
@@ -849,7 +849,14 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
     }
   }, [registros_servidor]);
 
+  const [limite_visible, set_limite_visible] = useState(30);
+  const primer_render_vista_ref = useRef(true);
+
   useEffect(() => {
+    if (primer_render_vista_ref.current) {
+      primer_render_vista_ref.current = false;
+      return;
+    }
     invalidar();
   }, [vista_activa, invalidar]);
 
@@ -1294,7 +1301,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                 </div>
               ) : (
                 <div className="divide-y divide-[#E5E7EB]/50">
-                  {registros_filtrados.map((item) => (
+                  {registros_filtrados.slice(0, limite_visible).map((item) => (
                     <div
                       key={item.id}
                       className="p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors"
@@ -1560,6 +1567,19 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                       </div>
                     </div>
                   ))}
+                  {registros_filtrados.length > limite_visible && (
+                    <div className="p-4 flex justify-center bg-slate-50/40">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => set_limite_visible((prev) => prev + 30)}
+                        className="border-[#E5E7EB] text-[#035683] hover:bg-slate-100 font-semibold text-xs rounded-xl"
+                      >
+                        Mostrar más registros ({registros_filtrados.length - limite_visible} restantes)
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
