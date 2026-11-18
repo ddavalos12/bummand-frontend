@@ -50,6 +50,11 @@ import {
   Download,
 } from "lucide-react";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
+import {
+  esAdministradorAutenticado,
+  usarBecariosDesignadosMentor,
+} from "@/lib/filtro-mentor";
+import { InsigniaBecariosDesignados } from "@/components/ui/insignia-becarios-designados";
 import { toast } from "sonner";
 
 export interface ModuloPonderado {
@@ -113,7 +118,9 @@ const MODULOS_INICIALES_BASE_20: ModuloPonderado[] = [
 
 export function MatrizEvaluacion360() {
   const { usuario } = usarAutenticacion();
-  const es_admin = usuario?.rol === "administrador";
+  const { es_mentor, becarios_designados } = usarBecariosDesignadosMentor();
+  const es_admin = esAdministradorAutenticado(usuario);
+  const becario_referencia_mentor = becarios_designados[0];
 
   const [modulos, set_modulos] = useState<ModuloPonderado[]>(MODULOS_INICIALES_BASE_20);
   const [evaluacion_convalidada, set_evaluacion_convalidada] = useState<boolean>(false);
@@ -239,13 +246,19 @@ export function MatrizEvaluacion360() {
                 <BookOpen className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Badge className="bg-[#FFB600] text-[#035683] font-bold text-xs uppercase px-2.5 py-0.5">
                     Cita Bíblica Institucional
                   </Badge>
                   <span className="text-xs text-[#00ABBD] font-mono font-semibold">
                     Colosenses 3:23-24 (RVR1960)
                   </span>
+                  {es_mentor && (
+                    <InsigniaBecariosDesignados
+                      cantidad={becarios_designados.length}
+                      className="bg-white/15 text-white border-white/30"
+                    />
+                  )}
                 </div>
                 <blockquote className="text-sm md:text-base font-serif italic text-white/95 leading-relaxed pt-1">
                   &ldquo;Y todo lo que hagáis, hacedlo de corazón, como para el Señor y no para los hombres; sabiendo que del Señor recibiréis la recompensa de la herencia, porque a Cristo el Señor servís.&rdquo;
@@ -892,8 +905,12 @@ export function MatrizEvaluacion360() {
       <FormularioMentorModal
         abierto={modal_qr_abierto}
         alCambiarAbierto={set_modal_qr_abierto}
-        becario_id={1}
-        nombre_becario="María Catunta Laime"
+        becario_id={es_mentor && becario_referencia_mentor ? becario_referencia_mentor.id : 1}
+        nombre_becario={
+          es_mentor && becario_referencia_mentor
+            ? becario_referencia_mentor.nombre
+            : "María Catunta Laime"
+        }
         unidad_agencia_inicial="Jefatura de Planificación, Control y Presupuesto"
         evaluacion_inicial={{
           mentor_nombre: "Mildrette Rojas Soliz",
@@ -969,8 +986,12 @@ export function MatrizEvaluacion360() {
           <DialogBody className="p-6 space-y-5 flex-1 overflow-y-auto">
             {sub_vista_lideres === "tareas" ? (
               <EscuelaLideresClassroom
-                becario_id_actual={1}
-                nombre_becario_actual="María Catunta Laime"
+                becario_id_actual={es_mentor && becario_referencia_mentor ? becario_referencia_mentor.id : 1}
+                nombre_becario_actual={
+                  es_mentor && becario_referencia_mentor
+                    ? becario_referencia_mentor.nombre
+                    : "María Catunta Laime"
+                }
                 es_supervisor_o_admin={true}
                 alActualizarNotaModulo4={manejarLideresGuardado}
               />
@@ -1052,8 +1073,12 @@ export function MatrizEvaluacion360() {
       <CuestionarioBienestarModal
         abierto={modal_socioeconomica_abierto}
         alCambiarAbierto={set_modal_socioeconomica_abierto}
-        becario_id={1}
-        nombre_becario="María Catunta Laime"
+        becario_id={es_mentor && becario_referencia_mentor ? becario_referencia_mentor.id : 1}
+        nombre_becario={
+          es_mentor && becario_referencia_mentor
+            ? becario_referencia_mentor.nombre
+            : "María Catunta Laime"
+        }
         alGuardarExito={manejarBienestarGuardado}
       />
 

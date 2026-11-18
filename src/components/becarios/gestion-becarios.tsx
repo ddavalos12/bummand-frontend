@@ -68,6 +68,11 @@ import { clienteApi } from "@/lib/cliente-api";
 import { useConsulta } from "@/hooks/useConsulta";
 import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
+import {
+  esAdministradorAutenticado,
+  esMentorAutenticado,
+} from "@/lib/filtro-mentor";
+import { InsigniaBecariosDesignados } from "@/components/ui/insignia-becarios-designados";
 import { toast } from "sonner";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import {
@@ -1199,11 +1204,11 @@ export function GestionBecarios() {
       set_descargando_pdf_estudiante(null);
     }
   };
-  const es_admin = usuario?.rol === "administrador";
-  const es_supervisor = usuario?.rol === "supervisor";
+  const es_admin = esAdministradorAutenticado(usuario);
+  const es_supervisor = esMentorAutenticado(usuario);
 
   const [lista_becarios, set_lista_becarios] = useState<BecarioVista[]>(() => {
-    if (usuario?.rol === "supervisor") {
+    if (esMentorAutenticado(usuario)) {
       return BECARIOS_INICIALES.filter((b) => esBecarioDeSupervisor(b, usuario));
     }
     return BECARIOS_INICIALES;
@@ -1257,17 +1262,17 @@ export function GestionBecarios() {
         const respuesta = await clienteApi.get<any[]>("/api/becarios");
         if (Array.isArray(respuesta) && respuesta.length > 0) {
           const normalizados = respuesta.map(normalizarBecario);
-          if (usuario?.rol === "supervisor") {
+          if (esMentorAutenticado(usuario)) {
             return normalizados.filter((b) => esBecarioDeSupervisor(b, usuario));
           }
           return normalizados;
         }
-        if (usuario?.rol === "supervisor") {
+        if (esMentorAutenticado(usuario)) {
           return BECARIOS_INICIALES.filter((b) => esBecarioDeSupervisor(b, usuario));
         }
         return BECARIOS_INICIALES;
       } catch {
-        if (usuario?.rol === "supervisor") {
+        if (esMentorAutenticado(usuario)) {
           return BECARIOS_INICIALES.filter((b) => esBecarioDeSupervisor(b, usuario));
         }
         return BECARIOS_INICIALES;
@@ -1275,7 +1280,7 @@ export function GestionBecarios() {
     },
     {
       datos_iniciales:
-        usuario?.rol === "supervisor"
+        esMentorAutenticado(usuario)
           ? BECARIOS_INICIALES.filter((b) => esBecarioDeSupervisor(b, usuario))
           : BECARIOS_INICIALES,
     }
@@ -2080,7 +2085,10 @@ export function GestionBecarios() {
                   : "Directorio oficial de estudiantes beneficiarios del programa BUMAND - Diaconía FRIF-IFD."}
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2 self-start sm:self-center">
+            <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
+              {es_supervisor && (
+                <InsigniaBecariosDesignados cantidad={lista_para_rol.length} />
+              )}
               <Badge variant="outline" className="h-7 px-2.5 border-[#E5E7EB] text-[#035683] font-mono text-xs font-bold">
                 Total: {lista_para_rol.length} {es_supervisor ? "asignados" : "becarios"}
               </Badge>

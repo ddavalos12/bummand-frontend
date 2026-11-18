@@ -158,7 +158,7 @@ export async function descargarPdfConsolidadoAuditoria(
     RUTAS_API.PDF.CONSOLIDADO_AUDITORIA
   );
   if (descargar_inmediatamente) {
-    activarDescargaNavegador(blob, `Consolidado_Auditoria_BUMAND.pdf`);
+    activarDescargaNavegador(blob, `Consolidado_Contabilidad_BUMAND.pdf`);
   }
   return blob;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   FileText,
   Eye,
@@ -35,6 +35,8 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
+import { usarBecariosDesignadosMentor } from "@/lib/filtro-mentor";
+import { InsigniaBecariosDesignados } from "@/components/ui/insignia-becarios-designados";
 import { BotonesAccionEvaluacion } from "./botones-accion-evaluacion";
 
 export interface MateriaPreEvaluacion {
@@ -139,6 +141,7 @@ export function BandejaPreEvaluacionSupervisor({
   alAbrirVisor,
   alAprobarPreEvaluacion,
 }: BandejaPreEvaluacionSupervisorProps) {
+  const { es_mentor, filtrarPorMentor } = usarBecariosDesignadosMentor();
   const [registros, set_registros] = useState<BecarioPendientePreEvaluacion[]>(
     REGISTROS_DEMO_PRE_EVALUACION
   );
@@ -149,7 +152,59 @@ export function BandejaPreEvaluacionSupervisor({
   const [observaciones_supervisor, set_observaciones_supervisor] = useState<string>("");
   const [guardando, set_guardando] = useState<boolean>(false);
 
-  const registro_activo = registros.find((r) => r.evaluacion_id === registro_seleccionado_id);
+  useEffect(() => {
+    let montado = true;
+    clienteApi
+      .get<any[]>("/evaluaciones/academica/pendientes-supervisor")
+      .then((res) => {
+        if (!montado || !Array.isArray(res) || res.length === 0) return;
+        const mapeados: BecarioPendientePreEvaluacion[] = res.map((ev: any, idx: number) => ({
+          evaluacion_id: Number(ev.id || ev.evaluacion_id || 200 + idx),
+          becario_id: Number(ev.becario_id || ev.becario?.id || idx + 1),
+          nombre: ev.becario?.usuario?.nombre || ev.becario?.nombre || ev.nombre || `Becario ${idx + 1}`,
+          ci: String(ev.becario?.ci || ev.ci || ""),
+          carrera: ev.becario?.carrera || ev.carrera || "Carrera BUMAND",
+          universidad: ev.becario?.universidad || ev.universidad || "Universidad",
+          periodo: ev.periodo?.nombre || ev.periodo || "Semestre II - 2026",
+          promedio_estudiante: Number(ev.puntaje ?? ev.promedio_estudiante ?? 0),
+          materias: Array.isArray(ev.materias) && ev.materias.length > 0 ? ev.materias : [],
+          kardex_nombre: ev.kardex_nombre || "Kardex_Oficial.pdf",
+          kardex_url: ev.kardex_url || "",
+          programacion_nombre: ev.programacion_nombre || "Programacion.pdf",
+          programacion_url: ev.programacion_url || "",
+          estado: (ev.estado || "en_revision_supervisor") as BecarioPendientePreEvaluacion["estado"],
+          fecha_envio: ev.creado_en ? String(ev.creado_en).split("T")[0] : "2026-10-25",
+          observaciones_estudiante: ev.observaciones || undefined,
+          supervisor_id: ev.becario?.supervisor_id ?? ev.becario?.supervisor?.id ?? null,
+          supervisor_nombre: ev.becario?.supervisor?.nombre ?? ev.becario?.supervisor?.usuario?.nombre ?? null,
+        }));
+        set_registros(mapeados);
+      })
+      .catch(() => {
+        // Mantiene respaldo local si el backend no devuelve registros
+      });
+    return () => {
+      montado = false;
+    };
+  }, []);
+
+  const registros_para_rol = useMemo(
+    () => filtrarPorMentor(registros),
+    [registros, filtrarPorMentor]
+  );
+
+  useEffect(() => {
+    if (
+      registros_para_rol.length > 0 &&
+      !registros_para_rol.some((r) => r.evaluacion_id === registro_seleccionado_id)
+    ) {
+      set_registro_seleccionado_id(registros_para_rol[0].evaluacion_id);
+    }
+  }, [registros_para_rol, registro_seleccionado_id]);
+
+  const registro_activo = registros_para_rol.find(
+    (r) => r.evaluacion_id === registro_seleccionado_id
+  );
 
   // Manejo de edición de materias por el supervisor
   const actualizarNotaMateria = (materia_id: string, nuevo_valor: number) => {
@@ -317,7 +372,7 @@ export function BandejaPreEvaluacionSupervisor({
     }
   };
 
-  const registros_filtrados = registros.filter((r) =>
+  const registros_filtrados = registros_para_rol.filter((r) =>
     r.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
     r.carrera.toLowerCase().includes(busqueda.toLowerCase()) ||
     r.ci.toLowerCase().includes(busqueda.toLowerCase())
@@ -329,10 +384,15 @@ export function BandejaPreEvaluacionSupervisor({
       <Card className="border-slate-200 rounded-2xl shadow-xs overflow-hidden">
         <CardHeader className="bg-slate-50/70 border-b border-slate-100 pb-3 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
           <div>
-            <CardTitle className="text-sm font-bold text-[#035683] flex items-center gap-2">
-              <UserCheck className="w-4 h-4 text-[#00ABBD]" />
-              Bandeja de Pre-Evaluación Académica del Mentor
-            </CardTitle>
+            <div className="flex flex-wrap items-center gap-2">
+              <CardTitle className="text-sm font-bold text-[#035683] flex items-center gap-2">
+                <UserCheck className="w-4 h-4 text-[#00ABBD]" />
+                Bandeja de Pre-Evaluación Académica del Mentor
+              </CardTitle>
+              {es_mentor && (
+                <InsigniaBecariosDesignados cantidad={registros_para_rol.length} />
+              )}
+            </div>
             <CardDescription className="text-xs text-muted-foreground mt-0.5">
               Coteje las notas ingresadas por sus becarios contra el Kárdex digital. Tiene permisos para editar cualquier calificación antes de remitir a Administración.
             </CardDescription>
@@ -350,7 +410,12 @@ export function BandejaPreEvaluacionSupervisor({
         </CardHeader>
 
         <CardContent className="p-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+          {registros_filtrados.length === 0 ? (
+            <div className="text-center py-8 text-xs text-muted-foreground">
+              No hay pre-evaluaciones pendientes para tus becarios designados.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
             {registros_filtrados.map((b) => {
               const seleccionado = b.evaluacion_id === registro_seleccionado_id;
               return (
@@ -394,7 +459,8 @@ export function BandejaPreEvaluacionSupervisor({
                 </button>
               );
             })}
-          </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

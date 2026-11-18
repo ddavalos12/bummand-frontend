@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Clock,
   CheckCircle2,
@@ -68,6 +68,12 @@ import { useConsulta } from "@/hooks/useConsulta";
 import { useTiempoReal } from "@/hooks/useTiempoReal";
 import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
+import {
+  esAdministradorAutenticado,
+  esMentorAutenticado,
+  usarBecariosDesignadosMentor,
+} from "@/lib/filtro-mentor";
+import { InsigniaBecariosDesignados } from "@/components/ui/insignia-becarios-designados";
 import { toast } from "sonner";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import { exportarAuditoriaAsistenciaExcel } from "@/lib/generador-excel-cliente";
@@ -103,6 +109,9 @@ export interface RegistroAuditoriaAsistencia {
   administrador_revisor?: string | null;
   fecha_aprobacion_admin?: string | null;
   exime_multa?: boolean;
+  ci?: string;
+  supervisor_id?: number | null;
+  supervisor_nombre?: string | null;
 }
 
 export interface BecarioOficial {
@@ -372,13 +381,14 @@ interface AuditoriaAsistenciaProps {
 
 export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
   const { usuario } = usarAutenticacion();
-  const es_admin = rol === "administrador" || usuario?.rol === "administrador";
-  const es_supervisor = rol === "supervisor" || usuario?.rol === "supervisor" || (!es_admin && !usuario?.rol);
+  const { es_mentor: es_mentor_hook, becarios_designados, filtrarPorMentor } =
+    usarBecariosDesignadosMentor();
+  const es_admin = esAdministradorAutenticado(rol) || esAdministradorAutenticado(usuario);
+  const es_mentor = !es_admin && (esMentorAutenticado(rol) || es_mentor_hook);
+  const es_supervisor = es_mentor || (!es_admin && !usuario?.rol);
   const es_admin_o_supervisor =
-    rol === "administrador" ||
-    rol === "supervisor" ||
-    usuario?.rol === "administrador" ||
-    usuario?.rol === "supervisor" ||
+    es_admin ||
+    es_mentor ||
     !usuario?.rol;
 
   // Estados para Cambio Dinámico de Lugar en Acciones de Servicio (Viernes) - TAREA-01
@@ -502,11 +512,29 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
     }
   }, [horas_mensuales_servidor]);
 
-  const lista_horas_mensuales = horas_mensuales_locales;
+  const lista_horas_mensuales = useMemo(
+    () => filtrarPorMentor(horas_mensuales_locales),
+    [horas_mensuales_locales, filtrarPorMentor]
+  );
+
+  const becarios_manual_disponibles = useMemo(
+    () => filtrarPorMentor(LISTA_23_BECARIOS_OFICIALES),
+    [filtrarPorMentor]
+  );
+
+  useEffect(() => {
+    if (
+      becarios_manual_disponibles.length > 0 &&
+      !becarios_manual_disponibles.some((b) => b.id === Number(manual_becario_id))
+    ) {
+      set_manual_becario_id(becarios_manual_disponibles[0].id);
+    }
+  }, [becarios_manual_disponibles, manual_becario_id]);
 
   const manejarGuardarAsistenciaManual = async () => {
     const becario_encontrado =
-      LISTA_23_BECARIOS_OFICIALES.find((b) => b.id === Number(manual_becario_id)) ||
+      becarios_manual_disponibles.find((b) => b.id === Number(manual_becario_id)) ||
+      becarios_manual_disponibles[0] ||
       LISTA_23_BECARIOS_OFICIALES[0];
     const motivo_final =
       manual_motivo === "otro"
@@ -728,9 +756,14 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
     toast.success("Todos los becarios han sido confirmados presencialmente.");
   };
 
+  const lista_llamada_vivo_filtrada = useMemo(
+    () => filtrarPorMentor(lista_llamada_vivo),
+    [lista_llamada_vivo, filtrarPorMentor]
+  );
+
   const guardarLlamadaListaVivo = () => {
-    const presentes = lista_llamada_vivo.filter((i) => i.confirmado).length;
-    toast.success(`Llamada de lista guardada: ${presentes}/${lista_llamada_vivo.length} becarios confirmados presencialmente.`);
+    const presentes = lista_llamada_vivo_filtrada.filter((i) => i.confirmado).length;
+    toast.success(`Llamada de lista guardada: ${presentes}/${lista_llamada_vivo_filtrada.length} becarios confirmados presencialmente.`);
     set_modal_lista_vivo_abierto(false);
   };
 
@@ -795,6 +828,9 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
               monto_multa_bs: item.monto_multa_bs ?? 0,
               es_viernes: item.es_viernes ?? false,
               tipo_actividad: item.tipo_actividad || "practicas",
+              ci: item.becario?.ci ? String(item.becario.ci) : becario_match?.ci,
+              supervisor_id: item.becario?.supervisor_id ?? item.becario?.supervisor?.id ?? item.supervisor_id ?? null,
+              supervisor_nombre: item.becario?.supervisor?.nombre ?? item.becario?.supervisor?.usuario?.nombre ?? null,
             };
           });
           return [...REGISTROS_AUDITORIA_INICIALES, ...mapeados];
@@ -817,7 +853,10 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
     invalidar();
   }, [vista_activa, invalidar]);
 
-  const registros = registros_locales;
+  const registros = useMemo(
+    () => filtrarPorMentor(registros_locales),
+    [registros_locales, filtrarPorMentor]
+  );
 
   useTiempoReal({
     eventos: {
@@ -1020,6 +1059,9 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {es_mentor && (
+            <InsigniaBecariosDesignados cantidad={becarios_designados.length} />
+          )}
           {vista_activa === "mensual" && (
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-[#035683]">Periodo:</span>
@@ -1121,7 +1163,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             ) : (
               <Printer className="w-3.5 h-3.5 text-[#FFB600]" />
             )}
-            <span>Extraer Reporte PDF para Auditoría</span>
+            <span>Extraer Reporte PDF para Contabilidad</span>
           </Button>
         </div>
       </div>
@@ -2218,7 +2260,12 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
           </DialogHeader>
 
           <div className="p-5 space-y-3 max-h-[60vh] overflow-y-auto">
-            {lista_llamada_vivo.map((becario) => (
+            {lista_llamada_vivo_filtrada.length === 0 ? (
+              <div className="text-center py-8 text-xs text-muted-foreground">
+                No tienes becarios designados pendientes en la llamada de lista actual.
+              </div>
+            ) : (
+              lista_llamada_vivo_filtrada.map((becario) => (
               <div
                 key={becario.id}
                 className="p-3.5 rounded-xl border border-[#E5E7EB] bg-slate-50/60 flex items-center justify-between gap-4 hover:bg-slate-100/70 transition-colors"
@@ -2263,7 +2310,8 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   />
                 </div>
               </div>
-            ))}
+              ))
+            )}
           </div>
 
           <DialogFooter className="p-4 border-t border-[#E5E7EB] bg-[#F8F9FA] flex justify-end gap-2">
@@ -2331,7 +2379,11 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             {/* 1. Selector de Becario (23 oficiales) */}
             <div className="space-y-1.5">
               <Label htmlFor="manual-becario" className="font-bold text-[#035683] text-xs flex items-center justify-between">
-                <span>Becario Asignado (23 Oficiales BUMAND)</span>
+                <span>
+                  {es_mentor
+                    ? `Becario Asignado (${becarios_manual_disponibles.length} designados)`
+                    : "Becario Asignado (23 Oficiales BUMAND)"}
+                </span>
                 <span className="text-[10px] font-mono font-normal text-muted-foreground">
                   C.I. y Unidad institucional
                 </span>
@@ -2344,7 +2396,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   <SelectValue placeholder="Seleccione un becario" />
                 </SelectTrigger>
                 <SelectContent className="max-h-60 bg-white border-[#E5E7EB]">
-                  {LISTA_23_BECARIOS_OFICIALES.map((b) => (
+                  {becarios_manual_disponibles.map((b) => (
                     <SelectItem key={b.id} value={String(b.id)} etiqueta={`${b.nombre} (${b.unidad})`} className="text-xs py-2">
                       <div className="flex flex-col text-left">
                         <span className="font-bold text-slate-800">{b.nombre}</span>

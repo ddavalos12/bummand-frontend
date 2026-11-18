@@ -2,6 +2,11 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
+import {
+  esMentorAutenticado,
+  usarBecariosDesignadosMentor,
+} from "@/lib/filtro-mentor";
+import { InsigniaBecariosDesignados } from "@/components/ui/insignia-becarios-designados";
 import { clienteApi } from "@/lib/cliente-api";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import {
@@ -579,6 +584,8 @@ const CONFIGURACION_GRAFICO = {
  */
 export function PanelControlVista() {
   const { usuario } = usarAutenticacion();
+  const { es_mentor, becarios_designados, filtrarPorMentor } =
+    usarBecariosDesignadosMentor();
   const [pestaña_dashboard, set_pestaña_dashboard] = useState<"resumen" | "seguimiento" | "horarios" | "analitica">("resumen");
   const [subpestaña_seguimiento, set_subpestaña_seguimiento] = useState<"retrasos" | "asistencia">("retrasos");
   const [filtro_asistencia, set_filtro_asistencia] = useState<"todos" | "asistieron" | "no_asistieron">("todos");
@@ -698,16 +705,21 @@ export function PanelControlVista() {
     }
   };
 
-  // Filtrado reactivo de incidencias de retraso por actividad y estado de justificación
+  // Filtrado reactivo de incidencias de retraso por actividad, estado de justificación y mentor
+  const lista_retrasos_para_rol = useMemo(
+    () => filtrarPorMentor(lista_retrasos),
+    [lista_retrasos, filtrarPorMentor]
+  );
+
   const becarios_retraso_filtrados = useMemo(() => {
-    return lista_retrasos.filter((b) => {
+    return lista_retrasos_para_rol.filter((b) => {
       if (b.justificado) return false;
       if (filtro_tipo_actividad === "practicas") return b.tipo_asistencia === "Prácticas";
       if (filtro_tipo_actividad === "escuela_lideres") return b.tipo_asistencia === "Escuela de Líderes";
       if (filtro_tipo_actividad === "acciones_servicio") return b.tipo_asistencia === "Acciones de Servicio";
       return true;
     });
-  }, [lista_retrasos, filtro_tipo_actividad]);
+  }, [lista_retrasos_para_rol, filtro_tipo_actividad]);
 
   // Manejador de justificación y rectificación de retraso
   const manejarRetrasoJustificado = (
@@ -778,12 +790,17 @@ export function PanelControlVista() {
     }).catch(() => {});
   };
 
+  const casos_pastorales_para_rol = useMemo(
+    () => filtrarPorMentor(casos_pastorales),
+    [casos_pastorales, filtrarPorMentor]
+  );
+
   const casos_pastorales_filtrados = useMemo(() => {
-    return casos_pastorales.filter((c) => {
+    return casos_pastorales_para_rol.filter((c) => {
       if (filtro_estado_casos === "todos") return true;
       return c.estado === filtro_estado_casos;
     });
-  }, [casos_pastorales, filtro_estado_casos]);
+  }, [casos_pastorales_para_rol, filtro_estado_casos]);
 
   // --- CONTROL DE RANGO DE FECHAS ANALÍTICO ---
   const [tipo_rango, set_tipo_rango] = useState<"este_mes" | "ultimo_trimestre" | "semestre_actual" | "personalizado">("semestre_actual");
@@ -932,14 +949,24 @@ export function PanelControlVista() {
     [total_horas_periodo, total_meta_periodo]
   );
 
-  const es_supervisor = usuario?.rol === "supervisor";
+  const es_supervisor = esMentorAutenticado(usuario);
   const nombre_usuario = usuario?.nombre || "Mentor";
 
+  const registros_asistencia_para_rol = useMemo(
+    () => filtrarPorMentor(REGISTROS_ASISTENCIA_SEMANAL),
+    [filtrarPorMentor]
+  );
+
+  const horarios_para_rol = useMemo(
+    () => filtrarPorMentor(horarios_lista),
+    [horarios_lista, filtrarPorMentor]
+  );
+
   // Conteos dinámicos de asistencia semanal con compensación al 100% por permisos aprobados
-  const total_registros = REGISTROS_ASISTENCIA_SEMANAL.length;
-  const total_asistieron = REGISTROS_ASISTENCIA_SEMANAL.filter((r) => r.asistio).length;
-  const total_no_asistieron = REGISTROS_ASISTENCIA_SEMANAL.filter((r) => !r.asistio).length;
-  const permisos_justificados_locales = lista_retrasos.filter((r) => r.justificado).length;
+  const total_registros = registros_asistencia_para_rol.length;
+  const total_asistieron = registros_asistencia_para_rol.filter((r) => r.asistio).length;
+  const total_no_asistieron = registros_asistencia_para_rol.filter((r) => !r.asistio).length;
+  const permisos_justificados_locales = lista_retrasos_para_rol.filter((r) => r.justificado).length;
   const total_permisos_compensados = Math.max(dias_permiso_compensados, permisos_justificados_locales);
   const porcentaje_asistencia_semanal =
     porcentaje_asistencia_api !== null
@@ -949,13 +976,13 @@ export function PanelControlVista() {
           Math.round(((total_asistieron + total_permisos_compensados) / (total_registros || 1)) * 100)
         );
 
-  const registros_filtrados = REGISTROS_ASISTENCIA_SEMANAL.filter((r) => {
+  const registros_filtrados = registros_asistencia_para_rol.filter((r) => {
     if (filtro_asistencia === "asistieron") return r.asistio;
     if (filtro_asistencia === "no_asistieron") return !r.asistio;
     return true;
   });
 
-  const horarios_filtrados = horarios_lista.filter((fila) => {
+  const horarios_filtrados = horarios_para_rol.filter((fila) => {
     const coincide_busqueda =
       busqueda_horario.trim() === "" ||
       fila.nombre.toLowerCase().includes(busqueda_horario.toLowerCase()) ||
@@ -1055,18 +1082,25 @@ export function PanelControlVista() {
   };
 
   const obtenerDatosKardex = () => {
+    let base: FilaKardex[];
     switch (periodo_academico) {
       case "2026-s2":
-        return RANKING_KARDEX_S2;
+        base = RANKING_KARDEX_S2;
+        break;
       case "2026-s1":
-        return RANKING_KARDEX_S1;
+        base = RANKING_KARDEX_S1;
+        break;
       case "2025-s2":
-        return RANKING_KARDEX_2025_S2;
+        base = RANKING_KARDEX_2025_S2;
+        break;
       case "2025-s1":
-        return RANKING_KARDEX_2025_S1;
+        base = RANKING_KARDEX_2025_S1;
+        break;
       default:
-        return RANKING_KARDEX_2025_S2;
+        base = RANKING_KARDEX_2025_S2;
+        break;
     }
+    return filtrarPorMentor(base);
   };
 
   const periodo_seleccionado_obj =
@@ -1099,7 +1133,7 @@ export function PanelControlVista() {
             <Clock className="w-4 h-4 text-[#00ABBD]" />
             <span>Seguimiento Semanal</span>
             <span className="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-md font-mono font-bold">
-              {lista_retrasos.filter((r) => !r.justificado).length} retrasos
+              {lista_retrasos_para_rol.filter((r) => !r.justificado).length} retrasos
             </span>
           </TabsTrigger>
           <TabsTrigger
@@ -1109,7 +1143,7 @@ export function PanelControlVista() {
             <CalendarDays className="w-4 h-4 text-[#00ABBD]" />
             <span>Matriz de Horarios</span>
             <span className="bg-slate-200 text-[#035683] text-[10px] px-2 py-0.5 rounded-md font-mono font-bold">
-              {HORARIOS_APOYO_2026.length} becarios
+              {horarios_para_rol.length} becarios
             </span>
           </TabsTrigger>
           <TabsTrigger
@@ -1119,7 +1153,7 @@ export function PanelControlVista() {
             <GraduationCap className="w-4 h-4 text-[#00ABBD]" />
             <span>Kardex y Pastoral</span>
             <span className="bg-[#00ABBD]/15 text-[#00808E] text-[10px] px-2 py-0.5 rounded-md font-mono font-bold">
-              {CASOS_SEGUIMIENTO.length} casos
+              {casos_pastorales_para_rol.length} casos
             </span>
           </TabsTrigger>
         </TabsList>
@@ -1128,6 +1162,14 @@ export function PanelControlVista() {
         {/* TAB 1: RESUMEN EJECUTIVO (KPIS, SPOTLIGHT, GRÁFICOS Y ACCESOS) */}
         {/* ============================================================== */}
         <TabsContent value="resumen" className="space-y-6">
+          {es_mentor && (
+            <div className="flex items-center justify-between bg-white px-4 py-2.5 rounded-xl border border-[#E5E7EB]">
+              <span className="text-xs font-semibold text-[#035683]">
+                Vista de Mentoría — Datos filtrados para {nombre_usuario}
+              </span>
+              <InsigniaBecariosDesignados cantidad={becarios_designados.length} />
+            </div>
+          )}
           {/* Tarjetas de Métricas Ejecutivas Superiores */}
           <ContenedorEscalonado className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Métrica 1: Becarios */}
@@ -1138,10 +1180,10 @@ export function PanelControlVista() {
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
                       <p className="text-xs font-semibold text-muted-foreground uppercase font-mono">
-                        Becarios Activos
+                        {es_mentor ? "Becarios Designados" : "Becarios Activos"}
                       </p>
                       <p className="text-3xl font-display font-bold text-[#035683]">
-                        <ContadorAnimado valor={21} />
+                        <ContadorAnimado valor={es_mentor ? becarios_designados.length : 21} />
                       </p>
                     </div>
                     <div className="p-2.5 bg-[#035683]/5 rounded-xl">
@@ -1536,7 +1578,7 @@ export function PanelControlVista() {
                     <AlertTriangle className={`w-3.5 h-3.5 ${subpestaña_seguimiento === "retrasos" ? "text-amber-300" : "text-amber-500"}`} />
                     <span>Auditoría de Retrasos</span>
                     <span className="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.2 rounded-md font-mono font-bold">
-                      {lista_retrasos.filter((r) => !r.justificado).length}
+                      {lista_retrasos_para_rol.filter((r) => !r.justificado).length}
                     </span>
                   </button>
 
@@ -1930,7 +1972,7 @@ export function PanelControlVista() {
                 </div>
                 <div className="flex items-center gap-2 self-start sm:self-center">
                   <Badge variant="outline" className="border-[#00ABBD] text-[#035683] font-mono text-xs px-2.5 py-0.5 bg-white">
-                    {horarios_filtrados.length} de {horarios_lista.length} Becarios
+                    {horarios_filtrados.length} de {horarios_para_rol.length} Becarios
                   </Badge>
                 </div>
               </div>
@@ -2283,10 +2325,10 @@ export function PanelControlVista() {
                   {/* Filtro por estado de caso */}
                   <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg border border-[#E5E7EB]/70">
                     {[
-                      { key: "todos", etiqueta: "Todos", count: casos_pastorales.length },
-                      { key: "PENDIENTE", etiqueta: "Pendientes", count: casos_pastorales.filter((c) => c.estado === "PENDIENTE").length },
-                      { key: "EN_TUTORIA", etiqueta: "En Tutoría", count: casos_pastorales.filter((c) => c.estado === "EN_TUTORIA").length },
-                      { key: "RESUELTO", etiqueta: "Superados", count: casos_pastorales.filter((c) => c.estado === "RESUELTO").length },
+                      { key: "todos", etiqueta: "Todos", count: casos_pastorales_para_rol.length },
+                      { key: "PENDIENTE", etiqueta: "Pendientes", count: casos_pastorales_para_rol.filter((c) => c.estado === "PENDIENTE").length },
+                      { key: "EN_TUTORIA", etiqueta: "En Tutoría", count: casos_pastorales_para_rol.filter((c) => c.estado === "EN_TUTORIA").length },
+                      { key: "RESUELTO", etiqueta: "Superados", count: casos_pastorales_para_rol.filter((c) => c.estado === "RESUELTO").length },
                     ].map((f) => (
                       <button
                         key={f.key}
@@ -2779,7 +2821,7 @@ export function PanelControlVista() {
       <DialogoNuevoCasoPastoral
         abierto={dialogo_nuevo_caso_abierto}
         enCerrar={() => set_dialogo_nuevo_caso_abierto(false)}
-        becariosDisponibles={REGISTROS_ASISTENCIA_SEMANAL.map((r) => ({
+        becariosDisponibles={registros_asistencia_para_rol.map((r) => ({
           id: r.id,
           nombre: r.nombre,
           carrera: r.carrera,

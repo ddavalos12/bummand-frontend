@@ -157,14 +157,14 @@ const REPORTES_DISPONIBLES: ReporteItem[] = [
   },
   {
     id: 9,
-    titulo: "Consolidado Integral de Auditoría BUMAND (Multas, Horas, Refrigerios y Pasajes)",
+    titulo: "Consolidado Integral de Contabilidad BUMAND (Multas, Horas, Refrigerios y Pasajes)",
     tipo: "consolidado-auditoria",
     periodo: "Octubre 2026",
     fecha_generacion: "2026-10-25 18:00",
-    becario_nombre: "Auditoría Financiera y Operativa General",
+    becario_nombre: "Contabilidad Financiera y Operativa General",
     tamano_kb: 512,
     endpoint: "/pdf/consolidado-auditoria",
-    nombre_archivo: "Consolidado_Auditoria_General_BUMAND.pdf",
+    nombre_archivo: "Consolidado_Contabilidad_General_BUMAND.pdf",
   },
 ];
 
@@ -302,14 +302,14 @@ export function VisorReportesPdf() {
         nombre_doc = "Evaluaciones_Semestrales";
       } else if (mod === "consolidado-auditoria") {
         ruta_base = "/pdf/consolidado-auditoria";
-        nombre_doc = "Consolidado_Auditoria_BUMAND";
+        nombre_doc = "Consolidado_Contabilidad_BUMAND";
       }
 
       const separador = ruta_base.includes("?") ? "&" : "?";
       const ruta_completa = `${ruta_base}${separador}fecha_inicio=${fecha_inicio_auditoria}&fecha_fin=${fecha_fin_auditoria}`;
-      const nombre_archivo = `Reporte_Auditoria_${nombre_doc}_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
+      const nombre_archivo = `Reporte_Contabilidad_${nombre_doc}_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
 
-      toast.info(`Generando Reporte de Auditoría (${nombre_doc}) en PDF...`, {
+      toast.info(`Generando Reporte para Contabilidad (${nombre_doc}) en PDF...`, {
         description: `Rango: ${fecha_inicio_auditoria} a ${fecha_fin_auditoria}.`,
       });
 
@@ -319,11 +319,11 @@ export function VisorReportesPdf() {
         fecha_fin: fecha_fin_auditoria,
       });
 
-      toast.success("Reporte PDF para auditoría generado exitosamente", {
+      toast.success("Reporte PDF para Contabilidad generado exitosamente", {
         description: `Archivo "${nombre_archivo}" listo.`,
       });
     } catch (_error) {
-      toast.error("Error al extraer reporte PDF para auditoría", {
+      toast.error("Error al extraer reporte PDF para Contabilidad", {
         description: "Ocurrió un inconveniente al procesar el documento.",
       });
     } finally {
@@ -439,14 +439,14 @@ export function VisorReportesPdf() {
             <div>
               <CardTitle className="text-base font-bold font-display text-[#035683] flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-[#00ABBD]" />
-                Extracción de Reportes PDF por Intervalos de Fecha para Auditoría
+                Extracción de Reportes PDF por Intervalos de Fecha para Contabilidad
               </CardTitle>
               <CardDescription className="text-xs text-muted-foreground mt-0.5">
-                Emisión de informes institucionales certificados filtrados por un intervalo exacto (fecha_inicio a fecha_fin) para auditoría interna y financiera.
+                Emisión de informes institucionales certificados filtrados por un intervalo exacto (fecha_inicio a fecha_fin) para contabilidad interna y financiera.
               </CardDescription>
             </div>
             <Badge className="bg-[#035683] text-[#FFB600] border-none text-[11px] font-mono self-start sm:self-center">
-              AUDITORÍA OFICIAL
+              CONTABILIDAD OFICIAL
             </Badge>
           </div>
         </CardHeader>
@@ -457,11 +457,11 @@ export function VisorReportesPdf() {
             <div className="space-y-1.5 md:col-span-2">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
                 <FileCheck2 className="w-3.5 h-3.5 text-[#00ABBD]" />
-                Tipo de Reporte Institucional para Auditoría
+                Tipo de Reporte Institucional para Contabilidad
               </label>
               <Select value={modulo_auditoria} onValueChange={(val) => val && set_modulo_auditoria(val)}>
                 <SelectTrigger className="h-10 text-xs font-semibold border-[#E5E7EB] bg-white rounded-xl">
-                  <SelectValue placeholder="Seleccione reporte para auditar" />
+                  <SelectValue placeholder="Seleccione reporte para contabilidad" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-[#E5E7EB]">
                   <SelectItem value="refrigerios">
@@ -471,13 +471,13 @@ export function VisorReportesPdf() {
                     ⏱️ Auditoría de Asistencia y Puntualidad (Corte Institucional)
                   </SelectItem>
                   <SelectItem value="pasajes">
-                    🚌 Expediente Consolidado de Recorridos y Pasajes
+                    🚌 Formulario para Contabilidad y SRD (Recorridos y Pasajes)
                   </SelectItem>
                   <SelectItem value="evaluaciones">
                     📋 Evaluaciones Semestrales Institucionales
                   </SelectItem>
                   <SelectItem value="consolidado-auditoria">
-                    📊 Consolidado Integral de Auditoría BUMAND
+                    📊 Consolidado Integral de Contabilidad BUMAND
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -595,7 +595,7 @@ export function VisorReportesPdf() {
                       periodo
                     );
                   }
-                  toast.success("Reporte de auditoría exportado a Excel (.xls)");
+                  toast.success("Reporte para Contabilidad exportado a Excel (.xls)");
                 }}
                 className="h-10 px-4 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold text-xs rounded-xl shadow-xs gap-2 cursor-pointer"
               >
@@ -613,7 +613,7 @@ export function VisorReportesPdf() {
                 ) : (
                   <Printer className="w-4 h-4 text-[#FFB600]" />
                 )}
-                <span>Extraer Reporte PDF para Auditoría</span>
+                <span>Extraer Reporte PDF para Contabilidad</span>
               </Button>
             </div>
           </div>

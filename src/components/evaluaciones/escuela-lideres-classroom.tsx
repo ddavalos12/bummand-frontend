@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Users,
   BookOpen,
@@ -55,6 +55,8 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
+import { usarBecariosDesignadosMentor } from "@/lib/filtro-mentor";
+import { InsigniaBecariosDesignados } from "@/components/ui/insignia-becarios-designados";
 import { useTiempoReal } from "@/hooks/use-tiempo-real";
 import { BECARIOS_SEMESTRE_II } from "./evaluaciones-datos-semestre";
 import { BotonesAccionEvaluacion } from "./botones-accion-evaluacion";
@@ -302,9 +304,26 @@ export function EscuelaLideresClassroom({
   es_supervisor_o_admin = true,
   alActualizarNotaModulo4,
 }: EscuelaLideresClassroomProps) {
+  const { es_mentor, filtrarPorMentor } = usarBecariosDesignadosMentor();
+  const becarios_disponibles = useMemo(
+    () => filtrarPorMentor(BECARIOS_SEMESTRE_II),
+    [filtrarPorMentor]
+  );
+
   // Selector de becario (para supervisores y administradores)
   const [becario_seleccionado_id, set_becario_seleccionado_id] = useState<number>(becario_id_actual);
   const [nombre_becario_activo, set_nombre_becario_activo] = useState<string>(nombre_becario_actual);
+
+  useEffect(() => {
+    if (
+      es_mentor &&
+      becarios_disponibles.length > 0 &&
+      !becarios_disponibles.some((b) => b.id === becario_seleccionado_id)
+    ) {
+      set_becario_seleccionado_id(becarios_disponibles[0].id);
+      set_nombre_becario_activo(becarios_disponibles[0].nombre_completo);
+    }
+  }, [es_mentor, becarios_disponibles, becario_seleccionado_id]);
 
   // Lista canónica de tareas
   const [tareas, set_tareas] = useState<TareaCetiCanonica[]>(TAREAS_CETI_INICIALES);
@@ -1104,36 +1123,41 @@ export function EscuelaLideresClassroom({
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             {/* Selector de Becario (Vista Supervisor / Admin) */}
             {es_supervisor_o_admin && (
-              <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-                <GraduationCap className="w-4 h-4 text-[#00ABBD]" />
-                <div className="flex flex-col">
-                  <span className="text-[9px] uppercase font-bold text-muted-foreground">
-                    Becario Seleccionado:
-                  </span>
-                  <Select
-                    value={String(becario_seleccionado_id)}
-                    onValueChange={(val: string | null) => {
-                      if (!val) return;
-                      const id = Number(val);
-                      set_becario_seleccionado_id(id);
-                      const bec = BECARIOS_SEMESTRE_II.find((b) => b.id === id);
-                      if (bec) {
-                        set_nombre_becario_activo(bec.nombre_completo);
-                        toast.info(`Becario cambiado: ${bec.nombre_completo}`);
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="h-7 border-none shadow-none text-xs font-bold text-[#035683] p-0 focus:ring-0">
-                      <SelectValue placeholder="Seleccione un becario" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-[#E5E7EB]">
-                      {BECARIOS_SEMESTRE_II.map((b) => (
-                        <SelectItem key={b.id} value={String(b.id)} className="text-xs font-medium">
-                          {b.nombre_completo} ({b.carrera})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              <div className="flex flex-wrap items-center gap-2">
+                {es_mentor && (
+                  <InsigniaBecariosDesignados cantidad={becarios_disponibles.length} />
+                )}
+                <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+                  <GraduationCap className="w-4 h-4 text-[#00ABBD]" />
+                  <div className="flex flex-col">
+                    <span className="text-[9px] uppercase font-bold text-muted-foreground">
+                      Becario Seleccionado:
+                    </span>
+                    <Select
+                      value={String(becario_seleccionado_id)}
+                      onValueChange={(val: string | null) => {
+                        if (!val) return;
+                        const id = Number(val);
+                        set_becario_seleccionado_id(id);
+                        const bec = becarios_disponibles.find((b) => b.id === id);
+                        if (bec) {
+                          set_nombre_becario_activo(bec.nombre_completo);
+                          toast.info(`Becario cambiado: ${bec.nombre_completo}`);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="h-7 border-none shadow-none text-xs font-bold text-[#035683] p-0 focus:ring-0">
+                        <SelectValue placeholder="Seleccione un becario" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-[#E5E7EB]">
+                        {becarios_disponibles.map((b) => (
+                          <SelectItem key={b.id} value={String(b.id)} className="text-xs font-medium">
+                            {b.nombre_completo} ({b.carrera})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
             )}

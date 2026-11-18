@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Award,
   CheckCircle,
@@ -79,6 +79,12 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
+import {
+  esAdministradorAutenticado,
+  esMentorAutenticado,
+  usarBecariosDesignadosMentor,
+} from "@/lib/filtro-mentor";
+import { InsigniaBecariosDesignados } from "@/components/ui/insignia-becarios-designados";
 import { clienteApi } from "@/lib/cliente-api";
 import { toast } from "sonner";
 import { CriteriosEvaluacionTabla } from "./criterios-evaluacion-tabla";
@@ -385,8 +391,10 @@ interface EvaluacionesVistaProps {
 
 export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: EvaluacionesVistaProps) {
   const { usuario } = usarAutenticacion();
-  const es_admin = usuario?.rol === "administrador";
-  const es_supervisor = usuario?.rol === "supervisor" || (!es_admin && usuario?.rol !== "becario");
+  const { es_mentor, becarios_designados, filtrarPorMentor } =
+    usarBecariosDesignadosMentor();
+  const es_admin = esAdministradorAutenticado(usuario);
+  const es_supervisor = esMentorAutenticado(usuario) || (!es_admin && usuario?.rol !== "becario" && Boolean(usuario));
 
   const [pestaña_activa, set_pestaña_activa] = useState<string>(() => {
     if (es_supervisor && !es_admin && (!pestaña_inicial || pestaña_inicial === "consolidado")) {
@@ -513,7 +521,26 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
   // Estados de Carga y Recepción Activa de Documentos Académicos
   const [documentos_academicos, set_documentos_academicos] = useState<DocumentoAcademicoSemestral[]>(DOCUMENTOS_ACADEMICOS_INICIALES);
   const [modal_carga_academica_abierto, set_modal_carga_academica_abierto] = useState<boolean>(false);
+  const becarios_semestre_disponibles = useMemo(
+    () => filtrarPorMentor(BECARIOS_SEMESTRE_II),
+    [filtrarPorMentor]
+  );
+
+  const becarios_asignados_modulo3_filtrados = useMemo(
+    () => filtrarPorMentor(becarios_asignados_modulo3),
+    [becarios_asignados_modulo3, filtrarPorMentor]
+  );
+
   const [becario_carga_id, set_becario_carga_id] = useState<number>(BECARIOS_SEMESTRE_II[0].id);
+
+  useEffect(() => {
+    if (
+      becarios_semestre_disponibles.length > 0 &&
+      !becarios_semestre_disponibles.some((b) => b.id === becario_carga_id)
+    ) {
+      set_becario_carga_id(becarios_semestre_disponibles[0].id);
+    }
+  }, [becarios_semestre_disponibles, becario_carga_id]);
   const [promedio_carga, set_promedio_carga] = useState<string>("82.5");
   const [archivo_record_nombre, set_archivo_record_nombre] = useState<string>("");
   const [archivo_record_url, set_archivo_record_url] = useState<string>("");
@@ -593,7 +620,10 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
 
     set_subiendo_documentos(true);
 
-    const becario_sel = BECARIOS_SEMESTRE_II.find((b) => b.id === becario_carga_id) || BECARIOS_SEMESTRE_II[0];
+    const becario_sel =
+      becarios_semestre_disponibles.find((b) => b.id === becario_carga_id) ||
+      becarios_semestre_disponibles[0] ||
+      BECARIOS_SEMESTRE_II[0];
 
     try {
       await clienteApi.post("/api/evaluaciones/receptor/academica", {
@@ -1000,11 +1030,24 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
     }
   };
 
-  // Métricas Administrativas Oficiales del Semestre II (21 Becarios)
-  const total_becarios = becarios_consolidado.length;
-  const becarios_optimos = becarios_consolidado.filter((b) => b.total >= 70).length;
-  const becarios_condicionados = becarios_consolidado.filter((b) => b.total >= 51 && b.total < 70).length;
-  const becarios_reprobados = becarios_consolidado.filter((b) => b.total < 51).length;
+  const becarios_consolidado_filtrados = useMemo(
+    () => filtrarPorMentor(becarios_consolidado),
+    [becarios_consolidado, filtrarPorMentor]
+  );
+  const nomina_f03_filtrada = useMemo(
+    () => filtrarPorMentor(nomina_f03),
+    [nomina_f03, filtrarPorMentor]
+  );
+  const documentos_academicos_filtrados = useMemo(
+    () => filtrarPorMentor(documentos_academicos),
+    [documentos_academicos, filtrarPorMentor]
+  );
+
+  // Métricas Administrativas Oficiales del Semestre II (o Becarios Designados para Mentor)
+  const total_becarios = becarios_consolidado_filtrados.length;
+  const becarios_optimos = becarios_consolidado_filtrados.filter((b) => b.total >= 70).length;
+  const becarios_condicionados = becarios_consolidado_filtrados.filter((b) => b.total >= 51 && b.total < 70).length;
+  const becarios_reprobados = becarios_consolidado_filtrados.filter((b) => b.total < 51).length;
 
   const suma_ponderaciones = Object.values(ponderacion_temporal).reduce((a, b) => a + b, 0);
   const ponderaciones_validas = suma_ponderaciones === 100;
@@ -1173,7 +1216,10 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
           </button>
         </div>
 
-        <div className="flex items-center gap-2 px-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 px-2 shrink-0">
+          {es_mentor && (
+            <InsigniaBecariosDesignados cantidad={becarios_designados.length} />
+          )}
           <Badge variant="outline" className="font-mono text-xs border-slate-300 text-[#035683] bg-white px-2.5 py-1 font-bold">
             {periodo_actual_info.titulo}
           </Badge>
@@ -1369,20 +1415,20 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-3 bg-white rounded-xl border border-slate-200">
                   <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Total Becarios</span>
-                  <span className="text-xl font-bold font-mono text-[#035683]">{nomina_f03.length || 23}</span>
-                  <span className="text-[10px] text-muted-foreground block mt-0.5">Nómina oficial</span>
+                  <span className="text-xl font-bold font-mono text-[#035683]">{es_mentor ? nomina_f03_filtrada.length : nomina_f03_filtrada.length || 23}</span>
+                  <span className="text-[10px] text-muted-foreground block mt-0.5">{es_mentor ? "Becarios designados" : "Nómina oficial"}</span>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-emerald-200 bg-emerald-50/30">
                   <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">F-03 Convalidados</span>
                   <span className="text-xl font-bold font-mono text-emerald-700">
-                    {nomina_f03.filter((b) => Boolean(b.convalidado) || b.estado === "completada" || b.estado === "completado" || b.estado === "aprobada" || b.estado === "aprobado").length}
+                    {nomina_f03_filtrada.filter((b) => Boolean(b.convalidado) || b.estado === "completada" || b.estado === "completado" || b.estado === "aprobada" || b.estado === "aprobado").length}
                   </span>
                   <span className="text-[10px] text-emerald-600 block mt-0.5">Certificados en sistema</span>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-amber-200 bg-amber-50/30">
                   <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">F-03 En Revisión</span>
                   <span className="text-xl font-bold font-mono text-amber-700">
-                    {nomina_f03.filter((b) => !(Boolean(b.convalidado) || b.estado === "completada" || b.estado === "completado" || b.estado === "aprobada" || b.estado === "aprobado")).length}
+                    {nomina_f03_filtrada.filter((b) => !(Boolean(b.convalidado) || b.estado === "completada" || b.estado === "completado" || b.estado === "aprobada" || b.estado === "aprobado")).length}
                   </span>
                   <span className="text-[10px] text-amber-600 block mt-0.5">Por convalidar pastoral</span>
                 </div>
@@ -1435,7 +1481,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {nomina_f03
+                  {nomina_f03_filtrada
                     .filter((b) =>
                       busqueda_f03.trim() === ""
                         ? true
@@ -1835,7 +1881,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                     </Badge>
                   </div>
                   <h4 className="text-2xl font-bold font-display text-emerald-700">
-                    {documentos_academicos.length} / {total_becarios}
+                    {documentos_academicos_filtrados.length} / {total_becarios}
                   </h4>
                   <p className="text-xs text-muted-foreground">
                     Expedientes con Récord e Historial Académico convalidado en la plataforma oficial.
@@ -1941,7 +1987,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                         <SelectValue placeholder="Seleccione un becario" />
                       </SelectTrigger>
                       <SelectContent className="max-h-56 bg-white border-slate-200 z-[100]">
-                        {BECARIOS_SEMESTRE_II.map((b) => (
+                        {becarios_semestre_disponibles.map((b) => (
                           <SelectItem key={b.id} value={String(b.id)} etiqueta={`${b.nombre_completo} (${b.carrera})`}>
                             {b.nombre_completo} — {b.carrera} ({b.universidad})
                           </SelectItem>
@@ -1955,15 +2001,15 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               <FormularioCargaNotasEstudiante
                 becario_id={becario_carga_id}
                 becario_nombre={
-                  BECARIOS_SEMESTRE_II.find((b) => b.id === becario_carga_id)?.nombre_completo ||
+                  becarios_semestre_disponibles.find((b) => b.id === becario_carga_id)?.nombre_completo ||
                   "Estudiante Becario"
                 }
                 carrera={
-                  BECARIOS_SEMESTRE_II.find((b) => b.id === becario_carga_id)?.carrera ||
+                  becarios_semestre_disponibles.find((b) => b.id === becario_carga_id)?.carrera ||
                   "Carrera Universitaria"
                 }
                 universidad={
-                  BECARIOS_SEMESTRE_II.find((b) => b.id === becario_carga_id)?.universidad ||
+                  becarios_semestre_disponibles.find((b) => b.id === becario_carga_id)?.universidad ||
                   "Universidad"
                 }
                 periodo_id={periodo_activo === "s2" ? 2 : 1}
@@ -2043,7 +2089,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                       <SelectValue placeholder="Seleccione el becario" />
                     </SelectTrigger>
                     <SelectContent className="max-h-56 bg-white border-[#E5E7EB] z-[100]">
-                      {BECARIOS_SEMESTRE_II.map((b) => (
+                      {becarios_semestre_disponibles.map((b) => (
                         <SelectItem key={b.id} value={String(b.id)} etiqueta={`${b.nombre_completo} (${b.carrera})`}>
                           {b.nombre_completo} ({b.carrera})
                         </SelectItem>
@@ -2236,13 +2282,16 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                 </CardDescription>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                {es_mentor && (
+                  <InsigniaBecariosDesignados cantidad={becarios_asignados_modulo3_filtrados.length} />
+                )}
                 <Badge variant="outline" className="border-emerald-600 bg-emerald-50 text-emerald-800 font-mono text-xs font-bold px-3 py-1 gap-1">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  {becarios_asignados_modulo3.filter((b) => b.estado === "aprobado").length} / {becarios_asignados_modulo3.length} Aprobados
+                  {becarios_asignados_modulo3_filtrados.filter((b) => b.estado === "aprobado").length} / {becarios_asignados_modulo3_filtrados.length} Aprobados
                 </Badge>
                 <Badge variant="outline" className="border-[#035683] text-[#035683] font-mono text-xs font-bold px-3 py-1">
-                  {becarios_asignados_modulo3.filter((b) => b.estado === "evaluado").length} Por Aprobar
+                  {becarios_asignados_modulo3_filtrados.filter((b) => b.estado === "evaluado").length} Por Aprobar
                 </Badge>
               </div>
             </CardHeader>
@@ -2260,7 +2309,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {becarios_asignados_modulo3.map((bec, idx) => {
+                  {becarios_asignados_modulo3_filtrados.map((bec, idx) => {
                     return (
                       <TableRow key={bec.id} className="hover:bg-slate-50/60">
                         <TableCell className="text-center font-mono text-xs text-slate-500 font-semibold">

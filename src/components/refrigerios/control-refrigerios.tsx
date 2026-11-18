@@ -524,12 +524,12 @@ export function ControlRefrigerios() {
   const manejarDescargarPdfAuditoria = async () => {
     try {
       set_descargando_pdf_auditoria(true);
-      toast.info("Extrayendo Reporte de Auditoría de Refrigerios en PDF...", {
+      toast.info("Extrayendo Reporte para Contabilidad de Refrigerios en PDF...", {
         description: `Intervalo: Desde ${fecha_inicio_auditoria} hasta ${fecha_fin_auditoria}.`,
       });
 
       const endpoint = `/api/pdf/refrigerios?fecha_inicio=${fecha_inicio_auditoria}&fecha_fin=${fecha_fin_auditoria}`;
-      const nombre_archivo = `Reporte_Refrigerios_Auditoria_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
+      const nombre_archivo = `Reporte_Refrigerios_Contabilidad_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
 
       await descargarPdfConResiliencia(endpoint, nombre_archivo, "auditoria", {
         modulo: "refrigerios",
@@ -537,9 +537,9 @@ export function ControlRefrigerios() {
         fecha_fin: fecha_fin_auditoria,
       });
 
-      toast.success("Reporte de Auditoría de Refrigerios descargado exitosamente");
+      toast.success("Reporte para Contabilidad de Refrigerios descargado exitosamente");
     } catch {
-      toast.error("Error al extraer reporte PDF de auditoría de refrigerios", {
+      toast.error("Error al extraer reporte PDF para Contabilidad de refrigerios", {
         description: "Ocurrió un problema al procesar el documento.",
       });
     } finally {
@@ -915,7 +915,7 @@ export function ControlRefrigerios() {
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-[#00ABBD]" />
             <span className="text-xs font-bold text-[#035683] uppercase tracking-wider">
-              Auditoría de Refrigerios:
+              Contabilidad de Refrigerios:
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -945,7 +945,7 @@ export function ControlRefrigerios() {
           ) : (
             <Printer className="w-3.5 h-3.5 text-[#FFB600]" />
           )}
-          <span>Extraer Reporte PDF para Auditoría</span>
+          <span>Extraer Reporte PDF para Contabilidad</span>
         </Button>
       </div>
 
@@ -1483,7 +1483,7 @@ export function ControlRefrigerios() {
                 Planilla Oficial de Refrigerios y Devolución 100%
               </DialogTitle>
               <CardDescription className="text-xs text-muted-foreground">
-                Documento de auditoría diaconal emitido para reintegro íntegro de fondos.
+                Documento de contabilidad diaconal emitido para reintegro íntegro de fondos.
               </CardDescription>
             </DialogHeader>
 

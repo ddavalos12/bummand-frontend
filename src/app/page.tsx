@@ -151,9 +151,10 @@ export default function PaginaInicio() {
   const enrutador = useRouter();
   
   const rol = usuario?.rol || "becario";
-  const es_admin = rol === "administrador";
-  const es_supervisor = rol === "supervisor";
-  const es_becario = rol === "becario";
+  const rol_norm = rol.toLowerCase().trim();
+  const es_admin = rol_norm === "administrador" || rol_norm === "admin";
+  const es_supervisor = rol_norm === "supervisor" || rol_norm === "mentor";
+  const es_becario = rol_norm === "becario";
 
   const [pestaña_activa, set_pestaña_activa] = useState<string>(
     es_becario ? "resumen" : "administracion"

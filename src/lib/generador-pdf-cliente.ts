@@ -733,8 +733,8 @@ export function generarPdfAuditoriaIntervalo(
 
   agregarMembreteInstitucional(
     doc,
-    `INFORME OFICIAL DE AUDITORÍA: ${modulo.toUpperCase()}`,
-    `Intervalo de Fiscalización: ${fecha_inicio} al ${fecha_fin} · Convalidación Contable y Operativa`
+    `INFORME OFICIAL DE CONTABILIDAD: ${modulo.toUpperCase()}`,
+    `Intervalo de Liquidación: ${fecha_inicio} al ${fecha_fin} · Convalidación Contable y Operativa`
   );
 
   doc.setFillColor(...COLOR_GRIS_FONDO);
@@ -746,13 +746,13 @@ export function generarPdfAuditoriaIntervalo(
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
   doc.setTextColor(...COLOR_PRIMARIO);
-  doc.text("PARÁMETROS DE AUDITORÍA INSTITUCIONAL:", 18, 42);
+  doc.text("PARÁMETROS DE CONTABILIDAD INSTITUCIONAL:", 18, 42);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   doc.setTextColor(...COLOR_TEXTO_OSCURO);
   doc.text(
-    `Módulo: ${modulo} | Desde: ${fecha_inicio} | Hasta: ${fecha_fin} | Registros fiscalizados: 23 | Estado: CONFORME`,
+    `Módulo: ${modulo} | Desde: ${fecha_inicio} | Hasta: ${fecha_fin} | Registros verificados: 23 | Estado: CONFORME`,
     18,
     47
   );
@@ -761,14 +761,14 @@ export function generarPdfAuditoriaIntervalo(
     String(i + 1),
     b.nombre,
     b.sede,
-    "Auditado",
+    "Verificado",
     "Sin observaciones",
     "CONFORME",
   ]);
 
   autoTable(doc, {
     startY: 56,
-    head: [["#", "Estudiante Becario", "Unidad / Agencia", "Resultado", "Hallazgos de Auditoría", "Dictamen"]],
+    head: [["#", "Estudiante Becario", "Unidad / Agencia", "Resultado", "Observaciones Contables", "Dictamen"]],
     body: filas,
     theme: "striped",
     headStyles: {

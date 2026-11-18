@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import {
   ClipboardCheck,
@@ -27,6 +27,12 @@ import { clienteApi } from "@/lib/cliente-api";
 import { useConsulta } from "@/hooks/useConsulta";
 import { useTiempoReal } from "@/hooks/useTiempoReal";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
+import {
+  esAdministradorAutenticado,
+  esMentorAutenticado,
+  usarBecariosDesignadosMentor,
+} from "@/lib/filtro-mentor";
+import { InsigniaBecariosDesignados } from "@/components/ui/insignia-becarios-designados";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -87,6 +93,8 @@ export interface JustificacionIncidencia {
   observacion_admin?: string | null;
   fecha_resolucion?: string | null;
   exime_multa_viernes?: boolean;
+  ci?: string;
+  supervisor_id?: number | null;
   created_at: string;
 }
 
@@ -120,6 +128,8 @@ const BECARIOS_OFICIALES = [
 
 export function BandejaJustificaciones() {
   const { usuario } = usarAutenticacion();
+  const { es_mentor, becarios_designados, filtrarPorMentor } =
+    usarBecariosDesignadosMentor();
   const [justificaciones_locales, set_justificaciones_locales] = useState<JustificacionIncidencia[]>([]);
   const [filtro_estado, set_filtro_estado] = useState<string>("todos");
   const [termino_busqueda, set_termino_busqueda] = useState<string>("");
@@ -142,9 +152,12 @@ export function BandejaJustificaciones() {
         if (Array.isArray(respuesta) && respuesta.length > 0) {
           const formateados = respuesta.map((b) => ({
             id: b.id,
+            ci: b.ci ? String(b.ci) : undefined,
             nombre: b.nombre || (b.usuario ? b.usuario.nombre : "Becario"),
             carrera: b.carrera || "Carrera BUMAND",
             sede: b.lugar_practica?.nombre || "Sede Diaconía",
+            supervisor_id: b.supervisor_id ?? b.supervisor?.id ?? null,
+            supervisor_nombre: b.supervisor?.nombre ?? b.supervisor?.usuario?.nombre ?? null,
           }));
           if (formateados.length > 0) {
             set_lista_becarios(formateados);
@@ -157,8 +170,22 @@ export function BandejaJustificaciones() {
     cargarBecarios();
   }, []);
 
-  const es_admin = usuario?.rol === "administrador";
-  const es_supervisor = usuario?.rol === "supervisor" || (!es_admin && usuario?.rol !== "becario");
+  const lista_becarios_para_rol = useMemo(
+    () => filtrarPorMentor(lista_becarios),
+    [lista_becarios, filtrarPorMentor]
+  );
+
+  useEffect(() => {
+    if (
+      lista_becarios_para_rol.length > 0 &&
+      !lista_becarios_para_rol.some((b) => b.id === becario_seleccionado_id)
+    ) {
+      set_becario_seleccionado_id(lista_becarios_para_rol[0].id);
+    }
+  }, [lista_becarios_para_rol, becario_seleccionado_id]);
+
+  const es_admin = esAdministradorAutenticado(usuario);
+  const es_supervisor = esMentorAutenticado(usuario) || (!es_admin && usuario?.rol !== "becario" && Boolean(usuario));
   const es_becario = usuario?.rol === "becario";
   const [modal_crear_abierto, set_modal_crear_abierto] = useState(false);
   const [nuevo_tipo, set_nuevo_tipo] = useState<JustificacionIncidencia["tipo_incidencia"]>("asistencia_practicas");
@@ -190,7 +217,9 @@ export function BandejaJustificaciones() {
     }
 
     const becario_actual = !es_becario
-      ? lista_becarios.find((b) => b.id === becario_seleccionado_id) || lista_becarios[0]
+      ? lista_becarios_para_rol.find((b) => b.id === becario_seleccionado_id) ||
+        lista_becarios_para_rol[0] ||
+        lista_becarios[0]
       : {
           id: usuario?.becario_id || usuario?.id || 101,
           nombre: usuario?.nombre || "Becario Institucional",
@@ -284,7 +313,18 @@ export function BandejaJustificaciones() {
               archivo_prueba_url: item.archivo_prueba_url,
               nombre_archivo_prueba: item.nombre_archivo_prueba || item.documento_adjunto,
               estado: (item.estado || "pendiente").toLowerCase() as JustificacionIncidencia["estado"],
-              supervisor_nombre: item.supervisor?.nombre || item.supervisor_nombre || null,
+              supervisor_nombre:
+                item.becario?.supervisor?.nombre ||
+                item.becario?.supervisor?.usuario?.nombre ||
+                item.supervisor?.nombre ||
+                item.supervisor_nombre ||
+                null,
+              supervisor_id:
+                item.becario?.supervisor_id ??
+                item.becario?.supervisor?.id ??
+                item.supervisor_id ??
+                null,
+              ci: item.becario?.ci ? String(item.becario.ci) : undefined,
               observacion_supervisor: item.observacion_supervisor || null,
               fecha_revision_supervisor: item.fecha_revision_supervisor ? String(item.fecha_revision_supervisor) : null,
               administrador_nombre: item.administrador?.nombre || item.administrador_nombre || null,
@@ -309,7 +349,10 @@ export function BandejaJustificaciones() {
     }
   }, [justificaciones_servidor]);
 
-  const justificaciones = justificaciones_locales;
+  const justificaciones = useMemo(
+    () => filtrarPorMentor(justificaciones_locales),
+    [justificaciones_locales, filtrarPorMentor]
+  );
 
   useTiempoReal({
     eventos: {
@@ -566,6 +609,9 @@ export function BandejaJustificaciones() {
         />
 
         <div className="flex flex-wrap items-center gap-2.5">
+          {es_mentor && (
+            <InsigniaBecariosDesignados cantidad={becarios_designados.length} />
+          )}
           <div className="relative w-full sm:w-64">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -778,10 +824,37 @@ export function BandejaJustificaciones() {
                           Detalles
                         </Button>
 
-                        {/* ACCIONES SUPERVISOR: Ocultas según política institucional (TAREA-08) */}
+                        {/* ACCIONES MENTOR / SUPERVISOR (Nivel 1: Revisar / Aprobar o Rechazar) */}
                         {es_supervisor && !es_admin && es_pendiente && (
-                          <Badge variant="outline" className="text-amber-700 border-amber-300 bg-amber-50 text-[10px] font-medium">
-                            En espera de dictamen de Administración
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={() => manejarRevisarSupervisor(just.id)}
+                              className="h-8 rounded-xl bg-[#00ABBD] hover:bg-[#008f9e] text-white text-xs font-semibold px-3 gap-1 shadow-xs cursor-pointer"
+                              title="Revisar y aprobar en Nivel 1 (Mentor) para elevar a Administración"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Aprobar Revisión (Mentor)</span>
+                            </Button>
+
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                set_justificacion_rechazo(just);
+                                set_observacion_rechazo("");
+                              }}
+                              className="h-8 rounded-xl border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-semibold px-3 gap-1 cursor-pointer"
+                            >
+                              <X className="w-3.5 h-3.5 text-rose-600" />
+                              Rechazar
+                            </Button>
+                          </>
+                        )}
+
+                        {es_supervisor && !es_admin && es_revisado && (
+                          <Badge variant="outline" className="text-sky-700 border-sky-300 bg-sky-50 text-[10px] font-medium">
+                            Revisado por Mentor · Esperando Admin
                           </Badge>
                         )}
 
@@ -1039,7 +1112,7 @@ export function BandejaJustificaciones() {
                     <SelectValue placeholder="Seleccionar becario" />
                   </SelectTrigger>
                   <SelectContent className="max-h-56 bg-white border-[#E5E7EB] z-[100]">
-                    {lista_becarios.map((b) => (
+                    {lista_becarios_para_rol.map((b) => (
                       <SelectItem
                         key={b.id}
                         value={String(b.id)}

@@ -55,6 +55,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
+import { usarBecariosDesignadosMentor } from "@/lib/filtro-mentor";
+import { InsigniaBecariosDesignados } from "@/components/ui/insignia-becarios-designados";
 import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
 import { useTiempoReal } from "@/hooks/useTiempoReal";
 import { toast } from "sonner";
@@ -142,6 +144,7 @@ export const obtenerPasosCalles = (texto_calles?: string): string[] => {
  */
 export function PasajesVista() {
   const { usuario } = usarAutenticacion();
+  const { es_mentor, filtrarPorMentor, becarios_designados } = usarBecariosDesignadosMentor();
 
   // Control de vista: declaración de recorrido diario vs historial de paradas
   const [pestana_modulo, set_pestana_modulo] = useState<"declaracion" | "historial">("declaracion");
@@ -223,13 +226,22 @@ export function PasajesVista() {
     try {
       set_cargando_recorridos(true);
       let solicitudes: any[] = [];
-      try {
-        solicitudes = await clienteApi.get<any[]>("/pasajes/mis-solicitudes");
-      } catch {
+      if (es_mentor) {
         try {
-          solicitudes = await clienteApi.get<any[]>("/pasajes");
+          const todas = await clienteApi.get<any[]>("/pasajes");
+          solicitudes = filtrarPorMentor(Array.isArray(todas) ? todas : []);
         } catch {
           solicitudes = [];
+        }
+      } else {
+        try {
+          solicitudes = await clienteApi.get<any[]>("/pasajes/mis-solicitudes");
+        } catch {
+          try {
+            solicitudes = await clienteApi.get<any[]>("/pasajes");
+          } catch {
+            solicitudes = [];
+          }
         }
       }
 
@@ -251,7 +263,7 @@ export function PasajesVista() {
             // Sin multas
           }
         }
-        if (Array.isArray(sol.recorridos) && sol.recorridos.length > 0) {
+      if (Array.isArray(sol.recorridos) && sol.recorridos.length > 0) {
           const mapeados: RecorridoMensual[] = sol.recorridos.map((r: any) => {
             const fecha_str = r.fecha ? String(r.fecha).split("T")[0] : "";
             const dia_formato = fecha_str ? fecha_str.split("-").slice(1).reverse().join("-") : "";
@@ -272,13 +284,16 @@ export function PasajesVista() {
           });
           set_recorridos(mapeados);
         }
+      } else if (es_mentor) {
+        set_solicitud_actual(null);
+        set_recorridos([]);
       }
     } catch {
       // Conservar los recorridos actuales en pantalla
     } finally {
       set_cargando_recorridos(false);
     }
-  }, []);
+  }, [es_mentor, filtrarPorMentor]);
 
   useEffect(() => {
     cargarMisRecorridos();
@@ -1408,7 +1423,7 @@ export function PasajesVista() {
         <div className="lg:col-span-5 space-y-6">
           <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl flex flex-col">
             <CardHeader className="pb-3 border-b border-[#E5E7EB]/60 bg-[#F8F9FA]/80">
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div>
                   <CardTitle className="font-display text-base text-[#035683]">
                     Formulario para Contabilidad y SRD
@@ -1417,9 +1432,14 @@ export function PasajesVista() {
                     Liquidación mensual del 80% de pasajes y cálculo líquido descontando multas de asistencia para Contabilidad y SRD.
                   </CardDescription>
                 </div>
-                <Badge className="bg-[#00ABBD] text-white font-mono text-[11px] shrink-0">
-                  {recorridos.length} Recorridos
-                </Badge>
+                <div className="flex items-center gap-2">
+                  {es_mentor && (
+                    <InsigniaBecariosDesignados cantidad={becarios_designados.length} />
+                  )}
+                  <Badge className="bg-[#00ABBD] text-white font-mono text-[11px] shrink-0">
+                    {recorridos.length} Recorridos
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
 
@@ -1429,7 +1449,12 @@ export function PasajesVista() {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Becario:</span>
                   <span className="font-bold text-[#035683]">
-                    {usuario?.nombre || "María Catunta Laime"}
+                    {es_mentor
+                      ? solicitud_actual?.becario?.usuario?.nombre ||
+                        solicitud_actual?.becario_nombre ||
+                        becarios_designados[0]?.nombre ||
+                        "Sin becarios designados"
+                      : usuario?.nombre || "María Catunta Laime"}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -1714,7 +1739,7 @@ export function PasajesVista() {
               </div>
               <div>
                 <DialogTitle className="font-display text-base text-[#035683]">
-                  Auditoría de Recorrido — Calles y Transporte Multimodal
+                  Formulario de Recorrido — Calles y Transporte Multimodal
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
                   Detalle paso a paso del trayecto convalidado en la conurbación La Paz – El Alto.

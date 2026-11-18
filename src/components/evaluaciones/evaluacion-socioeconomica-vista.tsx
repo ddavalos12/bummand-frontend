@@ -43,6 +43,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
+import {
+  esAdministradorAutenticado,
+  esMentorAutenticado,
+  usarBecariosDesignadosMentor,
+} from "@/lib/filtro-mentor";
+import { InsigniaBecariosDesignados } from "@/components/ui/insignia-becarios-designados";
 import { BotonesAccionEvaluacion } from "./botones-accion-evaluacion";
 import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
 import { clienteApi } from "@/lib/cliente-api";
@@ -81,6 +87,8 @@ export interface RegistroSocioeconomicoBecario {
   convalidado?: boolean;
   observaciones?: string;
   respuestas: Record<number, "A" | "B" | "C" | "D">;
+  supervisor_id?: number | null;
+  supervisor_nombre?: string | null;
 }
 
 function obtenerCategoriaPorNumero(numero: number): Exclude<CategoriaBienestar, "todas"> {
@@ -206,8 +214,10 @@ const NOMINA_INICIAL_SOCIOECONOMICA: RegistroSocioeconomicoBecario[] = [
 
 export function EvaluacionSocioeconomicaVista() {
   const { usuario } = usarAutenticacion();
+  const { es_mentor, filtrarPorMentor } = usarBecariosDesignadosMentor();
   const rol = usuario?.rol || "becario";
-  const es_admin_o_supervisor = rol === "administrador" || rol === "supervisor";
+  const es_admin_o_supervisor =
+    esAdministradorAutenticado(usuario) || esMentorAutenticado(usuario);
   const es_becario = rol === "becario";
 
   const {
@@ -335,6 +345,8 @@ export function EvaluacionSocioeconomicaVista() {
                 ? "Evaluación socioeconómica convalidada por Trabajo Social."
                 : "Enviada desde aplicación móvil BUMAND. Pendiente de revisión."),
             respuestas: respuestas_norm,
+            supervisor_id: raw.supervisor_id ?? raw.becario?.supervisor_id ?? raw.becario?.supervisor?.id ?? null,
+            supervisor_nombre: raw.supervisor_nombre ?? raw.becario?.supervisor?.nombre ?? null,
           };
         });
         set_nomina_becarios(mapeada);
@@ -378,16 +390,33 @@ export function EvaluacionSocioeconomicaVista() {
     }
   }, []);
 
+  const nomina_para_rol = useMemo(
+    () => filtrarPorMentor(nomina_becarios),
+    [nomina_becarios, filtrarPorMentor]
+  );
+
+  useEffect(() => {
+    if (
+      nomina_para_rol.length > 0 &&
+      !nomina_para_rol.some((b) => b.id === becario_seleccionado_id)
+    ) {
+      set_becario_seleccionado_id(nomina_para_rol[0].id);
+      set_respuestas_activas({ ...nomina_para_rol[0].respuestas });
+    }
+  }, [nomina_para_rol, becario_seleccionado_id]);
+
   // Sincronizar respuestas cuando cambia el becario seleccionado
   const becario_actual = useMemo(() => {
     return (
-      nomina_becarios.find((b) => b.id === becario_seleccionado_id) || nomina_becarios[0]
+      nomina_para_rol.find((b) => b.id === becario_seleccionado_id) ||
+      nomina_para_rol[0] ||
+      nomina_becarios[0]
     );
-  }, [nomina_becarios, becario_seleccionado_id]);
+  }, [nomina_para_rol, nomina_becarios, becario_seleccionado_id]);
 
   const seleccionarBecario = (nuevo_id: number) => {
     set_becario_seleccionado_id(nuevo_id);
-    const encontrado = nomina_becarios.find((b) => b.id === nuevo_id);
+    const encontrado = nomina_para_rol.find((b) => b.id === nuevo_id);
     if (encontrado) {
       set_respuestas_activas({ ...encontrado.respuestas });
     }
@@ -716,15 +745,15 @@ export function EvaluacionSocioeconomicaVista() {
 
   const nomina_filtrada = useMemo(() => {
     const termino = busqueda_nomina.trim().toLowerCase();
-    if (!termino) return nomina_becarios;
-    return nomina_becarios.filter(
+    if (!termino) return nomina_para_rol;
+    return nomina_para_rol.filter(
       (b) =>
         b.nombre_completo.toLowerCase().includes(termino) ||
         b.ci.toLowerCase().includes(termino) ||
         b.universidad.toLowerCase().includes(termino) ||
         b.carrera.toLowerCase().includes(termino)
     );
-  }, [nomina_becarios, busqueda_nomina]);
+  }, [nomina_para_rol, busqueda_nomina]);
 
   const categorias_filtro: { id: CategoriaBienestar; etiqueta: string; icono: React.ElementType }[] = [
     { id: "todas", etiqueta: `Todas (${preguntas.length})`, icono: FileText },
@@ -771,6 +800,12 @@ export function EvaluacionSocioeconomicaVista() {
 
             {es_admin_o_supervisor && (
               <div className="flex flex-wrap items-center gap-2 shrink-0">
+                {es_mentor && (
+                  <InsigniaBecariosDesignados
+                    cantidad={nomina_para_rol.length}
+                    className="bg-white/15 text-white border-white/30"
+                  />
+                )}
                 <Button
                   size="sm"
                   variant="outline"
@@ -807,7 +842,7 @@ export function EvaluacionSocioeconomicaVista() {
                     Becarios Evaluados
                   </p>
                   <h3 className="text-2xl sm:text-3xl font-display font-bold text-[#035683]">
-                    21 / 23
+                    {es_mentor ? `${nomina_para_rol.length} designados` : "21 / 23"}
                   </h3>
                   <p className="text-xs text-emerald-700 font-semibold">
                     Semestre II · 100% digitalizado
@@ -905,14 +940,16 @@ export function EvaluacionSocioeconomicaVista() {
                     {/* Selector de Becario */}
                     <div className="space-y-1.5 flex-1 max-w-xl">
                       <Label className="text-xs font-mono uppercase font-bold text-[#035683]">
-                        Seleccionar Becario para Auditar Respuestas (21/23 Becarios Activos)
+                        {es_mentor
+                          ? `Seleccionar Becario para Auditar Respuestas (${nomina_para_rol.length} Becarios Designados)`
+                          : "Seleccionar Becario para Auditar Respuestas (21/23 Becarios Activos)"}
                       </Label>
                       <select
                         value={becario_seleccionado_id}
                         onChange={(e) => seleccionarBecario(Number(e.target.value))}
                         className="w-full h-10 px-3 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] text-xs font-bold text-[#035683] focus:outline-none focus:ring-2 focus:ring-[#00ABBD]"
                       >
-                        {nomina_becarios.map((b) => (
+                        {nomina_para_rol.map((b) => (
                           <option key={b.id} value={b.id}>
                             {b.nombre_completo} — C.I. {b.ci} ({b.universidad} · {b.carrera})
                           </option>

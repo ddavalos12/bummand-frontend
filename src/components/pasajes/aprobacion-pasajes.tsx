@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -60,6 +60,12 @@ import { exportarFormularioContabilidadSrdExcel } from "@/lib/generador-excel-cl
 import { useConsulta } from "@/hooks/useConsulta";
 import { useTiempoReal } from "@/hooks/useTiempoReal";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
+import {
+  esAdministradorAutenticado,
+  esMentorAutenticado,
+  usarBecariosDesignadosMentor,
+} from "@/lib/filtro-mentor";
+import { InsigniaBecariosDesignados } from "@/components/ui/insignia-becarios-designados";
 import { RafagaCelebracion } from "@/components/animaciones";
 import { RegistroRecorrido } from "./registro-recorrido";
 import { GestionTarifas } from "./gestion-tarifas";
@@ -83,12 +89,15 @@ export interface RecorridoItem {
 export interface SolicitudPasajeVista {
   id: number;
   becario_id?: number;
+  ci?: string;
   becario_nombre: string;
   iniciales: string;
   carrera: string;
   unidad: string;
   lugar_practicas: string;
   responsable_mentor: string;
+  supervisor_id?: number | null;
+  supervisor_correo?: string | null;
   apoyo_resumen: string;
   periodo: string;
   tipo_actividad?: "Prácticas" | "Escuela de Líderes" | "Acciones de Servicio";
@@ -241,13 +250,13 @@ export function AprobacionPasajes() {
   const manejarDescargarPdfAuditoria = async () => {
     try {
       set_descargando_pdf_auditoria(true);
-      toast.info("Generando Expediente de Recorridos y Pasajes en PDF para Auditoría...", {
+      toast.info("Generando Formulario de Recorridos y Pasajes en PDF para Contabilidad...", {
         description: `Intervalo: Desde ${fecha_inicio_auditoria} hasta ${fecha_fin_auditoria}.`,
       });
 
       const id_becario = solicitud_activa?.becario_id || solicitud_activa?.id || 1;
       const endpoint = `/pdf/recorridos-estudiante/${id_becario}?fecha_inicio=${fecha_inicio_auditoria}&fecha_fin=${fecha_fin_auditoria}`;
-      const nombre_archivo = `Expediente_Pasajes_Auditoria_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
+      const nombre_archivo = `Formulario_Contabilidad_Pasajes_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
 
       await descargarPdfConResiliencia(
         endpoint,
@@ -260,9 +269,9 @@ export function AprobacionPasajes() {
         }
       );
 
-      toast.success("Expediente de pasajes para auditoría descargado exitosamente");
+      toast.success("Formulario de pasajes para Contabilidad descargado exitosamente");
     } catch {
-      toast.error("Error al extraer reporte PDF de auditoría de pasajes", {
+      toast.error("Error al extraer reporte PDF para Contabilidad de pasajes", {
         description: "Verifique el servicio PDF institucional.",
       });
     } finally {
@@ -348,6 +357,7 @@ export function AprobacionPasajes() {
             return {
               id: item.id || 100 + idx,
               becario_id: id_becario || undefined,
+              ci: item.becario?.ci ? String(item.becario.ci) : undefined,
               becario_nombre: item.becario?.nombre || item.becario?.usuario?.nombre || item.becario_nombre || `Becario ${idx + 1}`,
               iniciales: (item.becario?.nombre || item.becario?.usuario?.nombre || item.becario_nombre || "BE")
                 .split(" ")
@@ -359,6 +369,8 @@ export function AprobacionPasajes() {
               unidad: item.becario?.unidad || "Unidad Diaconía",
               lugar_practicas: item.becario?.lugar_practica?.nombre || "Oficina Central - Bloque A",
               responsable_mentor: item.becario?.supervisor?.nombre || item.becario?.supervisor?.usuario?.nombre || "Mentor Diaconía",
+              supervisor_id: item.becario?.supervisor_id ?? item.becario?.supervisor?.id ?? item.supervisor_id ?? null,
+              supervisor_correo: item.becario?.supervisor?.correo ?? item.becario?.supervisor?.usuario?.correo ?? null,
               apoyo_resumen: item.apoyo_realizado || "Actividades de apoyo institucional preprofesional",
               periodo: item.periodo || "Marzo 2026",
               tipo_actividad: item.tipo_actividad || "Prácticas",
@@ -419,19 +431,24 @@ export function AprobacionPasajes() {
     invalidar();
   }, [subpestana, invalidar]);
 
-  const solicitudes = solicitudes_locales;
+  const { es_mentor, filtrarPorMentor } = usarBecariosDesignadosMentor();
+
+  const solicitudes = useMemo(
+    () => filtrarPorMentor(solicitudes_locales),
+    [solicitudes_locales, filtrarPorMentor]
+  );
 
   const solicitud_activa: SolicitudPasajeVista | undefined =
     solicitudes.find((s) => s.id === id_seleccionado) ||
     solicitudes[0];
 
-  const es_admin = usuario?.rol === "administrador";
-  const es_supervisor = usuario?.rol === "supervisor" || (!es_admin && usuario?.rol !== "becario");
+  const es_admin = esAdministradorAutenticado(usuario);
+  const es_supervisor = esMentorAutenticado(usuario) || (!es_admin && usuario?.rol !== "becario" && Boolean(usuario));
 
   const total_pendientes = solicitudes.filter((s) => s.estado === "pendiente" || s.estado === "borrador").length;
   const total_revisados_supervisor = solicitudes.filter((s) => s.estado === "revisado_supervisor").length;
   const total_aprobados = solicitudes.filter((s) => s.estado === "aprobado" || s.estado === "aprobado_administracion").length;
-  const total_formularios = solicitudes.length > 0 ? solicitudes.length : 16;
+  const total_formularios = es_mentor ? solicitudes.length : (solicitudes.length > 0 ? solicitudes.length : 16);
 
   const solicitudes_filtradas = solicitudes.filter((s) => {
     if (filtro_estado === "pendientes") return s.estado === "pendiente" || s.estado === "borrador";
@@ -818,7 +835,7 @@ export function AprobacionPasajes() {
                 className="h-7 px-2.5 text-[11px] font-bold border-[#00ABBD]/60 text-[#035683] rounded-lg gap-1 hover:bg-[#00ABBD]/10"
               >
                 <Eye className="w-3.5 h-3.5 text-[#00ABBD]" />
-                Ver en Modal de Auditoría
+                Ver en Modal de Contabilidad
               </Button>
             </div>
 
@@ -1014,7 +1031,10 @@ export function AprobacionPasajes() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {es_mentor && (
+            <InsigniaBecariosDesignados cantidad={solicitudes.length} />
+          )}
           {/* Pastilla indicadora idéntica al diseño */}
           <div className="px-4 py-2 rounded-xl bg-[#F8F9FA] border border-[#E5E7EB] text-xs font-mono text-slate-600 font-medium">
             {total_formularios} formularios · {total_pendientes} pendientes
@@ -1036,13 +1056,13 @@ export function AprobacionPasajes() {
         </div>
       </div>
 
-      {/* Barra de Auditoría de Pasajes por Intervalo de Fechas */}
+      {/* Barra de Formulario para Contabilidad de Pasajes por Intervalo de Fechas */}
       <div className="p-3.5 bg-white rounded-2xl border border-[#E5E7EB] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-[#00ABBD]" />
             <span className="text-xs font-bold text-[#035683] uppercase tracking-wider">
-              Auditoría de Pasajes (Expediente PDF):
+              Formulario para Contabilidad y SRD (Expediente PDF):
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -1090,7 +1110,7 @@ export function AprobacionPasajes() {
             ) : (
               <Printer className="w-3.5 h-3.5 text-[#FFB600]" />
             )}
-            <span>Extraer Reporte PDF para Auditoría</span>
+            <span>Extraer Reporte PDF para Contabilidad</span>
           </Button>
         </div>
       </div>

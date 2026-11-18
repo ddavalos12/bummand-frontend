@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
+import { usarBecariosDesignadosMentor } from "@/lib/filtro-mentor";
+import { InsigniaBecariosDesignados } from "@/components/ui/insignia-becarios-designados";
 import { useTiempoReal } from "@/hooks/use-tiempo-real";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import { exportarSabanaEvaluacionesExcel } from "@/lib/generador-excel-cliente";
@@ -73,6 +75,7 @@ const OPCIONES_FILTRO_BECA: OpcionCombobox[] = [
 ];
 
 export function SabanaConsolidadoSemestral() {
+  const { es_mentor, filtrarPorMentor } = usarBecariosDesignadosMentor();
   const [registros_sabana, set_registros_sabana] =
     useState<BecarioEvaluacionSemestral[]>(BECARIOS_SEMESTRE_II);
   const [busqueda, set_busqueda] = useState<string>("");
@@ -115,8 +118,23 @@ export function SabanaConsolidadoSemestral() {
     },
   });
 
+  const registros_sabana_para_rol = useMemo(
+    () => filtrarPorMentor(registros_sabana),
+    [registros_sabana, filtrarPorMentor]
+  );
+
+  const notas_ceti_para_rol = useMemo(
+    () => filtrarPorMentor(NOTAS_CETI_SEMESTRE_II),
+    [filtrarPorMentor]
+  );
+
+  const evaluaciones_mentores_para_rol = useMemo(
+    () => filtrarPorMentor(EVALUACIONES_MENTORES_SEMESTRE_II),
+    [filtrarPorMentor]
+  );
+
   // Filtrado de becarios
-  const becarios_filtrados = registros_sabana.filter((b) => {
+  const becarios_filtrados = registros_sabana_para_rol.filter((b) => {
     const coincide_busqueda =
       b.nombre_completo.toLowerCase().includes(busqueda.toLowerCase()) ||
       b.ci.includes(busqueda) ||
@@ -167,13 +185,21 @@ export function SabanaConsolidadoSemestral() {
       <CardHeader className="bg-gradient-to-r from-[#035683] via-[#09477e] to-[#035683] text-white p-6 pb-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Badge className="bg-[#FFB600] text-[#035683] font-bold text-xs uppercase px-2.5 py-0.5">
                 Consolidado Oficial Semestre II
               </Badge>
               <span className="text-xs text-[#00ABBD] font-mono">
-                Evaluacion Semestre II (2) · 21 Becarios Titulares
+                {es_mentor
+                  ? `Evaluacion Semestre II · ${registros_sabana_para_rol.length} Becarios Designados`
+                  : "Evaluacion Semestre II (2) · 21 Becarios Titulares"}
               </span>
+              {es_mentor && (
+                <InsigniaBecariosDesignados
+                  cantidad={registros_sabana_para_rol.length}
+                  className="bg-white/15 text-white border-white/30"
+                />
+              )}
             </div>
             <CardTitle className="text-xl md:text-2xl font-bold font-display text-white">
               Sábana Consolidada Semestral y Registro Central de Notas
@@ -268,7 +294,7 @@ export function SabanaConsolidadoSemestral() {
                 />
 
                 <Badge variant="outline" className="font-mono text-xs shrink-0 self-center">
-                  {becarios_filtrados.length} / {registros_sabana.length}
+                  {becarios_filtrados.length} / {registros_sabana_para_rol.length}
                 </Badge>
               </div>
             </div>
@@ -371,7 +397,7 @@ export function SabanaConsolidadoSemestral() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {registros_sabana.map((b) => (
+                  {registros_sabana_para_rol.map((b) => (
                     <TableRow key={b.id} className="hover:bg-slate-50 border-b border-[#E5E7EB]/60">
                       <TableCell className="font-bold text-[#035683]">{b.nombre_completo}</TableCell>
                       <TableCell className="text-slate-700">{b.comentario_academico || "-"}</TableCell>
@@ -432,7 +458,7 @@ export function SabanaConsolidadoSemestral() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {NOTAS_CETI_SEMESTRE_II.map((c) => (
+                  {notas_ceti_para_rol.map((c) => (
                     <TableRow key={c.id} className="hover:bg-slate-50 border-b border-[#E5E7EB]/60">
                       <TableCell className="font-semibold text-slate-800 whitespace-nowrap">
                         {c.nombre_completo}
@@ -466,7 +492,7 @@ export function SabanaConsolidadoSemestral() {
           {/* ============================================================== */}
           <TabsContent value="mentores" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {EVALUACIONES_MENTORES_SEMESTRE_II.map((em) => (
+              {evaluaciones_mentores_para_rol.map((em) => (
                 <div
                   key={em.id}
                   className="p-4 bg-slate-50 border border-[#E5E7EB] rounded-xl space-y-3 text-xs"

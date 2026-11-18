@@ -369,7 +369,7 @@ export function exportarAuditoriaAsistenciaExcel(
     descargarExcelInstitucional({
       nombre_archivo: `Corte_Mensual_Asistencia_${periodo.replace(/\s+/g, "_")}.xls`,
       titulo_reporte: "CORTE MENSUAL DE ASISTENCIA Y CUMPLIMIENTO DE HORAS",
-      subtitulo: `Periodo: ${periodo} · Auditoría Institucional BUMAND`,
+      subtitulo: `Periodo: ${periodo} · Contabilidad Institucional BUMAND`,
       columnas: [
         "N°",
         "Becario",
