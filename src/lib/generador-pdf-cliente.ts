@@ -519,7 +519,7 @@ export function generarPdfExpedienteRecorridos(
 
   agregarMembreteInstitucional(
     doc,
-    "FORMULARIO PARA CONTABILIDAD Y SRD — EXPEDIENTE DE PASAJES",
+    "FORMULARIO PARA CONTABILIDAD Y RSD — EXPEDIENTE DE PASAJES",
     `Liquidación mensual del 80% de pasajes y cálculo líquido descontando multas de asistencia · Periodo: ${mes}`
   );
 
@@ -615,10 +615,10 @@ export function generarPdfExpedienteRecorridos(
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
   doc.text(`TOTAL (100%): Bs ${total_gastado.toFixed(2)} (40 Tramos) · 80% RECONOCIDO: Bs ${total_subsidio.toFixed(2)}`, 18, y_resumen + 6.5);
-  doc.text(`(-) MULTAS ASISTENCIA: Bs ${multas_asistencia.toFixed(2)} · LÍQUIDO PAGABLE (NETO SRD): Bs ${liquido_pagable.toFixed(2)}`, 18, y_resumen + 12.5);
+  doc.text(`(-) MULTAS ASISTENCIA: Bs ${multas_asistencia.toFixed(2)} · LÍQUIDO PAGABLE (NETO RSD): Bs ${liquido_pagable.toFixed(2)}`, 18, y_resumen + 12.5);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(6.5);
-  doc.text("Regla del día 24 verificada · Formulario para Contabilidad y SRD", 132, y_resumen + 12.5);
+  doc.text("Regla del día 24 verificada · Formulario para Contabilidad y RSD", 132, y_resumen + 12.5);
 
   agregarPiePaginaYFirmas(doc, false);
   return doc.output("blob");
@@ -799,7 +799,7 @@ export function generarPdfAuditoriaIntervalo(
 }
 
 // ============================================================================
-// 9. FORMULARIO PARA CONTABILIDAD Y SRD — LIQUIDACIÓN GENERAL DE PASAJES
+// 9. FORMULARIO PARA CONTABILIDAD Y RSD — LIQUIDACIÓN GENERAL DE PASAJES
 // ============================================================================
 export function generarPdfPasajesGeneral(
   fecha_inicio = "2026-10-01",
@@ -808,7 +808,7 @@ export function generarPdfPasajesGeneral(
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   agregarMembreteInstitucional(
     doc,
-    "FORMULARIO PARA CONTABILIDAD Y SRD — LIQUIDACIÓN DE PASAJES",
+    "FORMULARIO PARA CONTABILIDAD Y RSD — LIQUIDACIÓN DE PASAJES",
     `Liquidación mensual del 80% de pasajes y cálculo líquido descontando multas de asistencia · Intervalo: ${fecha_inicio} al ${fecha_fin}`,
     true
   );
@@ -818,7 +818,7 @@ export function generarPdfPasajesGeneral(
     const gasto_total = 120.0;
     const subsidio_80 = 96.0;
     const multas_bs = 0.0;
-    const liquido_srd = Math.max(0, subsidio_80 - multas_bs);
+    const liquido_rsd = Math.max(0, subsidio_80 - multas_bs);
     return [
       String(idx + 1),
       b.nombre,
@@ -828,14 +828,14 @@ export function generarPdfPasajesGeneral(
       `Bs ${gasto_total.toFixed(2)}`,
       `Bs ${subsidio_80.toFixed(2)}`,
       `Bs ${multas_bs.toFixed(2)}`,
-      `Bs ${liquido_srd.toFixed(2)}`,
+      `Bs ${liquido_rsd.toFixed(2)}`,
       "APROBADO ADMIN",
     ];
   });
 
   autoTable(doc, {
     startY: 38,
-    head: [["#", "Estudiante Becario", "C.I.", "Unidad Asignada", "Tramos", "Total (100%)", "80% Reconocido", "(-) Multas Asist.", "Líquido Pagable (Neto SRD)", "Estado"]],
+    head: [["#", "Estudiante Becario", "C.I.", "Unidad Asignada", "Tramos", "Total (100%)", "80% Reconocido", "(-) Multas Asist.", "Líquido Pagable (Neto RSD)", "Estado"]],
     body: filas,
     theme: "striped",
     headStyles: {

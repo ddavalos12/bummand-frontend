@@ -182,6 +182,7 @@ export const RUTAS_API = {
     PASAJES_GENERAL: '/pdf/pasajes-general',
     JUSTIFICACIONES_GENERAL: '/pdf/justificaciones-general',
     ASISTENCIA_GENERAL: '/pdf/asistencia-general',
+    ASISTENCIA_ESCUELA_LIDERES: '/pdf/asistencia-escuela-lideres',
   },
   NOTIFICACIONES: {
     BASE: '/notificaciones',

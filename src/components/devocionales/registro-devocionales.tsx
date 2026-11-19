@@ -244,13 +244,20 @@ export function RegistroDevocionales() {
   const es_admin = usuario?.rol === "administrador";
 
   // Estados de Citas y Supervisados
-  const [citas_seguimiento, set_citas_seguimiento] = useState<CitaSeguimiento[]>(CITAS_SEGUIMIENTO_SEMILLA);
-  const [becarios_supervisados, set_becarios_supervisados] = useState<BecarioSupervisado[]>(BECARIOS_SUPERVISADOS_SEMILLA);
+  const [citas_seguimiento, set_citas_seguimiento] = useState<CitaSeguimiento[]>([]);
+  const [becarios_supervisados, set_becarios_supervisados] = useState<BecarioSupervisado[]>([]);
   const [cargando_citas, set_cargando_citas] = useState<boolean>(false);
 
-  // Estados de Modales de Citas
+  // Estados de Modales de Citas y Envío de Versículo/Devocional por Mentor
   const [modal_dar_cita_abierto, set_modal_dar_cita_abierto] = useState<boolean>(false);
   const [modal_acuerdos_abierto, set_modal_acuerdos_abierto] = useState<boolean>(false);
+  const [modal_enviar_versiculo_abierto, set_modal_enviar_versiculo_abierto] = useState<boolean>(false);
+  const [enviando_versiculo_mentor, set_enviando_versiculo_mentor] = useState<boolean>(false);
+  const [mentor_dev_becario_id, set_mentor_dev_becario_id] = useState<string>("");
+  const [mentor_dev_cita, set_mentor_dev_cita] = useState<string>("Josué 1:9");
+  const [mentor_dev_titulo, set_mentor_dev_titulo] = useState<string>("Palabra de Aliento para tu Semana");
+  const [mentor_dev_reflexion, set_mentor_dev_reflexion] = useState<string>("");
+  const [mentor_dev_oracion, set_mentor_dev_oracion] = useState<string>("Oración por sabiduría, fortaleza académica y servicio diaconal.");
   const [cita_seleccionada_acuerdos, set_cita_seleccionada_acuerdos] = useState<CitaSeguimiento | null>(null);
 
   // Formulario Dar Cita
@@ -291,17 +298,46 @@ export function RegistroDevocionales() {
   const [mostrar_celebracion, set_mostrar_celebracion] = useState<boolean>(false);
   const [versiculo_diario, set_versiculo_diario] = useState<VersiculoBiblicoWeb | null>(null);
 
+  const mapearCitaDesdeApi = (item: any): CitaSeguimiento => ({
+    id: Number(item.id) || Date.now(),
+    supervisor_id: Number(item.supervisor_id) || undefined,
+    nombre_supervisor:
+      item.nombre_supervisor ||
+      item.supervisor_nombre ||
+      item.supervisor?.nombre ||
+      "Mentor Pastoral",
+    becario_id: Number(item.becario_id) || Number(item.becario?.id) || 0,
+    nombre_becario:
+      item.nombre_becario ||
+      item.becario_nombre ||
+      item.becario?.usuario?.nombre ||
+      item.becario?.nombre ||
+      `Becario #${item.becario_id ?? ""}`,
+    carrera_becario:
+      item.carrera_becario ||
+      item.becario?.carrera ||
+      undefined,
+    fecha_cita: item.fecha_cita ? String(item.fecha_cita).split("T")[0] : "",
+    hora_cita: item.hora_cita ? String(item.hora_cita).slice(0, 5) : "10:00",
+    modalidad: item.modalidad === "virtual" ? "virtual" : "presencial",
+    lugar_o_enlace: item.lugar_o_enlace || "",
+    motivo_retroalimentacion: item.motivo_retroalimentacion || "",
+    cita_biblica: item.cita_biblica || undefined,
+    texto_biblico: item.texto_biblico || undefined,
+    acuerdos_retroalimentacion: item.acuerdos_retroalimentacion ?? null,
+    estado: (item.estado || "programada") as EstadoCitaSeguimiento,
+    creado_en: item.created_at || item.creado_en || undefined,
+  });
+
   // Carga reactiva de citas y cohorte mediante peticionAutenticada
   useEffect(() => {
     let cancelado = false;
     const cargarDatosSeguimiento = async () => {
       set_cargando_citas(true);
       try {
-        const respuesta_citas = await peticionAutenticada<CitaSeguimiento[]>("/api/devocionales/citas");
-        if (!cancelado && Array.isArray(respuesta_citas) && respuesta_citas.length > 0) {
-          set_citas_seguimiento(respuesta_citas);
-        } else if (!cancelado) {
-          set_citas_seguimiento(CITAS_SEGUIMIENTO_SEMILLA);
+        const respuesta_citas = await peticionAutenticada<any[]>("/api/devocionales/citas");
+        if (!cancelado && Array.isArray(respuesta_citas)) {
+          set_citas_seguimiento(respuesta_citas.map(mapearCitaDesdeApi));
         }
       } catch {
         if (!cancelado) set_citas_seguimiento(CITAS_SEGUIMIENTO_SEMILLA);
@@ -309,13 +345,25 @@ export function RegistroDevocionales() {
 
       if (es_supervisor) {
         try {
-          const respuesta_supervisados = await peticionAutenticada<BecarioSupervisado[]>(
+          const respuesta_supervisados = await peticionAutenticada<any[]>(
             "/api/devocionales/mis-supervisados"
           );
           if (!cancelado && Array.isArray(respuesta_supervisados) && respuesta_supervisados.length > 0) {
-            set_becarios_supervisados(respuesta_supervisados);
+            const mapeados: BecarioSupervisado[] = respuesta_supervisados.map((b: any) => ({
+              id: Number(b.id),
+              nombre: b.usuario?.nombre || b.nombre || `Becario #${b.id}`,
+              carrera: b.carrera || "Carrera Universitaria",
+              universidad: b.universidad || undefined,
+              sede: b.ubicacion || b.sede || undefined,
+              horas_acumuladas: Number(b.horas_acumuladas ?? 0),
+              correo: b.usuario?.correo || b.correo || undefined,
+              telefono: b.telefono || undefined,
+            }));
+            set_becarios_supervisados(mapeados);
+            set_formulario_becario_id(String(mapeados[0].id));
+            set_mentor_dev_becario_id(String(mapeados[0].id));
           } else if (!cancelado) {
-            set_becarios_supervisados(BECARIOS_SUPERVISADOS_SEMILLA);
+            set_becarios_supervisados([]);
           }
         } catch {
           if (!cancelado) set_becarios_supervisados(BECARIOS_SUPERVISADOS_SEMILLA);
@@ -336,13 +384,13 @@ export function RegistroDevocionales() {
     async () => {
       try {
         const respuesta = await clienteApi.get<any[]>("/api/devocionales");
-        if (Array.isArray(respuesta) && respuesta.length > 0) {
+        if (Array.isArray(respuesta)) {
           return respuesta.map((item, idx) => ({
             id: item.id || idx + 1,
             becario_id: item.becario_id || idx + 1,
             nombre_becario:
-              item.becario?.nombre ||
               item.becario?.usuario?.nombre ||
+              item.becario?.nombre ||
               item.nombre_becario ||
               `Becario ${idx + 1}`,
             fecha: item.fecha ? String(item.fecha).split("T")[0] : new Date().toISOString().split("T")[0],
@@ -354,18 +402,15 @@ export function RegistroDevocionales() {
             revisado_por_pastor: Boolean(item.revisado_por_pastor && item.comentario_pastoral),
           }));
         }
-        return DEVOCIONALES_INICIALES;
+        return [];
       } catch {
         return DEVOCIONALES_INICIALES;
       }
     },
-    { datos_iniciales: DEVOCIONALES_INICIALES }
+    { datos_iniciales: [] }
   );
 
-  const lista_devocionales =
-    devocionales_servidor && devocionales_servidor.length > 0
-      ? devocionales_servidor
-      : devocionales_locales;
+  const lista_devocionales = devocionales_servidor ?? devocionales_locales;
 
   // Cargar versículo bíblico del día
   useEffect(() => {
@@ -505,10 +550,17 @@ export function RegistroDevocionales() {
     set_modal_dar_cita_abierto(true);
   };
 
-  // Guardar cita de seguimiento programada
+  // Guardar cita de seguimiento programada (payload estricto alineado a CrearCitaSeguimientoDto)
   const manejarAgendarCita = async () => {
     const becario_id_num = Number(formulario_becario_id);
     const becario_encontrado = becarios_supervisados.find((b) => b.id === becario_id_num);
+
+    if (!becario_id_num) {
+      toast.error("Seleccione un becario", {
+        description: "Debe elegir un becario supervisado para agendar la cita.",
+      });
+      return;
+    }
 
     if (!formulario_fecha_cita || !formulario_hora_cita) {
       toast.error("Datos incompletos", {
@@ -526,44 +578,83 @@ export function RegistroDevocionales() {
 
     set_guardando_cita(true);
 
-    const nueva_cita_payload: CitaSeguimiento = {
-      id: Date.now(),
-      supervisor_id: usuario?.id || 10,
-      nombre_supervisor: usuario?.nombre || "Mentor Pastoral",
+    const payload_api = {
       becario_id: becario_id_num,
-      nombre_becario: becario_encontrado?.nombre || "Becario Supervisado",
-      carrera_becario: becario_encontrado?.carrera || "Carrera Institucional",
       fecha_cita: formulario_fecha_cita,
       hora_cita: formulario_hora_cita,
       modalidad: formulario_modalidad,
-      lugar_o_enlace: formulario_lugar_o_enlace.trim(),
+      lugar_o_enlace: formulario_lugar_o_enlace.trim() || "Oficina Diaconía - Sala de Supervisión Pastoral",
       motivo_retroalimentacion: formulario_motivo.trim(),
-      cita_biblica: formulario_cita_biblica.trim(),
-      texto_biblico: formulario_texto_biblico.trim(),
-      acuerdos_retroalimentacion: null,
-      estado: "programada",
-      creado_en: new Date().toISOString(),
+      ...(formulario_cita_biblica.trim() ? { cita_biblica: formulario_cita_biblica.trim() } : {}),
     };
 
     try {
-      await peticionAutenticada("/api/devocionales/citas", {
+      const cita_guardada = await peticionAutenticada<any>("/api/devocionales/citas", {
         method: "POST",
-        body: JSON.stringify(nueva_cita_payload),
+        body: JSON.stringify(payload_api),
       });
-    } catch {
-      // Fallback reactivo optimista local
+
+      const cita_mapeada = mapearCitaDesdeApi({
+        ...cita_guardada,
+        nombre_becario: cita_guardada?.becario?.usuario?.nombre || becario_encontrado?.nombre,
+        carrera_becario: cita_guardada?.becario?.carrera || becario_encontrado?.carrera,
+        texto_biblico: formulario_texto_biblico.trim() || undefined,
+      });
+
+      set_citas_seguimiento((prev) => [cita_mapeada, ...prev.filter((c) => c.id !== cita_mapeada.id)]);
+      set_modal_dar_cita_abierto(false);
+      set_formulario_motivo("");
+      set_mostrar_celebracion(true);
+
+      toast.success("Cita y versículo enviados al becario", {
+        description: `Se agendó la cita con ${cita_mapeada.nombre_becario} (${formulario_fecha_cita} ${formulario_hora_cita}) y ya está visible en su app móvil.`,
+      });
+    } catch (error) {
+      toast.error("No se pudo guardar la cita en el servidor", {
+        description: error instanceof Error ? error.message : "Verifica tu conexión y vuelve a intentar.",
+      });
     } finally {
       set_guardando_cita(false);
     }
+  };
 
-    set_citas_seguimiento((prev) => [nueva_cita_payload, ...prev]);
-    set_modal_dar_cita_abierto(false);
-    set_formulario_motivo("");
-    set_mostrar_celebracion(true);
+  // Enviar versículo / devocional directo del mentor a la APK del becario
+  const manejarEnviarVersiculoMentor = async () => {
+    const becario_id_num = Number(mentor_dev_becario_id || formulario_becario_id);
+    if (!becario_id_num) {
+      toast.error("Seleccione un becario supervisado");
+      return;
+    }
+    if (!mentor_dev_cita.trim() || !mentor_dev_titulo.trim() || !mentor_dev_reflexion.trim()) {
+      toast.error("Complete el pasaje bíblico, título y mensaje devocional");
+      return;
+    }
 
-    toast.success("Cita de seguimiento agendada exitosamente", {
-      description: `Se agendó la cita con ${nueva_cita_payload.nombre_becario} para el ${formulario_fecha_cita} a las ${formulario_hora_cita}.`,
-    });
+    set_enviando_versiculo_mentor(true);
+    try {
+      await clienteApi.post("/api/devocionales", {
+        becario_id: becario_id_num,
+        fecha: new Date().toISOString().split("T")[0],
+        cita_biblica: mentor_dev_cita.trim(),
+        titulo: mentor_dev_titulo.trim(),
+        reflexion: mentor_dev_reflexion.trim(),
+        oracion_peticion: mentor_dev_oracion.trim() || "Acompañamiento pastoral de tu mentor.",
+      });
+      invalidar();
+      set_modal_enviar_versiculo_abierto(false);
+      set_mentor_dev_reflexion("");
+      set_mostrar_celebracion(true);
+      const becario_obj = becarios_supervisados.find((b) => b.id === becario_id_num);
+      toast.success("Versículo / devocional enviado al becario", {
+        description: `${becario_obj?.nombre || "El becario"} ya puede verlo en su app móvil (Devocionales y Notificaciones).`,
+      });
+    } catch (error) {
+      toast.error("No se pudo enviar el versículo/devocional", {
+        description: error instanceof Error ? error.message : "Error de comunicación con el servidor.",
+      });
+    } finally {
+      set_enviando_versiculo_mentor(false);
+    }
   };
 
   // Guardar acuerdos de retroalimentación de cita
@@ -724,8 +815,21 @@ export function RegistroDevocionales() {
               </p>
             </div>
 
-            {/* Botón Principal Destacado: Dar Cita a Supervisado */}
-            <div className="flex items-center gap-3 shrink-0">
+            {/* Botones Principales del Mentor */}
+            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (!mentor_dev_becario_id && becarios_supervisados.length > 0) {
+                    set_mentor_dev_becario_id(String(becarios_supervisados[0].id));
+                  }
+                  set_modal_enviar_versiculo_abierto(true);
+                }}
+                className="border-[#00ABBD] text-[#00808E] bg-[#00ABBD]/5 hover:bg-[#00ABBD]/15 rounded-xl shadow-xs px-4 h-10 text-xs font-semibold gap-2 transition-all cursor-pointer"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>Enviar Versículo / Devocional</span>
+              </Button>
               <Button
                 onClick={() => {
                   set_formulario_motivo("");
@@ -1599,6 +1703,116 @@ export function RegistroDevocionales() {
               className="bg-[#007BBE] hover:bg-[#035683] text-white rounded-xl shadow-xs text-xs font-bold"
             >
               {guardando_cita ? "Agendando..." : "Confirmar y Notificar Cita"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL EXTRA: ENVIAR VERSÍCULO / DEVOCIONAL A UN SUPERVISADO (Exclusivo Mentor) */}
+      <Dialog open={modal_enviar_versiculo_abierto} onOpenChange={set_modal_enviar_versiculo_abierto}>
+        <DialogContent
+          showCloseButton={false}
+          className="sm:max-w-[560px] max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl border-[#E5E7EB] bg-white shadow-2xl"
+        >
+          <DialogHeader className="p-6 pb-4 border-b border-[#E5E7EB] shrink-0 bg-white">
+            <DialogTitle className="flex items-center gap-2 text-[#007BBE] text-base sm:text-lg font-bold">
+              <BookOpen className="w-5 h-5 text-[#00ABBD]" />
+              Enviar Versículo / Devocional al Becario (APK)
+            </DialogTitle>
+          </DialogHeader>
+
+          <DialogBody className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0 text-xs">
+            <div>
+              <label className="text-xs font-semibold text-gray-700 block mb-1">
+                Becario Supervisado Destinatario *
+              </label>
+              <Select
+                value={mentor_dev_becario_id}
+                onValueChange={(val) => {
+                  if (val) set_mentor_dev_becario_id(val);
+                }}
+              >
+                <SelectTrigger className="rounded-xl border-slate-200 h-9 text-xs bg-white">
+                  <SelectValue placeholder="Seleccione un becario supervisado" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-slate-200">
+                  {becarios_supervisados.map((b) => (
+                    <SelectItem key={b.id} value={String(b.id)} className="text-xs">
+                      {b.nombre} ({b.carrera})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-gray-700 block mb-1">
+                Pasaje Bíblico *
+              </label>
+              <SelectorCitaBiblica
+                valor={mentor_dev_cita}
+                alCambiar={(cita, texto) => {
+                  set_mentor_dev_cita(cita);
+                  if (texto && !mentor_dev_reflexion.trim()) {
+                    set_mentor_dev_reflexion(`«${texto}»\n\nPalabra de aliento de tu mentor: `);
+                  }
+                }}
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-gray-700 block mb-1">
+                Título / Tema *
+              </label>
+              <Input
+                value={mentor_dev_titulo}
+                onChange={(e) => set_mentor_dev_titulo(e.target.value)}
+                placeholder="Ej. Fortaleza y Dirección para tus Exámenes"
+                className="text-xs rounded-xl border-slate-200 h-9"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-gray-700 block mb-1">
+                Mensaje Devocional / Reflexión del Mentor *
+              </label>
+              <Textarea
+                rows={4}
+                value={mentor_dev_reflexion}
+                onChange={(e) => set_mentor_dev_reflexion(e.target.value)}
+                placeholder="Escribe la reflexión o palabra de ánimo que llegará a la app móvil del becario..."
+                className="text-xs rounded-xl border-slate-200"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-gray-700 block mb-1">
+                Motivo de Oración
+              </label>
+              <Input
+                value={mentor_dev_oracion}
+                onChange={(e) => set_mentor_dev_oracion(e.target.value)}
+                placeholder="Oración por sabiduría y bendición"
+                className="text-xs rounded-xl border-slate-200 h-9"
+              />
+            </div>
+          </DialogBody>
+
+          <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA]/90 shrink-0 mt-auto flex sm:justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => set_modal_enviar_versiculo_abierto(false)}
+              className="rounded-xl text-xs"
+              disabled={enviando_versiculo_mentor}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={manejarEnviarVersiculoMentor}
+              disabled={enviando_versiculo_mentor}
+              className="bg-[#007BBE] hover:bg-[#035683] text-white rounded-xl shadow-xs text-xs font-bold"
+            >
+              {enviando_versiculo_mentor ? "Enviando..." : "Enviar a la App Móvil"}
             </Button>
           </DialogFooter>
         </DialogContent>

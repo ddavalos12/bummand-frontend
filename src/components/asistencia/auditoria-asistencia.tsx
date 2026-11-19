@@ -690,6 +690,30 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
     }
   };
 
+  const manejarDescargarPdfEscuelaLideres = async () => {
+    try {
+      set_descargando_pdf_auditoria(true);
+      toast.info("Generando Reporte de Asistencia de Escuela de Líderes...", {
+        description: `Todos los becarios · Entrada 14:30 · Enlazado con multas y permisos (${fecha_inicio_auditoria} a ${fecha_fin_auditoria}).`,
+      });
+
+      const endpoint = `/pdf/asistencia-escuela-lideres?fecha_inicio=${fecha_inicio_auditoria}&fecha_fin=${fecha_fin_auditoria}`;
+      const nombre_archivo = `Asistencia_Escuela_Lideres_Multas_Permisos_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
+
+      await descargarPdfConResiliencia(endpoint, nombre_archivo, "asistencia_general", {
+        modulo: "escuela_lideres",
+        fecha_inicio: fecha_inicio_auditoria,
+        fecha_fin: fecha_fin_auditoria,
+      });
+
+      toast.success("Reporte de Asistencia de Escuela de Líderes descargado");
+    } catch {
+      toast.error("Error al extraer reporte PDF de Escuela de Líderes");
+    } finally {
+      set_descargando_pdf_auditoria(false);
+    }
+  };
+
   // Estados para Llamada de Lista en Vivo (Viernes de Formación / Práctica)
   const [modal_lista_vivo_abierto, set_modal_lista_vivo_abierto] = useState<boolean>(false);
   const [lista_llamada_vivo, set_lista_llamada_vivo] = useState([
@@ -1157,6 +1181,22 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
           >
             <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
             <span>Exportar Excel</span>
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={descargando_pdf_auditoria}
+            onClick={manejarDescargarPdfEscuelaLideres}
+            className="h-8 px-3 border-indigo-400 text-indigo-800 bg-indigo-50/70 hover:bg-indigo-100 font-bold text-xs rounded-xl shadow-xs gap-1.5 cursor-pointer"
+            title="Descargar Asistencia de Escuela de Líderes (todos los becarios, entrada 14:30) enlazado con multas y permisos"
+          >
+            {descargando_pdf_auditoria ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600" />
+            ) : (
+              <Printer className="w-3.5 h-3.5 text-indigo-600" />
+            )}
+            <span>Asistencia Escuela de Líderes</span>
           </Button>
 
           <Button
@@ -2457,6 +2497,8 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   onClick={() => {
                     set_manual_tipo_actividad("escuela_lideres");
                     set_manual_sede(SEDES_POR_ACTIVIDAD.escuela_lideres[0]);
+                    set_manual_hora_ingreso("14:30");
+                    set_manual_hora_salida("17:30");
                   }}
                   className={`p-2.5 rounded-xl border text-xs font-semibold text-center transition-all ${
                     manual_tipo_actividad === "escuela_lideres"

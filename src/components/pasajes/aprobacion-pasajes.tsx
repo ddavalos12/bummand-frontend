@@ -56,7 +56,7 @@ import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
-import { exportarFormularioContabilidadSrdExcel } from "@/lib/generador-excel-cliente";
+import { exportarFormularioContabilidadRsdExcel } from "@/lib/generador-excel-cliente";
 import { useConsulta } from "@/hooks/useConsulta";
 import { useTiempoReal } from "@/hooks/useTiempoReal";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
@@ -248,7 +248,7 @@ export function AprobacionPasajes() {
   const [fecha_inicio_auditoria, set_fecha_inicio_auditoria] = useState<string>("2026-10-01");
   const [fecha_fin_auditoria, set_fecha_fin_auditoria] = useState<string>("2026-10-31");
   const [descargando_pdf_auditoria, set_descargando_pdf_auditoria] = useState<boolean>(false);
-  const [descontar_multas_srd, set_descontar_multas_srd] = useState<boolean>(true);
+  const [descontar_multas_rsd, set_descontar_multas_rsd] = useState<boolean>(true);
 
   const manejarDescargarPdfAuditoria = async () => {
     try {
@@ -258,7 +258,7 @@ export function AprobacionPasajes() {
       });
 
       const endpoint = `${RUTAS_API.PDF.PASAJES_GENERAL}?fecha_inicio=${fecha_inicio_auditoria}&fecha_fin=${fecha_fin_auditoria}`;
-      const nombre_archivo = `Formulario_Contabilidad_SRD_Pasajes_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
+      const nombre_archivo = `Formulario_Contabilidad_RSD_Pasajes_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
 
       await descargarPdfConResiliencia(
         endpoint,
@@ -725,8 +725,8 @@ export function AprobacionPasajes() {
               size="sm"
               variant="outline"
               onClick={() => {
-                exportarFormularioContabilidadSrdExcel([solicitud_activa], solicitud_activa.periodo, descontar_multas_srd);
-                toast.success("Excel de Contabilidad y SRD exportado");
+                exportarFormularioContabilidadRsdExcel([solicitud_activa], solicitud_activa.periodo, descontar_multas_rsd);
+                toast.success("Excel de Contabilidad y RSD exportado");
               }}
               className="h-8 px-2.5 text-xs font-bold border-emerald-600 text-emerald-700 hover:bg-emerald-50 rounded-xl gap-1.5 shadow-2xs"
               title="Exportar liquidación individual a Excel (.xls)"
@@ -902,14 +902,14 @@ export function AprobacionPasajes() {
                 </div>
                 <div>
                   <span className="text-slate-500 font-medium block">(-) Multas Asistencia:</span>
-                  <span className={`font-mono font-bold ${(descontar_multas_srd ? (solicitud_activa.multas_asistencia_bs || 0) : 0) > 0 ? "text-rose-600" : "text-slate-500"}`}>
-                    Bs {(descontar_multas_srd ? (solicitud_activa.multas_asistencia_bs || 0) : 0).toFixed(2)}
+                  <span className={`font-mono font-bold ${(descontar_multas_rsd ? (solicitud_activa.multas_asistencia_bs || 0) : 0) > 0 ? "text-rose-600" : "text-slate-500"}`}>
+                    Bs {(descontar_multas_rsd ? (solicitud_activa.multas_asistencia_bs || 0) : 0).toFixed(2)}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-500 font-medium block">Líquido Pagable (Neto SRD):</span>
+                  <span className="text-slate-500 font-medium block">Líquido Pagable (Neto RSD):</span>
                   <span className="font-mono font-bold text-base text-emerald-700">
-                    Bs {Math.max(0, (solicitud_activa.monto_devolucion_centavos / 100) - (descontar_multas_srd ? (solicitud_activa.multas_asistencia_bs || 0) : 0)).toFixed(2)}
+                    Bs {Math.max(0, (solicitud_activa.monto_devolucion_centavos / 100) - (descontar_multas_rsd ? (solicitud_activa.multas_asistencia_bs || 0) : 0)).toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -1055,10 +1055,10 @@ export function AprobacionPasajes() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold font-display text-[#0F172A] tracking-tight">
-            Pasajes — Contabilidad y SRD
+            Pasajes — Contabilidad y RSD
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Liquidación mensual del 80% de pasajes y cálculo líquido descontando multas de asistencia para Contabilidad y SRD
+            Liquidación mensual del 80% de pasajes y cálculo líquido descontando multas de asistencia para Contabilidad y RSD
           </p>
         </div>
 
@@ -1093,7 +1093,7 @@ export function AprobacionPasajes() {
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-[#00ABBD]" />
             <span className="text-xs font-bold text-[#035683] uppercase tracking-wider">
-              Formulario para Contabilidad y SRD (Expediente PDF):
+              Formulario para Contabilidad y RSD (Expediente PDF):
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -1117,12 +1117,12 @@ export function AprobacionPasajes() {
             size="sm"
             variant="outline"
             onClick={() => {
-              exportarFormularioContabilidadSrdExcel(
+              exportarFormularioContabilidadRsdExcel(
                 solicitudes_filtradas,
                 `${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}`,
-                descontar_multas_srd
+                descontar_multas_rsd
               );
-              toast.success("Formulario para Contabilidad y SRD exportado en Excel (.xls)");
+              toast.success("Formulario para Contabilidad y RSD exportado en Excel (.xls)");
             }}
             className="h-8 px-3 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold text-xs rounded-xl shadow-xs gap-1.5 cursor-pointer"
           >
@@ -1162,7 +1162,7 @@ export function AprobacionPasajes() {
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
-              <span>Formulario para Contabilidad y SRD</span>
+              <span>Formulario para Contabilidad y RSD</span>
               <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
                 subpestana === "planillas" ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
               }`}>
@@ -1272,13 +1272,13 @@ export function AprobacionPasajes() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <CardTitle className="text-base font-bold text-[#0F172A] flex items-center gap-2">
-                    Formulario para Contabilidad y SRD
+                    Formulario para Contabilidad y RSD
                     <Badge variant="outline" className="text-xs font-mono border-slate-200 text-slate-500">
                       {solicitudes_filtradas.length} de {solicitudes.length}
                     </Badge>
                   </CardTitle>
                   <CardDescription className="text-xs text-slate-500 mt-0.5">
-                    Liquidación mensual del 80% de pasajes y cálculo líquido descontando multas de asistencia para Contabilidad y SRD
+                    Liquidación mensual del 80% de pasajes y cálculo líquido descontando multas de asistencia para Contabilidad y RSD
                   </CardDescription>
                 </div>
 
@@ -1337,15 +1337,15 @@ export function AprobacionPasajes() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
                 <div className="flex items-center gap-2.5">
                   <Switch
-                    id="switch-descontar-multas-srd"
-                    checked={descontar_multas_srd}
-                    onCheckedChange={set_descontar_multas_srd}
+                    id="switch-descontar-multas-rsd"
+                    checked={descontar_multas_rsd}
+                    onCheckedChange={set_descontar_multas_rsd}
                   />
                   <Label
-                    htmlFor="switch-descontar-multas-srd"
+                    htmlFor="switch-descontar-multas-rsd"
                     className="text-xs font-semibold text-[#035683] cursor-pointer"
                   >
-                    Descontar multas de asistencia en el pago de pasajes (Cálculo SRD)
+                    Descontar multas de asistencia en el pago de pasajes (Cálculo RSD)
                   </Label>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1354,12 +1354,12 @@ export function AprobacionPasajes() {
                     size="sm"
                     variant="outline"
                     onClick={() => {
-                      exportarFormularioContabilidadSrdExcel(
+                      exportarFormularioContabilidadRsdExcel(
                         solicitudes_filtradas,
                         solicitudes_filtradas[0]?.periodo || "2026-10",
-                        descontar_multas_srd
+                        descontar_multas_rsd
                       );
-                      toast.success("Planilla para Contabilidad y SRD exportada a Excel (.xls)");
+                      toast.success("Planilla para Contabilidad y RSD exportada a Excel (.xls)");
                     }}
                     className="h-8 px-3 text-xs font-bold border-emerald-600 text-emerald-700 hover:bg-emerald-50 rounded-xl gap-1.5"
                   >
@@ -1382,7 +1382,7 @@ export function AprobacionPasajes() {
                       <th className="py-3 px-4">TOTAL (100%)</th>
                       <th className="py-3 px-4 text-[#D97706]">80% RECONOCIDO</th>
                       <th className="py-3 px-4 text-rose-600">(-) MULTAS ASISTENCIA</th>
-                      <th className="py-3 px-4 text-emerald-700">LÍQUIDO PAGABLE (NETO SRD)</th>
+                      <th className="py-3 px-4 text-emerald-700">LÍQUIDO PAGABLE (NETO RSD)</th>
                       <th className="py-3 px-4">ESTADO</th>
                       <th className="py-3 px-6 text-right">ACCIONES</th>
                     </tr>
@@ -1402,7 +1402,7 @@ export function AprobacionPasajes() {
                         const es_revisado = item.estado === "revisado_supervisor";
                         const es_aprobado = item.estado === "aprobado" || item.estado === "aprobado_administracion";
                         const monto_80_bs = item.monto_devolucion_centavos / 100;
-                        const multas_bs = descontar_multas_srd ? (item.multas_asistencia_bs ?? 0) : 0;
+                        const multas_bs = descontar_multas_rsd ? (item.multas_asistencia_bs ?? 0) : 0;
                         const liquido_pagable = Math.max(0, monto_80_bs - multas_bs);
 
                         return (
@@ -1480,7 +1480,7 @@ export function AprobacionPasajes() {
                               )}
                             </td>
 
-                            {/* LÍQUIDO PAGABLE (NETO SRD) */}
+                            {/* LÍQUIDO PAGABLE (NETO RSD) */}
                             <td className="py-3.5 px-4 text-xs font-mono font-extrabold text-emerald-700 whitespace-nowrap">
                               Bs {liquido_pagable.toFixed(2)}
                             </td>
@@ -1719,7 +1719,7 @@ export function AprobacionPasajes() {
               </div>
             </div>
 
-            {/* Liquidación institucional del 80% y Neto SRD */}
+            {/* Liquidación institucional del 80% y Neto RSD */}
             <div className="p-4 rounded-xl bg-gradient-to-br from-[#035683] to-[#035683] text-white grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
               <div>
                 <span className="text-[11px] font-mono text-white/80 block">Total Declarado (100%):</span>
@@ -1727,7 +1727,7 @@ export function AprobacionPasajes() {
                   Bs {((solicitud_seleccionada?.monto_total_centavos || 0) / 100).toFixed(2)}
                 </span>
                 <span className="text-[11px] font-mono text-rose-200 block mt-1">
-                  (-) Multas Asistencia: Bs {(descontar_multas_srd ? (solicitud_seleccionada?.multas_asistencia_bs || 0) : 0).toFixed(2)}
+                  (-) Multas Asistencia: Bs {(descontar_multas_rsd ? (solicitud_seleccionada?.multas_asistencia_bs || 0) : 0).toFixed(2)}
                 </span>
               </div>
               <div>
@@ -1740,10 +1740,10 @@ export function AprobacionPasajes() {
               </div>
               <div className="sm:text-right">
                 <span className="text-[11px] font-mono text-emerald-300 font-bold uppercase block">
-                  Líquido Pagable (Neto SRD):
+                  Líquido Pagable (Neto RSD):
                 </span>
                 <span className="text-2xl font-display font-bold text-emerald-300">
-                  Bs {Math.max(0, ((solicitud_seleccionada?.monto_devolucion_centavos || 0) / 100) - (descontar_multas_srd ? (solicitud_seleccionada?.multas_asistencia_bs || 0) : 0)).toFixed(2)}
+                  Bs {Math.max(0, ((solicitud_seleccionada?.monto_devolucion_centavos || 0) / 100) - (descontar_multas_rsd ? (solicitud_seleccionada?.multas_asistencia_bs || 0) : 0)).toFixed(2)}
                 </span>
               </div>
             </div>

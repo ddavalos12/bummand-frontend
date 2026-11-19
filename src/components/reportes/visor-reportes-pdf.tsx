@@ -40,7 +40,7 @@ import {
   BECARIOS_EXPEDIENTES_COMPLETOS,
 } from "@/lib/generador-pdf-cliente";
 import {
-  exportarFormularioContabilidadSrdExcel,
+  exportarFormularioContabilidadRsdExcel,
   exportarSabanaEvaluacionesExcel,
   exportarAuditoriaAsistenciaExcel,
 } from "@/lib/generador-excel-cliente";
@@ -486,7 +486,7 @@ export function VisorReportesPdf() {
                     ⏱️ Auditoría de Asistencia y Puntualidad (Corte Institucional)
                   </SelectItem>
                   <SelectItem value="pasajes">
-                    🚌 Formulario para Contabilidad y SRD (Recorridos y Pasajes)
+                    🚌 Formulario para Contabilidad y RSD (Recorridos y Pasajes)
                   </SelectItem>
                   <SelectItem value="evaluaciones">
                     📋 Evaluaciones Semestrales Institucionales
@@ -575,7 +575,7 @@ export function VisorReportesPdf() {
                       multas_asistencia_bs: 0,
                       estado: "aprobado_administracion",
                     }));
-                    exportarFormularioContabilidadSrdExcel(solicitudes_mock, periodo, true);
+                    exportarFormularioContabilidadRsdExcel(solicitudes_mock, periodo, true);
                   } else if (modulo_auditoria === "evaluaciones") {
                     exportarSabanaEvaluacionesExcel(
                       BECARIOS_EXPEDIENTES_COMPLETOS.map((b) => ({
@@ -674,14 +674,14 @@ export function VisorReportesPdf() {
               <span>Semestre II (2 Páginas)</span>
             </Button>
 
-            {/* Botón: Formulario para Contabilidad y SRD (Pasajes General 80%) */}
+            {/* Botón: Formulario para Contabilidad y RSD (Pasajes General 80%) */}
             <Button
               disabled={descargando_id !== null}
               onClick={() =>
                 descargarReportePuppeteer(
                   "pasajes_general",
                   `/pdf/pasajes-general?fecha_inicio=${fecha_inicio_global}&fecha_fin=${fecha_fin_global}`,
-                  `Formulario_Contabilidad_SRD_Pasajes_${fecha_inicio_global}_al_${fecha_fin_global}.pdf`,
+                  `Formulario_Contabilidad_RSD_Pasajes_${fecha_inicio_global}_al_${fecha_fin_global}.pdf`,
                   "pasajes_general",
                   { fecha_inicio: fecha_inicio_global, fecha_fin: fecha_fin_global }
                 )
@@ -694,7 +694,7 @@ export function VisorReportesPdf() {
               ) : (
                 <Bus className="w-4 h-4 text-[#035683]" />
               )}
-              <span>Formulario Contabilidad y SRD</span>
+              <span>Formulario Contabilidad y RSD</span>
             </Button>
 
             {/* Botón: Reporte de Permisos y Justificaciones */}
@@ -810,27 +810,28 @@ export function VisorReportesPdf() {
               <span>Formulario F-03</span>
             </Button>
 
-            {/* Botón 5: Acta de Evento */}
+            {/* Botón 5: Asistencia de Escuela de Líderes (Enlazado con Multas y Permisos) */}
             <Button
               disabled={descargando_id !== null}
               onClick={() =>
                 descargarReportePuppeteer(
-                  "evento",
-                  "/pdf/evento/1",
-                  "Acta_Asistencia_Evento.pdf",
-                  "evento",
-                  { becario_id: 1 }
+                  "asistencia_escuela_lideres",
+                  `/pdf/asistencia-escuela-lideres?fecha_inicio=${fecha_inicio_global}&fecha_fin=${fecha_fin_global}`,
+                  `Asistencia_Escuela_Lideres_Multas_Permisos_${fecha_inicio_global}_al_${fecha_fin_global}.pdf`,
+                  "asistencia_general",
+                  { fecha_inicio: fecha_inicio_global, fecha_fin: fecha_fin_global }
                 )
               }
               variant="outline"
-              className="h-11 border-slate-300 text-[#035683] font-bold text-xs rounded-xl flex items-center gap-2 justify-center hover:bg-slate-50 cursor-pointer"
+              className="h-11 border-indigo-300 text-indigo-900 bg-indigo-50/50 hover:bg-indigo-100 font-bold text-xs rounded-xl flex items-center gap-2 justify-center cursor-pointer shadow-xs"
+              title="Reporte de Asistencia de Escuela de Líderes (todos los becarios, entrada 14:30) enlazado con multas y permisos"
             >
-              {descargando_id === "evento" ? (
-                <Loader2 className="w-4 h-4 animate-spin text-[#00ABBD]" />
+              {descargando_id === "asistencia_escuela_lideres" ? (
+                <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
               ) : (
-                <Sparkles className="w-4 h-4 text-[#00ABBD]" />
+                <Sparkles className="w-4 h-4 text-indigo-600" />
               )}
-              <span>Acta de Evento</span>
+              <span>Asistencia Escuela de Líderes</span>
             </Button>
           </div>
         </CardContent>
@@ -985,7 +986,7 @@ export function VisorReportesPdf() {
                 size="sm"
                 variant="outline"
                 onClick={() => {
-                  exportarFormularioContabilidadSrdExcel(
+                  exportarFormularioContabilidadRsdExcel(
                     [
                       {
                         becario_nombre: estudiante_actual.nombre,
@@ -1001,7 +1002,7 @@ export function VisorReportesPdf() {
                     mes_individual,
                     true
                   );
-                  toast.success("Excel Contabilidad y SRD del becario exportado");
+                  toast.success("Excel Contabilidad y RSD del becario exportado");
                 }}
                 className="h-9 px-3 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold text-xs rounded-xl shadow-2xs gap-1.5 cursor-pointer"
               >

@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { clienteApi } from "@/lib/cliente-api";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
-import { exportarFormularioContabilidadSrdExcel } from "@/lib/generador-excel-cliente";
+import { exportarFormularioContabilidadRsdExcel } from "@/lib/generador-excel-cliente";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
@@ -230,7 +230,7 @@ export function PasajesVista() {
   const [recorrido_seleccionado, set_recorrido_seleccionado] = useState<RecorridoMensual | null>(null);
   const [descargando_pdf, set_descargando_pdf] = useState<boolean>(false);
   const [multas_vigentes_bs, set_multas_vigentes_bs] = useState<number>(0);
-  const [descontar_multas_srd, set_descontar_multas_srd] = useState<boolean>(true);
+  const [descontar_multas_rsd, set_descontar_multas_rsd] = useState<boolean>(true);
 
   const cargarMisRecorridos = useCallback(async () => {
     try {
@@ -369,8 +369,8 @@ export function PasajesVista() {
   );
   const monto_total_pasajes = recorridos_reembolsables.reduce((acc, r) => acc + r.monto, 0);
   const devolucion_80 = monto_total_pasajes * 0.8;
-  const multas_descontadas_srd = descontar_multas_srd ? multas_vigentes_bs : 0;
-  const liquido_pagable_srd = Math.max(0, devolucion_80 - multas_descontadas_srd);
+  const multas_descontadas_rsd = descontar_multas_rsd ? multas_vigentes_bs : 0;
+  const liquido_pagable_rsd = Math.max(0, devolucion_80 - multas_descontadas_rsd);
 
   // Conteo de puntos capturados
   const total_puntos_capturados =
@@ -1439,10 +1439,10 @@ export function PasajesVista() {
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div>
                   <CardTitle className="font-display text-base text-[#035683]">
-                    Formulario para Contabilidad y SRD
+                    Formulario para Contabilidad y RSD
                   </CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
-                    Liquidación mensual del 80% de pasajes y cálculo líquido descontando multas de asistencia para Contabilidad y SRD.
+                    Liquidación mensual del 80% de pasajes y cálculo líquido descontando multas de asistencia para Contabilidad y RSD.
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1495,7 +1495,7 @@ export function PasajesVista() {
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        exportarFormularioContabilidadSrdExcel(
+                        exportarFormularioContabilidadRsdExcel(
                           [
                             {
                               becario_nombre: usuario?.nombre || "Becario en Sesión",
@@ -1509,9 +1509,9 @@ export function PasajesVista() {
                             },
                           ],
                           solicitud_actual?.periodo || "2026-10",
-                          descontar_multas_srd
+                          descontar_multas_rsd
                         );
-                        toast.success("Formulario Contabilidad/SRD exportado en Excel (.xls)");
+                        toast.success("Formulario Contabilidad/RSD exportado en Excel (.xls)");
                       }}
                       className="h-7 px-2.5 text-[11px] font-bold border-emerald-600 text-emerald-700 hover:bg-emerald-50 rounded-lg gap-1.5 shadow-2xs"
                       title="Exportar liquidación a Excel (.xls)"
@@ -1630,19 +1630,19 @@ export function PasajesVista() {
                 </div>
               </div>
 
-              {/* TARJETA DE CÁLCULO DEL 80% Y LÍQUIDO SRD */}
+              {/* TARJETA DE CÁLCULO DEL 80% Y LÍQUIDO RSD */}
               <div className="p-4 rounded-xl border border-[#E5E7EB] bg-gradient-to-br from-[#035683] to-[#035683] text-white space-y-2.5">
                 <div className="flex items-center justify-between gap-2 pb-2 border-b border-white/15">
                   <Label
                     htmlFor="switch-descontar-multas-vista"
                     className="text-[11px] font-medium text-white/90 cursor-pointer"
                   >
-                    Descontar multas de asistencia en el pago de pasajes (Cálculo SRD)
+                    Descontar multas de asistencia en el pago de pasajes (Cálculo RSD)
                   </Label>
                   <Switch
                     id="switch-descontar-multas-vista"
-                    checked={descontar_multas_srd}
-                    onCheckedChange={set_descontar_multas_srd}
+                    checked={descontar_multas_rsd}
+                    onCheckedChange={set_descontar_multas_rsd}
                   />
                 </div>
                 <div className="flex justify-between items-baseline">
@@ -1662,20 +1662,20 @@ export function PasajesVista() {
                 <div className="flex justify-between items-baseline">
                   <span className="text-xs font-mono text-rose-200">(-) Multas Asistencia:</span>
                   <span className="text-sm font-mono font-bold text-rose-200">
-                    - Bs {multas_descontadas_srd.toFixed(2)}
+                    - Bs {multas_descontadas_rsd.toFixed(2)}
                   </span>
                 </div>
                 <Separator className="bg-white/20 my-1" />
                 <div className="flex justify-between items-baseline">
                   <span className="text-xs font-mono text-emerald-300 font-bold uppercase">
-                    Líquido Pagable (Neto SRD):
+                    Líquido Pagable (Neto RSD):
                   </span>
                   <span className="text-2xl font-display font-bold text-emerald-300">
-                    Bs {liquido_pagable_srd.toFixed(2)}
+                    Bs {liquido_pagable_rsd.toFixed(2)}
                   </span>
                 </div>
                 <p className="text-[10px] font-mono text-white/60 pt-1">
-                  * Liquidación para Contabilidad y SRD conforme a reglamento Diaconía FRIF-IFD.
+                  * Liquidación para Contabilidad y RSD conforme a reglamento Diaconía FRIF-IFD.
                 </p>
               </div>
 

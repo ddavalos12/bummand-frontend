@@ -132,7 +132,7 @@ export function descargarExcelInstitucional({
   document.body.removeChild(enlace);
 }
 
-export function exportarFormularioContabilidadSrdExcel(
+export function exportarFormularioContabilidadRsdExcel(
   solicitudes: Array<Record<string, any>>,
   periodo = "2026-10",
   descontar_multas = true
@@ -188,8 +188,8 @@ export function exportarFormularioContabilidadSrdExcel(
   });
 
   descargarExcelInstitucional({
-    nombre_archivo: `Formulario_Contabilidad_SRD_Pasajes_${periodo.replace(/\s+/g, "_")}.xls`,
-    titulo_reporte: "FORMULARIO PARA CONTABILIDAD Y SRD — LIQUIDACIÓN DE PASAJES",
+    nombre_archivo: `Formulario_Contabilidad_RSD_Pasajes_${periodo.replace(/\s+/g, "_")}.xls`,
+    titulo_reporte: "FORMULARIO PARA CONTABILIDAD Y RSD — LIQUIDACIÓN DE PASAJES",
     subtitulo: `Liquidación mensual del 80% de pasajes y cálculo líquido ${
       descontar_multas ? "descontando multas de asistencia" : "sin descuento de multas"
     } · Periodo: ${periodo}`,
@@ -202,7 +202,7 @@ export function exportarFormularioContabilidadSrdExcel(
       "TOTAL (100%) Bs",
       "80% RECONOCIDO Bs",
       "(-) MULTAS ASISTENCIA Bs",
-      "LÍQUIDO PAGABLE (NETO SRD) Bs",
+      "LÍQUIDO PAGABLE (NETO RSD) Bs",
       "Estado",
     ],
     filas,
