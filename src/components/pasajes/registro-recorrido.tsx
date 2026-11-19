@@ -53,7 +53,7 @@ export interface RutaFrecuente {
 const PARADAS_FRECUENTES: ParadaFrecuente[] = [
   { id: "diaconia_central", nombre: "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
   { id: "diaconia_ceja", nombre: "Agencia Diaconía Ceja (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
-  { id: "escuela_lideres", nombre: "Sede Escuela de Líderes (La Paz)", zona: "La Paz", tarifa_sugerida: "2.60" },
+  { id: "practicas_la_paz", nombre: "Sede Prácticas (La Paz)", zona: "La Paz", tarifa_sugerida: "2.60" },
   { id: "ceja_distribuidor", nombre: "La Ceja — Calle 1 / Puente Distribuidor (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
   { id: "cruce_villa_adela", nombre: "Cruce Villa Adela (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
   { id: "villa_adela", nombre: "Villa Adela, El Alto", zona: "El Alto", tarifa_sugerida: "2.00" },
@@ -153,7 +153,7 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
   const { usuario } = usarAutenticacion();
   const [paso, set_paso] = useState<"ida" | "vuelta">("ida");
   const [tipo_actividad, set_tipo_actividad] = useState<
-    "Prácticas" | "Escuela de Líderes" | "Acciones de Servicio"
+    "Prácticas" | "Acciones de Servicio"
   >("Prácticas");
   const [mostrar_dropdown_origen, set_mostrar_dropdown_origen] = useState(false);
   const [mostrar_dropdown_destino, set_mostrar_dropdown_destino] = useState(false);
@@ -362,7 +362,7 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
   const PARADAS_OFICIALES_COORDENADAS = [
     { nombre: "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)", latitud: -16.50005, longitud: -68.17345 },
     { nombre: "Agencia Diaconía Ceja (El Alto)", latitud: -16.5085, longitud: -68.1630 },
-    { nombre: "Sede Escuela de Líderes (La Paz)", latitud: -16.5042, longitud: -68.1315 },
+    { nombre: "Sede Prácticas (La Paz)", latitud: -16.5042, longitud: -68.1315 },
     { nombre: "La Ceja — Calle 1 / Puente Distribuidor (El Alto)", latitud: -16.5088, longitud: -68.1627 },
     { nombre: "Cruce Villa Adela (El Alto)", latitud: -16.5245, longitud: -68.1885 },
     { nombre: "Villa Adela, El Alto", latitud: -16.5360, longitud: -68.1920 },
@@ -551,8 +551,6 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
   const actividad_clave =
     tipo_actividad === "Prácticas"
       ? "practicas"
-      : tipo_actividad === "Escuela de Líderes"
-      ? "escuela_lideres"
       : "acciones_servicio";
   const modalidad_usuario = (usuario as any)?.modalidad_pasajes || "ida_y_vuelta";
   const config_actividades = (usuario as any)?.configuracion_pasajes_actividades || {};
@@ -749,7 +747,7 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
           <Select
             value={tipo_actividad}
             onValueChange={(val) => {
-              if (val) set_tipo_actividad(val as "Prácticas" | "Escuela de Líderes" | "Acciones de Servicio");
+              if (val) set_tipo_actividad(val as "Prácticas" | "Acciones de Servicio");
             }}
           >
             <SelectTrigger className="w-full bg-white border-[#E5E7EB] h-10 text-xs rounded-xl focus:ring-[#00ABBD]">
@@ -759,14 +757,14 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
               <SelectItem value="Prácticas" etiqueta="Prácticas">
                 <span className="font-semibold text-[#035683]">Prácticas</span> — Desplazamiento a sede asignada
               </SelectItem>
-              <SelectItem value="Escuela de Líderes" etiqueta="Escuela de Líderes">
-                <span className="font-semibold text-amber-700">Escuela de Líderes</span> — Asistencia presencial viernes
-              </SelectItem>
               <SelectItem value="Acciones de Servicio" etiqueta="Acciones de Servicio">
                 <span className="font-semibold text-emerald-700">Acciones de Servicio</span> — Voluntariado y apoyo comunitario
               </SelectItem>
             </SelectContent>
           </Select>
+          <p className="text-[11px] text-slate-600 mt-1.5">
+            Solo se reembolsan pasajes de Prácticas o Acciones de Servicio (no Escuela de Líderes).
+          </p>
         </div>
 
         {/* Selector de Fecha */}

@@ -306,22 +306,68 @@ export class ClienteApi {
   }
 
   public async descargarBlob(ruta: string, opciones?: OpcionesPeticion): Promise<Blob> {
+    const {
+      tiempo_espera_ms = 90000,
+      reintentos: _reintentos,
+      signal,
+      ...opciones_fetch
+    } = opciones || {};
     const ruta_limpia = this.normalizarRuta(ruta);
     const token = typeof window !== "undefined" ? localStorage.getItem("bumand_token") : null;
-    const encabezados = new Headers(opciones?.headers);
+    const encabezados = new Headers(opciones_fetch.headers);
     if (token && !encabezados.has("Authorization")) {
       encabezados.set("Authorization", `Bearer ${token}`);
     }
-    const respuesta = await fetch(`${this.url_base}${ruta_limpia}`, {
-      ...opciones,
-      method: opciones?.method || "GET",
-      headers: encabezados,
-    });
-    if (!respuesta.ok) {
-      const errDetalles = await this.extraerDetallesError(respuesta);
-      throw new ErrorApi(errDetalles.mensaje, respuesta.status, errDetalles.datos, errDetalles.codigo_error);
+
+    const controlador_aborto = new AbortController();
+    const alAbortarExterno = () => controlador_aborto.abort();
+    if (signal) {
+      if (signal.aborted) {
+        controlador_aborto.abort();
+      } else {
+        signal.addEventListener("abort", alAbortarExterno, { once: true });
+      }
     }
-    return respuesta.blob();
+    const temporizador = setTimeout(() => controlador_aborto.abort(), tiempo_espera_ms);
+
+    try {
+      const respuesta = await fetch(`${this.url_base}${ruta_limpia}`, {
+        ...opciones_fetch,
+        method: opciones_fetch.method || "GET",
+        headers: encabezados,
+        signal: controlador_aborto.signal,
+      });
+      if (!respuesta.ok) {
+        const errDetalles = await this.extraerDetallesError(respuesta);
+        throw new ErrorApi(errDetalles.mensaje, respuesta.status, errDetalles.datos, errDetalles.codigo_error);
+      }
+      return await respuesta.blob();
+    } catch (error) {
+      if (error instanceof ErrorApi) {
+        throw error;
+      }
+      const mensaje =
+        error instanceof Error && error.name === "AbortError"
+          ? "Tiempo de espera agotado al descargar el archivo desde el servidor."
+          : error instanceof Error
+          ? error.message
+          : "Error de conexión al descargar el archivo.";
+      throw new ErrorApi(
+        mensaje,
+        0,
+        null,
+        CODIGOS_ERROR.ERR_5001,
+        "CLIENTE_RED_VALIDACION",
+        [mensaje],
+        ruta_limpia,
+        new Date().toISOString()
+      );
+    } finally {
+      clearTimeout(temporizador);
+      if (signal) {
+        signal.removeEventListener("abort", alAbortarExterno);
+      }
+    }
   }
 }
 

@@ -70,6 +70,7 @@ import { RafagaCelebracion } from "@/components/animaciones";
 import { RegistroRecorrido } from "./registro-recorrido";
 import { GestionTarifas } from "./gestion-tarifas";
 import { HistorialParadasEstudiante } from "./historial-paradas-estudiante";
+import { esRecorridoEscuelaLideres } from "./pasajes-vista";
 import { RUTAS_API } from "@/servicios/rutas-api.constantes";
 import { SelectorPlanillaDonacion } from "@/components/reportes/selector-planilla-donacion";
 
@@ -335,8 +336,53 @@ export function AprobacionPasajes() {
 
           return respuesta.map((item, idx) => {
             const id_becario = Number(item.becario_id || item.becario?.id || 0);
-            const total_centavos = Math.round(Number(item.monto_total || 0) * 100) || 3500;
-            const devolucion_centavos = Math.round(Number(item.monto_devolucion || 0) * 100) || 2800;
+            const recorridos_mapeados: RecorridoItem[] = (item.recorridos || []).map((r: any) => ({
+              id: r.id,
+              fecha: r.fecha ? String(r.fecha).split("T")[0] : "2026-03-10",
+              tramo: (r.tramo || "ida") as "ida" | "vuelta",
+              origen: r.origen || "Origen",
+              destino: r.destino || "Destino",
+              tarifa: Number(r.tarifa || 2.5),
+              apoyo_realizado: r.apoyo_realizado || "Apoyo institucional",
+              tiene_gps: Boolean(r.lat_origen || r.lat_destino),
+              calles_declaradas:
+                r.calles_declaradas ||
+                `${r.origen || "Origen"} → Av. Troncal → Parada Central → ${r.destino || "Destino"}`,
+              medio_transporte: r.medio_transporte || "Minibús Urbano",
+              tipo_actividad: r.tipo_actividad || item.tipo_actividad || "Prácticas",
+              detalle_tramos_json: r.detalle_tramos_json,
+            }));
+
+            const tiene_escuela_lideres =
+              esRecorridoEscuelaLideres(item.tipo_actividad) ||
+              recorridos_mapeados.some((r) => esRecorridoEscuelaLideres(r.tipo_actividad));
+            const recorridos_reembolsables = recorridos_mapeados.filter(
+              (r) => !esRecorridoEscuelaLideres(r.tipo_actividad)
+            );
+            const total_reembolsable_centavos = Math.round(
+              recorridos_reembolsables.reduce((acc, r) => acc + Number(r.tarifa || 0), 0) * 100
+            );
+
+            const total_centavos =
+              recorridos_mapeados.length > 0 && tiene_escuela_lideres
+                ? total_reembolsable_centavos
+                : item.monto_total !== undefined && item.monto_total !== null
+                ? Math.round(Number(item.monto_total) * 100)
+                : total_reembolsable_centavos;
+
+            const devolucion_centavos =
+              recorridos_mapeados.length > 0
+                ? tiene_escuela_lideres
+                  ? Math.round(total_reembolsable_centavos * 0.8)
+                  : item.monto_devolucion !== undefined && item.monto_devolucion !== null
+                  ? Math.round(Number(item.monto_devolucion) * 100)
+                  : Math.round(total_reembolsable_centavos * 0.8)
+                : esRecorridoEscuelaLideres(item.tipo_actividad)
+                ? 0
+                : item.monto_devolucion !== undefined && item.monto_devolucion !== null
+                ? Math.round(Number(item.monto_devolucion) * 100)
+                : Math.round(total_centavos * 0.8);
+
             const multas_bs =
               item.multas_asistencia_bs !== undefined
                 ? Number(item.multas_asistencia_bs)
@@ -346,11 +392,11 @@ export function AprobacionPasajes() {
                 ? Number(item.multas_asistencia_centavos)
                 : Math.round(multas_bs * 100);
             const liquido_centavos =
-              item.monto_liquido_pagable_centavos !== undefined
+              !tiene_escuela_lideres && item.monto_liquido_pagable_centavos !== undefined
                 ? Number(item.monto_liquido_pagable_centavos)
                 : Math.max(0, devolucion_centavos - multas_centavos);
             const liquido_bs =
-              item.monto_liquido_pagable !== undefined
+              !tiene_escuela_lideres && item.monto_liquido_pagable !== undefined
                 ? Number(item.monto_liquido_pagable)
                 : Number((liquido_centavos / 100).toFixed(2));
 
@@ -388,22 +434,7 @@ export function AprobacionPasajes() {
               fecha_revision_supervisor: item.fecha_revision_supervisor ? String(item.fecha_revision_supervisor).split("T")[0] : null,
               administrador_nombre: item.administrador_nombre || item.administrador?.nombre || null,
               fecha_aprobacion_admin: item.fecha_aprobacion_admin ? String(item.fecha_aprobacion_admin).split("T")[0] : null,
-              recorridos: (item.recorridos || []).map((r: any) => ({
-                id: r.id,
-                fecha: r.fecha ? String(r.fecha).split("T")[0] : "2026-03-10",
-                tramo: (r.tramo || "ida") as "ida" | "vuelta",
-                origen: r.origen || "Origen",
-                destino: r.destino || "Destino",
-                tarifa: Number(r.tarifa || 2.5),
-                apoyo_realizado: r.apoyo_realizado || "Apoyo institucional",
-                tiene_gps: Boolean(r.lat_origen || r.lat_destino),
-                calles_declaradas:
-                  r.calles_declaradas ||
-                  `${r.origen || "Origen"} → Av. Troncal → Parada Central → ${r.destino || "Destino"}`,
-                medio_transporte: r.medio_transporte || "Minibús Urbano",
-                tipo_actividad: r.tipo_actividad || item.tipo_actividad || "Prácticas",
-                detalle_tramos_json: r.detalle_tramos_json,
-              })),
+              recorridos: recorridos_mapeados,
             };
           });
         }

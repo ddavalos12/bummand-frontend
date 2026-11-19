@@ -125,6 +125,16 @@ export const obtenerEstiloTransporte = (medio?: string) => {
   return "bg-sky-50 text-sky-800 border-sky-300 font-semibold";
 };
 
+export const esRecorridoEscuelaLideres = (tipo_actividad?: string | null): boolean => {
+  if (!tipo_actividad) return false;
+  const normalizado = tipo_actividad
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+  return normalizado.includes("escuela") && normalizado.includes("lider");
+};
+
 export const obtenerPasosCalles = (texto_calles?: string): string[] => {
   if (!texto_calles) return [];
   if (texto_calles.includes("→")) {
@@ -353,8 +363,11 @@ export function PasajesVista() {
   const total_vuelta = calcularTotalTramos(tramos_vuelta);
   const monto_del_dia = total_ida + total_vuelta;
 
-  // Monto acumulado del mes
-  const monto_total_pasajes = recorridos.reduce((acc, r) => acc + r.monto, 0);
+  // Monto acumulado del mes (excluye Escuela de Líderes del reembolso del 80%)
+  const recorridos_reembolsables = recorridos.filter(
+    (r) => !esRecorridoEscuelaLideres(r.tipo_actividad)
+  );
+  const monto_total_pasajes = recorridos_reembolsables.reduce((acc, r) => acc + r.monto, 0);
   const devolucion_80 = monto_total_pasajes * 0.8;
   const multas_descontadas_srd = descontar_multas_srd ? multas_vigentes_bs : 0;
   const liquido_pagable_srd = Math.max(0, devolucion_80 - multas_descontadas_srd);
@@ -467,7 +480,7 @@ export function PasajesVista() {
   const PARADAS_OFICIALES_COORDENADAS = [
     { nombre: "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)", latitud: -16.50005, longitud: -68.17345 },
     { nombre: "Agencia Diaconía Ceja (El Alto)", latitud: -16.5085, longitud: -68.1630 },
-    { nombre: "Sede Escuela de Líderes (La Paz)", latitud: -16.5042, longitud: -68.1315 },
+    { nombre: "Sede Prácticas (La Paz)", latitud: -16.5042, longitud: -68.1315 },
     { nombre: "La Ceja — Calle 1 / Puente Distribuidor (El Alto)", latitud: -16.5088, longitud: -68.1627 },
     { nombre: "Cruce Villa Adela (El Alto)", latitud: -16.5245, longitud: -68.1885 },
     { nombre: "Villa Adela, El Alto", latitud: -16.5360, longitud: -68.1920 },
@@ -1909,7 +1922,7 @@ export function PasajesVista() {
                     </span>
                   </div>
                   <span className="text-xl font-display font-bold text-[#FFB600]">
-                    Bs {(recorrido_seleccionado.monto * 0.8).toFixed(2)}
+                    Bs {(esRecorridoEscuelaLideres(recorrido_seleccionado.tipo_actividad) ? 0 : recorrido_seleccionado.monto * 0.8).toFixed(2)}
                   </span>
                 </div>
               </div>

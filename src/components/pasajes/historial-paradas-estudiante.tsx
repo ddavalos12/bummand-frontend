@@ -42,7 +42,7 @@ import {
   SeleccionadorRangoFechas,
 } from "@/components/ui/seleccionador-fecha";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
-import { obtenerEstiloTransporte } from "./pasajes-vista";
+import { esRecorridoEscuelaLideres, obtenerEstiloTransporte } from "./pasajes-vista";
 
 export interface ItemParadaHistorial {
   id: number;
@@ -150,6 +150,21 @@ export function HistorialParadasEstudiante({
       const endpoint = `/pasajes/estudiante/${id_estudiante}/historial-paradas?${params.toString()}`;
       try {
         const respuesta = await clienteApi.get<RespuestaHistorialParadas>(endpoint);
+        if (
+          Array.isArray(respuesta?.historial) &&
+          respuesta.historial.some((h) => esRecorridoEscuelaLideres(h.tipo_actividad))
+        ) {
+          const gasto_reembolsable = respuesta.historial
+            .filter((h) => !esRecorridoEscuelaLideres(h.tipo_actividad))
+            .reduce((acc, h) => acc + Number(h.tarifa || 0), 0);
+          return {
+            ...respuesta,
+            resumen: {
+              ...respuesta.resumen,
+              devolucion_80_bs: Number((gasto_reembolsable * 0.8).toFixed(2)),
+            },
+          };
+        }
         return respuesta;
       } catch (_err) {
         // Fallback institucional en cliente si no hay conexión local de red
@@ -173,8 +188,8 @@ export function HistorialParadasEstudiante({
           resumen: {
             total_recorridos: 6,
             total_paradas_registradas: 20,
-            gasto_total_bs: 16.5,
-            devolucion_80_bs: 13.2,
+            gasto_total_bs: 16.0,
+            devolucion_80_bs: 12.8,
             paradas_unicas_frecuentes: [
               {
                 nombre: "La Ceja - Calle 1",
@@ -254,8 +269,8 @@ export function HistorialParadasEstudiante({
               calles_declaradas: "Estación Obelisco → Línea Morada → Estación San Jorge",
               paradas_secuencia: ["Obelisco - Mariscal Santa Cruz", "Red Mi Teleférico Línea Morada", "San Jorge - Av. Arce"],
               medio_transporte: "Mi Teleférico",
-              tipo_actividad: "Escuela de Líderes",
-              apoyo_realizado: "Asistencia y apoyo logístico en Escuela de Líderes",
+              tipo_actividad: "Prácticas",
+              apoyo_realizado: "Asistencia y apoyo logístico en sede institucional",
               tarifa: 3.0,
               periodo: "Octubre 2026",
             },
@@ -270,8 +285,8 @@ export function HistorialParadasEstudiante({
               calles_declaradas: "Estación San Jorge → Línea Morada → Estación Obelisco",
               paradas_secuencia: ["San Jorge - Av. Arce", "Red Mi Teleférico Línea Morada", "Obelisco - Mariscal Santa Cruz"],
               medio_transporte: "Mi Teleférico",
-              tipo_actividad: "Escuela de Líderes",
-              apoyo_realizado: "Retorno de taller de liderazgo eclesial",
+              tipo_actividad: "Prácticas",
+              apoyo_realizado: "Retorno de jornada de prácticas en sede institucional",
               tarifa: 3.0,
               periodo: "Octubre 2026",
             },

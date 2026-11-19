@@ -1026,10 +1026,10 @@ export async function descargarPdfConResiliencia(
 ): Promise<void> {
   let blob: Blob | null = null;
 
-  // 1. Intento primario con servidor backend (con timeout ampliado a 20s para reportes complejos)
+  // 1. Intento primario con servidor backend (con timeout ampliado a 90s para reportes complejos)
   try {
     const { clienteApi } = await import("@/lib/cliente-api");
-    blob = await clienteApi.descargarBlob(endpoint, { tiempo_espera_ms: 20000 });
+    blob = await clienteApi.descargarBlob(endpoint, { tiempo_espera_ms: 90000 });
   } catch {
     // Si el backend no responde o no está disponible, activamos el generador cliente de alta fidelidad
     blob = null;

@@ -54,7 +54,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { clienteApi } from "@/lib/cliente-api";
+import { clienteApi, ErrorApi } from "@/lib/cliente-api";
 import {
   normalizarTextoComparacion,
   usarBecariosDesignadosMentor,
@@ -535,6 +535,7 @@ export function EscuelaLideresClassroom({
             titulo: item.titulo || item.titulo_tarea || base?.titulo || `Tarea #${num}`,
             modulo_tematico:
               item.modulo_tematico ||
+              item.modulo ||
               base?.modulo_tematico ||
               "Módulo Formativo Escuela de Líderes",
             descripcion:
@@ -672,6 +673,50 @@ export function EscuelaLideresClassroom({
     set_modal_crear_tarea_abierto(true);
   };
 
+  const extraerMensajeError = (error: unknown, respaldo: string): string => {
+    if (error instanceof ErrorApi && error.message) {
+      return error.message;
+    }
+    if (error instanceof Error && error.message) {
+      return error.message;
+    }
+    return respaldo;
+  };
+
+  const construirDatosCatalogoTarea = (datos: {
+    numero: number;
+    titulo: string;
+    modulo: string;
+    descripcion: string;
+    fecha_limite: string;
+    ponderacion: number;
+    lecturas_pdf: LecturaPdfTarea[];
+    enlaces_lectura: EnlaceLecturaTarea[];
+  }) => {
+    const primera_lectura = datos.lecturas_pdf[0];
+    const primer_enlace = datos.enlaces_lectura[0];
+    return {
+      numero: datos.numero,
+      codigo: `TAREA-${String(datos.numero).padStart(2, "0")}`,
+      titulo: datos.titulo,
+      modulo: datos.modulo,
+      descripcion: datos.descripcion,
+      fecha_limite: datos.fecha_limite,
+      ponderacion: datos.ponderacion,
+      publicada_apk: true,
+      enviar_apk: true,
+      lecturas_pdf: datos.lecturas_pdf,
+      enlaces_lectura: datos.enlaces_lectura,
+      ...(primera_lectura
+        ? {
+            lectura_pdf_url: primera_lectura.url,
+            lectura_pdf_nombre: primera_lectura.nombre,
+          }
+        : {}),
+      ...(primer_enlace ? { enlace_lectura: primer_enlace.url } : {}),
+    };
+  };
+
   const manejarSubirLecturasPdf = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const archivos = e.target.files;
     if (!archivos || archivos.length === 0) return;
@@ -686,9 +731,6 @@ export function EscuelaLideresClassroom({
             ? `${(archivo.size / (1024 * 1024)).toFixed(1)} MB`
             : `${Math.max(1, Math.round(archivo.size / 1024))} KB`;
 
-        let url_final = `/uploads/escuela-lideres/${archivo.name}`;
-        let nombre_final = archivo.name;
-
         try {
           const form_data = new FormData();
           form_data.append("archivo", archivo);
@@ -696,25 +738,27 @@ export function EscuelaLideresClassroom({
             url?: string;
             nombre?: string;
           }>("/evaluaciones/escuela-lideres/catalogo-tareas/subir-lectura", form_data);
-          if (respuesta?.url) {
-            url_final = respuesta.url;
-          }
-          if (respuesta?.nombre) {
-            nombre_final = respuesta.nombre;
-          }
-        } catch {
-          url_final = `/uploads/escuela-lideres/${archivo.name}`;
-        }
 
-        nuevas_lecturas.push({
-          nombre: nombre_final,
-          url: url_final,
-          tamano: tamano_str,
-        });
+          if (!respuesta?.url) {
+            throw new Error("El servidor no devolvió la URL del archivo PDF.");
+          }
+
+          nuevas_lecturas.push({
+            nombre: respuesta.nombre || archivo.name,
+            url: respuesta.url,
+            tamano: tamano_str,
+          });
+        } catch (error) {
+          toast.error(`Error al subir "${archivo.name}"`, {
+            description: extraerMensajeError(error, "No se pudo subir la lectura PDF al servidor."),
+          });
+        }
       }
 
-      set_lecturas_pdf((prev) => [...prev, ...nuevas_lecturas]);
-      toast.success(`${nuevas_lecturas.length} lectura(s) PDF adjuntada(s) para la APK`);
+      if (nuevas_lecturas.length > 0) {
+        set_lecturas_pdf((prev) => [...prev, ...nuevas_lecturas]);
+        toast.success(`${nuevas_lecturas.length} lectura(s) PDF subida(s) y lista(s) para guardar`);
+      }
     } finally {
       set_subiendo_lectura_pdf(false);
       e.target.value = "";
@@ -749,139 +793,137 @@ export function EscuelaLideresClassroom({
     const ponderacion_num = parseFloat(tarea_form_ponderacion) || 8.33;
     set_enviando_tarea_apk(true);
 
-    const payload = {
+    const datos_tarea = construirDatosCatalogoTarea({
       numero: numero_num,
-      tarea_numero: numero_num,
-      codigo: `TAREA-${String(numero_num).padStart(2, "0")}`,
       titulo: tarea_form_titulo.trim(),
-      modulo_tematico: tarea_form_modulo.trim(),
+      modulo: tarea_form_modulo.trim(),
       descripcion: tarea_form_descripcion.trim(),
       fecha_limite: tarea_form_fecha_limite,
       ponderacion: ponderacion_num,
-      publicar_apk: true,
       lecturas_pdf,
       enlaces_lectura,
-    };
+    });
 
     try {
       if (modo_edicion_tarea) {
         try {
-          await clienteApi.put(`/evaluaciones/escuela-lideres/catalogo-tareas/${numero_num}`, payload);
-        } catch {
-          await clienteApi.post("/evaluaciones/escuela-lideres/catalogo-tareas", payload);
+          await clienteApi.put(
+            `/evaluaciones/escuela-lideres/catalogo-tareas/${numero_num}`,
+            datos_tarea
+          );
+        } catch (error_put) {
+          if (error_put instanceof ErrorApi && error_put.codigo_estado === 404) {
+            await clienteApi.post("/evaluaciones/escuela-lideres/catalogo-tareas", datos_tarea);
+          } else {
+            throw error_put;
+          }
         }
       } else {
-        await clienteApi.post("/evaluaciones/escuela-lideres/catalogo-tareas", payload);
+        await clienteApi.post("/evaluaciones/escuela-lideres/catalogo-tareas", datos_tarea);
       }
-    } catch {
-      // Fallback local reactivo si el endpoint aún está sincronizando
+
+      await cargarTareas();
+      set_modal_crear_tarea_abierto(false);
+
+      toast.success(`¡Tarea #${numero_num} publicada para todos los becarios y enviada a la APK!`, {
+        description: `"${datos_tarea.titulo}" ya está disponible en PostgreSQL y en la aplicación móvil BUMAND.`,
+      });
+    } catch (error) {
+      toast.error(`No se pudo guardar la Tarea #${numero_num} ni enviarla a la APK`, {
+        description: extraerMensajeError(error, "Error al sincronizar el catálogo con el servidor."),
+      });
+    } finally {
+      set_enviando_tarea_apk(false);
     }
-
-    set_tareas((prev) => {
-      const existe = prev.some((t) => t.numero === numero_num);
-      if (existe) {
-        return prev.map((t) =>
-          t.numero === numero_num
-            ? {
-                ...t,
-                titulo: payload.titulo,
-                modulo_tematico: payload.modulo_tematico,
-                descripcion: payload.descripcion,
-                fecha_limite: payload.fecha_limite,
-                ponderacion: payload.ponderacion,
-                publicada_apk: true,
-                lecturas_pdf: [...lecturas_pdf],
-                enlaces_lectura: [...enlaces_lectura],
-              }
-            : t
-        );
-      }
-      const nueva: TareaCetiCanonica = {
-        id: Date.now(),
-        numero: numero_num,
-        titulo: payload.titulo,
-        modulo_tematico: payload.modulo_tematico,
-        descripcion: payload.descripcion,
-        fecha_limite: payload.fecha_limite,
-        ponderacion: payload.ponderacion,
-        estado: "pendiente",
-        publicada_apk: true,
-        lecturas_pdf: [...lecturas_pdf],
-        enlaces_lectura: [...enlaces_lectura],
-      };
-      return [...prev, nueva].sort((a, b) => a.numero - b.numero);
-    });
-
-    set_enviando_tarea_apk(false);
-    set_modal_crear_tarea_abierto(false);
-
-    toast.success(`¡Tarea #${numero_num} publicada para todos los becarios y enviada a la APK!`, {
-      description: `"${payload.titulo}" ya está disponible en PostgreSQL y en la aplicación móvil BUMAND.`,
-    });
   };
 
   const enviarTareaIndividualAApk = async (tarea: TareaCetiCanonica, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    const payload = {
+    const datos_tarea = construirDatosCatalogoTarea({
       numero: tarea.numero,
-      tarea_numero: tarea.numero,
-      codigo: `TAREA-${String(tarea.numero).padStart(2, "0")}`,
       titulo: tarea.titulo,
-      modulo_tematico: tarea.modulo_tematico,
+      modulo: tarea.modulo_tematico,
       descripcion: tarea.descripcion,
       fecha_limite: tarea.fecha_limite,
       ponderacion: tarea.ponderacion,
-      publicar_apk: true,
       lecturas_pdf: tarea.lecturas_pdf || [],
       enlaces_lectura: tarea.enlaces_lectura || [],
-    };
+    });
 
     try {
-      await clienteApi.post("/evaluaciones/escuela-lideres/catalogo-tareas", payload);
-    } catch {
       try {
-        await clienteApi.put(`/evaluaciones/escuela-lideres/catalogo-tareas/${tarea.numero}`, payload);
-      } catch {
-        // Fallback reactivo
+        await clienteApi.post("/evaluaciones/escuela-lideres/catalogo-tareas", datos_tarea);
+      } catch (error_post) {
+        if (error_post instanceof ErrorApi && error_post.codigo_estado === 409) {
+          await clienteApi.put(
+            `/evaluaciones/escuela-lideres/catalogo-tareas/${tarea.numero}`,
+            datos_tarea
+          );
+        } else {
+          throw error_post;
+        }
       }
+
+      await cargarTareas();
+
+      toast.success(`¡Tarea #${tarea.numero} enviada a la APK para todos los becarios!`, {
+        description: `"${tarea.titulo}" fue sincronizada en PostgreSQL y publicada en el Classroom móvil.`,
+      });
+    } catch (error) {
+      toast.error(`Error al enviar la Tarea #${tarea.numero} a la APK`, {
+        description: extraerMensajeError(error, "No se pudo sincronizar la tarea con el servidor."),
+      });
     }
-
-    set_tareas((prev) =>
-      prev.map((t) => (t.numero === tarea.numero ? { ...t, publicada_apk: true } : t))
-    );
-
-    toast.success(`¡Tarea #${tarea.numero} enviada a la APK para todos los becarios!`, {
-      description: `"${tarea.titulo}" fue sincronizada en PostgreSQL y publicada en el Classroom móvil.`,
-    });
   };
 
   const publicarTodasLasTareasEnApk = async () => {
     set_publicando_todas_apk(true);
+    let exitosas = 0;
+    let fallidas = 0;
+    let ultimo_error_mensaje = "";
+
     try {
       for (const tarea of tareas) {
-        const payload = {
+        const datos_tarea = construirDatosCatalogoTarea({
           numero: tarea.numero,
-          tarea_numero: tarea.numero,
-          codigo: `TAREA-${String(tarea.numero).padStart(2, "0")}`,
           titulo: tarea.titulo,
-          modulo_tematico: tarea.modulo_tematico,
+          modulo: tarea.modulo_tematico,
           descripcion: tarea.descripcion,
           fecha_limite: tarea.fecha_limite,
           ponderacion: tarea.ponderacion,
-          publicar_apk: true,
           lecturas_pdf: tarea.lecturas_pdf || [],
           enlaces_lectura: tarea.enlaces_lectura || [],
-        };
+        });
+
         try {
-          await clienteApi.post("/evaluaciones/escuela-lideres/catalogo-tareas", payload);
-        } catch {
-          // Continúa con las demás tareas
+          await clienteApi.post("/evaluaciones/escuela-lideres/catalogo-tareas", datos_tarea);
+          exitosas++;
+        } catch (error) {
+          fallidas++;
+          ultimo_error_mensaje = extraerMensajeError(
+            error,
+            `Fallo al publicar la Tarea #${tarea.numero}.`
+          );
         }
       }
-      set_tareas((prev) => prev.map((t) => ({ ...t, publicada_apk: true })));
-      toast.success(`¡Catálogo de ${tareas.length} tareas publicado y enviado a la APK!`, {
-        description: "Todos los becarios ya visualizan las tareas actualizadas en su aplicación móvil.",
-      });
+
+      if (exitosas > 0) {
+        await cargarTareas();
+      }
+
+      if (fallidas === 0) {
+        toast.success(`¡Catálogo de ${exitosas} tareas publicado y enviado a la APK!`, {
+          description: "Todos los becarios ya visualizan las tareas actualizadas en su aplicación móvil.",
+        });
+      } else if (exitosas > 0) {
+        toast.error(`Se publicaron ${exitosas} tareas, pero fallaron ${fallidas}`, {
+          description: ultimo_error_mensaje,
+        });
+      } else {
+        toast.error("No se pudo publicar el catálogo de tareas en la APK", {
+          description: ultimo_error_mensaje || "Verifique la conexión con el servidor.",
+        });
+      }
     } finally {
       set_publicando_todas_apk(false);
     }
