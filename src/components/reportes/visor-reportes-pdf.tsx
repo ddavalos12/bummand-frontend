@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Select,
@@ -40,10 +42,13 @@ import {
   BECARIOS_EXPEDIENTES_COMPLETOS,
 } from "@/lib/generador-pdf-cliente";
 import {
+  descargarExcelInstitucional,
   exportarFormularioContabilidadRsdExcel,
   exportarSabanaEvaluacionesExcel,
   exportarAuditoriaAsistenciaExcel,
 } from "@/lib/generador-excel-cliente";
+import { RUTAS_API } from "@/servicios/rutas-api.constantes";
+import { obtenerCalculoPagoPasajes } from "@/servicios/pasajes.servicio";
 import { SelectorPlanillaDonacion } from "@/components/reportes/selector-planilla-donacion";
 
 interface ReporteItem {
@@ -220,7 +225,10 @@ export function VisorReportesPdf() {
   const [modulo_auditoria, set_modulo_auditoria] = useState<string>("refrigerios");
   const [fecha_inicio_auditoria, set_fecha_inicio_auditoria] = useState<string>("2026-10-01");
   const [fecha_fin_auditoria, set_fecha_fin_auditoria] = useState<string>("2026-10-31");
+  const [descontar_multas, set_descontar_multas] = useState<boolean>(true);
   const [descargando_auditoria, set_descargando_auditoria] = useState<boolean>(false);
+  const [exportando_excel_auditoria, set_exportando_excel_auditoria] = useState<boolean>(false);
+  const [exportando_excel_individual, set_exportando_excel_individual] = useState<boolean>(false);
 
   const estudiante_actual =
     lista_becarios.find((b) => b.id === estudiante_seleccionado_id) ||
@@ -248,6 +256,7 @@ export function VisorReportesPdf() {
       fecha_inicio?: string;
       fecha_fin?: string;
       modulo?: string;
+      descontar_multas?: boolean;
     }
   ) => {
     try {
@@ -307,7 +316,11 @@ export function VisorReportesPdf() {
       }
 
       const separador = ruta_base.includes("?") ? "&" : "?";
-      const ruta_completa = `${ruta_base}${separador}fecha_inicio=${fecha_inicio_auditoria}&fecha_fin=${fecha_fin_auditoria}`;
+      const incluye_descuento = mod === "pasajes" || mod === "consolidado-auditoria";
+      const parametro_multas = incluye_descuento
+        ? `&descontar_multas=${descontar_multas ? "true" : "false"}`
+        : "";
+      const ruta_completa = `${ruta_base}${separador}fecha_inicio=${fecha_inicio_auditoria}&fecha_fin=${fecha_fin_auditoria}${parametro_multas}`;
       const nombre_archivo = `Reporte_Contabilidad_${nombre_doc}_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
 
       toast.info(`Generando Reporte para Contabilidad (${nombre_doc}) en PDF...`, {
@@ -318,6 +331,7 @@ export function VisorReportesPdf() {
         modulo: mod,
         fecha_inicio: fecha_inicio_auditoria,
         fecha_fin: fecha_fin_auditoria,
+        descontar_multas,
       });
 
       toast.success("Reporte PDF para Contabilidad generado exitosamente", {
@@ -329,6 +343,188 @@ export function VisorReportesPdf() {
       });
     } finally {
       set_descargando_auditoria(false);
+    }
+  };
+
+  const manejarExportarExcelAuditoria = async () => {
+    const periodo = `${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}`;
+    try {
+      set_exportando_excel_auditoria(true);
+
+      if (modulo_auditoria === "pasajes" || modulo_auditoria === "consolidado-auditoria") {
+        const calculo = await obtenerCalculoPagoPasajes({
+          fecha_inicio: fecha_inicio_auditoria,
+          fecha_fin: fecha_fin_auditoria,
+          descontar_multas,
+        });
+        await exportarFormularioContabilidadRsdExcel(calculo.becarios, periodo, descontar_multas);
+        toast.success("Reporte de pasajes para Contabilidad exportado a Excel (.xlsx)", {
+          description: `${calculo.becarios.length} becarios · ${
+            descontar_multas ? "Con descuento de multas" : "Sin descuento de multas"
+          }.`,
+        });
+        return;
+      }
+
+      if (modulo_auditoria === "evaluaciones") {
+        const resp = await clienteApi.get<
+          Array<Record<string, unknown>> | { registros?: Array<Record<string, unknown>> }
+        >(RUTAS_API.EVALUACIONES.CONSOLIDADO_SEMESTRAL);
+        const registros = Array.isArray(resp) ? resp : resp?.registros || [];
+        await exportarSabanaEvaluacionesExcel(registros, periodo);
+        toast.success("Sábana de evaluaciones exportada a Excel (.xlsx)");
+        return;
+      }
+
+      if (modulo_auditoria === "refrigerios") {
+        const resp = await clienteApi.get<Array<Record<string, unknown>>>(RUTAS_API.REFRIGERIOS.BASE);
+        const lista_cruda = Array.isArray(resp) ? resp : [];
+        const filtrados = lista_cruda.filter((r) => {
+          const fecha_reg = r.fecha ? String(r.fecha).split("T")[0] : "";
+          if (!fecha_reg) return true;
+          return fecha_reg >= fecha_inicio_auditoria && fecha_reg <= fecha_fin_auditoria;
+        });
+
+        let suma_costo = 0;
+        let suma_devolucion = 0;
+        const filas_refrigerios = filtrados.map((r, idx) => {
+          const fecha_texto = r.fecha ? String(r.fecha).split("T")[0] : "-";
+          const dupla =
+            [r.becario_encargado_1_nombre, r.becario_encargado_2_nombre]
+              .filter(Boolean)
+              .map(String)
+              .join(" / ") ||
+            String(r.becario_nombre || r.responsable_entrega || "Dupla BUMAND");
+          const costo_total = Number(r.costo_total_bs ?? 0);
+          const monto_devolucion = Number(r.monto_devolucion_bs ?? costo_total);
+          suma_costo += costo_total;
+          suma_devolucion += monto_devolucion;
+
+          return [
+            String(idx + 1),
+            fecha_texto,
+            String(r.descripcion || "Refrigerio Escuela de Líderes"),
+            dupla,
+            String(r.cantidad_raciones ?? 0),
+            Number(costo_total.toFixed(2)),
+            Number(monto_devolucion.toFixed(2)),
+            String(r.becario_receptor_devolucion_nombre || "-"),
+            String(r.estado_reposicion || "programado").toUpperCase(),
+          ];
+        });
+
+        await descargarExcelInstitucional({
+          nombre_archivo: `Reporte_Refrigerios_${periodo}.xlsx`,
+          nombre_hoja: "Refrigerios 100%",
+          titulo_reporte: "REPORTE OFICIAL DE CONTROL Y LIQUIDACIÓN DE REFRIGERIOS",
+          subtitulo: `Periodo: ${fecha_inicio_auditoria} al ${fecha_fin_auditoria} · Reembolso 100%`,
+          columnas: [
+            "N°",
+            "Fecha",
+            "Descripción",
+            "Dupla / Encargado",
+            "Raciones",
+            "Costo Total Bs",
+            "Devolución 100% Bs",
+            "Receptor",
+            "Estado",
+          ],
+          filas: filas_refrigerios,
+          fila_totales: [
+            "",
+            "TOTALES",
+            "",
+            "",
+            "",
+            Number(suma_costo.toFixed(2)),
+            Number(suma_devolucion.toFixed(2)),
+            "",
+            "",
+          ],
+        });
+        toast.success("Reporte de refrigerios exportado a Excel (.xlsx)");
+        return;
+      }
+
+      const consulta_asistencia = `${RUTAS_API.ASISTENCIA.BASE}?fecha_inicio=${encodeURIComponent(
+        fecha_inicio_auditoria
+      )}&fecha_fin=${encodeURIComponent(fecha_fin_auditoria)}`;
+      const [asistencias_resp, multas_resp] = await Promise.all([
+        clienteApi.get<Array<Record<string, unknown>>>(consulta_asistencia),
+        clienteApi.get<Array<Record<string, unknown>>>(RUTAS_API.ASISTENCIA.MULTAS).catch(() => []),
+      ]);
+
+      const multas_por_asistencia = new Map<number, number>();
+      const multas_por_becario_fecha = new Map<string, number>();
+      if (Array.isArray(multas_resp)) {
+        multas_resp.forEach((m) => {
+          const monto = Number(m.monto_bs ?? 0);
+          if (monto <= 0) return;
+          if (m.asistencia_id) {
+            multas_por_asistencia.set(
+              Number(m.asistencia_id),
+              (multas_por_asistencia.get(Number(m.asistencia_id)) || 0) + monto
+            );
+          } else if (m.becario_id && m.fecha_aplicacion) {
+            const clave = `${m.becario_id}_${String(m.fecha_aplicacion).split("T")[0]}`;
+            multas_por_becario_fecha.set(clave, (multas_por_becario_fecha.get(clave) || 0) + monto);
+          }
+        });
+      }
+
+      const registros_asistencia = (Array.isArray(asistencias_resp) ? asistencias_resp : []).map(
+        (reg) => {
+          const fecha_reg = reg.fecha ? String(reg.fecha).split("T")[0] : "";
+          const multa_asociada =
+            reg.monto_multa_bs !== undefined
+              ? Number(reg.monto_multa_bs)
+              : multas_por_asistencia.get(Number(reg.id)) ??
+                multas_por_becario_fecha.get(`${reg.becario_id}_${fecha_reg}`) ??
+                0;
+          return {
+            ...reg,
+            monto_multa_bs: Number(multa_asociada.toFixed(2)),
+          };
+        }
+      );
+
+      await exportarAuditoriaAsistenciaExcel(registros_asistencia, periodo);
+      toast.success("Auditoría de asistencia exportada a Excel (.xlsx)");
+    } catch (error) {
+      toast.error("Error al consultar datos reales para exportar Excel (.xlsx)", {
+        description:
+          error instanceof Error ? error.message : "Verifique la conexión con el servidor.",
+      });
+    } finally {
+      set_exportando_excel_auditoria(false);
+    }
+  };
+
+  const manejarExportarExcelIndividual = async () => {
+    try {
+      set_exportando_excel_individual(true);
+      const calculo = await obtenerCalculoPagoPasajes({
+        becario_id: estudiante_actual.id,
+        periodo: mes_individual,
+        descontar_multas,
+      });
+      await exportarFormularioContabilidadRsdExcel(
+        calculo.becarios,
+        mes_individual,
+        descontar_multas
+      );
+      toast.success("Excel Contabilidad y RSD del becario exportado (.xlsx)", {
+        description: `${estudiante_actual.nombre} · ${
+          descontar_multas ? "Con descuento de multas" : "Sin descuento de multas"
+        }.`,
+      });
+    } catch (error) {
+      toast.error("Error al exportar Excel individual desde el servidor", {
+        description:
+          error instanceof Error ? error.message : "Verifique la conexión con el servidor.",
+      });
+    } finally {
+      set_exportando_excel_individual(false);
     }
   };
 
@@ -525,6 +721,39 @@ export function VisorReportesPdf() {
             </div>
           </div>
 
+          {/* Opción de descuento de multas en pasajes */}
+          <div className="p-3.5 rounded-xl bg-white border border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-2.5">
+              <Switch
+                id="switch-reportes-descontar-multas"
+                checked={descontar_multas}
+                onCheckedChange={set_descontar_multas}
+                className="mt-0.5"
+              />
+              <div className="space-y-0.5">
+                <Label
+                  htmlFor="switch-reportes-descontar-multas"
+                  className="text-xs font-bold text-[#035683] cursor-pointer block"
+                >
+                  Descontar multas de asistencia en el pago de pasajes
+                </Label>
+                <p className="text-[11px] text-muted-foreground">
+                  Aplica a los reportes PDF y exportaciones Excel (.xlsx) de Contabilidad, Pasajes RSD y cálculo individual.
+                </p>
+              </div>
+            </div>
+            <Badge
+              variant="outline"
+              className={`shrink-0 self-start sm:self-center text-[10px] font-mono font-bold rounded-full px-2.5 py-0.5 ${
+                descontar_multas
+                  ? "bg-amber-50 text-amber-800 border-amber-300"
+                  : "bg-slate-50 text-slate-600 border-slate-200"
+              }`}
+            >
+              {descontar_multas ? "Con Descuento Multas" : "Sin Descuento Multas"}
+            </Badge>
+          </div>
+
           {/* Botones de acción de auditoría */}
           <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-200">
             <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
@@ -562,59 +791,15 @@ export function VisorReportesPdf() {
             <div className="flex flex-wrap items-center gap-2 shrink-0">
               <Button
                 variant="outline"
-                onClick={() => {
-                  const periodo = `${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}`;
-                  if (modulo_auditoria === "pasajes") {
-                    const solicitudes_mock = BECARIOS_EXPEDIENTES_COMPLETOS.map((b) => ({
-                      becario_nombre: b.nombre,
-                      unidad: b.sede,
-                      tipo_actividad: "Prácticas",
-                      recorridos: Array.from({ length: 40 }),
-                      monto_total_centavos: 12000,
-                      monto_devolucion_centavos: 9600,
-                      multas_asistencia_bs: 0,
-                      estado: "aprobado_administracion",
-                    }));
-                    exportarFormularioContabilidadRsdExcel(solicitudes_mock, periodo, true);
-                  } else if (modulo_auditoria === "evaluaciones") {
-                    exportarSabanaEvaluacionesExcel(
-                      BECARIOS_EXPEDIENTES_COMPLETOS.map((b) => ({
-                        nombre_completo: b.nombre,
-                        ci: b.ci,
-                        universidad: b.universidad,
-                        carrera: b.carrera,
-                        tipo_beca: 650,
-                        liderazgo_iglesia: b.m1,
-                        academica: b.m2,
-                        practicas_preprofesionales: b.m3,
-                        escuela_lideres: b.m4,
-                        socioeconomico: b.m5,
-                        total: Number((b.m1 + b.m2 + b.m3 + b.m4 + b.m5).toFixed(1)),
-                        total_calificacion: b.m1 + b.m2 + b.m3 + b.m4 + b.m5 >= 80 ? "APROBACIÓN ÓPTIMA" : "CONDICIONADA",
-                      })),
-                      periodo
-                    );
-                  } else {
-                    exportarAuditoriaAsistenciaExcel(
-                      BECARIOS_EXPEDIENTES_COMPLETOS.map((b) => ({
-                        becario_nombre: b.nombre,
-                        carrera: b.carrera,
-                        sede_nombre: b.sede,
-                        fecha: fecha_inicio_auditoria,
-                        hora_ingreso: "08:00",
-                        hora_salida: "12:00",
-                        horas_trabajadas: 80,
-                        monto_multa_bs: 0,
-                        estado: "conforme",
-                      })),
-                      periodo
-                    );
-                  }
-                  toast.success("Reporte para Contabilidad exportado a Excel (.xls)");
-                }}
+                disabled={exportando_excel_auditoria}
+                onClick={manejarExportarExcelAuditoria}
                 className="h-10 px-4 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold text-xs rounded-xl shadow-xs gap-2 cursor-pointer"
               >
-                <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                {exportando_excel_auditoria ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+                ) : (
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                )}
                 <span>Exportar Excel</span>
               </Button>
 
@@ -680,10 +865,14 @@ export function VisorReportesPdf() {
               onClick={() =>
                 descargarReportePuppeteer(
                   "pasajes_general",
-                  `/pdf/pasajes-general?fecha_inicio=${fecha_inicio_global}&fecha_fin=${fecha_fin_global}`,
+                  `/pdf/pasajes-general?fecha_inicio=${fecha_inicio_global}&fecha_fin=${fecha_fin_global}&descontar_multas=${descontar_multas ? "true" : "false"}`,
                   `Formulario_Contabilidad_RSD_Pasajes_${fecha_inicio_global}_al_${fecha_fin_global}.pdf`,
                   "pasajes_general",
-                  { fecha_inicio: fecha_inicio_global, fecha_fin: fecha_fin_global }
+                  {
+                    fecha_inicio: fecha_inicio_global,
+                    fecha_fin: fecha_fin_global,
+                    descontar_multas,
+                  }
                 )
               }
               variant="outline"
@@ -985,28 +1174,15 @@ export function VisorReportesPdf() {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => {
-                  exportarFormularioContabilidadRsdExcel(
-                    [
-                      {
-                        becario_nombre: estudiante_actual.nombre,
-                        unidad: estudiante_actual.sede,
-                        tipo_actividad: "Prácticas",
-                        recorridos: Array.from({ length: 40 }),
-                        monto_total_centavos: 12000,
-                        monto_devolucion_centavos: 9600,
-                        multas_asistencia_bs: 0,
-                        estado: "aprobado_administracion",
-                      },
-                    ],
-                    mes_individual,
-                    true
-                  );
-                  toast.success("Excel Contabilidad y RSD del becario exportado");
-                }}
+                disabled={exportando_excel_individual}
+                onClick={manejarExportarExcelIndividual}
                 className="h-9 px-3 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold text-xs rounded-xl shadow-2xs gap-1.5 cursor-pointer"
               >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                {exportando_excel_individual ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+                ) : (
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                )}
                 <span>Exportar Excel</span>
               </Button>
             </div>
@@ -1080,12 +1256,16 @@ export function VisorReportesPdf() {
                             refrigerios: "refrigerios",
                             "consolidado-auditoria": "auditoria",
                           };
+                          const endpoint_reporte =
+                            r.tipo === "consolidado-auditoria"
+                              ? `${r.endpoint}?descontar_multas=${descontar_multas ? "true" : "false"}`
+                              : r.endpoint;
                           descargarReportePuppeteer(
                             String(r.id),
-                            r.endpoint,
+                            endpoint_reporte,
                             r.nombre_archivo,
                             mapaTipos[r.tipo] || "evaluacion_semestral_ii",
-                            { becario_id: r.id, mes: "2026-10" }
+                            { becario_id: r.id, mes: "2026-10", descontar_multas }
                           );
                         }}
                         className="h-8 px-3 border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg text-xs font-bold inline-flex items-center gap-1.5"

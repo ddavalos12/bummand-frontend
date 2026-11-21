@@ -803,13 +803,16 @@ export function generarPdfAuditoriaIntervalo(
 // ============================================================================
 export function generarPdfPasajesGeneral(
   fecha_inicio = "2026-10-01",
-  fecha_fin = "2026-10-31"
+  fecha_fin = "2026-10-31",
+  descontar_multas = true
 ): Blob {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   agregarMembreteInstitucional(
     doc,
     "FORMULARIO PARA CONTABILIDAD Y RSD — LIQUIDACIÓN DE PASAJES",
-    `Liquidación mensual del 80% de pasajes y cálculo líquido descontando multas de asistencia · Intervalo: ${fecha_inicio} al ${fecha_fin}`,
+    `Liquidación mensual del 80% de pasajes y cálculo líquido ${
+      descontar_multas ? "descontando multas de asistencia" : "sin descuento de multas"
+    } · Intervalo: ${fecha_inicio} al ${fecha_fin}`,
     true
   );
 
@@ -1022,6 +1025,7 @@ export async function descargarPdfConResiliencia(
     nombre_becario?: string;
     titulo?: string;
     evento_id?: number | string;
+    descontar_multas?: boolean;
   }
 ): Promise<void> {
   let blob: Blob | null = null;
@@ -1062,7 +1066,11 @@ export async function descargarPdfConResiliencia(
         blob = generarPdfAsistenciaMensual(id_becario, params?.mes || "2026-10");
         break;
       case "pasajes_general":
-        blob = generarPdfPasajesGeneral(params?.fecha_inicio, params?.fecha_fin);
+        blob = generarPdfPasajesGeneral(
+          params?.fecha_inicio,
+          params?.fecha_fin,
+          params?.descontar_multas ?? true
+        );
         break;
       case "justificaciones_general":
         blob = generarPdfJustificacionesGeneral(params?.fecha_inicio, params?.fecha_fin);

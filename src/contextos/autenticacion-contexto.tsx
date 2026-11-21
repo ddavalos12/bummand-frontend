@@ -111,10 +111,11 @@ export function ProveedorAutenticacion({ children }: { children: ReactNode }) {
         if (token_guardado.startsWith("jwt_bumand_auth_")) {
           (async () => {
             try {
-              const url_base =
+              const url_base = (
                 (typeof process !== "undefined" && process.env.NEXT_PUBLIC_API_URL)
                   ? process.env.NEXT_PUBLIC_API_URL
-                  : "http://localhost:3000";
+                  : "http://localhost:3002"
+              ).replace(/\/+$/, "");
               const correo = usuario_obj?.correo || usuario_obj?.email || "admin@bumand.bo";
               const clave = correo === "admin@bumand.bo" ? "Admin2026!" : "Bumand2026!";
 

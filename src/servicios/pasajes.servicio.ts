@@ -100,6 +100,64 @@ export interface FiltrosHistorialParadas {
   ciudad?: "La Paz" | "El Alto";
 }
 
+export interface DetalleMultaCalculoPago {
+  id: number;
+  fecha_aplicacion: string;
+  minutos_retraso: number;
+  monto_bs: number;
+  motivo: string;
+}
+
+export interface CalculoPagoPasajeBecario {
+  becario_id: number;
+  becario_nombre: string;
+  ci: string;
+  carrera: string;
+  sede: string;
+  estado: string;
+  solicitud_ids: number[];
+  periodos: string[];
+  cantidad_solicitudes: number;
+  cantidad_recorridos: number;
+  monto_total_100_bs: number;
+  monto_reconocido_80_bs: number;
+  multas_asistencia_bs: number;
+  descuento_multas_aplicado_bs: number;
+  monto_liquido_pagable_bs: number;
+  cantidad_multas: number;
+  detalle_multas: DetalleMultaCalculoPago[];
+}
+
+export interface ResumenCalculoPagoPasajes {
+  descontar_multas: boolean;
+  total_becarios: number;
+  total_100_bs: number;
+  total_80_bs: number;
+  total_multas_bs: number;
+  total_descuento_aplicado_bs: number;
+  total_liquido_pagable_bs: number;
+}
+
+export interface RespuestaCalculoPagoPasajes {
+  filtros: {
+    periodo?: string;
+    fecha_inicio?: string;
+    fecha_fin?: string;
+    becario_id?: number;
+    descontar_multas: boolean;
+  };
+  resumen: ResumenCalculoPagoPasajes;
+  becarios: CalculoPagoPasajeBecario[];
+}
+
+export interface ParametrosCalculoPagoPasajes {
+  periodo?: string;
+  fecha_inicio?: string;
+  fecha_fin?: string;
+  becario_id?: number;
+  descontar_multas?: boolean;
+}
+
 /**
  * Obtener tarifas oficiales de transporte vigentes.
  */
@@ -318,4 +376,28 @@ export async function rechazarSolicitudPasajes(
     RUTAS_API.PASAJES.RECHAZAR(id),
     { observaciones }
   );
+}
+
+/**
+ * Calcular liquidación de pago de pasajes (80%) con opción de descuento de multas.
+ */
+export async function obtenerCalculoPagoPasajes(
+  parametros?: ParametrosCalculoPagoPasajes
+): Promise<RespuestaCalculoPagoPasajes> {
+  const params = new URLSearchParams();
+  if (parametros?.periodo) params.append("periodo", parametros.periodo);
+  if (parametros?.fecha_inicio) params.append("fecha_inicio", parametros.fecha_inicio);
+  if (parametros?.fecha_fin) params.append("fecha_fin", parametros.fecha_fin);
+  if (parametros?.becario_id !== undefined) {
+    params.append("becario_id", String(parametros.becario_id));
+  }
+  if (parametros?.descontar_multas !== undefined) {
+    params.append("descontar_multas", parametros.descontar_multas ? "true" : "false");
+  }
+
+  const query = params.toString();
+  const ruta = query
+    ? `${RUTAS_API.PASAJES.CALCULO_PAGO}?${query}`
+    : RUTAS_API.PASAJES.CALCULO_PAGO;
+  return clienteApi.get<RespuestaCalculoPagoPasajes>(ruta);
 }

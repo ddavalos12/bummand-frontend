@@ -248,16 +248,17 @@ export function AprobacionPasajes() {
   const [fecha_inicio_auditoria, set_fecha_inicio_auditoria] = useState<string>("2026-10-01");
   const [fecha_fin_auditoria, set_fecha_fin_auditoria] = useState<string>("2026-10-31");
   const [descargando_pdf_auditoria, set_descargando_pdf_auditoria] = useState<boolean>(false);
+  const [descargando_pdf_consolidado, set_descargando_pdf_consolidado] = useState<boolean>(false);
   const [descontar_multas_rsd, set_descontar_multas_rsd] = useState<boolean>(true);
 
   const manejarDescargarPdfAuditoria = async () => {
     try {
       set_descargando_pdf_auditoria(true);
       toast.info("Generando Formulario Consolidado de Pasajes en PDF para Contabilidad...", {
-        description: `Intervalo: Desde ${fecha_inicio_auditoria} hasta ${fecha_fin_auditoria}.`,
+        description: `Intervalo: Desde ${fecha_inicio_auditoria} hasta ${fecha_fin_auditoria} (${descontar_multas_rsd ? "con descuento de multas" : "sin descuento de multas"}).`,
       });
 
-      const endpoint = `${RUTAS_API.PDF.PASAJES_GENERAL}?fecha_inicio=${fecha_inicio_auditoria}&fecha_fin=${fecha_fin_auditoria}`;
+      const endpoint = `${RUTAS_API.PDF.PASAJES_GENERAL}?fecha_inicio=${fecha_inicio_auditoria}&fecha_fin=${fecha_fin_auditoria}&descontar_multas=${descontar_multas_rsd ? "true" : "false"}`;
       const nombre_archivo = `Formulario_Contabilidad_RSD_Pasajes_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
 
       await descargarPdfConResiliencia(
@@ -267,6 +268,7 @@ export function AprobacionPasajes() {
         {
           fecha_inicio: fecha_inicio_auditoria,
           fecha_fin: fecha_fin_auditoria,
+          descontar_multas: descontar_multas_rsd,
         }
       );
 
@@ -277,6 +279,36 @@ export function AprobacionPasajes() {
       });
     } finally {
       set_descargando_pdf_auditoria(false);
+    }
+  };
+
+  const manejarDescargarPdfConsolidadoContabilidad = async () => {
+    try {
+      set_descargando_pdf_consolidado(true);
+      toast.info("Generando Consolidado Integral para Contabilidad en PDF...", {
+        description: `Intervalo: ${fecha_inicio_auditoria} al ${fecha_fin_auditoria} (${descontar_multas_rsd ? "con descuento de multas" : "sin descuento de multas"}).`,
+      });
+
+      const endpoint = `/pdf/consolidado-contabilidad?fecha_inicio=${fecha_inicio_auditoria}&fecha_fin=${fecha_fin_auditoria}&descontar_multas=${descontar_multas_rsd ? "true" : "false"}`;
+      const nombre_archivo = `Consolidado_Contabilidad_BUMAND_${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}.pdf`;
+
+      await descargarPdfConResiliencia(
+        endpoint,
+        nombre_archivo,
+        "consolidado_auditoria",
+        {
+          modulo: "consolidado-contabilidad",
+          fecha_inicio: fecha_inicio_auditoria,
+          fecha_fin: fecha_fin_auditoria,
+          descontar_multas: descontar_multas_rsd,
+        }
+      );
+
+      toast.success("Consolidado integral de Contabilidad descargado exitosamente");
+    } catch {
+      toast.error("Error al descargar el consolidado integral de Contabilidad");
+    } finally {
+      set_descargando_pdf_consolidado(false);
     }
   };
 
@@ -487,6 +519,24 @@ export function AprobacionPasajes() {
     if (filtro_estado === "aprobados") return s.estado === "aprobado" || s.estado === "aprobado_administracion";
     return true;
   });
+
+  const resumen_financiero_rsd = useMemo(() => {
+    return solicitudes_filtradas.reduce(
+      (acc, item) => {
+        const total_100 = (item.monto_total_centavos || 0) / 100;
+        const reconocido_80 = (item.monto_devolucion_centavos || 0) / 100;
+        const multas_aplicadas = descontar_multas_rsd ? Number(item.multas_asistencia_bs ?? 0) : 0;
+        const liquido_neto = Math.max(0, Number((reconocido_80 - multas_aplicadas).toFixed(2)));
+        return {
+          total_100: acc.total_100 + total_100,
+          reconocido_80: acc.reconocido_80 + reconocido_80,
+          multas_asistencia: acc.multas_asistencia + multas_aplicadas,
+          liquido_pagable: acc.liquido_pagable + liquido_neto,
+        };
+      },
+      { total_100: 0, reconocido_80: 0, multas_asistencia: 0, liquido_pagable: 0 }
+    );
+  }, [solicitudes_filtradas, descontar_multas_rsd]);
 
   const indice_actual = solicitud_activa ? solicitudes.findIndex((s) => s.id === solicitud_activa.id) : -1;
   const irAnteriorBecario = () => {
@@ -724,12 +774,12 @@ export function AprobacionPasajes() {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => {
-                exportarFormularioContabilidadRsdExcel([solicitud_activa], solicitud_activa.periodo, descontar_multas_rsd);
-                toast.success("Excel de Contabilidad y RSD exportado");
+              onClick={async () => {
+                await exportarFormularioContabilidadRsdExcel([solicitud_activa], solicitud_activa.periodo, descontar_multas_rsd);
+                toast.success("Excel de Contabilidad y RSD exportado (.xlsx)");
               }}
               className="h-8 px-2.5 text-xs font-bold border-emerald-600 text-emerald-700 hover:bg-emerald-50 rounded-xl gap-1.5 shadow-2xs"
-              title="Exportar liquidación individual a Excel (.xls)"
+              title="Exportar liquidación individual a Excel (.xlsx)"
             >
               <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
               <span>Exportar Excel</span>
@@ -1116,18 +1166,33 @@ export function AprobacionPasajes() {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => {
-              exportarFormularioContabilidadRsdExcel(
+            onClick={async () => {
+              await exportarFormularioContabilidadRsdExcel(
                 solicitudes_filtradas,
                 `${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}`,
                 descontar_multas_rsd
               );
-              toast.success("Formulario para Contabilidad y RSD exportado en Excel (.xls)");
+              toast.success("Formulario para Contabilidad y RSD exportado en Excel (.xlsx)");
             }}
             className="h-8 px-3 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold text-xs rounded-xl shadow-xs gap-1.5 cursor-pointer"
           >
             <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
             <span>Exportar Excel</span>
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={descargando_pdf_consolidado}
+            onClick={manejarDescargarPdfConsolidadoContabilidad}
+            className="h-8 px-3 border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 font-bold text-xs rounded-xl shadow-xs gap-1.5 cursor-pointer"
+          >
+            {descargando_pdf_consolidado ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#00ABBD]" />
+            ) : (
+              <FileText className="w-3.5 h-3.5 text-[#00ABBD]" />
+            )}
+            <span>Consolidado Contabilidad PDF</span>
           </Button>
 
           <Button
@@ -1259,8 +1324,8 @@ export function AprobacionPasajes() {
               set_fecha_fin_auditoria(fin);
             }}
             mostrar_selector_periodo={false}
-            titulo="Planilla Donación Transporte BUMAN-D (80% sin multas)"
-            subtitulo="Emite la planilla oficial consolidada de transporte al 80% sin multas para Contabilidad (Sin firma de becarios) o Archivo del Área (Con firma de becarios), con las fechas activas y los 2 firmantes."
+            titulo="Planilla Donación Transporte BUMAN-D (80%)"
+            subtitulo="Emite la planilla oficial consolidada de transporte al 80% (con opción de descontar multas de asistencia) para Contabilidad (Sin firma de becarios) o Archivo del Área (Con firma de becarios)."
             etiqueta_insignia="PLANILLA OFICIAL · TRANSPORTE 80%"
           />
 
@@ -1353,19 +1418,54 @@ export function AprobacionPasajes() {
                     type="button"
                     size="sm"
                     variant="outline"
-                    onClick={() => {
-                      exportarFormularioContabilidadRsdExcel(
+                    onClick={async () => {
+                      await exportarFormularioContabilidadRsdExcel(
                         solicitudes_filtradas,
                         solicitudes_filtradas[0]?.periodo || "2026-10",
                         descontar_multas_rsd
                       );
-                      toast.success("Planilla para Contabilidad y RSD exportada a Excel (.xls)");
+                      toast.success("Planilla para Contabilidad y RSD exportada a Excel (.xlsx)");
                     }}
                     className="h-8 px-3 text-xs font-bold border-emerald-600 text-emerald-700 hover:bg-emerald-50 rounded-xl gap-1.5"
                   >
                     <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
                     <span>Exportar Excel</span>
                   </Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 p-3.5 rounded-xl bg-gradient-to-r from-[#035683]/5 via-white to-emerald-50/50 border border-[#035683]/15">
+                <div className="px-3 py-2 rounded-lg bg-white border border-slate-200/80">
+                  <span className="text-[10px] font-mono uppercase font-bold text-slate-500 block">
+                    Total 100%
+                  </span>
+                  <span className="font-mono font-bold text-sm text-[#035683]">
+                    Bs {resumen_financiero_rsd.total_100.toFixed(2)}
+                  </span>
+                </div>
+                <div className="px-3 py-2 rounded-lg bg-white border border-amber-200/80">
+                  <span className="text-[10px] font-mono uppercase font-bold text-[#D97706] block">
+                    80% Reconocido
+                  </span>
+                  <span className="font-mono font-bold text-sm text-[#D97706]">
+                    Bs {resumen_financiero_rsd.reconocido_80.toFixed(2)}
+                  </span>
+                </div>
+                <div className="px-3 py-2 rounded-lg bg-white border border-rose-200/80">
+                  <span className="text-[10px] font-mono uppercase font-bold text-rose-600 block">
+                    (-) Multas Asistencia
+                  </span>
+                  <span className={`font-mono font-bold text-sm ${resumen_financiero_rsd.multas_asistencia > 0 ? "text-rose-600" : "text-slate-500"}`}>
+                    - Bs {resumen_financiero_rsd.multas_asistencia.toFixed(2)}
+                  </span>
+                </div>
+                <div className="px-3 py-2 rounded-lg bg-emerald-50/70 border border-emerald-300/80">
+                  <span className="text-[10px] font-mono uppercase font-bold text-emerald-800 block">
+                    Líquido Pagable Neto
+                  </span>
+                  <span className="font-mono font-extrabold text-base text-emerald-700">
+                    Bs {resumen_financiero_rsd.liquido_pagable.toFixed(2)}
+                  </span>
                 </div>
               </div>
             </CardHeader>

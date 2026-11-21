@@ -23,7 +23,7 @@ export function ListaEvaluaciones() {
     if (!usuario || !token) return;
 
     const becario_id = usuario.becario_id || 1; 
-    const url_base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+    const url_base = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002").replace(/\/+$/, "");
     
     fetch(`${url_base}/evaluaciones/becario/${becario_id}`, {
       headers: { Authorization: `Bearer ${token}` }

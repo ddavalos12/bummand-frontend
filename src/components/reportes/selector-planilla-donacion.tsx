@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -45,6 +46,7 @@ export interface SelectorPlanillaDonacionProps {
   fecha_inicio?: string;
   fecha_fin?: string;
   mes_inicial?: string;
+  descontar_multas_inicial?: boolean;
   al_cambiar_fechas?: (fecha_inicio: string, fecha_fin: string) => void;
   mostrar_selector_periodo?: boolean;
   titulo?: string;
@@ -83,6 +85,7 @@ export function SelectorPlanillaDonacion({
   fecha_inicio = "2026-10-01",
   fecha_fin = "2026-10-31",
   mes_inicial = "",
+  descontar_multas_inicial = false,
   al_cambiar_fechas,
   mostrar_selector_periodo = true,
   titulo = "Planillas Oficiales de Donación (Contabilidad y Archivo del Área)",
@@ -91,12 +94,15 @@ export function SelectorPlanillaDonacion({
   className = "",
 }: SelectorPlanillaDonacionProps) {
   const [con_firma, set_con_firma] = useState<boolean>(false);
+  const [descontar_multas, set_descontar_multas] = useState<boolean>(descontar_multas_inicial);
   const [firmante_1, set_firmante_1] = useState<ClaveFirmanteDonacion>("pamela");
   const [firmante_2, set_firmante_2] = useState<ClaveFirmanteDonacion>("samuel");
   const [fecha_inicio_estado, set_fecha_inicio_estado] = useState<string>(fecha_inicio);
   const [fecha_fin_estado, set_fecha_fin_estado] = useState<string>(fecha_fin);
   const [mes_seleccionado, set_mes_seleccionado] = useState<string>(mes_inicial);
   const [descargando_tipo, set_descargando_tipo] = useState<"refrigerio" | "transporte" | null>(null);
+
+  const muestra_opcion_transporte = tipo_disponible === "ambos" || tipo_disponible === "transporte";
 
   useEffect(() => {
     set_fecha_inicio_estado(fecha_inicio);
@@ -181,7 +187,10 @@ export function SelectorPlanillaDonacion({
       if (tipo === "refrigerio") {
         await descargarPdfDonacionRefrigerio(parametros);
       } else {
-        await descargarPdfDonacionTransporte(parametros);
+        await descargarPdfDonacionTransporte({
+          ...parametros,
+          descontar_multas,
+        });
       }
 
       toast.success(`${nombre_planilla} descargada exitosamente`, {
@@ -473,6 +482,43 @@ export function SelectorPlanillaDonacion({
             </div>
           </div>
         </div>
+
+        {/* Opción de Descuento de Multas para Planilla de Transporte */}
+        {muestra_opcion_transporte && (
+          <div className="p-3.5 rounded-xl bg-white border border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <Switch
+                id="switch-donacion-descontar-multas"
+                checked={descontar_multas}
+                onCheckedChange={set_descontar_multas}
+                className="mt-0.5"
+              />
+              <div className="space-y-0.5">
+                <Label
+                  htmlFor="switch-donacion-descontar-multas"
+                  className="text-xs font-bold text-[#035683] cursor-pointer block"
+                >
+                  Descontar multas de asistencia en el pago de pasajes
+                </Label>
+                <p className="text-[11px] text-[#808080] leading-relaxed">
+                  {descontar_multas
+                    ? "La planilla de Donación para Transporte incluirá 80% Reconocido, (-) Multas de Asistencia y Líquido Pagable Neto."
+                    : "La planilla de Donación para Transporte se emitirá con el 80% neto estándar sin descuento de multas."}
+                </p>
+              </div>
+            </div>
+            <Badge
+              variant="outline"
+              className={`shrink-0 self-start sm:self-center text-[10px] font-mono font-bold rounded-full px-2.5 py-0.5 ${
+                descontar_multas
+                  ? "bg-amber-50 text-amber-800 border-amber-300"
+                  : "bg-slate-50 text-slate-600 border-slate-200"
+              }`}
+            >
+              {descontar_multas ? "Con Descuento Multas" : "80% Estándar"}
+            </Badge>
+          </div>
+        )}
 
         {/* Acciones de Emisión PDF */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">

@@ -10,7 +10,9 @@
     "compilar": "next build",
     "iniciar:produccion": "next start",
     "revisar": "eslint",
-    "doctor": "npx -y react-doctor@latest . --verbose"
+    "doctor": "npx -y react-doctor@latest . --verbose",
+    "env:desktop": "node -e \"const fs=require('fs');fs.copyFileSync('.env.desktop','.env');fs.copyFileSync('.env.desktop','.env.local')\"",
+    "env:vercel": "node -e \"const fs=require('fs');fs.copyFileSync('.env.vercel','.env');fs.copyFileSync('.env.vercel','.env.local')\""
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -18,6 +20,7 @@
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
     "date-fns": "^4.4.0",
+    "exceljs": "^4.4.0",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.9",
     "leaflet": "^1.9.4",

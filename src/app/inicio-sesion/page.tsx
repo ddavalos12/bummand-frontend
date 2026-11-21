@@ -253,11 +253,11 @@ export default function PaginaInicioSesion() {
       <div className="relative z-10 w-full max-w-md my-auto">
         <Card className="w-full max-w-md border border-[#E5E7EB] shadow-2xl shadow-sky-950/10 bg-white/95 backdrop-blur-xl rounded-2xl relative overflow-hidden py-0 gap-0">
           <CardHeader className="text-center space-y-3 px-6 pt-6 pb-5 border-b border-[#E5E7EB]/70">
-            <div className="flex flex-col items-center justify-center gap-2 mb-1">
+            <div className="flex flex-col items-center justify-center gap-2.5 mb-1">
               <img
                 src="/logos/LOGO-BUMAND_2023.svg"
                 alt="Logo BUMAND Oficial"
-                className="h-14 w-auto object-contain"
+                className="h-12 sm:h-14 w-auto max-w-[220px] object-contain"
               />
               <img
                 src="/logos/ALTA1.svg"

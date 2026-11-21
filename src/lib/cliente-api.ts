@@ -40,11 +40,12 @@ export class ClienteApi {
   private url_base: string;
 
   constructor(url_base?: string) {
-    this.url_base =
+    const base_cruda =
       url_base ||
       (typeof process !== "undefined" && process.env.NEXT_PUBLIC_API_URL
         ? process.env.NEXT_PUBLIC_API_URL
         : "http://localhost:3002");
+    this.url_base = base_cruda.replace(/\/+$/, "");
   }
 
   private normalizarRuta(ruta: string): string {

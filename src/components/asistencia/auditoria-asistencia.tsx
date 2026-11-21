@@ -1171,11 +1171,11 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => {
+            onClick={async () => {
               const fuente = vista_activa === "mensual" ? lista_horas_mensuales : registros_filtrados;
               const periodo = vista_activa === "mensual" ? mes_seleccionado : `${fecha_inicio_auditoria}_al_${fecha_fin_auditoria}`;
-              exportarAuditoriaAsistenciaExcel(fuente, periodo);
-              toast.success("Auditoría de asistencia exportada a Excel (.xls)");
+              await exportarAuditoriaAsistenciaExcel(fuente, periodo);
+              toast.success("Auditoría de asistencia exportada a Excel (.xlsx)");
             }}
             className="h-8 px-3 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold text-xs rounded-xl shadow-xs gap-1.5 cursor-pointer"
           >

@@ -218,12 +218,12 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
         <div className="flex flex-wrap items-center gap-2.5">
           <Button
             variant="outline"
-            onClick={() => {
-              exportarAuditoriaAsistenciaExcel(movimientos_filtrados, extracto_activo.periodo);
-              toast.success("Extracto de asistencia exportado a Excel (.xls)");
+            onClick={async () => {
+              await exportarAuditoriaAsistenciaExcel(movimientos_filtrados, extracto_activo.periodo);
+              toast.success("Extracto de asistencia exportado a Excel (.xlsx)");
             }}
             className="h-10 text-xs font-bold px-3.5 gap-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50 rounded-xl shadow-2xs shrink-0"
-            title="Exportar extracto mensual de asistencia a Excel (.xls)"
+            title="Exportar extracto mensual de asistencia a Excel (.xlsx)"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
             <span>Exportar Excel</span>

@@ -62,14 +62,14 @@ export function AcercaDeNosotros({ rol_usuario = "becario" }: AcercaDeNosotrosPr
             Diaconía FRIF-IFD · BUMAND
           </p>
         </div>
-        <div className="flex items-center gap-3 bg-gradient-to-r from-[#035683] to-[#007BBE] px-4 py-2 rounded-2xl border border-[#00ABBD]/30 shadow-sm">
+        <div className="flex items-center gap-3 bg-gradient-to-r from-[#035683] to-[#007BBE] px-4 py-2.5 rounded-2xl border border-[#00ABBD]/30 shadow-sm shrink-0">
           <img
             src="/logos/LOGO-BUMAND-2_2023.svg"
             alt="Logo BUMAND"
-            className="h-8 sm:h-9 w-auto object-contain"
+            className="h-8 sm:h-9 w-auto object-contain shrink-0"
           />
           <div className="h-6 w-px bg-white/25" />
-          <div className="bg-white px-2.5 py-1 rounded-xl shadow-2xs flex items-center">
+          <div className="bg-white px-2.5 py-1 rounded-xl shadow-2xs flex items-center shrink-0">
             <img
               src="/logos/logo-diaconia-color.svg"
               alt="Logo Diaconía IFD"

@@ -257,9 +257,9 @@ export default function PaginaInicio() {
 
               {/* Logo BUMAND en móvil */}
               <img
-                src="/logos/logo-bumand-icono.svg"
+                src="/logos/LOGO-BUMAND_2023.svg"
                 alt="BUMAND"
-                className="lg:hidden w-7 h-7 object-contain shrink-0"
+                className="lg:hidden h-7 sm:h-8 w-auto object-contain shrink-0"
               />
 
               {/* Breadcrumb Principal Prominente (sin redundancias ni subtextos) */}

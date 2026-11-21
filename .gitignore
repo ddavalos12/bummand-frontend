@@ -15,6 +15,7 @@ build/
 # Variables de Entorno
 .env
 .env.*
+!.env.example
 
 # TypeScript
 *.tsbuildinfo

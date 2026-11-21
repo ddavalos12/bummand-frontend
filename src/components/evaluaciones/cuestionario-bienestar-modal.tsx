@@ -154,7 +154,7 @@ export function CuestionarioBienestarModal({
   const manejarGuardarRespuestas = async () => {
     set_guardando(true);
     try {
-      const url_base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      const url_base = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002").replace(/\/+$/, "");
       await fetch(`${url_base}/evaluaciones/receptor/socioeconomica`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -189,7 +189,7 @@ export function CuestionarioBienestarModal({
   const manejarGuardarConfiguracion = async () => {
     try {
       localStorage.setItem("bumand_cuestionario_bienestar_preguntas", JSON.stringify(preguntas));
-      const url_base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      const url_base = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002").replace(/\/+$/, "");
       await fetch(`${url_base}/evaluaciones/cuestionario-bienestar`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },

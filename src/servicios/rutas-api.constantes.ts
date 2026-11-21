@@ -75,6 +75,7 @@ export const RUTAS_API = {
     ESTUDIANTE_HISTORIAL_PARADAS: (id: number) => `/pasajes/estudiante/${id}/historial-paradas`,
     BECARIO_HISTORIAL_PARADAS: (becario_id: number) => `/pasajes/becario/${becario_id}/historial-paradas`,
     MIS_PARADAS_HISTORIAL: '/pasajes/mis-paradas/historial',
+    CALCULO_PAGO: '/pasajes/calculo-pago',
     POR_ID: (id: number) => `/pasajes/${id}`,
     ENVIAR: (id: number) => `/pasajes/${id}/enviar`,
     APROBAR: (id: number) => `/pasajes/${id}/aprobar`,

@@ -213,9 +213,9 @@ export function SabanaConsolidadoSemestral() {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => {
-                exportarSabanaEvaluacionesExcel(becarios_filtrados, "Semestre II - 2026");
-                toast.success("Sábana de evaluaciones exportada en Excel (.xls)");
+              onClick={async () => {
+                await exportarSabanaEvaluacionesExcel(becarios_filtrados, "Semestre II - 2026");
+                toast.success("Sábana de evaluaciones exportada en Excel (.xlsx)");
               }}
               className="h-10 px-4 bg-white hover:bg-emerald-50 text-emerald-700 border-emerald-300 font-bold rounded-xl text-xs flex items-center gap-2 shadow-xs"
             >

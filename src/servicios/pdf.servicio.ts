@@ -148,15 +148,55 @@ export async function descargarPdfRefrigeriosConsolidado(
   return blob;
 }
 
+export interface ParametrosConsultaPdfPasajes {
+  fecha_inicio?: string;
+  fecha_fin?: string;
+  descontar_multas?: boolean;
+  descargar_inmediatamente?: boolean;
+}
+
+function construirRutaPdfConMultas(
+  ruta_base: string,
+  opciones?: boolean | ParametrosConsultaPdfPasajes,
+  descontar_multas?: boolean
+): { ruta: string; descargar_inmediatamente: boolean } {
+  const es_objeto = typeof opciones === "object" && opciones !== null;
+  const descargar = es_objeto
+    ? opciones.descargar_inmediatamente ?? true
+    : opciones ?? true;
+  const descuento = es_objeto ? opciones.descontar_multas : descontar_multas;
+
+  const params = new URLSearchParams();
+  if (es_objeto && opciones.fecha_inicio) {
+    params.append("fecha_inicio", opciones.fecha_inicio);
+  }
+  if (es_objeto && opciones.fecha_fin) {
+    params.append("fecha_fin", opciones.fecha_fin);
+  }
+  if (descuento !== undefined) {
+    params.append("descontar_multas", descuento ? "true" : "false");
+  }
+
+  const query = params.toString();
+  return {
+    ruta: query ? `${ruta_base}?${query}` : ruta_base,
+    descargar_inmediatamente: descargar,
+  };
+}
+
 /**
  * Descargar consolidado general de auditoría institucional.
  */
 export async function descargarPdfConsolidadoAuditoria(
-  descargar_inmediatamente: boolean = true
+  opciones: boolean | ParametrosConsultaPdfPasajes = true,
+  descontar_multas?: boolean
 ): Promise<Blob> {
-  const blob = await clienteApi.descargarBlob(
-    RUTAS_API.PDF.CONSOLIDADO_AUDITORIA
+  const { ruta, descargar_inmediatamente } = construirRutaPdfConMultas(
+    RUTAS_API.PDF.CONSOLIDADO_AUDITORIA,
+    opciones,
+    descontar_multas
   );
+  const blob = await clienteApi.descargarBlob(ruta);
   if (descargar_inmediatamente) {
     activarDescargaNavegador(blob, `Consolidado_Contabilidad_BUMAND.pdf`);
   }
@@ -167,9 +207,15 @@ export async function descargarPdfConsolidadoAuditoria(
  * Descargar reporte general de pasajes.
  */
 export async function descargarPdfPasajesGeneral(
-  descargar_inmediatamente: boolean = true
+  opciones: boolean | ParametrosConsultaPdfPasajes = true,
+  descontar_multas?: boolean
 ): Promise<Blob> {
-  const blob = await clienteApi.descargarBlob(RUTAS_API.PDF.PASAJES_GENERAL);
+  const { ruta, descargar_inmediatamente } = construirRutaPdfConMultas(
+    RUTAS_API.PDF.PASAJES_GENERAL,
+    opciones,
+    descontar_multas
+  );
+  const blob = await clienteApi.descargarBlob(ruta);
   if (descargar_inmediatamente) {
     activarDescargaNavegador(blob, `Reporte_General_Pasajes.pdf`);
   }
@@ -239,6 +285,7 @@ export interface ParametrosPlanillaDonacion {
   con_firma?: boolean;
   firmante_1?: ClaveFirmanteDonacion;
   firmante_2?: ClaveFirmanteDonacion;
+  descontar_multas?: boolean;
   descargar_inmediatamente?: boolean;
 }
 
@@ -263,6 +310,9 @@ function construirConsultaPlanillaDonacion(
   }
   if (parametros.firmante_2) {
     consulta.append("firmante_2", parametros.firmante_2);
+  }
+  if (parametros.descontar_multas !== undefined) {
+    consulta.append("descontar_multas", parametros.descontar_multas ? "true" : "false");
   }
   const texto_consulta = consulta.toString();
   return texto_consulta ? `?${texto_consulta}` : "";
@@ -307,6 +357,7 @@ async function descargarPlanillaDonacion(
 
     if (descargar_inmediatamente) {
       const sufijo_firma = con_firma ? "Archivo_Con_Firma" : "Contabilidad_Sin_Firma";
+      const sufijo_multas = parametros.descontar_multas ? "_ConDescuentoMultas" : "";
       const sufijo_periodo =
         parametros.mes ||
         (parametros.fecha_inicio && parametros.fecha_fin
@@ -314,7 +365,7 @@ async function descargarPlanillaDonacion(
           : "Vigente");
       activarDescargaNavegador(
         blob,
-        `${prefijo_archivo}_${sufijo_firma}_${sufijo_periodo}.pdf`
+        `${prefijo_archivo}_${sufijo_firma}${sufijo_multas}_${sufijo_periodo}.pdf`
       );
     }
 
@@ -340,10 +391,12 @@ async function descargarPlanillaDonacion(
 export async function descargarPdfDonacionRefrigerio(
   parametros: ParametrosPlanillaDonacion = {}
 ): Promise<Blob> {
+  const parametros_refrigerio: ParametrosPlanillaDonacion = { ...parametros };
+  delete parametros_refrigerio.descontar_multas;
   return descargarPlanillaDonacion(
     RUTAS_API.PDF.DONACION_REFRIGERIO,
     "Planilla_Donacion_Refrigerio_BUMAND",
-    parametros
+    parametros_refrigerio
   );
 }
 

@@ -21,12 +21,20 @@ export interface OpcionesTiempoReal {
 
 let socket_global: Socket | null = null;
 
-function obtenerSocketGlobal(): Socket {
+function tiempoRealHabilitado(): boolean {
+  return typeof process === "undefined" || process.env.NEXT_PUBLIC_WS_ENABLED !== "false";
+}
+
+function obtenerSocketGlobal(): Socket | null {
+  if (!tiempoRealHabilitado() || typeof window === "undefined") {
+    return null;
+  }
   if (!socket_global) {
-    const url_servidor =
+    const url_cruda =
       (typeof process !== "undefined" && process.env.NEXT_PUBLIC_WS_URL) ||
       (typeof process !== "undefined" && process.env.NEXT_PUBLIC_API_URL) ||
-      "http://localhost:3000";
+      "http://localhost:3002";
+    const url_servidor = url_cruda.replace(/\/+$/, "");
 
     socket_global = io(url_servidor, {
       transports: ["websocket", "polling"],
@@ -49,9 +57,10 @@ export function useTiempoReal(opciones: OpcionesTiempoReal = {}) {
   }, [opciones.eventos]);
 
   useEffect(() => {
-    if (opciones.auto_conectar === false) return;
+    if (opciones.auto_conectar === false || !tiempoRealHabilitado()) return;
 
     const socket = obtenerSocketGlobal();
+    if (!socket) return;
 
     const alConectar = () => set_conectado(true);
     const alDesconectar = () => set_conectado(false);
@@ -112,6 +121,9 @@ export function useTiempoReal(opciones: OpcionesTiempoReal = {}) {
 
   const suscribir = useCallback((evento: string, manejador: ManejadorEvento) => {
     const socket = obtenerSocketGlobal();
+    if (!socket) {
+      return () => {};
+    }
     socket.on(evento, manejador as (...args: unknown[]) => void);
     return () => {
       socket.off(evento, manejador as (...args: unknown[]) => void);
@@ -120,6 +132,7 @@ export function useTiempoReal(opciones: OpcionesTiempoReal = {}) {
 
   const emitir = useCallback((evento: string, datos?: unknown) => {
     const socket = obtenerSocketGlobal();
+    if (!socket) return;
     socket.emit(evento, datos);
   }, []);
 

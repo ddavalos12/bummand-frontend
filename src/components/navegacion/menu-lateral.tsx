@@ -467,9 +467,9 @@ export function MenuLateral({
               title="Expandir menú lateral"
             >
               <img
-                src="/logos/logo-bumand-icono.svg"
+                src="/logos/LOGO-BUMAND_2023.svg"
                 alt="BUMAND"
-                className="w-8 h-8 object-contain shrink-0 group-hover:scale-105 transition-transform"
+                className="w-14 h-auto max-h-9 object-contain shrink-0 group-hover:scale-105 transition-transform"
               />
             </button>
           </div>
@@ -478,12 +478,12 @@ export function MenuLateral({
             <img
               src="/logos/LOGO-BUMAND_2023.svg"
               alt="BUMAND"
-              className="h-9 w-auto object-contain shrink-0"
+              className="h-8 w-auto object-contain shrink-0"
             />
             <img
               src="/logos/ALTA1.svg"
               alt="Diaconía IFD"
-              className="h-5 w-auto object-contain opacity-80 shrink-0"
+              className="h-5 w-auto object-contain opacity-85 shrink-0"
             />
           </div>
         )}

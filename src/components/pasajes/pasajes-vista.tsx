@@ -1494,8 +1494,8 @@ export function PasajesVista() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => {
-                        exportarFormularioContabilidadRsdExcel(
+                      onClick={async () => {
+                        await exportarFormularioContabilidadRsdExcel(
                           [
                             {
                               becario_nombre: usuario?.nombre || "Becario en Sesión",
@@ -1511,10 +1511,10 @@ export function PasajesVista() {
                           solicitud_actual?.periodo || "2026-10",
                           descontar_multas_rsd
                         );
-                        toast.success("Formulario Contabilidad/RSD exportado en Excel (.xls)");
+                        toast.success("Formulario Contabilidad/RSD exportado en Excel (.xlsx)");
                       }}
                       className="h-7 px-2.5 text-[11px] font-bold border-emerald-600 text-emerald-700 hover:bg-emerald-50 rounded-lg gap-1.5 shadow-2xs"
-                      title="Exportar liquidación a Excel (.xls)"
+                      title="Exportar liquidación a Excel (.xlsx)"
                     >
                       <FileSpreadsheet className="w-3 h-3 text-emerald-600" />
                       <span>Exportar Excel</span>

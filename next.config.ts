@@ -29,11 +29,15 @@ const MODULOS_BACKEND = [
 const nextConfig: NextConfig = {
   devIndicators: false,
   async rewrites() {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+    const backendUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002").replace(/\/+$/, "");
     return [
       {
         source: "/api/:path*",
         destination: `${backendUrl}/api/:path*`,
+      },
+      {
+        source: "/uploads/:path*",
+        destination: `${backendUrl}/uploads/:path*`,
       },
       ...MODULOS_BACKEND.map((modulo) => ({
         source: `/${modulo}/:path*`,
