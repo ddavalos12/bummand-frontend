@@ -24,7 +24,7 @@ export default function PaginaInicioSesion() {
     set_error_form("");
 
     try {
-      const url_base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+      const url_base = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002").replace(/\/+$/, "");
       let token_acceso: string | null = null;
       let usuario_autenticado: Usuario | null = null;
 

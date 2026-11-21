@@ -49,7 +49,7 @@ export function ModalVersiculoDiario({
     const cargarVersiculo = async () => {
       set_cargando(true);
       try {
-        const url_base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+        const url_base = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002").replace(/\/+$/, "");
         const respuesta = await fetch(`${url_base}/biblia/versiculo-diario`);
         if (respuesta.ok) {
           const datos = await respuesta.json();
