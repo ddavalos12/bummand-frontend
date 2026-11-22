@@ -38,6 +38,7 @@ import {
 import { toast } from "sonner";
 import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
 import { clienteApi } from "@/lib/cliente-api";
+import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { BotonesAccionEvaluacion } from "./botones-accion-evaluacion";
 import {
   PREGUNTAS_MENTOR_ESCALA,
@@ -93,9 +94,9 @@ const CALIFICACIONES_DEFAULT_18: Record<number, number> = {
 };
 
 const RESPUESTAS_ABIERTAS_DEFAULT: Record<number, string> = {
-  19: "Excelente apoyo muy agradecida, alta disposición de servicio.",
-  20: "En todas las tareas de digitalización y análisis cumplió con lo encomendado.",
-  21: "Que exista la opción de apoyo en periodos de vacaciones universitarias.",
+  19: "",
+  20: "",
+  21: "",
 };
 
 const PUNTAJES_ABIERTOS_DEFAULT: Record<number, number> = {
@@ -108,8 +109,8 @@ export function FormularioMentorModal({
   abierto,
   alCambiarAbierto,
   becario_id = 1,
-  nombre_becario = "Ruddy Flores Tapia",
-  unidad_agencia_inicial = "Jefatura de Planificación, Control y Presupuesto",
+  nombre_becario = "Becario",
+  unidad_agencia_inicial = "Oficina Central Diaconía IFD - El Alto",
   evaluacion_inicial,
   modalidad_llenado = "perfil_supervisor",
   solo_lectura = false,
@@ -117,8 +118,8 @@ export function FormularioMentorModal({
   alGuardarExito,
   alAprobar,
 }: FormularioMentorModalProps) {
-  // Datos de Cabecera Oficial
-  const [mentor_nombre, set_mentor_nombre] = useState<string>("Mildrette Rojas Soliz");
+  const { usuario } = usarAutenticacion();
+  const [mentor_nombre, set_mentor_nombre] = useState<string>(usuario?.nombre || "");
   const [unidad_agencia, set_unidad_agencia] = useState<string>(unidad_agencia_inicial);
   const [semestre_gestion, set_semestre_gestion] = useState<string>("Semestre II · 2026");
   const [fecha_evaluacion, set_fecha_evaluacion] = useState<string>(
@@ -159,8 +160,11 @@ export function FormularioMentorModal({
   // Carga reactiva de datos si se abre para edición
   useEffect(() => {
     if (abierto) {
+      const sesion_mentor_autorizada =
+        usuario?.rol === "supervisor" || usuario?.rol === "administrador";
+
       if (evaluacion_inicial) {
-        if (evaluacion_inicial.mentor_nombre) set_mentor_nombre(evaluacion_inicial.mentor_nombre);
+        set_mentor_nombre(evaluacion_inicial.mentor_nombre || usuario?.nombre || "");
         if (evaluacion_inicial.unidad_agencia) set_unidad_agencia(evaluacion_inicial.unidad_agencia);
         if (evaluacion_inicial.semestre_gestion) set_semestre_gestion(evaluacion_inicial.semestre_gestion);
         if (evaluacion_inicial.fecha) set_fecha_evaluacion(evaluacion_inicial.fecha);
@@ -173,22 +177,23 @@ export function FormularioMentorModal({
           set_identidad_verificada(true);
           set_codigo_solicitado(true);
         } else {
-          set_identidad_verificada(false);
-          set_codigo_solicitado(false);
+          set_identidad_verificada(sesion_mentor_autorizada);
+          set_codigo_solicitado(sesion_mentor_autorizada);
           set_codigo_verificacion("");
         }
       } else {
+        set_mentor_nombre(usuario?.nombre || "");
         set_unidad_agencia(unidad_agencia_inicial);
         set_calificaciones_18(CALIFICACIONES_DEFAULT_18);
         set_respuestas_abiertas(RESPUESTAS_ABIERTAS_DEFAULT);
         set_puntajes_abiertos(PUNTAJES_ABIERTOS_DEFAULT);
-        set_identidad_verificada(false);
-        set_codigo_solicitado(false);
+        set_identidad_verificada(sesion_mentor_autorizada);
+        set_codigo_solicitado(sesion_mentor_autorizada);
         set_codigo_verificacion("");
       }
       set_hay_modificaciones(false);
     }
-  }, [abierto, evaluacion_inicial, unidad_agencia_inicial]);
+  }, [abierto, evaluacion_inicial, unidad_agencia_inicial, usuario]);
 
   // Manejador para escala 1-10
   const asignarNotaPregunta = (numero: number, valor: number) => {
@@ -321,24 +326,22 @@ export function FormularioMentorModal({
 
     set_guardando(true);
     try {
-      await clienteApi
-        .post("/api/evaluaciones/receptor/mentor-qr", {
-          becario_id,
-          periodo_id: "s2",
-          mentor_nombre,
-          unidad_agencia,
-          semestre_gestion,
-          fecha: fecha_evaluacion,
-          calificaciones_1_18: calificaciones_18,
-          promedio_bloque_1: promedio_18_sobre_10,
-          respuestas_abiertas,
-          puntajes_abiertos,
-          total_bloque_2: suma_abiertas_sobre_10,
-          nota_final_20: nota_final_sobre_20,
-          modalidad_llenado,
-          codigo_verificacion: codigo_verificacion.trim(),
-        })
-        .catch(() => {});
+      await clienteApi.post("/api/evaluaciones/receptor/mentor-qr", {
+        becario_id,
+        periodo_id: 2,
+        mentor_nombre: mentor_nombre.trim() || usuario?.nombre || "Mentor Diaconía",
+        unidad_agencia,
+        semestre_gestion,
+        fecha: fecha_evaluacion,
+        calificaciones_1_18: calificaciones_18,
+        promedio_bloque_1: promedio_18_sobre_10,
+        respuestas_abiertas,
+        puntajes_abiertos,
+        total_bloque_2: suma_abiertas_sobre_10,
+        nota_final_20: nota_final_sobre_20,
+        modalidad_llenado: "perfil_supervisor",
+        codigo_verificacion: codigo_verificacion.trim() || undefined,
+      });
 
       toast.success("Evaluación de Mentor asentada exitosamente", {
         description: `Nota Oficial: ${nota_final_sobre_20} / 20 Puntos asignada a ${nombre_becario}.`,
@@ -349,8 +352,8 @@ export function FormularioMentorModal({
         alGuardarExito(nota_final_sobre_20);
       }
       alCambiarAbierto(false);
-    } catch (_error) {
-      toast.error("Error al asentar la evaluación del mentor.");
+    } catch (error: any) {
+      toast.error(error?.mensaje || error?.message || "Error al asentar la evaluación del mentor.");
     } finally {
       set_guardando(false);
     }
@@ -489,14 +492,16 @@ export function FormularioMentorModal({
                 <p className="font-semibold text-slate-800">
                   Escanee este código QR para abrir el formulario directamente en el teléfono del supervisor diaconal.
                 </p>
-                <p className="font-mono text-[11px] text-muted-foreground">
-                  https://bumand.bo/evaluar/mentor?becario={becario_id}&sem=2026-2
+                <p className="font-mono text-[11px] text-muted-foreground break-all">
+                  {typeof window !== "undefined"
+                    ? `${window.location.origin}/evaluar-mentor?becario_id=${becario_id}`
+                    : `https://bummand-frontend.vercel.app/evaluar-mentor?becario_id=${becario_id}`}
                 </p>
               </div>
             </div>
           )}
 
-          {/* 1. SECCIÓN DE VALIDACIÓN DE IDENTIDAD POR CÓDIGO DE 6 DÍGITOS (OTP) */}
+          {/* 1. SECCIÓN DE VALIDACIÓN DE SESIÓN EXCLUSIVA PARA MENTOR */}
           {solo_lectura ? (
             <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center gap-2.5">
@@ -505,21 +510,36 @@ export function FormularioMentorModal({
                 </div>
                 <div>
                   <h4 className="text-xs font-bold text-[#035683] uppercase tracking-wider">
-                    Validación de Identidad del Mentor
+                    Autoría Verificada del Mentor
                   </h4>
                   <p className="text-[11px] text-slate-600">
-                    Firma electrónica y código OTP respaldado por el supervisor evaluador:
+                    Evaluación registrada exclusivamente desde la sesión autenticada del supervisor evaluador.
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-bold text-[#035683] bg-white px-2.5 py-1 rounded-lg border border-[#E5E7EB]">
-                  OTP: {codigo_verificacion || evaluacion_inicial?.codigo_verificacion || "748920"}
-                </span>
-                <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-[10px]">
-                  Firma Conforme
-                </Badge>
+              <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-[10px]">
+                Firma Conforme
+              </Badge>
+            </div>
+          ) : identidad_verificada ? (
+            <div className="p-3.5 bg-emerald-50/70 border border-emerald-300 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#035683] text-white flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-4 h-4 text-[#FFB600]" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-[#035683] uppercase tracking-wider">
+                    Sesión Exclusiva de Mentor Autorizada
+                  </h4>
+                  <p className="text-[11px] text-emerald-800">
+                    Autenticado como <strong>{usuario?.nombre || mentor_nombre || "Mentor"}</strong> ({usuario?.rol || "supervisor"}). Los becarios no tienen acceso a este formulario.
+                  </p>
+                </div>
               </div>
+              <Badge className="bg-emerald-600 text-white font-bold text-xs px-3 py-1 gap-1.5 self-start sm:self-auto">
+                <CheckCircle className="w-3.5 h-3.5 text-white" />
+                Mentor Verificado
+              </Badge>
             </div>
           ) : (
             <div className="p-4 bg-gradient-to-r from-[#035683]/5 via-[#00ABBD]/5 to-transparent border border-[#00ABBD]/30 rounded-2xl space-y-3">
@@ -533,88 +553,15 @@ export function FormularioMentorModal({
                       Validación Obligatoria de Identidad (Mentor)
                     </h4>
                     <p className="text-[11px] text-muted-foreground">
-                      Verifique su identidad mediante código seguro de 6 dígitos para validar la autoría de la calificación.
+                      Inicie sesión con su cuenta de Mentor/Supervisor para autorizar esta evaluación.
                     </p>
                   </div>
                 </div>
-
-                {identidad_verificada ? (
-                  <Badge className="bg-emerald-600 text-white font-bold text-xs px-3 py-1 gap-1.5 self-start sm:self-auto">
-                    <CheckCircle className="w-3.5 h-3.5 text-white" />
-                    Identidad Validada
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-800 text-xs px-2.5 py-0.5 gap-1.5 self-start sm:self-auto">
-                    <Lock className="w-3 h-3 text-amber-600" />
-                    Pendiente de Validación
-                  </Badge>
-                )}
+                <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-800 text-xs px-2.5 py-0.5 gap-1.5 self-start sm:self-auto">
+                  <Lock className="w-3 h-3 text-amber-600" />
+                  Requiere Sesión Mentor
+                </Badge>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-1">
-                <div className="sm:col-span-5 flex items-center">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={solicitarCodigoValidacion}
-                    disabled={solicitando_codigo || identidad_verificada}
-                    className="w-full h-9 border-[#035683] text-[#035683] hover:bg-[#035683]/10 font-bold text-xs rounded-xl gap-2 shadow-2xs"
-                  >
-                    {solicitando_codigo ? (
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <KeyRound className="w-3.5 h-3.5 text-[#00ABBD]" />
-                    )}
-                    {codigo_solicitado ? "Reenviar Código de 6 Dígitos" : "Solicitar Código de Validación"}
-                  </Button>
-                </div>
-
-                <div className="sm:col-span-7 flex items-center gap-2">
-                  <div className="relative flex-1">
-                    <Input
-                      type="text"
-                      maxLength={6}
-                      value={codigo_verificacion}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, "");
-                        set_codigo_verificacion(val);
-                        set_hay_modificaciones(true);
-                        if (identidad_verificada) {
-                          set_identidad_verificada(false);
-                        }
-                      }}
-                      placeholder="Código de 6 dígitos"
-                      disabled={identidad_verificada}
-                      className="h-9 font-mono text-center tracking-widest text-sm font-bold bg-white border-[#E5E7EB] rounded-xl"
-                    />
-                    {codigo_verificacion.length === 6 && !identidad_verificada && (
-                      <span className="absolute right-3 top-2 text-[10px] text-muted-foreground font-mono">
-                        6/6
-                      </span>
-                    )}
-                  </div>
-
-                  <Button
-                    type="button"
-                    onClick={verificarCodigoValidacion}
-                    disabled={verificando_codigo || codigo_verificacion.length !== 6 || identidad_verificada}
-                    className="h-9 px-4 bg-[#00ABBD] hover:bg-[#00808E] text-[#035683] hover:text-white font-bold text-xs rounded-xl gap-1.5 shadow-2xs shrink-0"
-                  >
-                    {verificando_codigo ? (
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                    )}
-                    {identidad_verificada ? "Verificado" : "Verificar"}
-                  </Button>
-                </div>
-              </div>
-
-              {codigo_esperado && !identidad_verificada && (
-                <p className="text-[11px] text-sky-800 bg-sky-50/80 p-2 rounded-lg border border-sky-200">
-                  💡 <strong>Código emitido para pruebas:</strong> Ingrese <span className="font-mono font-bold text-[#035683]">{codigo_esperado}</span> en el campo superior y presione &quot;Verificar&quot;.
-                </p>
-              )}
             </div>
           )}
 

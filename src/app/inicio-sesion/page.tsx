@@ -237,7 +237,15 @@ export default function PaginaInicioSesion() {
 
       if (token_acceso && usuario_autenticado) {
         iniciarSesion(token_acceso, usuario_autenticado);
-        enrutador.push("/");
+        const redirect_param =
+          typeof window !== "undefined"
+            ? new URLSearchParams(window.location.search).get("redirect")
+            : null;
+        if (redirect_param && redirect_param.startsWith("/")) {
+          enrutador.push(redirect_param);
+        } else {
+          enrutador.push("/");
+        }
       }
     } catch (error_catch: any) {
       set_error_form(error_catch.message || "Error al iniciar sesión");
