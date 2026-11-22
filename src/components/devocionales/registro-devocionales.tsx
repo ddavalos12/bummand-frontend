@@ -194,47 +194,7 @@ const CITAS_SEGUIMIENTO_SEMILLA: CitaSeguimiento[] = [
   },
 ];
 
-const DEVOCIONALES_INICIALES: DevocionalItem[] = [
-  {
-    id: 1,
-    becario_id: 1,
-    nombre_becario: "Nilda Amalia Churata Paye",
-    fecha: "2026-10-07",
-    cita_biblica: "Filipenses 4:13",
-    titulo: "Fortaleza en el Servicio Diario",
-    reflexion:
-      "Hoy medité sobre cómo el Señor renueva las fuerzas en el servicio a la comunidad. En las tareas asignadas en Seguridad Física de Diaconía, pude experimentar Su gracia y paciencia.",
-    oracion_peticion: "Sabiduría en los exámenes universitarios y salud para mi familia.",
-    comentario_pastoral: null,
-    revisado_por_pastor: false,
-  },
-  {
-    id: 2,
-    becario_id: 2,
-    nombre_becario: "Edgar Elias Alarcon Huanca",
-    fecha: "2026-10-06",
-    cita_biblica: "Proverbios 3:5-6",
-    titulo: "Confianza Plena en el Señor",
-    reflexion:
-      "Reconozco que no debo apoyarme en mi propia prudencia en las prácticas del Consultorio Médico, sino pedir dirección a Dios en cada atención.",
-    oracion_peticion: "Por los pacientes de escasos recursos y provisión para mis estudios de Medicina.",
-    comentario_pastoral: null,
-    revisado_por_pastor: false,
-  },
-  {
-    id: 3,
-    becario_id: 3,
-    nombre_becario: "Adai Belen Huayta Cardozo",
-    fecha: "2026-10-04",
-    cita_biblica: "Colosenses 3:23-24",
-    titulo: "Trabajar con Excelencia para Cristo",
-    reflexion:
-      "Todo lo que hagamos en el procesamiento estadístico y en la formación de la Escuela de Líderes debe honrar el nombre de Dios.",
-    oracion_peticion: "Por la unidad de los becarios y el retiro espiritual de fin de semestre.",
-    comentario_pastoral: null,
-    revisado_por_pastor: false,
-  },
-];
+const DEVOCIONALES_INICIALES: DevocionalItem[] = [];
 
 export function RegistroDevocionales() {
   const { usuario } = usarAutenticacion();
@@ -340,7 +300,7 @@ export function RegistroDevocionales() {
           set_citas_seguimiento(respuesta_citas.map(mapearCitaDesdeApi));
         }
       } catch {
-        if (!cancelado) set_citas_seguimiento(CITAS_SEGUIMIENTO_SEMILLA);
+        if (!cancelado) set_citas_seguimiento([]);
       }
 
       if (es_supervisor) {
@@ -366,7 +326,7 @@ export function RegistroDevocionales() {
             set_becarios_supervisados([]);
           }
         } catch {
-          if (!cancelado) set_becarios_supervisados(BECARIOS_SUPERVISADOS_SEMILLA);
+          if (!cancelado) set_becarios_supervisados([]);
         }
       }
       if (!cancelado) set_cargando_citas(false);
@@ -404,7 +364,7 @@ export function RegistroDevocionales() {
         }
         return [];
       } catch {
-        return DEVOCIONALES_INICIALES;
+        return [];
       }
     },
     { datos_iniciales: [] }

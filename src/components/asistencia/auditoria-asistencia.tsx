@@ -152,28 +152,12 @@ export const LISTA_23_BECARIOS_OFICIALES: BecarioOficial[] = [
 export const SEDES_POR_ACTIVIDAD = {
   practicas: [
     "Oficina Central Bloque A",
-    "Oficina Central Bloque B",
-    "Agencia Villa Dolores",
-    "Sucursal Juan Pablo II",
-    "Sucursal Villa Adela",
-    "Centro Infantil Sagrada Familia",
-    "Consultorio Médico San Lucas",
-    "Hogar de Niños Amor y Esperanza",
   ],
   escuela_lideres: [
     "Sede Central (Auditorio Central Diaconía)",
-    "Escuela de Líderes - Módulo A (Salón Principal)",
-    "Escuela de Líderes - Salón Metodista",
-    "Auditorio Centro Bíblico de Formación",
   ],
   acciones_servicio: [
-    "Iglesia Central El Alto (Acción Solidaria)",
-    "Sinai Los Andes (Comedor y Apoyo Comunitario)",
-    "Iglesia Metodista Monte de Horeb (Taller Educativo)",
-    "Centró Evangelistico Caluyo (Campaña Médica Diaconal)",
-    "Iglesia del Nazareno El Progreso (Apoyo Escolar)",
-    "Campaña Diaconal Comunitaria (Feria Solidaria)",
-    "Comedor Solidario Infantil San Lucas",
+    "Sede Central Bloque A (Diaconía)",
   ],
 };
 
@@ -194,136 +178,7 @@ export function calcularHorasTranscurridas(ingreso: string, salida: string): num
   return Math.round((minutos / 60) * 100) / 100;
 }
 
-const REGISTROS_AUDITORIA_INICIALES: RegistroAuditoriaAsistencia[] = [
-  {
-    id: 1,
-    becario_id: 101,
-    becario_nombre: "Nilda Amalia Churata Paye",
-    carrera: "Educación Parvularia",
-    sede_nombre: "Centro Infantil Sagrada Familia",
-    fecha: "2026-10-09",
-    hora_ingreso: "08:12",
-    hora_salida: null,
-    horas_trabajadas: 4.2,
-    distancia_ingreso_m: 35,
-    dentro_de_radio: true,
-    dentro_de_horario: true,
-    estado: "en_curso",
-    lat_ingreso: -16.5023,
-    lng_ingreso: -68.1511,
-    es_viernes: true,
-    minutos_retraso: 0,
-    monto_multa_bs: 0,
-    confirmacion_presencial: true,
-  },
-  {
-    id: 2,
-    becario_id: 102,
-    becario_nombre: "Edgar Elias Alarcon Huanca",
-    carrera: "Ingeniería de Sistemas",
-    sede_nombre: "Oficina Central Bloque A",
-    fecha: "2026-10-09",
-    hora_ingreso: "08:45",
-    hora_salida: null,
-    horas_trabajadas: 3.5,
-    distancia_ingreso_m: 48,
-    dentro_de_radio: true,
-    dentro_de_horario: false,
-    estado: "tardanza",
-    lat_ingreso: -16.4998,
-    lng_ingreso: -68.1502,
-    es_viernes: true,
-    minutos_retraso: 45,
-    monto_multa_bs: 0,
-    confirmacion_presencial: true,
-  },
-  {
-    id: 3,
-    becario_id: 103,
-    becario_nombre: "Adai Belen Huayta Cardozo",
-    carrera: "Contaduría Pública",
-    sede_nombre: "Agencia Villa Dolores",
-    fecha: "2026-10-09",
-    hora_ingreso: "07:58",
-    hora_salida: "16:30",
-    horas_trabajadas: 8.53,
-    distancia_ingreso_m: 185,
-    dentro_de_radio: false,
-    dentro_de_horario: true,
-    estado: "fuera_geocerca",
-    lat_ingreso: -16.518,
-    lng_ingreso: -68.163,
-    es_viernes: true,
-    minutos_retraso: 0,
-    monto_multa_bs: 0,
-    confirmacion_presencial: false,
-  },
-  {
-    id: 4,
-    becario_id: 104,
-    becario_nombre: "Ronald Franz Mamani Quispe",
-    carrera: "Bioquímica y Farmacia",
-    sede_nombre: "Consultorio Médico San Lucas",
-    fecha: "2026-10-09",
-    hora_ingreso: "08:00",
-    hora_salida: "17:00",
-    horas_trabajadas: 9.0,
-    distancia_ingreso_m: 22,
-    dentro_de_radio: true,
-    dentro_de_horario: true,
-    estado: "conforme",
-    lat_ingreso: -16.505,
-    lng_ingreso: -68.148,
-    es_viernes: true,
-    minutos_retraso: 0,
-    monto_multa_bs: 0,
-    confirmacion_presencial: true,
-  },
-  {
-    id: 5,
-    becario_id: 105,
-    becario_nombre: "Abigail Ruth Condori Flores",
-    carrera: "Trabajo Social",
-    sede_nombre: "Hogar de Niños Amor y Esperanza",
-    fecha: "2026-10-09",
-    hora_ingreso: "08:35",
-    hora_salida: "17:10",
-    horas_trabajadas: 8.58,
-    distancia_ingreso_m: 140,
-    dentro_de_radio: false,
-    dentro_de_horario: false,
-    estado: "convalidado",
-    convalidado_por: "Lic. Marcos Quispe",
-    motivo_convalidacion: "Corte de vías por desfile cívico zonal verificado.",
-    lat_ingreso: -16.521,
-    lng_ingreso: -68.169,
-    es_viernes: true,
-    minutos_retraso: 35,
-    monto_multa_bs: 0,
-    confirmacion_presencial: true,
-  },
-  {
-    id: 6,
-    becario_id: 106,
-    becario_nombre: "Jhoselin Pamela Mamani Choque",
-    carrera: "Medicina",
-    sede_nombre: "Escuela de Líderes (Auditorio Central)",
-    fecha: "2026-10-09",
-    hora_ingreso: "14:50",
-    hora_salida: "17:30",
-    horas_trabajadas: 2.67,
-    distancia_ingreso_m: 18,
-    dentro_de_radio: true,
-    dentro_de_horario: false,
-    estado: "tardanza",
-    lat_ingreso: -16.5020,
-    lng_ingreso: -68.1510,
-    es_viernes: true,
-    minutos_retraso: 20,
-    monto_multa_bs: 20, // Escala oficial BUMAND: 11-30 min = 20 Bs
-    confirmacion_presencial: true,
-  },
-];
+const REGISTROS_AUDITORIA_INICIALES: RegistroAuditoriaAsistencia[] = [];
 
 export function calcularMultaEscuelaLideres(minutos: number): number {
   if (minutos <= 0) return 0;
@@ -349,31 +204,7 @@ export interface HorasMensualesBecario {
   estado_meta: "cumplido" | "en_progreso" | "en_riesgo";
 }
 
-export const REGISTROS_HORAS_MENSUALES_INICIALES: HorasMensualesBecario[] = [
-  { id: 1, becario_id: 1, nombre: "Adai Belen Huayta Cardozo", ci: "13696496", carrera: "Estadística", sede: "Oficina Central Bloque B", mes: "2026-10", horas_realizadas: 39.5, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 2, becario_id: 2, nombre: "Daniel Davalos Quiñonez", ci: "9107373", carrera: "Informática", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 40.0, meta_horas: 36.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 3, becario_id: 3, nombre: "Edgar Elías Alarcon Huanca", ci: "9160054", carrera: "Medicina", sede: "Consultorio Médico San Lucas", mes: "2026-10", horas_realizadas: 38.0, meta_horas: 36.0, dias_asistidos: 9, tardanzas_viernes: 1, multas_acumuladas_bs: 20, estado_meta: "cumplido" },
-  { id: 4, becario_id: 4, nombre: "Nilda Amalia Churata Paye", ci: "10028341", carrera: "Educación Parvularia", sede: "Centro Infantil Sagrada Familia", mes: "2026-10", horas_realizadas: 42.0, meta_horas: 36.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 5, becario_id: 5, nombre: "Alejandro Roberth Paredes Tarquino", ci: "10064956", carrera: "Comunicación Social", sede: "Sucursal Juan Pablo II", mes: "2026-10", horas_realizadas: 37.5, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 6, becario_id: 6, nombre: "Aydee Ruth Ali Condori", ci: "9952878", carrera: "Contaduría Pública", sede: "Agencia Villa Dolores", mes: "2026-10", horas_realizadas: 41.0, meta_horas: 36.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 7, becario_id: 7, nombre: "Carlos Oscar Luna Lizarraga", ci: "9943280", carrera: "Economía", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 34.0, meta_horas: 36.0, dias_asistidos: 8, tardanzas_viernes: 1, multas_acumuladas_bs: 20, estado_meta: "en_progreso" },
-  { id: 8, becario_id: 8, nombre: "Isaías Daniel Herrera Mamani", ci: "10920862", carrera: "Arquitectura", sede: "Oficina Central Bloque B", mes: "2026-10", horas_realizadas: 38.5, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 9, becario_id: 9, nombre: "José Marcos Suñagua Quispe", ci: "14378720", carrera: "Informática", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 40.5, meta_horas: 36.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 10, becario_id: 10, nombre: "Mariela Dayana Jimenez Chambi", ci: "12959656", carrera: "Contaduría Pública", sede: "Agencia Villa Dolores", mes: "2026-10", horas_realizadas: 36.0, meta_horas: 36.0, dias_asistidos: 9, tardanzas_viernes: 1, multas_acumuladas_bs: 10, estado_meta: "cumplido" },
-  { id: 11, becario_id: 11, nombre: "Mayherli Alejandra Loza Villalobos", ci: "9925727", carrera: "Contaduría Pública", sede: "Sucursal Villa Adela", mes: "2026-10", horas_realizadas: 39.0, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 12, becario_id: 12, nombre: "Noemi Callisaya Alvarez", ci: "7093658", carrera: "Psicomotricidad y Deportes", sede: "Centro Infantil Sagrada Familia", mes: "2026-10", horas_realizadas: 40.0, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 13, becario_id: 13, nombre: "Ronald Mauricio Quiquijana Mayta", ci: "6172054", carrera: "Ingeniería en Telecomunicaciones", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 42.5, meta_horas: 36.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 14, becario_id: 14, nombre: "Ruddy Flores Tapia", ci: "9974211", carrera: "Informática", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 38.0, meta_horas: 36.0, dias_asistidos: 9, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 15, becario_id: 15, nombre: "Gonzalo Valencia Laura", ci: "8416501", carrera: "Contaduría Pública", sede: "Agencia Villa Dolores", mes: "2026-10", horas_realizadas: 35.0, meta_horas: 36.0, dias_asistidos: 9, tardanzas_viernes: 1, multas_acumuladas_bs: 30, estado_meta: "en_progreso" },
-  { id: 16, becario_id: 16, nombre: "Gustavo Ariel Condori Montaño", ci: "13088041", carrera: "Contaduría Pública", sede: "Oficina Central Bloque B", mes: "2026-10", horas_realizadas: 39.0, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 17, becario_id: 17, nombre: "Lisbeth Pacasi Machaca", ci: "13603536", carrera: "Bioquímica y Farmacia", sede: "Consultorio Médico San Lucas", mes: "2026-10", horas_realizadas: 41.5, meta_horas: 36.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 18, becario_id: 18, nombre: "Selena Fernanda Pillco Mamani", ci: "13693151", carrera: "Economía", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 40.0, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 19, becario_id: 19, nombre: "Milenka Quispe Coarite", ci: "14155448", carrera: "Administración de Empresas", sede: "Sucursal Juan Pablo II", mes: "2026-10", horas_realizadas: 37.0, meta_horas: 36.0, dias_asistidos: 9, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 20, becario_id: 20, nombre: "Joselin Wara Huanca Paucara", ci: "12604724", carrera: "Contaduría Pública", sede: "Agencia Villa Dolores", mes: "2026-10", horas_realizadas: 38.5, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 21, becario_id: 21, nombre: "Johan Ludving Misme Flores", ci: "9208456", carrera: "Informática", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 39.0, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 22, becario_id: 22, nombre: "Matias Jose Uri Flores", ci: "13627440", carrera: "Lingüística e Idiomas", sede: "Oficina Central Bloque B", mes: "2026-10", horas_realizadas: 40.0, meta_horas: 36.0, dias_asistidos: 11, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-  { id: 23, becario_id: 23, nombre: "Mateo Miguel Cussi Flores", ci: "8411610", carrera: "Informática", sede: "Oficina Central Bloque A", mes: "2026-10", horas_realizadas: 38.5, meta_horas: 36.0, dias_asistidos: 10, tardanzas_viernes: 0, multas_acumuladas_bs: 0, estado_meta: "cumplido" },
-];
+export const REGISTROS_HORAS_MENSUALES_INICIALES: HorasMensualesBecario[] = [];
 
 interface AuditoriaAsistenciaProps {
   rol?: string;
@@ -486,18 +317,9 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
           }));
         }
       } catch {
-        // Fallback a los 23 registros iniciales
+        // Sin registros simulados ante error o vacío
       }
-      return REGISTROS_HORAS_MENSUALES_INICIALES.map((item) => ({
-        ...item,
-        mes: mes_seleccionado,
-        horas_realizadas:
-          mes_seleccionado === "2026-09"
-            ? Math.round(item.horas_realizadas * 1.05 * 10) / 10
-            : mes_seleccionado === "2026-08"
-            ? Math.round(item.horas_realizadas * 0.95 * 10) / 10
-            : item.horas_realizadas,
-      }));
+      return [];
     },
     { datos_iniciales: REGISTROS_HORAS_MENSUALES_INICIALES }
   );
@@ -716,58 +538,30 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
 
   // Estados para Llamada de Lista en Vivo (Viernes de Formación / Práctica)
   const [modal_lista_vivo_abierto, set_modal_lista_vivo_abierto] = useState<boolean>(false);
-  const [lista_llamada_vivo, set_lista_llamada_vivo] = useState([
-    {
-      id: 101,
-      nombre: "Nilda Amalia Churata Paye",
-      carrera: "Educación Parvularia",
-      sede: "Oficina Central Bloque A",
-      marco_gps: true,
-      hora_gps: "08:12",
-      distancia_m: 35,
-      confirmado: true,
-    },
-    {
-      id: 102,
-      nombre: "Edgar Elias Alarcon Huanca",
-      carrera: "Ingeniería de Sistemas",
-      sede: "Oficina Central Bloque A",
-      marco_gps: true,
-      hora_gps: "08:45",
-      distancia_m: 48,
-      confirmado: true,
-    },
-    {
-      id: 103,
-      nombre: "Adai Belen Huayta Cardozo",
-      carrera: "Contaduría Pública",
-      sede: "Oficina Central Bloque B",
-      marco_gps: true,
-      hora_gps: "07:58",
-      distancia_m: 185,
-      confirmado: false,
-    },
-    {
-      id: 104,
-      nombre: "Ronald Franz Mamani Quispe",
-      carrera: "Bioquímica y Farmacia",
-      sede: "Consultorio San Lucas",
-      marco_gps: true,
-      hora_gps: "08:00",
-      distancia_m: 22,
-      confirmado: true,
-    },
-    {
-      id: 105,
-      nombre: "Abigail Ruth Condori Flores",
-      carrera: "Trabajo Social",
-      sede: "Hogar Amor y Esperanza",
-      marco_gps: false,
-      hora_gps: "--:--",
-      distancia_m: 0,
-      confirmado: false,
-    },
-  ]);
+  const [sedes_bd, set_sedes_bd] = useState<string[]>([]);
+  const [lista_llamada_vivo, set_lista_llamada_vivo] = useState<
+    Array<{
+      id: number;
+      nombre: string;
+      carrera: string;
+      sede: string;
+      marco_gps: boolean;
+      hora_gps: string;
+      distancia_m: number;
+      confirmado: boolean;
+    }>
+  >([]);
+
+  useEffect(() => {
+    clienteApi
+      .get<any[]>("/api/lugares-practica")
+      .then((res) => {
+        if (Array.isArray(res) && res.length > 0) {
+          set_sedes_bd(res.map((l) => l.nombre).filter(Boolean));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const alternarConfirmacionPresencial = (id: number) => {
     set_lista_llamada_vivo((prev) =>
@@ -857,18 +651,18 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
               supervisor_nombre: item.becario?.supervisor?.nombre ?? item.becario?.supervisor?.usuario?.nombre ?? null,
             };
           });
-          return [...REGISTROS_AUDITORIA_INICIALES, ...mapeados];
+          return mapeados;
         }
       } catch {
         // En caso de error de red
       }
-      return REGISTROS_AUDITORIA_INICIALES;
+      return [];
     },
     { datos_iniciales: REGISTROS_AUDITORIA_INICIALES, revalidar_al_montar: true, tiempo_vida_cache_ms: 0 }
   );
 
   useEffect(() => {
-    if (registros_servidor && registros_servidor.length > 0) {
+    if (Array.isArray(registros_servidor)) {
       set_registros_locales(registros_servidor);
     }
   }, [registros_servidor]);
@@ -899,7 +693,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
   const total_registros = registros.length;
   const dentro_geocerca_total = registros.filter((r) => r.dentro_de_radio).length;
   const tasa_geocerca =
-    total_registros > 0 ? Math.round((dentro_geocerca_total / total_registros) * 100) : 100;
+    total_registros > 0 ? Math.round((dentro_geocerca_total / total_registros) * 100) : 0;
   const alertas_geocerca = registros.filter(
     (r) => !r.dentro_de_radio && r.estado !== "convalidado"
   ).length;
@@ -1312,11 +1106,14 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                 </SelectTrigger>
                 <SelectContent className="bg-white border-[#E5E7EB] z-[100]">
                   <SelectItem value="todas">Todas las Sedes</SelectItem>
-                  <SelectItem value="Oficina Central Bloque A">Oficina Central Bloque A</SelectItem>
-                  <SelectItem value="Centro Infantil Sagrada Familia">Centro Infantil Sagrada Familia</SelectItem>
-                  <SelectItem value="Agencia Villa Dolores">Agencia Villa Dolores</SelectItem>
-                  <SelectItem value="Consultorio Médico San Lucas">Consultorio Médico San Lucas</SelectItem>
-                  <SelectItem value="Hogar de Niños Amor y Esperanza">Hogar de Niños Amor y Esperanza</SelectItem>
+                  {(sedes_bd.length > 0
+                    ? sedes_bd
+                    : ["Oficina Central Diaconía IFD - El Alto"]
+                  ).map((nombre_sede) => (
+                    <SelectItem key={nombre_sede} value={nombre_sede}>
+                      {nombre_sede}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

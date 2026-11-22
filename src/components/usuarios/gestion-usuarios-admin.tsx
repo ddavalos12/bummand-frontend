@@ -65,651 +65,6 @@ export interface UsuarioInstitucional {
   unidad?: string;
 }
 
-const CLAVE_STORAGE_USUARIOS = "bumand_catalogo_usuarios_admin";
-
-// Catálogo semilla oficial institucional de 61 cuentas (2 Administradores, 29 Supervisores y 30 Becarios)
-const USUARIOS_SEMILLA: UsuarioInstitucional[] = [
-  // 1. Administradores Institucionales (2)
-  {
-    id: 1,
-    nombre: "Daniel Dávalos",
-    correo: "daniel234.davalos@gmail.com",
-    correo_alternativo: "daniel.davalos@bumand.bo",
-    correos_adicionales: [
-      { id: 101, correo: "daniel.davalos@bumand.bo", etiqueta: "Institucional" },
-    ],
-    rol: "administrador",
-    estado: "activo",
-    cargo: "Administrador Primario y Dirección Tecnológica",
-    unidad: "Gerencia Nacional de Sistemas y Tecnología",
-  },
-  {
-    id: 2,
-    nombre: "Coordinación General BUMAND",
-    correo: "coordinacion@bumand.bo",
-    correo_alternativo: "bumand.central@diaconia.bo",
-    correos_adicionales: [
-      { id: 102, correo: "bumand.central@diaconia.bo", etiqueta: "Respaldo" },
-    ],
-    rol: "administrador",
-    estado: "activo",
-    cargo: "Coordinación Institucional y Dirección del Programa BUMAND",
-    unidad: "Coordinación Nacional BUMAND",
-  },
-
-  // 2. Supervisores y Mentores Institucionales (29)
-  {
-    id: 3,
-    nombre: "Angel Javier Ali Paz",
-    correo: "angel.ali@bumand.bo",
-    correo_alternativo: "angel.ali.paz@gmail.com",
-    correos_adicionales: [
-      { id: 103, correo: "angel.ali.paz@gmail.com", etiqueta: "Personal" },
-    ],
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Tutor General de Prácticas / Jefe de Seguridad Física",
-    unidad: "Jefatura de Seguridad Física",
-  },
-  {
-    id: 4,
-    nombre: "Carlos Mendoza Flores",
-    correo: "carlos.mendoza@bumand.bo",
-    correo_alternativo: "carlos.mendoza.fl@gmail.com",
-    correos_adicionales: [
-      { id: 104, correo: "carlos.mendoza.fl@gmail.com", etiqueta: "Personal" },
-    ],
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Mentor de Operaciones y Red de Agencias",
-    unidad: "Gerencia de Operaciones",
-  },
-  {
-    id: 5,
-    nombre: "Claudia Consuelo Cabrera Delgado",
-    correo: "claudia.cabrera@diaconia.bo",
-    correo_alternativo: "claudia.cabrera.med@gmail.com",
-    correos_adicionales: [
-      { id: 105, correo: "claudia.cabrera.med@gmail.com", etiqueta: "Personal" },
-    ],
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Responsable de Consultorio Médico / Talento Humano",
-    unidad: "Consultorio Médico / SGN Talento Humano",
-  },
-  {
-    id: 6,
-    nombre: "Rodrigo Solorzano San Martin",
-    correo: "rodrigo.solorzano@diaconia.bo",
-    correo_alternativo: "rsolorzano.bo@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Responsable de Productos y Canales Financieros",
-    unidad: "Productos y Canales / SGN de Captaciones",
-  },
-  {
-    id: 7,
-    nombre: "Elsa Quinteros Aquino",
-    correo: "elsa.quinteros@diaconia.bo",
-    correo_alternativo: "elsa.quinteros.fin@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Responsable de Finanzas y Tesorería",
-    unidad: "Finanzas y Tesorería",
-  },
-  {
-    id: 8,
-    nombre: "Hugo Seifert",
-    correo: "hugo.seifert@diaconia.bo",
-    correo_alternativo: "hseifert.riesgos@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Gerente Nacional de Riesgos",
-    unidad: "Gerencia Nacional de Riesgos",
-  },
-  {
-    id: 9,
-    nombre: "Max Arthur Reynoso Espinoza",
-    correo: "max.reynoso@diaconia.bo",
-    correo_alternativo: "max.reynoso.mkt@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Jefe de Marketing y Comunicación Institucional",
-    unidad: "Jefatura de Marketing y Comunicación",
-  },
-  {
-    id: 10,
-    nombre: "Fernando Marcelo Quispe Calle",
-    correo: "fernando.quispe@bumand.bo",
-    correo_alternativo: "fernando.quispe.diaconia@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Auditor Interno de Procesos y Operaciones",
-    unidad: "Auditoría Interna",
-  },
-  {
-    id: 11,
-    nombre: "Silvia Patricia Morales Rocha",
-    correo: "silvia.morales@bumand.bo",
-    correo_alternativo: "silvia.morales.rrhh@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Encargada de Bienestar y Gestión de Talento",
-    unidad: "Talento Humano",
-  },
-  {
-    id: 12,
-    nombre: "Victor Hugo Tarqui Mamani",
-    correo: "victor.tarqui@bumand.bo",
-    correo_alternativo: "victor.tarqui.sistemas@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Jefe de Infraestructura Tecnológica y Redes",
-    unidad: "Sistemas e Informática",
-  },
-  {
-    id: 13,
-    nombre: "Marco Antonio Gutierrez Perez",
-    correo: "marco.gutierrez@bumand.bo",
-    correo_alternativo: "marco.gutierrez.ope@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Oficial Nacional de Cumplimiento",
-    unidad: "Unidad de Cumplimiento Normativo",
-  },
-  {
-    id: 14,
-    nombre: "Veronica Cecilia Rios Fernandez",
-    correo: "veronica.rios@bumand.bo",
-    correo_alternativo: "veronica.rios.tutor@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Tutora de Formación y Liderazgo Diaconal",
-    unidad: "Pastoral y Bienestar Estudiantil",
-  },
-  {
-    id: 15,
-    nombre: "Jorge Luis Paredes Loza",
-    correo: "jorge.paredes@bumand.bo",
-    correo_alternativo: "jorge.paredes.aud@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Jefe de Contabilidad General",
-    unidad: "Gerencia Financiera",
-  },
-  {
-    id: 16,
-    nombre: "Roxana Beatriz Choque Vaca",
-    correo: "roxana.choque@bumand.bo",
-    correo_alternativo: "roxana.choque.soc@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Especialista en Evaluación Socioeconómica",
-    unidad: "Desarrollo Social y Comunitario",
-  },
-  {
-    id: 17,
-    nombre: "Walter Ramiro Vargas Medina",
-    correo: "walter.vargas@bumand.bo",
-    correo_alternativo: "walter.vargas.plan@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Jefe de Planificación Estratégica",
-    unidad: "Gerencia de Planificación",
-  },
-  {
-    id: 18,
-    nombre: "Miriam Rosario Pinto Alarcon",
-    correo: "miriam.pinto@bumand.bo",
-    correo_alternativo: "miriam.pinto.bienestar@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Coordinadora de Becas Universitarias",
-    unidad: "Bienestar Universitario BUMAND",
-  },
-  {
-    id: 19,
-    nombre: "Edgar Gonzalo Flores Condori",
-    correo: "edgar.flores@bumand.bo",
-    correo_alternativo: "edgar.flores.pastoral@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Pastor Consejero y Mentor Espiritual",
-    unidad: "Acompañamiento Pastoral Diaconía",
-  },
-  {
-    id: 20,
-    nombre: "Sonia Monica Aguilar Ticona",
-    correo: "sonia.aguilar@bumand.bo",
-    correo_alternativo: "sonia.aguilar.eval@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Mentora de Calidad en Atención al Cliente",
-    unidad: "Atención al Consumidor Financiero",
-  },
-  {
-    id: 21,
-    nombre: "Javier Hernan Chavez Siles",
-    correo: "javier.chavez@bumand.bo",
-    correo_alternativo: "javier.chavez.mentor@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Mentor de Prácticas Profesionales UMSA",
-    unidad: "Convenios Universitarios",
-  },
-  {
-    id: 22,
-    nombre: "Beatriz Elena Castro Guzman",
-    correo: "beatriz.castro@bumand.bo",
-    correo_alternativo: "beatriz.castro.form@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Coordinadora de Capacitación Continua",
-    unidad: "Talento Humano / Capacitación",
-  },
-  {
-    id: 23,
-    nombre: "Boris Alejandro Ortiz Yujra",
-    correo: "boris.ortiz@bumand.bo",
-    correo_alternativo: "boris.ortiz.dev@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Líder Técnico de Desarrollo de Software",
-    unidad: "Sistemas e Informática",
-  },
-  {
-    id: 24,
-    nombre: "Tania Marcela Salazar Peña",
-    correo: "tania.salazar@bumand.bo",
-    correo_alternativo: "tania.salazar.fin@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Analista Senior de Cartera y Créditos",
-    unidad: "Gerencia de Créditos",
-  },
-  {
-    id: 25,
-    nombre: "Ruben Dario Huanca Cruz",
-    correo: "ruben.huanca@bumand.bo",
-    correo_alternativo: "ruben.huanca.geo@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Especialista en Geocercas y Logística Territorial",
-    unidad: "Operaciones y Logística",
-  },
-  {
-    id: 26,
-    nombre: "Monica Elizabeth Nina Laura",
-    correo: "monica.nina@bumand.bo",
-    correo_alternativo: "monica.nina.salud@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Mentora Médica Ocupacional",
-    unidad: "Seguridad y Salud en el Trabajo",
-  },
-  {
-    id: 27,
-    nombre: "Freddy Alberto Rojas Quisbert",
-    correo: "freddy.rojas@bumand.bo",
-    correo_alternativo: "freddy.rojas.tutor@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Tutor Regional de Sedes El Alto",
-    unidad: "Coordinación Regional El Alto",
-  },
-  {
-    id: 28,
-    nombre: "Carmen Rosa Alave Mamani",
-    correo: "carmen.alave@bumand.bo",
-    correo_alternativo: "carmen.alave.adm@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Mentora Administrativa de Agencias La Paz",
-    unidad: "Coordinación Regional La Paz",
-  },
-  {
-    id: 29,
-    nombre: "Raul Gustavo Medina Torrez",
-    correo: "raul.medina@bumand.bo",
-    correo_alternativo: "raul.medina.cred@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Jefe de Cobranzas y Recuperaciones",
-    unidad: "Gerencia de Recuperaciones",
-  },
-  {
-    id: 30,
-    nombre: "Patricia Lourdes Villca Gomez",
-    correo: "patricia.villca@bumand.bo",
-    correo_alternativo: "patricia.villca.cont@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Analista de Conciliaciones y Pasajes",
-    unidad: "Finanzas / Liquidaciones",
-  },
-  {
-    id: 31,
-    nombre: "Gustavo Adolfo Canaviri Lima",
-    correo: "gustavo.canaviri@bumand.bo",
-    correo_alternativo: "gustavo.canaviri.rrhh@gmail.com",
-    rol: "supervisor",
-    estado: "activo",
-    cargo: "Coordinador de Escuela de Líderes Diaconales",
-    unidad: "Desarrollo Institucional",
-  },
-
-  // 3. Becarios Universitarios Institucionales (30)
-  {
-    id: 32,
-    nombre: "Maria Catunta Mamani",
-    correo: "maria.catunta@bumand.bo",
-    correo_alternativo: "maria.catunta.umsa@gmail.com",
-    correos_adicionales: [
-      { id: 132, correo: "maria.catunta.umsa@gmail.com", etiqueta: "Personal" },
-    ],
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becaria Universitaria · UMSA",
-    unidad: "Ingeniería de Sistemas · 7mo Semestre",
-  },
-  {
-    id: 33,
-    nombre: "Nilda Churata Quispe",
-    correo: "nilda.churata@diaconia.bo",
-    correo_alternativo: "nilda.churata99@gmail.com",
-    correos_adicionales: [
-      { id: 133, correo: "nilda.churata99@gmail.com", etiqueta: "Personal" },
-    ],
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becaria Universitaria · UPEA",
-    unidad: "Contaduría Pública · 6to Semestre",
-  },
-  {
-    id: 34,
-    nombre: "Carlos Condori Huanca",
-    correo: "carlos.condori@bumand.bo",
-    correo_alternativo: "carlos.condori.upea@gmail.com",
-    correos_adicionales: [
-      { id: 134, correo: "carlos.condori.upea@gmail.com", etiqueta: "Personal" },
-    ],
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becario Universitario · UPEA",
-    unidad: "Informática · 5to Semestre",
-  },
-  {
-    id: 35,
-    nombre: "Joel Quispe Apaza",
-    correo: "joel.quispe@bumand.bo",
-    correo_alternativo: "joel.quispe.uab@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becario Universitario · UAB",
-    unidad: "Administración de Empresas · 8vo Semestre",
-  },
-  {
-    id: 36,
-    nombre: "Ruth Abigail Mamani Choque",
-    correo: "ruth.mamani@bumand.bo",
-    correo_alternativo: "abigail.mamani.bo@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becaria Universitaria · UMSA",
-    unidad: "Economía · 6to Semestre",
-  },
-  {
-    id: 37,
-    nombre: "David Fernando Flores Ramos",
-    correo: "david.flores@bumand.bo",
-    correo_alternativo: "david.flores.umsa@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becario Universitario · UMSA",
-    unidad: "Derecho · 7mo Semestre",
-  },
-  {
-    id: 38,
-    nombre: "Esther Laura Ticona",
-    correo: "esther.laura@bumand.bo",
-    correo_alternativo: "esther.laura.lp@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becaria Universitaria · UPEA",
-    unidad: "Trabajo Social · 5to Semestre",
-  },
-  {
-    id: 39,
-    nombre: "Samuel Limachi Huanca",
-    correo: "samuel.limachi@bumand.bo",
-    correo_alternativo: "samuel.limachi@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becario Universitario · UMSA",
-    unidad: "Ingeniería Industrial · 8vo Semestre",
-  },
-  {
-    id: 40,
-    nombre: "Sara Noemi Choquehuanca",
-    correo: "sara.choque@bumand.bo",
-    correo_alternativo: "sara.choquehuanca@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becaria Universitaria · UNIVALLE",
-    unidad: "Medicina · 6to Semestre",
-  },
-  {
-    id: 41,
-    nombre: "Israel Benjamin Mamani Nina",
-    correo: "israel.mamani@bumand.bo",
-    correo_alternativo: "israel.mamani.ing@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becario Universitario · UMSA",
-    unidad: "Ingeniería Electrónica · 6to Semestre",
-  },
-  {
-    id: 42,
-    nombre: "Abigail Saraí Tola Perez",
-    correo: "abigail.tola@bumand.bo",
-    correo_alternativo: "abigail.tola.salud@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becaria Universitaria · UPEA",
-    unidad: "Enfermería · 5to Semestre",
-  },
-  {
-    id: 43,
-    nombre: "Daniel Mateo Quisbert Laura",
-    correo: "daniel.quisbert@bumand.bo",
-    correo_alternativo: "daniel.quisbert.bo@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becario Universitario · UCB",
-    unidad: "Ingeniería de Sistemas · 7mo Semestre",
-  },
-  {
-    id: 44,
-    nombre: "Miriam Judith Apaza Mamani",
-    correo: "miriam.apaza@bumand.bo",
-    correo_alternativo: "miriam.apaza.cont@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becaria Universitaria · UMSA",
-    unidad: "Contaduría Pública · 8vo Semestre",
-  },
-  {
-    id: 45,
-    nombre: "Josue Elias Condori Ramos",
-    correo: "josue.condori@bumand.bo",
-    correo_alternativo: "josue.condori.upea@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becario Universitario · UPEA",
-    unidad: "Ciencias de la Educación · 6to Semestre",
-  },
-  {
-    id: 46,
-    nombre: "Debora Noemi Choque Alanoca",
-    correo: "debora.choque@bumand.bo",
-    correo_alternativo: "debora.choque.edu@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becaria Universitaria · UMSA",
-    unidad: "Psicología · 7mo Semestre",
-  },
-  {
-    id: 47,
-    nombre: "Caleb Abraham Flores Ticona",
-    correo: "caleb.flores@bumand.bo",
-    correo_alternativo: "caleb.flores.inf@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becario Universitario · UPEA",
-    unidad: "Informática · 4to Semestre",
-  },
-  {
-    id: 48,
-    nombre: "Priscilla Raquel Quispe Huanca",
-    correo: "priscilla.quispe@bumand.bo",
-    correo_alternativo: "priscilla.quispe.lp@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becaria Universitaria · UMSA",
-    unidad: "Ciencias de la Comunicación · 6to Semestre",
-  },
-  {
-    id: 49,
-    nombre: "Jonathan David Yujra Colque",
-    correo: "jonathan.yujra@bumand.bo",
-    correo_alternativo: "jonathan.yujra.adm@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becario Universitario · EMI",
-    unidad: "Ingeniería Comercial · 7mo Semestre",
-  },
-  {
-    id: 50,
-    nombre: "Eunice Abigail Mamani Tarqui",
-    correo: "eunice.mamani@bumand.bo",
-    correo_alternativo: "eunice.mamani.com@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becaria Universitaria · UMSA",
-    unidad: "Comercio Internacional · 5to Semestre",
-  },
-  {
-    id: 51,
-    nombre: "Marcos Daniel Ramos Nina",
-    correo: "marcos.ramos@bumand.bo",
-    correo_alternativo: "marcos.ramos.der@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becario Universitario · UPEA",
-    unidad: "Derecho · 8vo Semestre",
-  },
-  {
-    id: 52,
-    nombre: "Noemi Ester Alarcon Choque",
-    correo: "noemi.alarcon@bumand.bo",
-    correo_alternativo: "noemi.alarcon.med@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becaria Universitaria · UMSA",
-    unidad: "Bioquímica y Farmacia · 7mo Semestre",
-  },
-  {
-    id: 53,
-    nombre: "Lucas Mateo Perez Laura",
-    correo: "lucas.perez@bumand.bo",
-    correo_alternativo: "lucas.perez.arq@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becario Universitario · UMSA",
-    unidad: "Arquitectura · 6to Semestre",
-  },
-  {
-    id: 54,
-    nombre: "Lidia Raquel Mamani Cruz",
-    correo: "lidia.mamani@bumand.bo",
-    correo_alternativo: "lidia.mamani.trab@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becaria Universitaria · UPEA",
-    unidad: "Trabajo Social · 6to Semestre",
-  },
-  {
-    id: 55,
-    nombre: "Benjamin Elias Nina Ticona",
-    correo: "benjamin.nina@bumand.bo",
-    correo_alternativo: "benjamin.nina.ing@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becario Universitario · UMSA",
-    unidad: "Ingeniería Civil · 7mo Semestre",
-  },
-  {
-    id: 56,
-    nombre: "Sara Eunice Condori Flores",
-    correo: "sara.condori@bumand.bo",
-    correo_alternativo: "sara.condori.psic@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becaria Universitaria · UCB",
-    unidad: "Psicología · 5to Semestre",
-  },
-  {
-    id: 57,
-    nombre: "Mateo David Quispe Mamani",
-    correo: "mateo.quispe@bumand.bo",
-    correo_alternativo: "mateo.quispe.sist@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becario Universitario · UPEA",
-    unidad: "Ingeniería de Sistemas · 4to Semestre",
-  },
-  {
-    id: 58,
-    nombre: "Rebeca Abigail Laura Ramos",
-    correo: "rebeca.laura@bumand.bo",
-    correo_alternativo: "rebeca.laura.enf@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becaria Universitaria · UMSA",
-    unidad: "Enfermería · 6to Semestre",
-  },
-  {
-    id: 59,
-    nombre: "Isaac Daniel Choquehuanca Nina",
-    correo: "isaac.choquehuanca@bumand.bo",
-    correo_alternativo: "isaac.choquehuanca@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becario Universitario · UNIVALLE",
-    unidad: "Odontología · 7mo Semestre",
-  },
-  {
-    id: 60,
-    nombre: "Damaris Noemi Huanca Tola",
-    correo: "damaris.huanca@bumand.bo",
-    correo_alternativo: "damaris.huanca.odont@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becaria Universitaria · UPEA",
-    unidad: "Odontología · 5to Semestre",
-  },
-  {
-    id: 61,
-    nombre: "Josias Benjamin Flores Quisbert",
-    correo: "josias.flores@bumand.bo",
-    correo_alternativo: "josias.flores.eco@gmail.com",
-    rol: "becario",
-    estado: "activo",
-    cargo: "Becario Universitario · UMSA",
-    unidad: "Economía · 7mo Semestre",
-  },
-];
-
 function obtenerIniciales(nombre: string): string {
   if (!nombre) return "U";
   const partes = nombre.trim().split(/\s+/);
@@ -777,58 +132,31 @@ export function GestionUsuariosAdmin() {
   const [mostrar_clave_confirmar, set_mostrar_clave_confirmar] = useState<boolean>(false);
   const [guardando_clave, set_guardando_clave] = useState<boolean>(false);
 
-  // Cargar catálogo de usuarios
+  // Cargar catálogo de usuarios exclusivamente desde base de datos real
   const cargarUsuarios = async () => {
     set_cargando(true);
-    let datos_finales: UsuarioInstitucional[] = USUARIOS_SEMILLA;
+    let datos_finales: UsuarioInstitucional[] = [];
 
     try {
       const respuesta = await clienteApi.get<UsuarioInstitucional[]>("/usuarios");
-      if (Array.isArray(respuesta) && respuesta.length > 0) {
-        // Enriquecer con catálogo semilla si faltan usuarios
-        const mapa = new Map<string, UsuarioInstitucional>();
-        USUARIOS_SEMILLA.forEach((u) => mapa.set(u.correo.toLowerCase(), u));
-        respuesta.forEach((u) => {
-          const correo_normalizado = (u.correo || "").toLowerCase();
-          const previo = mapa.get(correo_normalizado);
-          mapa.set(correo_normalizado, {
-            ...previo,
+      if (Array.isArray(respuesta)) {
+        datos_finales = respuesta
+          .map((u) => ({
             ...u,
             id: u.id,
-            nombre: u.nombre || previo?.nombre || "Usuario Institucional",
-            correo: u.correo || previo?.correo || "",
-            rol: (u.rol as "administrador" | "supervisor" | "becario") || previo?.rol || "becario",
-            estado: (u.estado as "activo" | "inactivo") || previo?.estado || "activo",
-            correo_alternativo: u.correo_alternativo ?? previo?.correo_alternativo ?? null,
-            correos_adicionales: u.correos_adicionales || previo?.correos_adicionales || [],
-          });
-        });
-        datos_finales = Array.from(mapa.values()).sort((a, b) => a.id - b.id);
-      } else {
-        // Consultar almacenamiento local
-        if (typeof window !== "undefined") {
-          const guardado = localStorage.getItem(CLAVE_STORAGE_USUARIOS);
-          if (guardado) {
-            datos_finales = JSON.parse(guardado);
-          }
-        }
+            nombre: u.nombre || "Usuario Institucional",
+            correo: u.correo || "",
+            rol: (u.rol as "administrador" | "supervisor" | "becario") || "becario",
+            estado: (u.estado as "activo" | "inactivo") || "activo",
+            correo_alternativo: u.correo_alternativo ?? null,
+            correos_adicionales: Array.isArray(u.correos_adicionales) ? u.correos_adicionales : [],
+          }))
+          .sort((a, b) => a.id - b.id);
       }
     } catch {
-      if (typeof window !== "undefined") {
-        const guardado = localStorage.getItem(CLAVE_STORAGE_USUARIOS);
-        if (guardado) {
-          try {
-            datos_finales = JSON.parse(guardado);
-          } catch {
-            datos_finales = USUARIOS_SEMILLA;
-          }
-        }
-      }
+      datos_finales = [];
     } finally {
       set_usuarios(datos_finales);
-      if (typeof window !== "undefined") {
-        localStorage.setItem(CLAVE_STORAGE_USUARIOS, JSON.stringify(datos_finales));
-      }
       set_cargando(false);
     }
   };
@@ -836,13 +164,6 @@ export function GestionUsuariosAdmin() {
   useEffect(() => {
     cargarUsuarios();
   }, []);
-
-  const sincronizarLocalmente = (nuevos: UsuarioInstitucional[]) => {
-    set_usuarios(nuevos);
-    if (typeof window !== "undefined") {
-      localStorage.setItem(CLAVE_STORAGE_USUARIOS, JSON.stringify(nuevos));
-    }
-  };
 
   // KPIs calculados
   const kpis = useMemo(() => {
@@ -914,15 +235,13 @@ export function GestionUsuariosAdmin() {
       await clienteApi.put(`/usuarios/${_usuario_id}/estado`, {
         estado: estado_string,
       });
+      set_usuarios((prev) =>
+        prev.map((u) => (u.id === _usuario_id ? { ...u, estado: estado_string } : u))
+      );
+      toast.success(`Cuenta ${_nuevo_estado ? "activada" : "desactivada"} exitosamente.`);
     } catch {
-      // Respaldo local
+      toast.error("No se pudo actualizar el estado del usuario en la base de datos.");
     }
-
-    const actualizados = usuarios.map((u) =>
-      u.id === _usuario_id ? { ...u, estado: estado_string } : u
-    );
-    sincronizarLocalmente(actualizados);
-    toast.success(`Cuenta ${_nuevo_estado ? "activada" : "desactivada"} exitosamente.`);
   };
 
   // Generar clave segura institucional
@@ -981,51 +300,31 @@ export function GestionUsuariosAdmin() {
     }
 
     set_guardando_crear(true);
-    let nuevo_id = Date.now();
 
     try {
-      const respuesta = await clienteApi.post<UsuarioInstitucional>("/usuarios", {
+      await clienteApi.post<UsuarioInstitucional>("/usuarios", {
         nombre: nombre_limpio,
         correo: correo_limpio,
         correo_alternativo: correo_alt_limpio || undefined,
         rol: nuevo_rol,
         contrasena: nueva_clave_crear,
       });
-      if (respuesta && respuesta.id) {
-        nuevo_id = respuesta.id;
-      }
+      await cargarUsuarios();
+      set_modal_crear_abierto(false);
+      set_nuevo_nombre("");
+      set_nuevo_correo("");
+      set_nuevo_correo_alt("");
+      set_nueva_clave_crear("");
+      set_nuevo_rol("supervisor");
+
+      toast.success("Usuario institucional creado", {
+        description: `Se registró exitosamente a ${nombre_limpio} con rol de ${nuevo_rol}.`,
+      });
     } catch {
-      // Respaldo local
+      toast.error("No se pudo crear el usuario en la base de datos.");
+    } finally {
+      set_guardando_crear(false);
     }
-
-    const nuevo_usr: UsuarioInstitucional = {
-      id: nuevo_id,
-      nombre: nombre_limpio,
-      correo: correo_limpio,
-      correo_alternativo: correo_alt_limpio || null,
-      correos_adicionales: correo_alt_limpio
-        ? [{ id: Date.now() + 1, correo: correo_alt_limpio, etiqueta: "Alternativo" }]
-        : [],
-      rol: nuevo_rol,
-      estado: "activo",
-      cargo: nuevo_rol === "administrador" ? "Administrador Institucional" : "Mentor Institucional",
-      unidad: "Programa BUMAND · Diaconía FRIF-IFD",
-    };
-
-    const actualizados = [nuevo_usr, ...usuarios];
-    sincronizarLocalmente(actualizados);
-
-    set_guardando_crear(false);
-    set_modal_crear_abierto(false);
-    set_nuevo_nombre("");
-    set_nuevo_correo("");
-    set_nuevo_correo_alt("");
-    set_nueva_clave_crear("");
-    set_nuevo_rol("supervisor");
-
-    toast.success("Usuario institucional creado", {
-      description: `Se registró exitosamente a ${nombre_limpio} con rol de ${nuevo_rol}.`,
-    });
   };
 
   // Abrir modal Editar
@@ -1118,33 +417,18 @@ export function GestionUsuariosAdmin() {
         rol: edit_rol,
         estado: edit_estado,
       });
+      await cargarUsuarios();
+      set_modal_editar_abierto(false);
+      set_usuario_editar(null);
+
+      toast.success("Usuario actualizado correctamente", {
+        description: "Los cambios de perfil y correos de acceso han sido guardados en la base de datos.",
+      });
     } catch {
-      // Respaldo local
+      toast.error("No se pudieron guardar los cambios en la base de datos.");
+    } finally {
+      set_guardando_editar(false);
     }
-
-    const actualizados = usuarios.map((u) => {
-      if (u.id === usuario_editar.id) {
-        return {
-          ...u,
-          nombre: edit_nombre.trim(),
-          correo: edit_correo.toLowerCase().trim(),
-          correo_alternativo: edit_correo_alt.toLowerCase().trim() || null,
-          correos_adicionales: usuario_editar.correos_adicionales || [],
-          rol: edit_rol,
-          estado: edit_estado,
-        };
-      }
-      return u;
-    });
-
-    sincronizarLocalmente(actualizados);
-    set_guardando_editar(false);
-    set_modal_editar_abierto(false);
-    set_usuario_editar(null);
-
-    toast.success("Usuario actualizado correctamente", {
-      description: "Los cambios de perfil y correos de acceso han sido guardados.",
-    });
   };
 
   // Abrir modal Cambiar Contraseña
@@ -1183,17 +467,17 @@ export function GestionUsuariosAdmin() {
         nueva_contrasena: clave_nueva,
         contrasena: clave_nueva,
       });
+      set_modal_clave_abierto(false);
+      set_usuario_clave(null);
+
+      toast.success("Contraseña restablecida", {
+        description: `Se ha reasignado la clave institucional para ${usuario_clave.nombre}.`,
+      });
     } catch {
-      // Respaldo local
+      toast.error("No se pudo actualizar la contraseña en la base de datos.");
+    } finally {
+      set_guardando_clave(false);
     }
-
-    set_guardando_clave(false);
-    set_modal_clave_abierto(false);
-    set_usuario_clave(null);
-
-    toast.success("Contraseña restablecida", {
-      description: `Se ha reasignado la clave institucional para ${usuario_clave.nombre}.`,
-    });
   };
 
   const fortaleza_clave_nueva = calcularNivelFortaleza(clave_nueva);
@@ -1603,7 +887,7 @@ export function GestionUsuariosAdmin() {
                 </Label>
                 <Input
                   type="text"
-                  placeholder="Ej. Ing. Carlos Mendoza Flores"
+                  placeholder="Ej. Lic. Ana María Quispe"
                   value={nuevo_nombre}
                   onChange={(_e) => set_nuevo_nombre(_e.target.value)}
                   required

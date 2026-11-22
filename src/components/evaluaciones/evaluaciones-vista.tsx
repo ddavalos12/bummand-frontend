@@ -203,83 +203,7 @@ export interface DocumentoAcademicoSemestral {
   fecha_recepcion: string;
 }
 
-const DOCUMENTOS_ACADEMICOS_INICIALES: DocumentoAcademicoSemestral[] = [
-  {
-    id: 1,
-    becario_id: 1,
-    becario_nombre: "Nilda Amalia Churata Paye",
-    carrera: "Educación Parvularia",
-    universidad: "UMSA",
-    periodo: "Semestre II - 2026",
-    promedio_semestral: 88.5,
-    record_archivo_nombre: "Record_Academico_Churata_2026_II.pdf",
-    record_archivo_tamano: "1.2 MB",
-    historial_archivo_nombre: "Kardex_Historico_UMSA_Churata.pdf",
-    historial_archivo_tamano: "2.4 MB",
-    estado: "convalidado",
-    fecha_recepcion: "2026-10-15",
-  },
-  {
-    id: 2,
-    becario_id: 2,
-    becario_nombre: "Edgar Elias Alarcon Huanca",
-    carrera: "Ingeniería de Sistemas",
-    universidad: "UPEA",
-    periodo: "Semestre II - 2026",
-    promedio_semestral: 84.0,
-    record_archivo_nombre: "Record_Notas_Alarcon_UPEA.pdf",
-    record_archivo_tamano: "890 KB",
-    historial_archivo_nombre: "Historial_Legalizado_Alarcon.pdf",
-    historial_archivo_tamano: "1.8 MB",
-    estado: "convalidado",
-    fecha_recepcion: "2026-10-18",
-  },
-  {
-    id: 3,
-    becario_id: 3,
-    becario_nombre: "Adai Belen Huayta Cardozo",
-    carrera: "Contaduría Pública",
-    universidad: "UMSA",
-    periodo: "Semestre II - 2026",
-    promedio_semestral: 79.0,
-    record_archivo_nombre: "Boleta_Calificaciones_Huayta_2026.png",
-    record_archivo_tamano: "1.5 MB",
-    historial_archivo_nombre: "Certificado_Academico_UMSA.pdf",
-    historial_archivo_tamano: "2.1 MB",
-    estado: "convalidado",
-    fecha_recepcion: "2026-10-20",
-  },
-  {
-    id: 4,
-    becario_id: 4,
-    becario_nombre: "Alejandro Roberth Paredes Tarquino",
-    carrera: "Comunicación Social",
-    universidad: "UMSA",
-    periodo: "Semestre II - 2026",
-    promedio_semestral: 76.5,
-    record_archivo_nombre: "Record_Academico_Paredes_II_2026.pdf",
-    record_archivo_tamano: "1.1 MB",
-    historial_archivo_nombre: "Historial_Academico_Paredes.pdf",
-    historial_archivo_tamano: "1.9 MB",
-    estado: "convalidado",
-    fecha_recepcion: "2026-10-21",
-  },
-  {
-    id: 5,
-    becario_id: 5,
-    becario_nombre: "Aydee Ruth Ali Condori",
-    carrera: "Contaduría Pública",
-    universidad: "UPEA",
-    periodo: "Semestre II - 2026",
-    promedio_semestral: 81.0,
-    record_archivo_nombre: "Record_Academico_Ali_2026.pdf",
-    record_archivo_tamano: "950 KB",
-    historial_archivo_nombre: "Certificado_Notas_Ali.pdf",
-    historial_archivo_tamano: "1.7 MB",
-    estado: "convalidado",
-    fecha_recepcion: "2026-10-22",
-  },
-];
+const DOCUMENTOS_ACADEMICOS_INICIALES: DocumentoAcademicoSemestral[] = [];
 
 export interface BecarioAsignadoMentor {
   id: number;
@@ -295,95 +219,7 @@ export interface BecarioAsignadoMentor {
   evaluacion_datos?: EvaluacionInicialMentor;
 }
 
-const BECARIOS_ASIGNADOS_MENTOR_INICIALES: BecarioAsignadoMentor[] = [
-  {
-    id: 1,
-    nombre: "Ruddy Flores Tapia",
-    carrera: "Contaduría Pública",
-    universidad: "UMSA",
-    unidad_agencia: "Jefatura de Planificación, Control y Presupuesto",
-    estado: "evaluado",
-    nota_final_20: 19.8,
-    fecha_evaluacion: "2026-10-26",
-    evaluacion_datos: {
-      mentor_nombre: "Mildrette Rojas Soliz",
-      unidad_agencia: "Jefatura de Planificación, Control y Presupuesto",
-      semestre_gestion: "Semestre II · 2026",
-      fecha: "2026-10-26",
-      calificaciones_1_18: {
-        1: 10, 2: 10, 3: 10, 4: 10, 5: 10, 6: 10, 7: 10, 8: 9, 9: 10,
-        10: 10, 11: 10, 12: 10, 13: 10, 14: 9, 15: 9, 16: 9, 17: 10, 18: 10
-      },
-      respuestas_abiertas: {
-        19: "Excelente apoyo muy agradecida, alta disposición de servicio.",
-        20: "En todas las tareas de digitalización y análisis cumplió con lo encomendado.",
-        21: "Que exista la opción de apoyo en periodos de vacaciones universitarias."
-      },
-      puntajes_abiertos: { 19: 3.33, 20: 3.33, 21: 3.34 },
-      nota_final_20: 19.8,
-      codigo_verificacion: "748920",
-      identidad_verificada: true
-    }
-  },
-  {
-    id: 2,
-    nombre: "Joel David Alarcón Ticona",
-    carrera: "Ingeniería de Sistemas",
-    universidad: "UPEA",
-    unidad_agencia: "Gerencia Nacional de Tecnologías y Sistemas",
-    estado: "evaluado",
-    nota_final_20: 18.5,
-    fecha_evaluacion: "2026-10-25",
-    evaluacion_datos: {
-      mentor_nombre: "Ing. Carlos Mendoza",
-      unidad_agencia: "Gerencia Nacional de Tecnologías y Sistemas",
-      semestre_gestion: "Semestre II · 2026",
-      fecha: "2026-10-25",
-      nota_final_20: 18.5,
-      codigo_verificacion: "839102",
-      identidad_verificada: true
-    }
-  },
-  {
-    id: 3,
-    nombre: "Mariana Huayta Quispe",
-    carrera: "Bioquímica y Farmacia",
-    universidad: "UMSA",
-    unidad_agencia: "Agencia Villa Fátima (Operaciones)",
-    estado: "pendiente",
-    nota_final_20: undefined,
-    fecha_evaluacion: undefined,
-  },
-  {
-    id: 4,
-    nombre: "Brayan Christian Paredes Choque",
-    carrera: "Contaduría Pública",
-    universidad: "UMSA",
-    unidad_agencia: "Agencia El Alto Central",
-    estado: "pendiente",
-    nota_final_20: undefined,
-    fecha_evaluacion: undefined,
-  },
-  {
-    id: 5,
-    nombre: "Noemí Rocío Condori Mamani",
-    carrera: "Enfermería",
-    universidad: "UPEA",
-    unidad_agencia: "Subgerencia de Bienestar Social",
-    estado: "evaluado",
-    nota_final_20: 19.0,
-    fecha_evaluacion: "2026-10-24",
-    evaluacion_datos: {
-      mentor_nombre: "Lic. Miriam Colque",
-      unidad_agencia: "Subgerencia de Bienestar Social",
-      semestre_gestion: "Semestre II · 2026",
-      fecha: "2026-10-24",
-      nota_final_20: 19.0,
-      codigo_verificacion: "192847",
-      identidad_verificada: true
-    }
-  }
-];
+const BECARIOS_ASIGNADOS_MENTOR_INICIALES: BecarioAsignadoMentor[] = [];
 
 interface EvaluacionesVistaProps {
   pestaña_inicial?: string;
@@ -457,28 +293,17 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
 
   // TAREA-02: Estados para Evaluación de Supervisor (Módulo 3) desde su propio perfil web
   const [modal_modo_lectura, set_modal_modo_lectura] = useState<boolean>(false);
-  const [becarios_asignados_modulo3, set_becarios_asignados_modulo3] = useState<BecarioAsignadoMentor[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const guardado = localStorage.getItem("bumand_modulo3_becarios_asignados");
-        if (guardado) {
-          const parseado = JSON.parse(guardado);
-          if (Array.isArray(parseado) && parseado.length > 0) return parseado;
-        }
-      } catch {}
-    }
-    return BECARIOS_ASIGNADOS_MENTOR_INICIALES;
-  });
+  const [becarios_asignados_modulo3, set_becarios_asignados_modulo3] = useState<BecarioAsignadoMentor[]>([]);
   const [modal_formulario_mentor_abierto, set_modal_formulario_mentor_abierto] = useState<boolean>(false);
   const [becario_mentor_seleccionado, set_becario_mentor_seleccionado] = useState<BecarioAsignadoMentor | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && becarios_asignados_modulo3.length > 0) {
+    if (typeof window !== "undefined") {
       try {
-        localStorage.setItem("bumand_modulo3_becarios_asignados", JSON.stringify(becarios_asignados_modulo3));
+        localStorage.removeItem("bumand_modulo3_becarios_asignados");
       } catch {}
     }
-  }, [becarios_asignados_modulo3]);
+  }, []);
 
   const manejarAprobarEvaluacion = (becario_id: number) => {
     set_becarios_asignados_modulo3((prev) =>
@@ -505,14 +330,40 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
   useEffect(() => {
     async function cargarBecariosAsignadosModulo3() {
       try {
-        const respuesta = await clienteApi.get<BecarioAsignadoMentor[]>(
+        const respuesta = await clienteApi.get<any[]>(
           "/api/evaluaciones/modulo-3/becarios-asignados"
         );
-        if (respuesta && Array.isArray(respuesta) && respuesta.length > 0) {
-          set_becarios_asignados_modulo3(respuesta);
+        if (Array.isArray(respuesta)) {
+          const normalizados: BecarioAsignadoMentor[] = respuesta.map((item) => ({
+            id: Number(item.becario_id ?? item.id),
+            nombre: item.nombre || `Becario #${item.becario_id ?? item.id}`,
+            carrera: item.carrera || "Universitaria",
+            universidad: item.universidad || "Sin especificar",
+            unidad_agencia:
+              item.unidad_agencia ||
+              item.datos_formulario?.unidad_agencia ||
+              "Oficina Central Diaconía IFD - El Alto",
+            estado:
+              item.estado === "aprobado" || item.estado === "evaluado" || item.evaluado
+                ? item.estado === "aprobado"
+                  ? "aprobado"
+                  : "evaluado"
+                : "pendiente",
+            nota_final_20:
+              item.nota_final_20 !== undefined
+                ? item.nota_final_20
+                : item.puntaje !== null && item.puntaje !== undefined
+                ? Number(item.puntaje)
+                : undefined,
+            fecha_evaluacion: item.fecha_evaluacion
+              ? String(item.fecha_evaluacion).substring(0, 10)
+              : undefined,
+            evaluacion_datos: item.evaluacion_datos || item.datos_formulario || undefined,
+          }));
+          set_becarios_asignados_modulo3(normalizados);
         }
       } catch (_e) {
-        // Fallback en lista inicial o localStorage
+        set_becarios_asignados_modulo3([]);
       }
     }
     cargarBecariosAsignadosModulo3();
@@ -522,8 +373,15 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
   const [documentos_academicos, set_documentos_academicos] = useState<DocumentoAcademicoSemestral[]>(DOCUMENTOS_ACADEMICOS_INICIALES);
   const [modal_carga_academica_abierto, set_modal_carga_academica_abierto] = useState<boolean>(false);
   const becarios_semestre_disponibles = useMemo(
-    () => filtrarPorMentor(BECARIOS_SEMESTRE_II),
-    [filtrarPorMentor]
+    () =>
+      becarios_asignados_modulo3.map((b) => ({
+        id: b.id,
+        nombre_completo: b.nombre,
+        ci: "",
+        universidad: b.universidad,
+        carrera: b.carrera,
+      })),
+    [becarios_asignados_modulo3]
   );
 
   const becarios_asignados_modulo3_filtrados = useMemo(
@@ -531,7 +389,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
     [becarios_asignados_modulo3, filtrarPorMentor]
   );
 
-  const [becario_carga_id, set_becario_carga_id] = useState<number>(BECARIOS_SEMESTRE_II[0].id);
+  const [becario_carga_id, set_becario_carga_id] = useState<number>(1);
 
   useEffect(() => {
     if (
@@ -622,8 +480,12 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
 
     const becario_sel =
       becarios_semestre_disponibles.find((b) => b.id === becario_carga_id) ||
-      becarios_semestre_disponibles[0] ||
-      BECARIOS_SEMESTRE_II[0];
+      becarios_semestre_disponibles[0] || {
+        id: becario_carga_id || 1,
+        nombre_completo: usuario?.nombre || "Becario",
+        carrera: "Universitaria",
+        universidad: "UMSA",
+      };
 
     try {
       await clienteApi.post("/api/evaluaciones/receptor/academica", {
@@ -763,17 +625,21 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
     };
   };
 
-  const [becarios_consolidado, set_becarios_consolidado] = useState(BECARIOS_SEMESTRE_II);
+  const [becarios_consolidado, set_becarios_consolidado] = useState<any[]>([]);
+  const [total_becarios_programa, set_total_becarios_programa] = useState<number>(23);
 
   const cargarConsolidado = async () => {
     try {
       const res = await clienteApi.get<any>("/evaluaciones/consolidado-semestral");
       const lista = Array.isArray(res) ? res : res?.registros;
-      if (Array.isArray(lista) && lista.length > 0) {
+      if (typeof res?.total_becarios === "number") {
+        set_total_becarios_programa(res.total_becarios);
+      }
+      if (Array.isArray(lista)) {
         set_becarios_consolidado(lista);
       }
     } catch {
-      // Fallback en BECARIOS_SEMESTRE_II
+      set_becarios_consolidado([]);
     }
   };
 
@@ -781,7 +647,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
     try {
       set_cargando_nomina_f03(true);
       const res = await clienteApi.get<BecarioF03Item[]>("/evaluaciones/f03/nomina");
-      if (res && Array.isArray(res) && res.length > 0) {
+      if (res && Array.isArray(res)) {
         const enriquecida = res.map((b) => {
           const campos_ev = (b.campos_formulario || {}) as Record<string, unknown>;
           const es_convalidado =
@@ -790,71 +656,24 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               : campos_ev.convalidado !== undefined
               ? Boolean(campos_ev.convalidado)
               : b.estado === "completado" || b.estado === "completada" || b.estado === "aprobada" || b.estado === "aprobado";
-          const estado_normalizado = es_convalidado ? "completada" : "en_revision";
+          const estado_normalizado = es_convalidado
+            ? "completada"
+            : b.evaluacion_id
+            ? "en_revision"
+            : "pendiente";
           return {
             ...b,
             estado: estado_normalizado,
             convalidado: es_convalidado,
-            campos_formulario:
-              b.campos_formulario && Object.keys(b.campos_formulario).length > 0
-                ? b.campos_formulario
-                : generarCamposFormularioF03Individual(
-                    b.nombre,
-                    b.iglesia_nombre,
-                    b.puntaje
-                  ),
+            campos_formulario: b.campos_formulario || {},
           };
         });
         set_nomina_f03(enriquecida);
       } else {
-        const inicial = BECARIOS_SEMESTRE_II.map((b, idx) => {
-          const pre_aprobado = idx === 3;
-          return {
-            becario_id: b.id,
-            nombre: b.nombre_completo,
-            ci: b.ci,
-            evaluacion_id: null,
-            puntaje: b.liderazgo_iglesia || null,
-            estado: pre_aprobado ? "completada" : "en_revision",
-            convalidado: pre_aprobado,
-            iglesia_nombre: "Iglesia Evangélica Amigos Central",
-            pastor_nombre: "Luis Álvaro Quispe Condori",
-            pastor_celular: "73236864",
-            campos_formulario: generarCamposFormularioF03Individual(
-              b.nombre_completo,
-              "Iglesia Evangélica Amigos Central",
-              b.liderazgo_iglesia,
-              b.carrera
-            ),
-            fecha_evaluacion: b.liderazgo_iglesia > 0 ? "2026-10-15" : null,
-          };
-        });
-        set_nomina_f03(inicial);
+        set_nomina_f03([]);
       }
     } catch (_e) {
-      const inicial = BECARIOS_SEMESTRE_II.map((b, idx) => {
-        const pre_aprobado = idx === 3;
-        return {
-          becario_id: b.id,
-          nombre: b.nombre_completo,
-          ci: b.ci,
-          evaluacion_id: null,
-          puntaje: b.liderazgo_iglesia || null,
-          estado: pre_aprobado ? "completada" : "en_revision",
-          convalidado: pre_aprobado,
-          iglesia_nombre: "Iglesia Evangélica Amigos Central",
-          pastor_nombre: "Luis Álvaro Quispe Condori",
-          pastor_celular: "73236864",
-          campos_formulario: generarCamposFormularioF03Individual(
-            b.nombre_completo,
-            "Iglesia Evangélica Amigos Central",
-            b.liderazgo_iglesia,
-            b.carrera
-          ),
-          fecha_evaluacion: b.liderazgo_iglesia > 0 ? "2026-10-15" : null,
-        };
-      });
-      set_nomina_f03(inicial);
+      set_nomina_f03([]);
     } finally {
       set_cargando_nomina_f03(false);
     }
@@ -1044,10 +863,12 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
   );
 
   // Métricas Administrativas Oficiales del Semestre II (o Becarios Designados para Mentor)
-  const total_becarios = becarios_consolidado_filtrados.length;
-  const becarios_optimos = becarios_consolidado_filtrados.filter((b) => b.total >= 70).length;
-  const becarios_condicionados = becarios_consolidado_filtrados.filter((b) => b.total >= 51 && b.total < 70).length;
-  const becarios_reprobados = becarios_consolidado_filtrados.filter((b) => b.total < 51).length;
+  const total_becarios = es_mentor
+    ? becarios_designados.length || total_becarios_programa
+    : total_becarios_programa || 23;
+  const becarios_optimos = becarios_consolidado_filtrados.filter((b) => Number(b.total || 0) >= 70).length;
+  const becarios_condicionados = becarios_consolidado_filtrados.filter((b) => Number(b.total || 0) >= 51 && Number(b.total || 0) < 70).length;
+  const becarios_reprobados = becarios_consolidado_filtrados.filter((b) => Number(b.total || 0) > 0 && Number(b.total || 0) < 51).length;
 
   const suma_ponderaciones = Object.values(ponderacion_temporal).reduce((a, b) => a + b, 0);
   const ponderaciones_validas = suma_ponderaciones === 100;
@@ -1275,7 +1096,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                   </h3>
                   <div>
                     <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-[11px]">
-                      <CheckCircle className="w-3 h-3 mr-1" /> {((becarios_optimos / total_becarios) * 100).toFixed(1)}% Renovación
+                      <CheckCircle className="w-3 h-3 mr-1" /> {total_becarios > 0 ? ((becarios_optimos / total_becarios) * 100).toFixed(1) : "0.0"}% Renovación
                     </Badge>
                   </div>
                 </div>
@@ -1345,7 +1166,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                   Sábana Maestra de Calificaciones Semestrales Oficiales (14 Columnas)
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  Registros asentados por supervisores y pastores evaluadores · 21 Becarios titulares del Semestre II.
+                  Registros asentados por supervisores y pastores evaluadores · {total_becarios} Becarios titulares del Semestre II.
                 </p>
               </div>
 
@@ -1394,7 +1215,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                     Evaluación Ministerial F-03 y Directorio Institucional de Iglesias
                   </CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
-                    Certificación de vida comunitaria y testimonio de los 23 becarios universitarios mediante las 13 preguntas canónicas y gestión de las 17 congregaciones registradas.
+                    Certificación de vida comunitaria y testimonio de los {es_mentor ? becarios_designados.length : total_becarios} becarios universitarios mediante las 13 preguntas canónicas y gestión de las {iglesias.length} congregaciones registradas.
                   </CardDescription>
                 </div>
 
@@ -1428,13 +1249,13 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                 <div className="p-3 bg-white rounded-xl border border-amber-200 bg-amber-50/30">
                   <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">F-03 En Revisión</span>
                   <span className="text-xl font-bold font-mono text-amber-700">
-                    {nomina_f03_filtrada.filter((b) => !(Boolean(b.convalidado) || b.estado === "completada" || b.estado === "completado" || b.estado === "aprobada" || b.estado === "aprobado")).length}
+                    {nomina_f03_filtrada.filter((b) => !(Boolean(b.convalidado) || b.estado === "completada" || b.estado === "completado" || b.estado === "aprobada" || b.estado === "aprobado") && b.evaluacion_id !== null && b.evaluacion_id !== undefined).length}
                   </span>
                   <span className="text-[10px] text-amber-600 block mt-0.5">Por convalidar pastoral</span>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-cyan-200 bg-cyan-50/30">
                   <span className="text-[11px] font-bold text-cyan-800 uppercase tracking-wider block">Congregaciones</span>
-                  <span className="text-xl font-bold font-mono text-[#00ABBD]">{iglesias.length || 17}</span>
+                  <span className="text-xl font-bold font-mono text-[#00ABBD]">{iglesias.length}</span>
                   <span className="text-[10px] text-cyan-600 block mt-0.5">Catálogo georreferenciado</span>
                 </div>
               </div>
@@ -1495,7 +1316,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                         item.estado === "completado" ||
                         item.estado === "aprobada" ||
                         item.estado === "aprobado";
-                      const esEnRevision = !esta_convalidado;
+                      const esEnRevision = !esta_convalidado && item.evaluacion_id !== null && item.evaluacion_id !== undefined;
                       return (
                         <TableRow key={item.becario_id} className="text-xs hover:bg-slate-50/80 border-b border-slate-100">
                           <TableCell className="text-center font-mono font-bold text-slate-500">{index + 1}</TableCell>
@@ -1506,11 +1327,11 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                             </div>
                           </TableCell>
                           <TableCell className="text-slate-700 max-w-xs truncate">
-                            {item.iglesia_nombre || "Iglesia Evangélica Amigos Central"}
+                            {item.iglesia_nombre || "Sin congregación asignada"}
                           </TableCell>
                           <TableCell className="text-slate-700">
                             <div>
-                              <span>{item.pastor_nombre || "Luis Álvaro Quispe Condori"}</span>
+                              <span>{item.pastor_nombre || "Sin pastor registrado"}</span>
                               {item.pastor_celular && (
                                 <span className="block text-[11px] font-mono text-slate-500 font-normal">
                                   Cel: {item.pastor_celular}
@@ -1519,7 +1340,14 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                             </div>
                           </TableCell>
                           <TableCell className="text-center">
-                            {esEnRevision ? (
+                            {esta_convalidado ? (
+                              <Badge
+                                variant="outline"
+                                className="bg-emerald-50 border-emerald-300 text-emerald-800 text-[10px] font-bold"
+                              >
+                                Convalidado / Evaluado
+                              </Badge>
+                            ) : esEnRevision ? (
                               <Badge
                                 variant="outline"
                                 className="bg-amber-50 border-amber-300 text-amber-800 text-[10px] font-bold"
@@ -1529,9 +1357,9 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                             ) : (
                               <Badge
                                 variant="outline"
-                                className="bg-emerald-50 border-emerald-300 text-emerald-800 text-[10px] font-bold"
+                                className="bg-slate-100 border-slate-300 text-slate-600 text-[10px] font-bold"
                               >
-                                Convalidado / Evaluado
+                                Pendiente de Envío
                               </Badge>
                             )}
                           </TableCell>

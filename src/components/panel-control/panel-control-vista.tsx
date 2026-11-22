@@ -120,10 +120,13 @@ export interface RegistroAsistenciaSemanal {
 
 export interface FilaHorarioApoyo {
   numero: number;
+  becario_id: number;
   nombre: string;
   ci: string;
   cantidad_materias: string;
   periodo: string;
+  lugar_practica_id?: number | null;
+  sede_nombre?: string;
   lunes: string;
   martes: string;
   miercoles: string;
@@ -153,279 +156,6 @@ export interface FilaKardex {
   promedio: string;
 }
 
-// --- CONSTANTES INSTITUCIONALES DEL DATASET REAL ---
-
-export const BECARIOS_RETRASO: BecarioRetraso[] = [
-  {
-    id: 1,
-    nombre: "Carlos Oscar Luna Lizarraga",
-    avatar: "CL",
-    carrera: "Economía",
-    fecha: "12/08/2026",
-    hora_prevista: "08:00",
-    hora_real: "08:24",
-    minutos_retraso: 24,
-    sede: "Oficina Central Bloque A",
-    tipo_asistencia: "Prácticas",
-  },
-  {
-    id: 2,
-    nombre: "Jhonny Poma",
-    avatar: "JP",
-    carrera: "Derecho",
-    fecha: "12/08/2026",
-    hora_prevista: "08:30",
-    hora_real: "09:20",
-    minutos_retraso: 50,
-    sede: "Agencia Villa Adela",
-    tipo_asistencia: "Escuela de Líderes",
-  },
-  {
-    id: 3,
-    nombre: "Mariela Dayana Jimenez Chambi",
-    avatar: "MJ",
-    carrera: "Contaduría Pública",
-    fecha: "11/08/2026",
-    hora_prevista: "14:00",
-    hora_real: "14:35",
-    minutos_retraso: 35,
-    sede: "Sucursal Juan Pablo II",
-    tipo_asistencia: "Prácticas",
-  },
-  {
-    id: 4,
-    nombre: "Daniel Davalos Quiñoñez",
-    avatar: "DD",
-    carrera: "Informática",
-    fecha: "11/08/2026",
-    hora_prevista: "13:00",
-    hora_real: "13:18",
-    minutos_retraso: 18,
-    sede: "Oficina Central Bloque A",
-    tipo_asistencia: "Escuela de Líderes",
-  },
-  {
-    id: 5,
-    nombre: "Mayherli Alejandra Loza Villalobos",
-    avatar: "ML",
-    carrera: "Contaduría Pública",
-    fecha: "10/08/2026",
-    hora_prevista: "08:15",
-    hora_real: "08:42",
-    minutos_retraso: 27,
-    sede: "Agencia Ceja El Alto",
-    tipo_asistencia: "Acciones de Servicio",
-  },
-];
-
-export const REGISTROS_ASISTENCIA_SEMANAL: RegistroAsistenciaSemanal[] = [
-  { id: 1, nombre: "Adai Belen Huayta Cardozo", avatar: "AH", carrera: "Estadística (UMSA)", horario_asignado: "Lun/Mié 13:00-16:30, Vie 09:00-14:00", asistio: true, fecha_corte: "Semana 32" },
-  { id: 2, nombre: "Alejandro Roberth Paredes Tarquino", avatar: "AP", carrera: "Cs. de la Comunicación (UPEA)", horario_asignado: "Mar/Jue/Vie 10:30-13:30", asistio: true, fecha_corte: "Semana 32" },
-  { id: 3, nombre: "Aydee Ruth Ali Condori", avatar: "AA", carrera: "Contaduría Pública (UPEA)", horario_asignado: "Mar/Jue/Vie 10:00-13:00", asistio: true, fecha_corte: "Semana 32" },
-  { id: 4, nombre: "Carlos Oscar Luna Lizarraga", avatar: "CL", carrera: "Economía (UMSA)", horario_asignado: "Mar/Jue 08:00-12:00, Vie 08:00-14:00", asistio: true, minutos_retraso: 24, fecha_corte: "Semana 32" },
-  { id: 5, nombre: "Daniel Davalos Quiñoñez", avatar: "DD", carrera: "Informática (UMSA)", horario_asignado: "Mar 13:00-16:00, Vie 08:00-14:00", asistio: true, minutos_retraso: 18, fecha_corte: "Semana 32" },
-  { id: 6, nombre: "Edgar Elias Alarcon Huanca", avatar: "EA", carrera: "Medicina (U. Aquino Bolivia)", horario_asignado: "Lun 08:00-16:00, Vie 10:00-14:00", asistio: true, fecha_corte: "Semana 32" },
-  { id: 7, nombre: "Fernando Rene Yujra Quispe", avatar: "FY", carrera: "Ingeniería Civil (UMSA)", horario_asignado: "Lun 09:00-15:00, Mié 08:00-16:00", asistio: false, fecha_corte: "Semana 32" },
-  { id: 8, nombre: "Isaias Daniel Herrera Mamani", avatar: "IH", carrera: "Arquitectura (UPEA)", horario_asignado: "Lun 09:00-15:00, Mié 08:00-16:00", asistio: true, fecha_corte: "Semana 32" },
-  { id: 9, nombre: "Jhoselin Quispe Morales", avatar: "JQ", carrera: "Comunicación Social (UMSA)", horario_asignado: "Lun/Mié 08:30-16:30", asistio: true, fecha_corte: "Semana 32" },
-  { id: 10, nombre: "Jhonny Poma", avatar: "JP", carrera: "Derecho (UMSA)", horario_asignado: "Lun/Mié 08:30-16:30", asistio: true, minutos_retraso: 50, fecha_corte: "Semana 32" },
-  { id: 11, nombre: "José Marcos Suñagua Quispe", avatar: "JS", carrera: "Informática (UMSA)", horario_asignado: "Mié/Jue 08:30-11:30, Vie 08:30-13:30", asistio: false, fecha_corte: "Semana 32" },
-  { id: 12, nombre: "Luis Santiago Enrriquez Conde", avatar: "LE", carrera: "Cs. de la Comunicación (UMSA)", horario_asignado: "Lun 08:00, Mar/Jue 12:00-16:00", asistio: true, fecha_corte: "Semana 32" },
-  { id: 13, nombre: "Mariela Dayana Jimenez Chambi", avatar: "MJ", carrera: "Contaduría Pública (UMSA)", horario_asignado: "Lun 14:00, Mar/Jue 11:00-16:20", asistio: true, minutos_retraso: 35, fecha_corte: "Semana 32" },
-  { id: 14, nombre: "Mario Catunta Laime", avatar: "MC", carrera: "Economía (UPEA)", horario_asignado: "Lun/Mié 08:00-12:00, Vie 08:00-14:00", asistio: true, fecha_corte: "Semana 32" },
-  { id: 15, nombre: "Mayherli Alejandra Loza Villalobos", avatar: "ML", carrera: "Contaduría Pública (UMSA)", horario_asignado: "Lun 08:15-14:30, Mié/Vie 10:00-14:00", asistio: true, minutos_retraso: 27, fecha_corte: "Semana 32" },
-  { id: 16, nombre: "Mónica Mamani Mamani", avatar: "MM", carrera: "Lingüística e Idiomas (UMSA)", horario_asignado: "Jue 08:30-16:00, Vie 09:00-13:30", asistio: false, fecha_corte: "Semana 32" },
-  { id: 17, nombre: "Nilda Amalia Churata Paye", avatar: "NC", carrera: "Educación Parvularia (UPEA)", horario_asignado: "Mar/Vie 08:00-13:00", asistio: true, fecha_corte: "Semana 32" },
-  { id: 18, nombre: "Noemi Callisaya Alvarez", avatar: "NA", carrera: "Psicomotricidad (UPEA)", horario_asignado: "Lun/Vie 08:30-13:30", asistio: true, fecha_corte: "Semana 32" },
-  { id: 19, nombre: "Ronald Mauricio Quiquijana Mayta", avatar: "RQ", carrera: "Ing. Telecomunicaciones (EMI)", horario_asignado: "Lun 08:00-16:00, Jue 14:00-16:00", asistio: false, fecha_corte: "Semana 32" },
-  { id: 20, nombre: "Ruddy Flores Tapia", avatar: "RF", carrera: "Informática (UMSA)", horario_asignado: "Lun/Mar 09:00-16:00", asistio: true, fecha_corte: "Semana 32" },
-  { id: 21, nombre: "Ruth Alesandra Choque Huanca", avatar: "RC", carrera: "Ingeniería Comercial (U. Central)", horario_asignado: "Lun 08:00-16:00, Mié 08:00-14:00", asistio: true, fecha_corte: "Semana 32" },
-];
-
-export const HORARIOS_APOYO_2026: FilaHorarioApoyo[] = [
-  { numero: 1, nombre: "Adai Belen Huayta Cardozo", ci: "13696496 LP", cantidad_materias: "—", periodo: "Semestral", lunes: "13:00-16:30", martes: "—", miercoles: "13:00-16:30", jueves: "—", viernes: "09:00-14:00" },
-  { numero: 2, nombre: "Alejandro Roberth Paredes Tarquino", ci: "10064956 LP", cantidad_materias: "—", periodo: "Anual", lunes: "—", martes: "10:30-13:30", miercoles: "—", jueves: "10:30-13:30", viernes: "10:30-13:30" },
-  { numero: 3, nombre: "Aydee Ruth Ali Condori", ci: "9952878 LP", cantidad_materias: "—", periodo: "Anual", lunes: "—", martes: "10:00-13:00", miercoles: "—", jueves: "10:00-13:00", viernes: "10:00-13:00" },
-  { numero: 4, nombre: "Carlos Oscar Luna Lizarraga", ci: "9943280 LP", cantidad_materias: "—", periodo: "Semestral", lunes: "—", martes: "08:00-12:00", miercoles: "—", jueves: "08:00-12:00", viernes: "08:00-14:00", destacada: true },
-  { numero: 5, nombre: "Daniel Davalos Quiñoñez", ci: "9107373 LP", cantidad_materias: "4", periodo: "Semestral", lunes: "—", martes: "13:00-16:00", miercoles: "—", jueves: "—", viernes: "08:00-14:00" },
-  { numero: 6, nombre: "Edgar Elias Alarcon Huanca", ci: "9160054 LP", cantidad_materias: "—", periodo: "Semestral", lunes: "08:00-16:00", martes: "—", miercoles: "—", jueves: "—", viernes: "10:00-14:00", destacada: true },
-  { numero: 7, nombre: "Isaias Daniel Herrera Mamani", ci: "10920862 LP", cantidad_materias: "—", periodo: "Semestral", lunes: "09:00-15:00", martes: "—", miercoles: "08:00-16:00", jueves: "—", viernes: "—" },
-  { numero: 8, nombre: "Jhoselin Quispe Morales", ci: "6950093 LP", cantidad_materias: "No corresponde", periodo: "N/C", lunes: "08:30-16:30", martes: "—", miercoles: "08:30-16:30", jueves: "—", viernes: "—" },
-  { numero: 9, nombre: "José Marcos Suñagua Quispe", ci: "14378720 LP", cantidad_materias: "Aún falta fecha", periodo: "Semestral", lunes: "—", martes: "—", miercoles: "08:30-11:30", jueves: "08:30-11:30", viernes: "08:30-13:30" },
-  { numero: 10, nombre: "Luis Santiago Enrriquez Conde", ci: "9927657 LP", cantidad_materias: "No corresponde", periodo: "Anual", lunes: "08:00", martes: "12:00-16:00", miercoles: "—", jueves: "12:00-16:00", viernes: "—" },
-  { numero: 11, nombre: "Mariela Dayana Jimenez Chambi", ci: "12959656 LP", cantidad_materias: "8", periodo: "Anual", lunes: "14:00", martes: "11:00-16:20", miercoles: "—", jueves: "11:00-16:20", viernes: "—" },
-  { numero: 12, nombre: "Mario Catunta Laime", ci: "7077936 LP", cantidad_materias: "No corresponde", periodo: "N/C", lunes: "08:00-12:00", martes: "—", miercoles: "08:00-12:00", jueves: "—", viernes: "08:00-14:00", destacada: true },
-  { numero: 13, nombre: "Mayherli Alejandra Loza Villalobos", ci: "9925727 LP", cantidad_materias: "Aún falta fecha", periodo: "Anual", lunes: "08:15-14:30", martes: "—", miercoles: "10:00-15:00", jueves: "—", viernes: "10:00-14:00" },
-  { numero: 14, nombre: "Mónica Mamani Mamani", ci: "10369104 LP", cantidad_materias: "No corresponde", periodo: "N/C", lunes: "—", martes: "—", miercoles: "—", jueves: "08:30-16:00", viernes: "09:00-13:30" },
-  { numero: 15, nombre: "Nilda Amalia Churata Paye", ci: "10028341 LP", cantidad_materias: "No corresponde", periodo: "N/C", lunes: "—", martes: "08:00-13:00", miercoles: "—", jueves: "—", viernes: "08:00-13:00" },
-  { numero: 16, nombre: "Noemi Callisaya Alvarez", ci: "7093658 LP", cantidad_materias: "Aún falta fecha", periodo: "Semestral", lunes: "08:30-12:30", martes: "—", miercoles: "—", jueves: "—", viernes: "08:30-13:30" },
-  { numero: 17, nombre: "Ronald Mauricio Quiquijana Mayta", ci: "6172054 LP", cantidad_materias: "7", periodo: "Semestral", lunes: "08:00-16:00", martes: "—", miercoles: "—", jueves: "14:00-16:00", viernes: "—" },
-  { numero: 18, nombre: "Ruddy Flores Tapia", ci: "9974211 LP", cantidad_materias: "4", periodo: "Semestral", lunes: "09:00-16:00", martes: "09:00-16:00", miercoles: "—", jueves: "—", viernes: "—" },
-];
-
-export const CASOS_SEGUIMIENTO: CasoPastoralCompleto[] = [
-  {
-    id: 1,
-    becario_id: 1,
-    nombre: "Carlos Oscar Luna Lizarraga",
-    avatar: "CL",
-    carrera: "Economía",
-    universidad: "UMSA",
-    observacion: "Aún no es miembro de la iglesia; requiere mayor contacto con la congregación.",
-    origen: "Formulario F-03 (Pastor)",
-    plan_accion: "3 sesiones de acompañamiento con pastor de jóvenes y vinculación a discipulado.",
-    estado: "PENDIENTE",
-    prioridad: "ALTA",
-    responsable_nombre: "Pr. Juan Ramos (Tutor Pastoral)",
-    notas_seguimiento: [
-      { fecha: "2026-08-10", autor: "Pr. Juan Ramos", rol_autor: "Pastor Local", contenido: "Primera entrevista inicial de acogida pastoral.", acuerdos: "Asistir a reunión de jóvenes los sábados." }
-    ],
-  },
-  {
-    id: 2,
-    becario_id: 2,
-    nombre: "Jhoselin Quispe Morales",
-    avatar: "JQ",
-    carrera: "Comunicación Social",
-    universidad: "UMSA",
-    observacion: "No desempeña algún cargo de liderazgo.",
-    origen: "Formulario F-03 (Pastor)",
-    plan_accion: "Mentoría de servicio: integración en el equipo de medios y transmisión dominical.",
-    estado: "EN_TUTORIA",
-    prioridad: "MEDIA",
-    responsable_nombre: "Hno. David Mendoza (Diaconía)",
-    notas_seguimiento: [
-      { fecha: "2026-08-15", autor: "Hno. David Mendoza", rol_autor: "Mentor", contenido: "Becaria muestra buena disposición a colaborar con streaming.", acuerdos: "Capacitación en consola de audio el viernes." }
-    ],
-  },
-  {
-    id: 3,
-    becario_id: 3,
-    nombre: "José Marcos Suñagua Quispe",
-    avatar: "JS",
-    carrera: "Informática",
-    universidad: "UMSA",
-    observacion: "Trabajar en debilidades: puntualidad en la iglesia.",
-    origen: "Formulario F-03 (Pastor)",
-    plan_accion: "Compromiso de puntualidad y asignación de bienvenida 15 min antes del culto.",
-    estado: "PENDIENTE",
-    prioridad: "ALTA",
-    responsable_nombre: "Tutor Pastoral Diaconía",
-    notas_seguimiento: [],
-  },
-  {
-    id: 4,
-    becario_id: 4,
-    nombre: "Luis Santiago Enrriquez Conde",
-    avatar: "LE",
-    carrera: "Cs. de la Comunicación Social",
-    universidad: "UMSA",
-    observacion: "No desempeña algún cargo; no forma a nuevos líderes, pero tiene potencial.",
-    origen: "Formulario F-03 (Pastor)",
-    plan_accion: "Plan de formación de líderes junior en Escuela Dominical.",
-    estado: "EN_TUTORIA",
-    prioridad: "MEDIA",
-    responsable_nombre: "Pr. Marcos Caluyo",
-    notas_seguimiento: [
-      { fecha: "2026-08-20", autor: "Pr. Marcos Caluyo", rol_autor: "Pastor", contenido: "Inició como asistente en grupo de adolescentes.", acuerdos: "Preparar devocional para fin de mes." }
-    ],
-  },
-  {
-    id: 5,
-    becario_id: 5,
-    nombre: "Mariela Dayana Jimenez Chambi",
-    avatar: "MJ",
-    carrera: "Contaduría Pública",
-    universidad: "UMSA",
-    observacion: "No desempeña algún cargo de liderazgo.",
-    origen: "Formulario F-03 (Pastor)",
-    plan_accion: "Incorporación en la tesorería o mayordomía auxiliar de la congregación.",
-    estado: "PENDIENTE",
-    prioridad: "BAJA",
-    responsable_nombre: "Coordinación Pastoral",
-    notas_seguimiento: [],
-  },
-  {
-    id: 6,
-    becario_id: 6,
-    nombre: "Mayherli Alejandra Loza Villalobos",
-    avatar: "ML",
-    carrera: "Contaduría Pública",
-    universidad: "UMSA",
-    observacion: "No desempeña algún cargo; se encuentra en formación.",
-    origen: "Formulario F-03 (Pastor)",
-    plan_accion: "Seguimiento en discipulado de liderazgo juvenil.",
-    estado: "EN_TUTORIA",
-    prioridad: "BAJA",
-    responsable_nombre: "Líder Débora Quispe",
-    notas_seguimiento: [],
-  },
-  {
-    id: 7,
-    becario_id: 7,
-    nombre: "Nilda Amalia Churata Paye",
-    avatar: "NC",
-    carrera: "Educación Parvularia",
-    universidad: "UPEA",
-    observacion: "Asiste solo domingos; falta mejorar el compromiso e involucrarse más.",
-    origen: "Formulario F-03 (Pastor)",
-    plan_accion: "Acompañamiento integral para conciliar horarios de estudio con actividades congregacionales.",
-    estado: "PENDIENTE",
-    prioridad: "ALTA",
-    responsable_nombre: "Pr. Samuel Amigos Central",
-    notas_seguimiento: [],
-  },
-];
-
-export const DISTRIBUCION_UNIVERSIDADES = [
-  { nombre: "Universidad Mayor de San Andrés (UMSA)", cantidad: 11, porcentaje: 100, color: "#035683" },
-  { nombre: "Universidad Pública de El Alto (UPEA)", cantidad: 7, porcentaje: 64, color: "#00ABBD" },
-  { nombre: "Universidad de Aquino Bolivia (UDABOL)", cantidad: 1, porcentaje: 9, color: "#FFB600" },
-  { nombre: "Escuela Militar de Ingeniería (EMI)", cantidad: 1, porcentaje: 9, color: "#FFB600" },
-  { nombre: "Universidad Central Sede La Paz", cantidad: 1, porcentaje: 9, color: "#FFB600" },
-];
-
-export const DISTRIBUCION_MODALIDADES = [
-  { modalidad: "Semestral", cantidad: 13, porcentaje: 100, color: "#035683" },
-  { modalidad: "Anual", cantidad: 7, porcentaje: 54, color: "#00ABBD" },
-  { modalidad: "Mixta", cantidad: 1, porcentaje: 8, color: "#FFB600" },
-];
-
-export const DISTRIBUCION_AUTOEVALUACION = [
-  { nota: "Nota 7", cantidad: 6, porcentaje: 67, color: "#00ABBD" },
-  { nota: "Nota 8", cantidad: 9, porcentaje: 100, color: "#00ABBD" },
-  { nota: "Nota 9", cantidad: 4, porcentaje: 44, color: "#035683" },
-  { nota: "Nota 10", cantidad: 2, porcentaje: 22, color: "#FFB600" },
-];
-
-export const RANKING_KARDEX_S2: FilaKardex[] = [
-  { posicion: "01", nombre: "Luis Flores", avatar: "LF", liderazgo_iglesia: 19, academico: 20, mentor: 18, escuela_lideres: 19, socioeconomica: 20, promedio: "96%" },
-  { posicion: "02", nombre: "Daniel Ávalos", avatar: "DA", liderazgo_iglesia: 18, academico: 20, mentor: 14, escuela_lideres: 17, socioeconomica: "—", promedio: "86%" },
-  { posicion: "03", nombre: "Rosa Chura", avatar: "RC", liderazgo_iglesia: 16, academico: 18, mentor: 17, escuela_lideres: 15, socioeconomica: 18, promedio: "84%" },
-  { posicion: "04", nombre: "Jhonny Poma", avatar: "JP", liderazgo_iglesia: 12, academico: 15, mentor: 11, escuela_lideres: 13, socioeconomica: 14, promedio: "65%" },
-];
-
-export const RANKING_KARDEX_S1: FilaKardex[] = [
-  { posicion: "01", nombre: "Daniel Ávalos", avatar: "DA", liderazgo_iglesia: 18, academico: 19, mentor: 18, escuela_lideres: 17, socioeconomica: 18, promedio: "90%" },
-  { posicion: "02", nombre: "Luis Flores", avatar: "LF", liderazgo_iglesia: 17, academico: 18, mentor: 17, escuela_lideres: 16, socioeconomica: 17, promedio: "85%" },
-  { posicion: "03", nombre: "Rosa Chura", avatar: "RC", liderazgo_iglesia: 16, academico: 17, mentor: 16, escuela_lideres: 15, socioeconomica: 17, promedio: "81%" },
-  { posicion: "04", nombre: "Jhonny Poma", avatar: "JP", liderazgo_iglesia: 13, academico: 15, mentor: 12, escuela_lideres: 13, socioeconomica: "Incompleto", promedio: "66%" },
-];
-
-export const RANKING_KARDEX_2025_S2: FilaKardex[] = [
-  { posicion: "01", nombre: "Daniel Ávalos", avatar: "DA", liderazgo_iglesia: 19, academico: 19, mentor: 19, escuela_lideres: 18, socioeconomica: 19, promedio: "94%" },
-  { posicion: "02", nombre: "Ruth Choque", avatar: "RC", liderazgo_iglesia: 18, academico: 18, mentor: 17, escuela_lideres: 17, socioeconomica: 18, promedio: "88%" },
-  { posicion: "03", nombre: "Luis Flores", avatar: "LF", liderazgo_iglesia: 17, academico: 17, mentor: 17, escuela_lideres: 16, socioeconomica: 18, promedio: "85%" },
-  { posicion: "04", nombre: "Mario Catunta", avatar: "MC", liderazgo_iglesia: 15, academico: 16, mentor: 15, escuela_lideres: 15, socioeconomica: 16, promedio: "77%" },
-];
-
-export const RANKING_KARDEX_2025_S1: FilaKardex[] = [
-  { posicion: "01", nombre: "Ruth Choque", avatar: "RC", liderazgo_iglesia: 19, academico: 19, mentor: 18, escuela_lideres: 18, socioeconomica: 19, promedio: "93%" },
-  { posicion: "02", nombre: "Daniel Ávalos", avatar: "DA", liderazgo_iglesia: 17, academico: 18, mentor: 17, escuela_lideres: 16, socioeconomica: 17, promedio: "85%" },
-  { posicion: "03", nombre: "Luis Flores", avatar: "LF", liderazgo_iglesia: 16, academico: 17, mentor: 16, escuela_lideres: 15, socioeconomica: 16, promedio: "80%" },
-  { posicion: "04", nombre: "Jhonny Poma", avatar: "JP", liderazgo_iglesia: 14, academico: 15, mentor: 13, escuela_lideres: 14, socioeconomica: 15, promedio: "71%" },
-];
-
 export interface PeriodoAcademicoItem {
   id: string;
   etiqueta: string;
@@ -437,133 +167,103 @@ export interface PeriodoAcademicoItem {
   promedio_general: string;
 }
 
-export const PERIODOS_ACADEMICOS: PeriodoAcademicoItem[] = [
-  { id: "2026-s2", etiqueta: "Gestión 2026 — 2do Semestre", gestion: 2026, semestre: "II", estado: "vigente", estado_texto: "En Curso / Vigente", total_becarios: 21, promedio_general: "84.6%" },
-  { id: "2026-s1", etiqueta: "Gestión 2026 — 1er Semestre", gestion: 2026, semestre: "I", estado: "cerrado", estado_texto: "Cerrado / Auditado", total_becarios: 21, promedio_general: "82.3%" },
-  { id: "2025-s2", etiqueta: "Gestión 2025 — 2do Semestre", gestion: 2025, semestre: "II", estado: "historico", estado_texto: "Histórico Auditado", total_becarios: 19, promedio_general: "81.1%" },
-  { id: "2025-s1", etiqueta: "Gestión 2025 — 1er Semestre", gestion: 2025, semestre: "I", estado: "historico", estado_texto: "Histórico Auditado", total_becarios: 18, promedio_general: "79.8%" },
-  { id: "2024-anual", etiqueta: "Gestión 2024 — Consolidado Anual", gestion: 2024, semestre: "Anual", estado: "historico", estado_texto: "Archivo Histórico", total_becarios: 16, promedio_general: "80.4%" },
-];
-
-export const AGENCIAS_DIACONIA_IFD = [
-  "Sede Central Blq. A",
-  "Agencia Viacha",
-  "Agencia Villa Adela",
-  "Agencia Laguna San Pedro",
-  "Agencia Puente Seco",
-  "Agencia Franz Tamayo",
-  "Agencia Villa Dolores",
-  "Agencia Senkata",
-  "Agencia Río Seco",
-  "Agencia Ciudad Satélite",
-  "Sucursal Juan Pablo II",
-];
-
 export interface MesHorasDetalle {
   mes_num: number;
   mes_corto: string;
   mes_nombre: string;
-  horas: number;
-  meta: number;
-  semanas: { etiqueta: string; horas: number; meta: number }[];
+  semanas: string[];
 }
 
-export const DATOS_HORAS_ANUAL_2026: MesHorasDetalle[] = [
-  { mes_num: 1, mes_corto: "Ene", mes_nombre: "Enero", horas: 520, meta: 600, semanas: [
-    { etiqueta: "Sem 1", horas: 125, meta: 150 },
-    { etiqueta: "Sem 2", horas: 130, meta: 150 },
-    { etiqueta: "Sem 3", horas: 130, meta: 150 },
-    { etiqueta: "Sem 4", horas: 135, meta: 150 },
-  ]},
-  { mes_num: 2, mes_corto: "Feb", mes_nombre: "Febrero", horas: 680, meta: 650, semanas: [
-    { etiqueta: "Sem 1", horas: 165, meta: 160 },
-    { etiqueta: "Sem 2", horas: 170, meta: 160 },
-    { etiqueta: "Sem 3", horas: 170, meta: 160 },
-    { etiqueta: "Sem 4", horas: 175, meta: 170 },
-  ]},
-  { mes_num: 3, mes_corto: "Mar", mes_nombre: "Marzo", horas: 850, meta: 800, semanas: [
-    { etiqueta: "Sem 1", horas: 210, meta: 200 },
-    { etiqueta: "Sem 2", horas: 215, meta: 200 },
-    { etiqueta: "Sem 3", horas: 210, meta: 200 },
-    { etiqueta: "Sem 4", horas: 215, meta: 200 },
-  ]},
-  { mes_num: 4, mes_corto: "Abr", mes_nombre: "Abril", horas: 790, meta: 800, semanas: [
-    { etiqueta: "Sem 1", horas: 195, meta: 200 },
-    { etiqueta: "Sem 2", horas: 200, meta: 200 },
-    { etiqueta: "Sem 3", horas: 195, meta: 200 },
-    { etiqueta: "Sem 4", horas: 200, meta: 200 },
-  ]},
-  { mes_num: 5, mes_corto: "May", mes_nombre: "Mayo", horas: 920, meta: 850, semanas: [
-    { etiqueta: "Sem 1", horas: 230, meta: 210 },
-    { etiqueta: "Sem 2", horas: 230, meta: 210 },
-    { etiqueta: "Sem 3", horas: 230, meta: 210 },
-    { etiqueta: "Sem 4", horas: 230, meta: 220 },
-  ]},
-  { mes_num: 6, mes_corto: "Jun", mes_nombre: "Junio", horas: 880, meta: 850, semanas: [
-    { etiqueta: "Sem 1", horas: 220, meta: 210 },
-    { etiqueta: "Sem 2", horas: 220, meta: 210 },
-    { etiqueta: "Sem 3", horas: 220, meta: 210 },
-    { etiqueta: "Sem 4", horas: 220, meta: 220 },
-  ]},
-  { mes_num: 7, mes_corto: "Jul", mes_nombre: "Julio", horas: 940, meta: 900, semanas: [
-    { etiqueta: "Sem 1 (01-07)", horas: 230, meta: 225 },
-    { etiqueta: "Sem 2 (08-14)", horas: 235, meta: 225 },
-    { etiqueta: "Sem 3 (15-21)", horas: 235, meta: 225 },
-    { etiqueta: "Sem 4 (22-28)", horas: 240, meta: 225 },
-  ]},
-  { mes_num: 8, mes_corto: "Ago", mes_nombre: "Agosto", horas: 980, meta: 900, semanas: [
-    { etiqueta: "Sem 1 (01-07)", horas: 240, meta: 225 },
-    { etiqueta: "Sem 2 (08-14)", horas: 245, meta: 225 },
-    { etiqueta: "Sem 3 (15-21)", horas: 245, meta: 225 },
-    { etiqueta: "Sem 4 (22-28)", horas: 250, meta: 225 },
-  ]},
-  { mes_num: 9, mes_corto: "Sep", mes_nombre: "Septiembre", horas: 1040, meta: 950, semanas: [
-    { etiqueta: "Sem 1 (01-07)", horas: 255, meta: 235 },
-    { etiqueta: "Sem 2 (08-14)", horas: 260, meta: 235 },
-    { etiqueta: "Sem 3 (15-21)", horas: 260, meta: 240 },
-    { etiqueta: "Sem 4 (22-28)", horas: 265, meta: 240 },
-  ]},
-  { mes_num: 10, mes_corto: "Oct", mes_nombre: "Octubre", horas: 1080, meta: 1000, semanas: [
-    { etiqueta: "Sem 1 (01-07)", horas: 265, meta: 250 },
-    { etiqueta: "Sem 2 (08-14)", horas: 270, meta: 250 },
-    { etiqueta: "Sem 3 (15-21)", horas: 270, meta: 250 },
-    { etiqueta: "Sem 4 (22-28)", horas: 275, meta: 250 },
-  ]},
-  { mes_num: 11, mes_corto: "Nov", mes_nombre: "Noviembre", horas: 1110, meta: 1000, semanas: [
-    { etiqueta: "Sem 1 (01-07)", horas: 275, meta: 250 },
-    { etiqueta: "Sem 2 (08-14)", horas: 275, meta: 250 },
-    { etiqueta: "Sem 3 (15-21)", horas: 280, meta: 250 },
-    { etiqueta: "Sem 4 (22-28)", horas: 280, meta: 250 },
-  ]},
-  { mes_num: 12, mes_corto: "Dic", mes_nombre: "Diciembre", horas: 990, meta: 950, semanas: [
-    { etiqueta: "Sem 1 (01-07)", horas: 250, meta: 240 },
-    { etiqueta: "Sem 2 (08-14)", horas: 250, meta: 240 },
-    { etiqueta: "Sem 3 (15-21)", horas: 245, meta: 235 },
-    { etiqueta: "Sem 4 (22-28)", horas: 245, meta: 235 },
-  ]},
-];
-
-export interface DespliegueAgencia {
-  agencia: string;
-  ciudad: "La Paz" | "El Alto" | "Viacha";
-  becarios: number;
-  horas_mes: number;
-  porcentaje_cumplimiento: number;
+export interface LugarPracticaItem {
+  id: number;
+  nombre: string;
+  direccion?: string | null;
+  activo?: boolean;
 }
 
-export const DATOS_DESPLIEGUE_AGENCIAS: DespliegueAgencia[] = [
-  { agencia: "Sede Central Blq. A", ciudad: "La Paz", becarios: 4, horas_mes: 620, porcentaje_cumplimiento: 98 },
-  { agencia: "Ceja El Alto", ciudad: "El Alto", becarios: 3, horas_mes: 480, porcentaje_cumplimiento: 94 },
-  { agencia: "Viacha", ciudad: "Viacha", becarios: 2, horas_mes: 320, porcentaje_cumplimiento: 95 },
-  { agencia: "Villa Adela", ciudad: "El Alto", becarios: 2, horas_mes: 310, porcentaje_cumplimiento: 90 },
-  { agencia: "Río Seco", ciudad: "El Alto", becarios: 2, horas_mes: 300, porcentaje_cumplimiento: 92 },
-  { agencia: "Ciudad Satélite", ciudad: "El Alto", becarios: 2, horas_mes: 290, porcentaje_cumplimiento: 88 },
-  { agencia: "Sucursal Juan Pablo II", ciudad: "El Alto", becarios: 2, horas_mes: 280, porcentaje_cumplimiento: 93 },
-  { agencia: "Franz Tamayo", ciudad: "El Alto", becarios: 1, horas_mes: 160, porcentaje_cumplimiento: 91 },
-  { agencia: "Laguna San Pedro", ciudad: "La Paz", becarios: 1, horas_mes: 155, porcentaje_cumplimiento: 89 },
-  { agencia: "Villa Dolores", ciudad: "El Alto", becarios: 1, horas_mes: 145, porcentaje_cumplimiento: 86 },
-  { agencia: "Senkata", ciudad: "El Alto", becarios: 1, horas_mes: 140, porcentaje_cumplimiento: 88 },
+const MESES_ANIO_BASE: MesHorasDetalle[] = [
+  { mes_num: 1, mes_corto: "Ene", mes_nombre: "Enero", semanas: ["Sem 1", "Sem 2", "Sem 3", "Sem 4"] },
+  { mes_num: 2, mes_corto: "Feb", mes_nombre: "Febrero", semanas: ["Sem 1", "Sem 2", "Sem 3", "Sem 4"] },
+  { mes_num: 3, mes_corto: "Mar", mes_nombre: "Marzo", semanas: ["Sem 1", "Sem 2", "Sem 3", "Sem 4"] },
+  { mes_num: 4, mes_corto: "Abr", mes_nombre: "Abril", semanas: ["Sem 1", "Sem 2", "Sem 3", "Sem 4"] },
+  { mes_num: 5, mes_corto: "May", mes_nombre: "Mayo", semanas: ["Sem 1", "Sem 2", "Sem 3", "Sem 4"] },
+  { mes_num: 6, mes_corto: "Jun", mes_nombre: "Junio", semanas: ["Sem 1", "Sem 2", "Sem 3", "Sem 4"] },
+  { mes_num: 7, mes_corto: "Jul", mes_nombre: "Julio", semanas: ["Sem 1 (01-07)", "Sem 2 (08-14)", "Sem 3 (15-21)", "Sem 4 (22-28)"] },
+  { mes_num: 8, mes_corto: "Ago", mes_nombre: "Agosto", semanas: ["Sem 1 (01-07)", "Sem 2 (08-14)", "Sem 3 (15-21)", "Sem 4 (22-28)"] },
+  { mes_num: 9, mes_corto: "Sep", mes_nombre: "Septiembre", semanas: ["Sem 1 (01-07)", "Sem 2 (08-14)", "Sem 3 (15-21)", "Sem 4 (22-28)"] },
+  { mes_num: 10, mes_corto: "Oct", mes_nombre: "Octubre", semanas: ["Sem 1 (01-07)", "Sem 2 (08-14)", "Sem 3 (15-21)", "Sem 4 (22-28)"] },
+  { mes_num: 11, mes_corto: "Nov", mes_nombre: "Noviembre", semanas: ["Sem 1 (01-07)", "Sem 2 (08-14)", "Sem 3 (15-21)", "Sem 4 (22-28)"] },
+  { mes_num: 12, mes_corto: "Dic", mes_nombre: "Diciembre", semanas: ["Sem 1 (01-07)", "Sem 2 (08-14)", "Sem 3 (15-21)", "Sem 4 (22-28)"] },
 ];
+
+const COLORES_DISTRIBUCION = ["#035683", "#00ABBD", "#FFB600", "#00808E", "#5B6D77", "#E2694B"];
+
+function construirInicialesAvatar(nombre?: string | null): string {
+  const limpio = String(nombre || "").trim();
+  if (!limpio) return "BC";
+  const partes = limpio.split(/\s+/).filter(Boolean);
+  if (partes.length === 1) return partes[0].slice(0, 2).toUpperCase();
+  return `${partes[0][0]}${partes[partes.length - 1][0]}`.toUpperCase();
+}
+
+function normalizarRangoHorario(valor?: string | null): string {
+  if (!valor) return "—";
+  const limpio = String(valor).replace(/\s*-\s*/g, "-").trim();
+  if (!limpio || limpio === "-" || limpio === "—") return "—";
+  return limpio;
+}
+
+function construirFilaHorarioBecario(b: any, idx: number): FilaHorarioApoyo {
+  const horarios_tabla: any[] = Array.isArray(b.horarios_apoyo) ? b.horarios_apoyo : [];
+  const horario_json: Record<string, string> =
+    b.horario_semanal && typeof b.horario_semanal === "object" ? b.horario_semanal : {};
+
+  const obtenerDia = (dia_num: number, claves_json: string[]): string => {
+    const reg = horarios_tabla.find((h) => Number(h.dia_semana) === dia_num && h.activo !== false);
+    if (reg && reg.hora_inicio && reg.hora_fin) {
+      return `${String(reg.hora_inicio).slice(0, 5)}-${String(reg.hora_fin).slice(0, 5)}`;
+    }
+    for (const c of claves_json) {
+      const encontrado = Object.entries(horario_json).find(
+        ([k]) => k.toLowerCase().trim() === c
+      );
+      if (encontrado && encontrado[1]) {
+        return normalizarRangoHorario(encontrado[1]);
+      }
+    }
+    return "—";
+  };
+
+  const ci_base = b.ci ? String(b.ci).trim() : "";
+  const exp = b.lugar_expedicion ? ` ${String(b.lugar_expedicion).trim()}` : "";
+
+  return {
+    numero: idx + 1,
+    becario_id: Number(b.id),
+    nombre: b.nombre || b.usuario?.nombre || `Becario #${b.id}`,
+    ci: ci_base ? `${ci_base}${exp}` : "—",
+    cantidad_materias: b.ceti !== null && b.ceti !== undefined ? `CETI ${b.ceti}` : "—",
+    periodo: b.modalidad_carrera || "—",
+    lugar_practica_id: b.lugar_practica_id || b.lugar_practica?.id || null,
+    sede_nombre: b.lugar_practica?.nombre || "",
+    lunes: obtenerDia(1, ["lunes", "lun"]),
+    martes: obtenerDia(2, ["martes", "mar"]),
+    miercoles: obtenerDia(3, ["miercoles", "miércoles", "mie"]),
+    jueves: obtenerDia(4, ["jueves", "jue"]),
+    viernes: obtenerDia(5, ["viernes", "vie"]),
+  };
+}
+
+function resumirHorarioBecario(fila?: FilaHorarioApoyo): string {
+  if (!fila) return "Sin horario asignado";
+  const dias: string[] = [];
+  if (fila.lunes !== "—") dias.push(`Lun ${fila.lunes}`);
+  if (fila.martes !== "—") dias.push(`Mar ${fila.martes}`);
+  if (fila.miercoles !== "—") dias.push(`Mié ${fila.miercoles}`);
+  if (fila.jueves !== "—") dias.push(`Jue ${fila.jueves}`);
+  if (fila.viernes !== "—") dias.push(`Vie ${fila.viernes}`);
+  return dias.length > 0 ? dias.join(", ") : "Sin horario asignado";
+}
 
 const CONFIGURACION_GRAFICO = {
   horas: {
@@ -599,24 +299,28 @@ export function PanelControlVista() {
   >("todas");
   const [exportando_pdf_corte, set_exportando_pdf_corte] = useState<boolean>(false);
 
-  // --- RECTIFICACIÓN Y JUSTIFICACIÓN DE RETRASOS (IMAGEN 1 & IMAGEN 2) ---
-  const [lista_retrasos, set_lista_retrasos] = useState<BecarioRetrasoItem[]>(BECARIOS_RETRASO);
+  // --- RECTIFICACIÓN Y JUSTIFICACIÓN DE RETRASOS ---
+  const [lista_retrasos, set_lista_retrasos] = useState<BecarioRetrasoItem[]>([]);
+  const [registros_asistencia_api, set_registros_asistencia_api] = useState<RegistroAsistenciaSemanal[]>([]);
   const [becario_a_justificar, set_becario_a_justificar] = useState<BecarioRetrasoItem | null>(null);
   const [dialogo_justificar_abierto, set_dialogo_justificar_abierto] = useState<boolean>(false);
 
-  // --- CASOS PASTORALES Y DE MENTORÍA (IMAGEN 3) ---
-  const [casos_pastorales, set_casos_pastorales] = useState<CasoPastoralCompleto[]>(CASOS_SEGUIMIENTO);
+  // --- CASOS PASTORALES Y DE MENTORÍA ---
+  const [casos_pastorales, set_casos_pastorales] = useState<CasoPastoralCompleto[]>([]);
   const [filtro_estado_casos, set_filtro_estado_casos] = useState<"todos" | "PENDIENTE" | "EN_TUTORIA" | "RESUELTO">("todos");
   const [caso_a_gestionar, set_caso_a_gestionar] = useState<CasoPastoralCompleto | null>(null);
   const [dialogo_gestion_caso_abierto, set_dialogo_gestion_caso_abierto] = useState<boolean>(false);
   const [dialogo_nuevo_caso_abierto, set_dialogo_nuevo_caso_abierto] = useState<boolean>(false);
 
-  // Estado y Gestión Interactiva de la Matriz de Horarios (IMAGEN 2)
-  const [horarios_lista, set_horarios_lista] = useState<FilaHorarioApoyo[]>(HORARIOS_APOYO_2026);
+  // Datos reales desde Backend (Becarios, Sedes, Periodos y Matriz de Horarios)
+  const [becarios_reales, set_becarios_reales] = useState<any[]>([]);
+  const [lugares_practica_lista, set_lugares_practica_lista] = useState<LugarPracticaItem[]>([]);
+  const [periodos_lista, set_periodos_lista] = useState<PeriodoAcademicoItem[]>([]);
+  const [horarios_lista, set_horarios_lista] = useState<FilaHorarioApoyo[]>([]);
   const [becario_a_editar, set_becario_a_editar] = useState<FilaHorarioApoyo | null>(null);
   const [dialogo_edicion_abierto, set_dialogo_edicion_abierto] = useState<boolean>(false);
-  const [sede_edit, set_sede_edit] = useState<string>("Sede Central Blq. A");
-  const [materias_declaradas_edit, set_materias_declaradas_edit] = useState<string>("5 materias regulares · Disponibilidad matutina confirmada");
+  const [sede_edit, set_sede_edit] = useState<string>("");
+  const [materias_declaradas_edit, set_materias_declaradas_edit] = useState<string>("");
   const [dias_detallados_edit, set_dias_detallados_edit] = useState<{
     [key: string]: { activo: boolean; inicio: string; fin: string };
   }>({
@@ -807,8 +511,13 @@ export function PanelControlVista() {
   const [fecha_inicio, set_fecha_inicio] = useState<string>("2026-07-01");
   const [fecha_fin, set_fecha_fin] = useState<string>("2026-12-31");
   const [cargando_metricas, set_cargando_metricas] = useState<boolean>(false);
-  const [multas_recaudadas, set_multas_recaudadas] = useState<number>(850);
-  const [incidencias_multas, set_incidencias_multas] = useState<number>(17);
+  const [multas_recaudadas, set_multas_recaudadas] = useState<number>(0);
+  const [incidencias_multas, set_incidencias_multas] = useState<number>(0);
+  const [total_becarios_api, set_total_becarios_api] = useState<number>(0);
+  const [evaluaciones_completadas_api, set_evaluaciones_completadas_api] = useState<number>(0);
+  const [presupuesto_80_reembolso, set_presupuesto_80_reembolso] = useState<number>(0);
+  const [presupuesto_limite, set_presupuesto_limite] = useState<number>(10000);
+  const [tendencia_horas_api, set_tendencia_horas_api] = useState<{ mes: string; horas: number }[] | null>(null);
   const [porcentaje_asistencia_api, set_porcentaje_asistencia_api] = useState<number | null>(null);
   const [dias_permiso_compensados, set_dias_permiso_compensados] = useState<number>(0);
 
@@ -832,31 +541,59 @@ export function PanelControlVista() {
     try {
       const respuesta = await clienteApi.get<{
         multas_recaudadas_bs?: number;
+        total_multas_bs?: number;
         incidencias_multas?: number;
         total_becarios?: number;
+        evaluaciones_completadas?: number;
         porcentaje_puntualidad?: number;
         dias_permiso_aprobado?: number;
+        metricas_generales?: { total_becarios_activos?: number };
+        presupuesto_80?: { total_reembolso_80?: number; limite_mensual_institucional?: number };
+        tendencia_horas?: { mes: string; horas: number }[];
       }>(`/dashboard/estadisticas?fecha_inicio=${inicio}&fecha_fin=${fin}`);
 
       if (respuesta) {
-        if (typeof respuesta.multas_recaudadas_bs === "number") {
-          set_multas_recaudadas(respuesta.multas_recaudadas_bs);
-          set_incidencias_multas(respuesta.incidencias_multas || 0);
-        }
+        const multas_bs =
+          typeof respuesta.multas_recaudadas_bs === "number"
+            ? respuesta.multas_recaudadas_bs
+            : typeof respuesta.total_multas_bs === "number"
+              ? respuesta.total_multas_bs
+              : 0;
+        set_multas_recaudadas(multas_bs);
+        set_incidencias_multas(respuesta.incidencias_multas || 0);
         if (typeof respuesta.porcentaje_puntualidad === "number") {
           set_porcentaje_asistencia_api(Math.round(respuesta.porcentaje_puntualidad));
+        } else {
+          set_porcentaje_asistencia_api(0);
         }
         if (typeof respuesta.dias_permiso_aprobado === "number") {
           set_dias_permiso_compensados(respuesta.dias_permiso_aprobado);
         }
+        const total_bec =
+          typeof respuesta.total_becarios === "number"
+            ? respuesta.total_becarios
+            : respuesta.metricas_generales?.total_becarios_activos;
+        if (typeof total_bec === "number") {
+          set_total_becarios_api(total_bec);
+        }
+        if (typeof respuesta.evaluaciones_completadas === "number") {
+          set_evaluaciones_completadas_api(respuesta.evaluaciones_completadas);
+        }
+        if (respuesta.presupuesto_80) {
+          set_presupuesto_80_reembolso(Number(respuesta.presupuesto_80.total_reembolso_80 || 0));
+          if (respuesta.presupuesto_80.limite_mensual_institucional) {
+            set_presupuesto_limite(Number(respuesta.presupuesto_80.limite_mensual_institucional));
+          }
+        }
+        if (Array.isArray(respuesta.tendencia_horas)) {
+          set_tendencia_horas_api(respuesta.tendencia_horas);
+        }
       }
     } catch {
-      // Cálculo algorítmico institucional según días de rango seleccionado
-      const dias = Math.max(1, Math.round((new Date(fin).getTime() - new Date(inicio).getTime()) / (1000 * 3600 * 24)));
-      const multas_estimadas = Math.round(dias * 4.65);
-      const incidencias_estimadas = Math.max(2, Math.round(dias * 0.09));
-      set_multas_recaudadas(multas_estimadas);
-      set_incidencias_multas(incidencias_estimadas);
+      set_multas_recaudadas(0);
+      set_incidencias_multas(0);
+      set_porcentaje_asistencia_api(0);
+      set_presupuesto_80_reembolso(0);
     } finally {
       set_cargando_metricas(false);
     }
@@ -865,6 +602,173 @@ export function PanelControlVista() {
   useEffect(() => {
     consultarEstadisticas(fecha_inicio, fecha_fin);
   }, [fecha_inicio, fecha_fin, consultarEstadisticas]);
+
+  useEffect(() => {
+    clienteApi
+      .get<CasoPastoralCompleto[]>("/evaluaciones/casos-pastorales")
+      .then((res) => {
+        if (Array.isArray(res)) {
+          set_casos_pastorales(res);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const cargarBecariosYSedes = useCallback(async () => {
+    try {
+      const [res_becarios, res_lugares, res_periodos] = await Promise.all([
+        clienteApi.get<any[]>("/api/becarios").catch(() => []),
+        clienteApi.get<any[]>("/api/lugares-practica").catch(() => []),
+        clienteApi.get<any[]>("/api/evaluaciones/catalogos/periodos").catch(() => []),
+      ]);
+
+      if (Array.isArray(res_becarios)) {
+        set_becarios_reales(res_becarios);
+        set_horarios_lista(res_becarios.map((b, idx) => construirFilaHorarioBecario(b, idx)));
+      }
+
+      if (Array.isArray(res_lugares)) {
+        set_lugares_practica_lista(
+          res_lugares.map((l) => ({
+            id: Number(l.id),
+            nombre: l.nombre || `Sede #${l.id}`,
+            direccion: l.direccion || null,
+            activo: l.activo !== false,
+          }))
+        );
+      }
+
+      if (Array.isArray(res_periodos) && res_periodos.length > 0) {
+        const mapeados: PeriodoAcademicoItem[] = res_periodos.map((p: any) => {
+          const abierto = String(p.estado || "").toLowerCase() === "abierto";
+          const fecha_ini = p.fecha_inicio ? new Date(p.fecha_inicio) : new Date();
+          const anio = !isNaN(fecha_ini.getTime()) ? fecha_ini.getFullYear() : 2026;
+          return {
+            id: String(p.id),
+            etiqueta: p.nombre || `Periodo #${p.id}`,
+            gestion: anio,
+            semestre: String(p.nombre || "").includes("II") ? "II" : "I",
+            estado: abierto ? "vigente" : "cerrado",
+            estado_texto: abierto ? "En Curso / Vigente" : "Cerrado / Auditado",
+            total_becarios: Array.isArray(res_becarios) ? res_becarios.length : 0,
+            promedio_general: "0.0%",
+          };
+        });
+        set_periodos_lista(mapeados);
+        const vigente = mapeados.find((p) => p.estado === "vigente") || mapeados[0];
+        if (vigente) {
+          set_periodo_academico(vigente.id);
+        }
+      }
+    } catch {
+      set_horarios_lista([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    cargarBecariosYSedes();
+  }, [cargarBecariosYSedes]);
+
+  useEffect(() => {
+    let cancelado = false;
+    async function cargarSeguimientoSemanal() {
+      try {
+        const res = await clienteApi.get<{
+          becarios_con_retraso?: Array<{
+            becario: { id: number; nombre: string; carrera?: string; unidad?: string | null };
+            hora_ingreso: string;
+            hora_prevista: string;
+            minutos_retraso: number;
+            fecha: string;
+          }>;
+          asistencia_semanal?: {
+            asistieron?: Array<{
+              becario: { id: number; nombre: string; carrera?: string };
+              total_asistencias: number;
+            }>;
+            no_asistieron?: Array<{
+              becario: { id: number; nombre: string; carrera?: string };
+              total_asistencias: number;
+            }>;
+          };
+          conteo?: { dias_permiso_aprobado?: number };
+        }>(`/dashboard/seguimiento-semanal?fecha=${info_semana.inicio_iso}`);
+
+        if (cancelado || !res) return;
+
+        const retrasos_api = Array.isArray(res.becarios_con_retraso) ? res.becarios_con_retraso : [];
+        const retrasos_mapeados: BecarioRetrasoItem[] = retrasos_api.map((r, idx) => ({
+          id: r.becario?.id || idx + 1,
+          nombre: r.becario?.nombre || `Becario #${idx + 1}`,
+          avatar: construirInicialesAvatar(r.becario?.nombre),
+          carrera: r.becario?.carrera || "No registrada",
+          fecha: r.fecha || info_semana.inicio_iso,
+          hora_prevista: String(r.hora_prevista || "08:00").slice(0, 5),
+          hora_real: String(r.hora_ingreso || "--:--").slice(0, 5),
+          minutos_retraso: Number(r.minutos_retraso || 0),
+          sede: r.becario?.unidad || "Oficina Central",
+          tipo_asistencia: "Prácticas",
+        }));
+        set_lista_retrasos(retrasos_mapeados);
+
+        const asistieron = Array.isArray(res.asistencia_semanal?.asistieron)
+          ? res.asistencia_semanal!.asistieron
+          : [];
+        const no_asistieron = Array.isArray(res.asistencia_semanal?.no_asistieron)
+          ? res.asistencia_semanal!.no_asistieron
+          : [];
+        const permisos_sem = Number(res.conteo?.dias_permiso_aprobado || 0);
+
+        if (asistieron.length === 0 && retrasos_api.length === 0 && permisos_sem === 0) {
+          set_registros_asistencia_api([]);
+        } else {
+          const mapa_retraso_min = new Map<number, number>();
+          for (const r of retrasos_api) {
+            if (r.becario?.id && r.minutos_retraso > 0) {
+              mapa_retraso_min.set(r.becario.id, r.minutos_retraso);
+            }
+          }
+          const filas_nomina: RegistroAsistenciaSemanal[] = [
+            ...asistieron.map((item) => {
+              const fila_h = horarios_lista.find((h) => h.becario_id === item.becario.id);
+              return {
+                id: item.becario.id,
+                nombre: item.becario.nombre,
+                avatar: construirInicialesAvatar(item.becario.nombre),
+                carrera: item.becario.carrera || "No registrada",
+                horario_asignado: resumirHorarioBecario(fila_h),
+                asistio: true,
+                minutos_retraso: mapa_retraso_min.get(item.becario.id),
+                fecha_corte: info_semana.etiqueta,
+              };
+            }),
+            ...no_asistieron.map((item) => {
+              const fila_h = horarios_lista.find((h) => h.becario_id === item.becario.id);
+              return {
+                id: item.becario.id,
+                nombre: item.becario.nombre,
+                avatar: construirInicialesAvatar(item.becario.nombre),
+                carrera: item.becario.carrera || "No registrada",
+                horario_asignado: resumirHorarioBecario(fila_h),
+                asistio: false,
+                fecha_corte: info_semana.etiqueta,
+              };
+            }),
+          ];
+          set_registros_asistencia_api(filas_nomina);
+        }
+      } catch {
+        if (!cancelado) {
+          set_lista_retrasos([]);
+          set_registros_asistencia_api([]);
+        }
+      }
+    }
+    cargarSeguimientoSemanal();
+    return () => {
+      cancelado = true;
+    };
+  }, [info_semana.inicio_iso, info_semana.etiqueta, horarios_lista]);
 
   const aplicarRangoRapido = (tipo: "este_mes" | "ultimo_trimestre" | "semestre_actual" | "personalizado") => {
     set_tipo_rango(tipo);
@@ -881,13 +785,26 @@ export function PanelControlVista() {
     }
   };
 
+  const es_supervisor = esMentorAutenticado(usuario);
+  const nombre_usuario = usuario?.nombre || "Mentor";
+
+  const cantidad_becarios_objetivo = es_mentor ? becarios_designados.length : total_becarios_api;
+  const meta_mensual_dinamica = cantidad_becarios_objetivo * 36;
+
   // Cálculo Dinámico y Reactivo de Horas según Filtro de Fechas
   const datos_grafico_horas = useMemo(() => {
+    const obtenerHorasMes = (mes_corto: string) => {
+      const api_match = tendencia_horas_api?.find((t) =>
+        t.mes?.toLowerCase().startsWith(mes_corto.toLowerCase())
+      );
+      return api_match ? Number(api_match.horas || 0) : 0;
+    };
+
     if (vista_anual) {
-      return DATOS_HORAS_ANUAL_2026.map((m) => ({
+      return MESES_ANIO_BASE.map((m) => ({
         mes: m.mes_corto,
-        horas: m.horas,
-        meta: m.meta,
+        horas: obtenerHorasMes(m.mes_corto),
+        meta: meta_mensual_dinamica,
         periodo_nombre: m.mes_nombre,
       }));
     }
@@ -896,45 +813,44 @@ export function PanelControlVista() {
     const d_fin = parsearFechaCadena(fecha_fin);
     const diff_dias = Math.max(1, Math.round((d_fin.getTime() - d_inicio.getTime()) / (1000 * 3600 * 24)));
 
-    // Si el rango es mensual o de hasta 35 días, mostrar desglose semanal de ese mes
     if (tipo_rango === "este_mes" || diff_dias <= 35) {
-      const mes_idx = d_inicio.getMonth(); // 0 a 11
-      const mes_obj = DATOS_HORAS_ANUAL_2026[mes_idx] || DATOS_HORAS_ANUAL_2026[9];
-      return mes_obj.semanas.map((s) => ({
-        mes: s.etiqueta,
-        horas: s.horas,
-        meta: s.meta,
-        periodo_nombre: `${mes_obj.mes_nombre} · ${s.etiqueta}`,
+      const mes_idx = d_inicio.getMonth();
+      const mes_obj = MESES_ANIO_BASE[mes_idx] || MESES_ANIO_BASE[9];
+      const horas_mes = obtenerHorasMes(mes_obj.mes_corto);
+      const meta_sem = Math.round(meta_mensual_dinamica / 4);
+      return mes_obj.semanas.map((etiqueta, idx) => ({
+        mes: etiqueta,
+        horas: idx === 0 ? horas_mes : 0,
+        meta: meta_sem,
+        periodo_nombre: `${mes_obj.mes_nombre} · ${etiqueta}`,
       }));
     }
 
-    // Si es un rango de meses, obtener los meses incluidos en el rango
     const anio_inicio = d_inicio.getFullYear();
     const anio_fin = d_fin.getFullYear();
-    const mes_inicio = d_inicio.getMonth() + 1; // 1 a 12
-    const mes_fin = d_fin.getMonth() + 1; // 1 a 12
+    const mes_inicio = d_inicio.getMonth() + 1;
+    const mes_fin = d_fin.getMonth() + 1;
 
     let meses_seleccionados: MesHorasDetalle[] = [];
-
     if (anio_inicio === anio_fin) {
-      meses_seleccionados = DATOS_HORAS_ANUAL_2026.filter(
+      meses_seleccionados = MESES_ANIO_BASE.filter(
         (m) => m.mes_num >= mes_inicio && m.mes_num <= mes_fin
       );
     } else {
-      meses_seleccionados = DATOS_HORAS_ANUAL_2026.filter((m) => m.mes_num >= mes_inicio);
+      meses_seleccionados = MESES_ANIO_BASE.filter((m) => m.mes_num >= mes_inicio);
     }
 
     if (meses_seleccionados.length === 0) {
-      meses_seleccionados = DATOS_HORAS_ANUAL_2026.slice(6, 10);
+      meses_seleccionados = MESES_ANIO_BASE.slice(6, 12);
     }
 
     return meses_seleccionados.map((m) => ({
       mes: m.mes_corto,
-      horas: m.horas,
-      meta: m.meta,
+      horas: obtenerHorasMes(m.mes_corto),
+      meta: meta_mensual_dinamica,
       periodo_nombre: m.mes_nombre,
     }));
-  }, [fecha_inicio, fecha_fin, vista_anual, tipo_rango]);
+  }, [fecha_inicio, fecha_fin, vista_anual, tipo_rango, tendencia_horas_api, meta_mensual_dinamica]);
 
   const total_horas_periodo = useMemo(
     () => datos_grafico_horas.reduce((acc, curr) => acc + curr.horas, 0),
@@ -945,16 +861,13 @@ export function PanelControlVista() {
     [datos_grafico_horas]
   );
   const pct_cumplimiento_periodo = useMemo(
-    () => (total_meta_periodo > 0 ? Math.round((total_horas_periodo / total_meta_periodo) * 100) : 100),
+    () => (total_meta_periodo > 0 && total_horas_periodo > 0 ? Math.round((total_horas_periodo / total_meta_periodo) * 100) : 0),
     [total_horas_periodo, total_meta_periodo]
   );
 
-  const es_supervisor = esMentorAutenticado(usuario);
-  const nombre_usuario = usuario?.nombre || "Mentor";
-
   const registros_asistencia_para_rol = useMemo(
-    () => filtrarPorMentor(REGISTROS_ASISTENCIA_SEMANAL),
-    [filtrarPorMentor]
+    () => filtrarPorMentor(registros_asistencia_api),
+    [registros_asistencia_api, filtrarPorMentor]
   );
 
   const horarios_para_rol = useMemo(
@@ -971,10 +884,12 @@ export function PanelControlVista() {
   const porcentaje_asistencia_semanal =
     porcentaje_asistencia_api !== null
       ? Math.min(100, porcentaje_asistencia_api)
-      : Math.min(
+      : total_registros > 0
+      ? Math.min(
           100,
-          Math.round(((total_asistieron + total_permisos_compensados) / (total_registros || 1)) * 100)
-        );
+          Math.round(((total_asistieron + total_permisos_compensados) / total_registros) * 100)
+        )
+      : 0;
 
   const registros_filtrados = registros_asistencia_para_rol.filter((r) => {
     if (filtro_asistencia === "asistieron") return r.asistio;
@@ -997,10 +912,58 @@ export function PanelControlVista() {
     return true;
   });
 
+  const distribucion_universidades = useMemo(() => {
+    const conteo = new Map<string, number>();
+    for (const b of becarios_reales) {
+      const uni = (b.universidad || "Sin especificar").trim();
+      conteo.set(uni, (conteo.get(uni) || 0) + 1);
+    }
+    const entries = Array.from(conteo.entries()).sort((a, b) => b[1] - a[1]);
+    const max_cant = entries[0]?.[1] || 1;
+    return entries.map(([nombre, cantidad], idx) => ({
+      nombre,
+      cantidad,
+      porcentaje: Math.round((cantidad / max_cant) * 100),
+      color: COLORES_DISTRIBUCION[idx % COLORES_DISTRIBUCION.length],
+    }));
+  }, [becarios_reales]);
+
+  const distribucion_modalidades = useMemo(() => {
+    const conteo = new Map<string, number>();
+    for (const b of becarios_reales) {
+      const mod = (b.modalidad_carrera || "No especificada").trim();
+      conteo.set(mod, (conteo.get(mod) || 0) + 1);
+    }
+    const entries = Array.from(conteo.entries()).sort((a, b) => b[1] - a[1]);
+    const max_cant = entries[0]?.[1] || 1;
+    return entries.map(([modalidad, cantidad], idx) => ({
+      modalidad,
+      cantidad,
+      porcentaje: Math.round((cantidad / max_cant) * 100),
+      color: COLORES_DISTRIBUCION[idx % COLORES_DISTRIBUCION.length],
+    }));
+  }, [becarios_reales]);
+
+  const despliegue_agencias = useMemo(() => {
+    if (lugares_practica_lista.length === 0) return [];
+    return lugares_practica_lista.map((lugar) => {
+      const asignados = becarios_reales.filter(
+        (b) => Number(b.lugar_practica_id || b.lugar_practica?.id || 0) === lugar.id
+      ).length;
+      return {
+        id: lugar.id,
+        agencia: lugar.nombre,
+        ciudad: lugar.direccion?.toLowerCase().includes("la paz") ? "La Paz" : "El Alto",
+        becarios: asignados,
+        horas_mes: total_horas_periodo,
+        porcentaje_cumplimiento: pct_cumplimiento_periodo,
+      };
+    });
+  }, [lugares_practica_lista, becarios_reales, total_horas_periodo, pct_cumplimiento_periodo]);
+
   const abrirEditorHorario = (becario: FilaHorarioApoyo) => {
     set_becario_a_editar(becario);
-    
-    // Función auxiliar para desglosar el rango de horas por cada día
+
     const parsearRangoDia = (str?: string) => {
       if (!str || str === "—" || str === "-") {
         return { activo: false, inicio: "08:00", fin: "12:00" };
@@ -1020,10 +983,17 @@ export function PanelControlVista() {
       viernes: parsearRangoDia(becario.viernes),
     });
 
+    const sede_actual =
+      becario.sede_nombre ||
+      lugares_practica_lista.find((l) => l.id === becario.lugar_practica_id)?.nombre ||
+      lugares_practica_lista[0]?.nombre ||
+      "Oficina Central Diaconía IFD - El Alto";
+    set_sede_edit(sede_actual);
+
     set_materias_declaradas_edit(
-      becario.cantidad_materias && becario.cantidad_materias !== "-"
-        ? `${becario.cantidad_materias} materias declaradas · Turno nocturno disponible`
-        : "5 materias regulares · Disponibilidad diurna declarada"
+      becario.periodo && becario.periodo !== "—"
+        ? `Régimen ${becario.periodo} · Horario institucional asignado`
+        : "Horario institucional de prácticas preprofesionales"
     );
 
     set_dialogo_edicion_abierto(true);
@@ -1031,80 +1001,75 @@ export function PanelControlVista() {
 
   const guardarEdicionHorario = async () => {
     if (!becario_a_editar) return;
-    
+
     const formatearDia = (d: { activo: boolean; inicio: string; fin: string }) =>
       d.activo ? `${d.inicio}-${d.fin}` : "—";
 
-    // Actualizamos la grilla visual de la tabla
-    set_horarios_lista((prev) =>
-      prev.map((item) =>
-        item.numero === becario_a_editar.numero
-          ? {
-              ...item,
-              lunes: formatearDia(dias_detallados_edit.lunes),
-              martes: formatearDia(dias_detallados_edit.martes),
-              miercoles: formatearDia(dias_detallados_edit.miercoles),
-              jueves: formatearDia(dias_detallados_edit.jueves),
-              viernes: formatearDia(dias_detallados_edit.viernes),
-            }
-          : item
-      )
-    );
+    const dias_payload = [
+      { dia_semana: 1, ...dias_detallados_edit.lunes },
+      { dia_semana: 2, ...dias_detallados_edit.martes },
+      { dia_semana: 3, ...dias_detallados_edit.miercoles },
+      { dia_semana: 4, ...dias_detallados_edit.jueves },
+      { dia_semana: 5, ...dias_detallados_edit.viernes },
+    ]
+      .filter((d) => d.activo)
+      .map((d) => ({
+        dia_semana: d.dia_semana,
+        hora_inicio: d.inicio,
+        hora_fin: d.fin,
+        horas_diarias: 4.0,
+      }));
 
-    // Persistencia en base de datos mediante la API NestJS
+    const lugar_seleccionado = lugares_practica_lista.find((l) => l.nombre === sede_edit);
+
     try {
-      const dias_payload = [
-        { dia_semana: 1, ...dias_detallados_edit.lunes },
-        { dia_semana: 2, ...dias_detallados_edit.martes },
-        { dia_semana: 3, ...dias_detallados_edit.miercoles },
-        { dia_semana: 4, ...dias_detallados_edit.jueves },
-        { dia_semana: 5, ...dias_detallados_edit.viernes },
-      ]
-        .filter((d) => d.activo)
-        .map((d) => ({
-          dia_semana: d.dia_semana,
-          hora_inicio: d.inicio,
-          hora_fin: d.fin,
-          horas_diarias: 4.0,
-        }));
-
-      await clienteApi.put(`/becarios/${becario_a_editar.numero}/horarios`, {
+      await clienteApi.put(`/becarios/${becario_a_editar.becario_id}/horarios`, {
+        lugar_practica_id: lugar_seleccionado?.id,
         dias: dias_payload,
       });
-    } catch (e) {
-      // Sincronización realizada
-    }
 
-    toast.success(`Horario de apoyo actualizado exitosamente para ${becario_a_editar.nombre}.`, {
-      description: `${horas_semanales_asignadas_calculadas} hrs/semana programadas en ${sede_edit}.`,
-    });
-    set_dialogo_edicion_abierto(false);
+      set_horarios_lista((prev) =>
+        prev.map((item) =>
+          item.becario_id === becario_a_editar.becario_id
+            ? {
+                ...item,
+                lugar_practica_id: lugar_seleccionado?.id ?? item.lugar_practica_id,
+                sede_nombre: sede_edit,
+                lunes: formatearDia(dias_detallados_edit.lunes),
+                martes: formatearDia(dias_detallados_edit.martes),
+                miercoles: formatearDia(dias_detallados_edit.miercoles),
+                jueves: formatearDia(dias_detallados_edit.jueves),
+                viernes: formatearDia(dias_detallados_edit.viernes),
+              }
+            : item
+        )
+      );
+
+      toast.success(`Horario de apoyo actualizado exitosamente para ${becario_a_editar.nombre}.`, {
+        description: `${horas_semanales_asignadas_calculadas} hrs/semana programadas en ${sede_edit}.`,
+      });
+      set_dialogo_edicion_abierto(false);
+    } catch {
+      toast.error("No se pudo guardar el horario en la base de datos.");
+    }
   };
 
-  const obtenerDatosKardex = () => {
-    let base: FilaKardex[];
-    switch (periodo_academico) {
-      case "2026-s2":
-        base = RANKING_KARDEX_S2;
-        break;
-      case "2026-s1":
-        base = RANKING_KARDEX_S1;
-        break;
-      case "2025-s2":
-        base = RANKING_KARDEX_2025_S2;
-        break;
-      case "2025-s1":
-        base = RANKING_KARDEX_2025_S1;
-        break;
-      default:
-        base = RANKING_KARDEX_2025_S2;
-        break;
-    }
-    return filtrarPorMentor(base);
+  const obtenerDatosKardex = (): FilaKardex[] => {
+    return [];
   };
 
-  const periodo_seleccionado_obj =
-    PERIODOS_ACADEMICOS.find((p) => p.id === periodo_academico) || PERIODOS_ACADEMICOS[0];
+  const periodo_seleccionado_obj: PeriodoAcademicoItem =
+    periodos_lista.find((p) => p.id === periodo_academico) ||
+    periodos_lista[0] || {
+      id: "actual",
+      etiqueta: "Periodo Vigente",
+      gestion: 2026,
+      semestre: "II",
+      estado: "vigente",
+      estado_texto: "En Curso / Vigente",
+      total_becarios: cantidad_becarios_objetivo,
+      promedio_general: "0.0%",
+    };
   const es_periodo_historico = periodo_seleccionado_obj.estado !== "vigente";
 
   return (
@@ -1183,7 +1148,7 @@ export function PanelControlVista() {
                         {es_mentor ? "Becarios Designados" : "Becarios Activos"}
                       </p>
                       <p className="text-3xl font-display font-bold text-[#035683]">
-                        <ContadorAnimado valor={es_mentor ? becarios_designados.length : 21} />
+                        <ContadorAnimado valor={es_mentor ? becarios_designados.length : total_becarios_api} />
                       </p>
                     </div>
                     <div className="p-2.5 bg-[#035683]/5 rounded-xl">
@@ -1192,10 +1157,12 @@ export function PanelControlVista() {
                   </div>
                   <div className="mt-3 flex items-center text-xs">
                     <TrendingUp className="w-3.5 h-3.5 text-emerald-600 mr-1" />
-                    <span className="text-emerald-600 font-bold">100% matriculados</span>
+                    <span className="text-emerald-600 font-bold">
+                      {cantidad_becarios_objetivo > 0 ? "100% matriculados" : "Sin registros"}
+                    </span>
                     <span className="text-muted-foreground ml-1">gestión 2026</span>
                   </div>
-                  <Progress value={100} className="h-1.5 mt-2 bg-slate-100" />
+                  <Progress value={cantidad_becarios_objetivo > 0 ? 100 : 0} className="h-1.5 mt-2 bg-slate-100" />
                 </CardContent>
               </Card>
             </ElementoEscalonado>
@@ -1226,7 +1193,9 @@ export function PanelControlVista() {
                       <span className="text-muted-foreground ml-1">esta semana</span>
                     </div>
                     <span className="text-[10px] text-emerald-700 font-semibold">
-                      Permisos aprobados compensados al 100%
+                      {total_permisos_compensados > 0
+                        ? `${total_permisos_compensados} permiso(s) aprobados compensados`
+                        : "Sin marcaciones ni retrasos registrados"}
                     </span>
                   </div>
                   <Progress value={porcentaje_asistencia_semanal} className="h-1.5 mt-2 bg-slate-100" />
@@ -1244,7 +1213,9 @@ export function PanelControlVista() {
                       <p className="text-xs font-semibold text-muted-foreground uppercase font-mono">
                         Matriz de Evaluación
                       </p>
-                      <p className="text-3xl font-display font-bold text-[#035683]">21 / 21</p>
+                      <p className="text-3xl font-display font-bold text-[#035683]">
+                        {evaluaciones_completadas_api} / {es_mentor ? becarios_designados.length : total_becarios_api}
+                      </p>
                     </div>
                     <div className="p-2.5 bg-[#E2694B]/10 rounded-xl">
                       <FileCheck className="w-5 h-5 text-[#E2694B]" />
@@ -1254,7 +1225,14 @@ export function PanelControlVista() {
                     <AlertCircle className="w-3.5 h-3.5 mr-1" />
                     <span>Semestre II · Habilitado</span>
                   </div>
-                  <Progress value={100} className="h-1.5 mt-2 bg-slate-100" />
+                  <Progress
+                    value={
+                      total_becarios_api > 0
+                        ? Math.min(100, Math.round((evaluaciones_completadas_api / total_becarios_api) * 100))
+                        : 0
+                    }
+                    className="h-1.5 mt-2 bg-slate-100"
+                  />
                 </CardContent>
               </Card>
             </ElementoEscalonado>
@@ -1270,7 +1248,7 @@ export function PanelControlVista() {
                         Presupuesto 80% Pasajes
                       </p>
                       <p className="text-3xl font-poppins font-bold text-[#FFB600]">
-                        <ContadorAnimado valor={5240} prefijo="Bs " />
+                        <ContadorAnimado valor={presupuesto_80_reembolso} prefijo="Bs " />
                       </p>
                     </div>
                     <div className="p-2.5 bg-white/10 rounded-xl">
@@ -1278,9 +1256,18 @@ export function PanelControlVista() {
                     </div>
                   </div>
                   <div className="mt-3 flex items-center text-xs text-white/80">
-                    <span>Bs 10,000.00 límite institucional</span>
+                    <span>
+                      Bs {presupuesto_limite.toLocaleString("es-BO", { minimumFractionDigits: 2 })} límite institucional
+                    </span>
                   </div>
-                  <Progress value={52.4} className="h-1.5 mt-2 bg-white/20 [&>div]:bg-[#00ABBD]" />
+                  <Progress
+                    value={
+                      presupuesto_limite > 0
+                        ? Math.min(100, (presupuesto_80_reembolso / presupuesto_limite) * 100)
+                        : 0
+                    }
+                    className="h-1.5 mt-2 bg-white/20 [&>div]:bg-[#00ABBD]"
+                  />
                 </CardContent>
               </Card>
             </ElementoEscalonado>
@@ -1481,7 +1468,7 @@ export function PanelControlVista() {
               </CardContent>
             </Card>
 
-            {/* DISTRIBUCIÓN OPERATIVA EN LAS 11 AGENCIAS DE DIACONÍA IFD */}
+            {/* DISTRIBUCIÓN OPERATIVA EN SEDES DE DIACONÍA IFD */}
             <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl flex flex-col overflow-hidden">
               <CardHeader className="py-3 px-4 border-b border-[#E5E7EB]/60 bg-gradient-to-r from-slate-50 to-white">
                 <div className="flex items-center justify-between gap-2">
@@ -1491,11 +1478,13 @@ export function PanelControlVista() {
                       Despliegue Operativo en Agencias
                     </CardTitle>
                     <CardDescription className="text-[11px] text-muted-foreground">
-                      Distribución en las 11 agencias de Diaconía IFD
+                      {despliegue_agencias.length > 0
+                        ? "Sedes activas registradas en base de datos"
+                        : "Sin sedes registradas en sistema"}
                     </CardDescription>
                   </div>
                   <Badge variant="outline" className="font-mono text-[10px] bg-[#00ABBD]/10 text-[#035683] border-[#00ABBD]/40 shrink-0">
-                    11 Agencias Activas
+                    {despliegue_agencias.length} {despliegue_agencias.length === 1 ? "Sede Activa" : "Sedes Activas"}
                   </Badge>
                 </div>
               </CardHeader>
@@ -1505,50 +1494,60 @@ export function PanelControlVista() {
                 <div className="grid grid-cols-3 gap-2 p-2 bg-slate-50 rounded-lg border border-[#E5E7EB]/70 text-center">
                   <div>
                     <span className="text-[10px] uppercase font-mono text-muted-foreground block">Becarios</span>
-                    <span className="font-bold text-sm text-[#035683] font-mono">21</span>
+                    <span className="font-bold text-sm text-[#035683] font-mono">{cantidad_becarios_objetivo}</span>
                   </div>
                   <div className="border-x border-[#E5E7EB]/70">
                     <span className="text-[10px] uppercase font-mono text-muted-foreground block">Horas / Mes</span>
-                    <span className="font-bold text-sm text-[#00ABBD] font-mono">3,180</span>
+                    <span className="font-bold text-sm text-[#00ABBD] font-mono">{total_horas_periodo}</span>
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-mono text-muted-foreground block">Cumplimiento</span>
-                    <span className="font-bold text-sm text-emerald-700 font-mono">92.4%</span>
+                    <span className="font-bold text-sm text-emerald-700 font-mono">{pct_cumplimiento_periodo}%</span>
                   </div>
                 </div>
 
                 {/* Desglose por Agencia con barras de progreso */}
                 <div className="space-y-2 max-h-[190px] overflow-y-auto pr-1">
-                  {DATOS_DESPLIEGUE_AGENCIAS.map((item) => (
-                    <div key={item.agencia} className="space-y-1 text-xs">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 truncate pr-2">
-                          <span className="font-medium text-[#1E293B] truncate">{item.agencia}</span>
-                          <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-xs bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
-                            {item.ciudad}
-                          </span>
+                  {despliegue_agencias.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-4">
+                      Sin sedes activas cargadas desde la base de datos.
+                    </p>
+                  ) : (
+                    despliegue_agencias.map((item) => (
+                      <div key={item.id} className="space-y-1 text-xs">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 truncate pr-2">
+                            <span className="font-medium text-[#1E293B] truncate">{item.agencia}</span>
+                            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-xs bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
+                              {item.ciudad}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 font-mono text-[11px] shrink-0">
+                            <span className="text-muted-foreground">{item.becarios} bec.</span>
+                            <span className="font-bold text-[#035683]">{item.horas_mes}h</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 font-mono text-[11px] shrink-0">
-                          <span className="text-muted-foreground">{item.becarios} {item.becarios === 1 ? "bec." : "bec."}</span>
-                          <span className="font-bold text-[#035683]">{item.horas_mes}h</span>
+                        <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500 bg-[#00ABBD]"
+                            style={{ width: `${item.porcentaje_cumplimiento}%` }}
+                          />
                         </div>
                       </div>
-                      <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-500 bg-[#00ABBD]"
-                          style={{ width: `${item.porcentaje_cumplimiento}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
 
                 {/* Resumen Regional Inferior */}
                 <div className="pt-2 border-t border-[#E5E7EB]/60 flex items-center justify-between text-[11px] text-muted-foreground font-mono">
-                  <span>Cobertura: El Alto (7) · La Paz (3) · Viacha (1)</span>
+                  <span>
+                    {despliegue_agencias.length > 0
+                      ? `Cobertura: ${despliegue_agencias[0].agencia}`
+                      : "Sin cobertura registrada"}
+                  </span>
                   <span className="text-emerald-700 font-bold flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                    100% Cobertura
+                    {pct_cumplimiento_periodo}% Cumplimiento
                   </span>
                 </div>
               </CardContent>
@@ -1709,7 +1708,7 @@ export function PanelControlVista() {
                           {Math.max(0, total_asistieron - becarios_retraso_filtrados.length)} becarios (
                           {total_asistieron > 0
                             ? (((total_asistieron - becarios_retraso_filtrados.length) / total_asistieron) * 100).toFixed(1)
-                            : 100}%)
+                            : "0.0"}%)
                         </p>
                       </div>
                       <CheckCircle2 className="w-6 h-6 text-emerald-600 opacity-80" />
@@ -1847,7 +1846,16 @@ export function PanelControlVista() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#E5E7EB]/60">
-                        {registros_filtrados.map((item) => (
+                        {registros_filtrados.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} className="py-8 text-center text-muted-foreground">
+                              <CheckCircle2 className="w-6 h-6 text-[#00ABBD] mx-auto mb-1 opacity-70" />
+                              <p className="font-semibold text-xs text-[#035683]">Sin registros de asistencia en esta semana</p>
+                              <p className="text-[11px]">No existen marcaciones ni novedades registradas en la base de datos para este periodo.</p>
+                            </td>
+                          </tr>
+                        ) : (
+                          registros_filtrados.map((item) => (
                           <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                             <td className="py-2.5 px-3">
                               <div className="flex items-center gap-2.5">
@@ -1882,7 +1890,7 @@ export function PanelControlVista() {
                               )}
                             </td>
                           </tr>
-                        ))}
+                        )))}
                       </tbody>
                     </table>
                   </div>
@@ -2147,7 +2155,7 @@ export function PanelControlVista() {
                   onChange={(e) => set_periodo_academico(e.target.value)}
                   className="text-xs font-semibold bg-transparent text-[#035683] border-none focus:outline-hidden cursor-pointer pr-1"
                 >
-                  {PERIODOS_ACADEMICOS.map((p) => (
+                  {(periodos_lista.length > 0 ? periodos_lista : [periodo_seleccionado_obj]).map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.etiqueta} ({p.estado === "vigente" ? "Vigente" : "Auditado"})
                     </option>
@@ -2206,25 +2214,29 @@ export function PanelControlVista() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-3.5 space-y-2.5">
-                {DISTRIBUCION_UNIVERSIDADES.map((u) => (
-                  <div key={u.nombre} className="space-y-1">
-                    <div className="flex justify-between text-xs font-medium">
-                      <span className="text-[#1E293B] truncate pr-2" title={u.nombre}>
-                        {u.nombre}
-                      </span>
-                      <span className="font-mono font-bold text-[#035683]">{u.cantidad}</span>
+                {distribucion_universidades.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-4">Sin datos universitarios registrados.</p>
+                ) : (
+                  distribucion_universidades.map((u) => (
+                    <div key={u.nombre} className="space-y-1">
+                      <div className="flex justify-between text-xs font-medium">
+                        <span className="text-[#1E293B] truncate pr-2" title={u.nombre}>
+                          {u.nombre}
+                        </span>
+                        <span className="font-mono font-bold text-[#035683]">{u.cantidad}</span>
+                      </div>
+                      <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${u.porcentaje}%`,
+                            backgroundColor: u.color,
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${u.porcentaje}%`,
-                          backgroundColor: u.color,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </CardContent>
             </Card>
 
@@ -2240,23 +2252,27 @@ export function PanelControlVista() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-3.5 space-y-3">
-                {DISTRIBUCION_MODALIDADES.map((m) => (
-                  <div key={m.modalidad} className="space-y-1">
-                    <div className="flex justify-between text-xs font-medium">
-                      <span className="text-[#1E293B]">{m.modalidad}</span>
-                      <span className="font-mono font-bold text-[#035683]">{m.cantidad}</span>
+                {distribucion_modalidades.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-4">Sin modalidades registradas.</p>
+                ) : (
+                  distribucion_modalidades.map((m) => (
+                    <div key={m.modalidad} className="space-y-1">
+                      <div className="flex justify-between text-xs font-medium">
+                        <span className="text-[#1E293B]">{m.modalidad}</span>
+                        <span className="font-mono font-bold text-[#035683]">{m.cantidad}</span>
+                      </div>
+                      <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${m.porcentaje}%`,
+                            backgroundColor: m.color,
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${m.porcentaje}%`,
-                          backgroundColor: m.color,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
                 <div className="pt-1.5 text-[11px] text-muted-foreground font-mono">
                   Total: {periodo_seleccionado_obj.total_becarios} becarios matriculados en {periodo_seleccionado_obj.gestion}.
                 </div>
@@ -2275,19 +2291,16 @@ export function PanelControlVista() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-3.5 space-y-2.5">
-                {DISTRIBUCION_AUTOEVALUACION.map((a) => (
-                  <div key={a.nota} className="space-y-1">
+                {["Nota 7", "Nota 8", "Nota 9", "Nota 10"].map((nota) => (
+                  <div key={nota} className="space-y-1">
                     <div className="flex justify-between text-xs font-medium">
-                      <span className="text-[#1E293B]">{a.nota}</span>
-                      <span className="font-mono font-bold text-[#035683]">{a.cantidad} becarios</span>
+                      <span className="text-[#1E293B]">{nota}</span>
+                      <span className="font-mono font-bold text-[#035683]">0 becarios</span>
                     </div>
                     <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                       <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${a.porcentaje}%`,
-                          backgroundColor: a.color,
-                        }}
+                        className="h-full rounded-full transition-all duration-500 bg-[#00ABBD]"
+                        style={{ width: "0%" }}
                       />
                     </div>
                   </div>
@@ -2476,7 +2489,16 @@ export function PanelControlVista() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#E5E7EB]/60">
-                    {obtenerDatosKardex().map((k) => (
+                    {obtenerDatosKardex().length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="py-8 text-center text-muted-foreground">
+                          <ShieldCheck className="w-6 h-6 text-[#00ABBD] mx-auto mb-1 opacity-70" />
+                          <p className="font-semibold text-xs text-[#035683]">Sin evaluaciones consolidadas en este periodo</p>
+                          <p className="text-[11px]">El ranking Kardex se completará automáticamente a medida que se registren las evaluaciones en base de datos.</p>
+                        </td>
+                      </tr>
+                    ) : (
+                      obtenerDatosKardex().map((k) => (
                       <tr key={k.posicion} className="hover:bg-slate-50 transition-colors">
                         <td className="py-2.5 px-3 text-center font-mono font-bold text-[#FFB600]">
                           {k.posicion}
@@ -2506,7 +2528,7 @@ export function PanelControlVista() {
                           {k.promedio}
                         </td>
                       </tr>
-                    ))}
+                    )))}
                   </tbody>
                 </table>
               </div>
@@ -2569,14 +2591,19 @@ export function PanelControlVista() {
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-[#035683] flex items-center justify-between">
                   <span>Sede / Agencia de Práctica Institucional</span>
-                  <span className="text-[10px] text-muted-foreground font-mono">11 agencias habilitadas con geocerca WGS84</span>
+                  <span className="text-[10px] text-muted-foreground font-mono">
+                    {lugares_practica_lista.length} {lugares_practica_lista.length === 1 ? "sede habilitada" : "sedes habilitadas"} con geocerca WGS84
+                  </span>
                 </Label>
                 <select
                   value={sede_edit}
                   onChange={(e) => set_sede_edit(e.target.value)}
                   className="w-full h-9 px-3 rounded-lg border border-[#E5E7EB] bg-white text-xs font-medium text-[#1E293B] focus:border-[#00ABBD] focus:outline-hidden"
                 >
-                  {AGENCIAS_DIACONIA_IFD.map((agencia) => (
+                  {(lugares_practica_lista.length > 0
+                    ? lugares_practica_lista.map((l) => l.nombre)
+                    : ["Oficina Central Diaconía IFD - El Alto"]
+                  ).map((agencia) => (
                     <option key={agencia} value={agencia}>
                       {agencia}
                     </option>
@@ -2821,12 +2848,12 @@ export function PanelControlVista() {
       <DialogoNuevoCasoPastoral
         abierto={dialogo_nuevo_caso_abierto}
         enCerrar={() => set_dialogo_nuevo_caso_abierto(false)}
-        becariosDisponibles={registros_asistencia_para_rol.map((r) => ({
-          id: r.id,
-          nombre: r.nombre,
-          carrera: r.carrera,
-          universidad: "Universidad de La Paz",
-          avatar: r.avatar,
+        becariosDisponibles={becarios_reales.map((b) => ({
+          id: Number(b.id),
+          nombre: b.nombre || b.usuario?.nombre || `Becario #${b.id}`,
+          carrera: b.carrera || "No registrada",
+          universidad: b.universidad || "No registrada",
+          avatar: construirInicialesAvatar(b.nombre || b.usuario?.nombre),
         }))}
         enCasoCreado={manejarCasoCreado}
       />

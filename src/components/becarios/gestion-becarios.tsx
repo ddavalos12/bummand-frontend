@@ -152,35 +152,35 @@ export interface SupervisorInstitucional {
 }
 
 export const SUPERVISORES_CATALOGO_BASE: SupervisorInstitucional[] = [
-  { id: 45, nombre: "Adams Callejas", correo: "adams.callejas@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
-  { id: 36, nombre: "Alberto Iber Leon Coronado", correo: "alberto.leon@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
-  { id: 55, nombre: "Alejandra Lizeth Romay Valdez", correo: "alejandra.romay@diaconia.bo", sedes: ["Centro Infantil Sagrada Familia"] },
-  { id: 47, nombre: "Anai Linda Paye Fabian", correo: "anai.paye@diaconia.bo", sedes: ["Agencia Villa Dolores"] },
-  { id: 2, nombre: "Angel Javier Ali Paz", correo: "angel.ali@bumand.bo", sedes: ["Oficina Central Bloque A", "Agencia Villa Dolores"] },
-  { id: 42, nombre: "Brian Marcelo Siles Loras", correo: "brian.siles@diaconia.bo", sedes: ["Consultorio Médico San Lucas"] },
-  { id: 44, nombre: "Carlos Alanoca Pari", correo: "carlos.alanoca@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
-  { id: 39, nombre: "Cheryl Lissett Zegarra Corminales", correo: "cheryl.zegarra@diaconia.bo", sedes: ["Hogar de Niños Amor y Esperanza"] },
-  { id: 28, nombre: "Claudia Consuelo Cabrera Delgado", correo: "claudia.cabrera@diaconia.bo", sedes: ["Centro Infantil Sagrada Familia", "Oficina Central Bloque A"] },
-  { id: 38, nombre: "Eilen Astorga", correo: "eilen.astorga@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
-  { id: 30, nombre: "Elsa Quinteros Aquino", correo: "elsa.quinteros@diaconia.bo", sedes: ["Consultorio Médico San Lucas"] },
-  { id: 50, nombre: "Fernando Castillo Vedia", correo: "fernando.castillo@diaconia.bo", sedes: ["Agencia Villa Dolores"] },
-  { id: 34, nombre: "Franz Raul Salazar Vasquez", correo: "franz.salazar@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
-  { id: 31, nombre: "Hugo Seifert", correo: "hugo.seifert@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
-  { id: 49, nombre: "Jaime Rodrigo Poma Cruz", correo: "jaime.poma@diaconia.bo", sedes: ["Centro Infantil Sagrada Familia"] },
-  { id: 52, nombre: "Jenny Ramos Ticona", correo: "jenny.ramos@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
-  { id: 40, nombre: "Juan Perez", correo: "juan.perez@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
-  { id: 51, nombre: "María Angélica Crespo Patzi", correo: "maria.crespo@diaconia.bo", sedes: ["Hogar de Niños Amor y Esperanza"] },
-  { id: 48, nombre: "Maritza Aguilar Rodrigo", correo: "maritza.aguilar@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
-  { id: 32, nombre: "Max Arthur Reynoso Espinoza", correo: "max.reynoso@diaconia.bo", sedes: ["Agencia Villa Dolores"] },
-  { id: 33, nombre: "Mildrette Rojas Soliz", correo: "mildrette.rojas@diaconia.bo", sedes: ["Consultorio Médico San Lucas"] },
-  { id: 54, nombre: "Pamela Sanchez Cachi", correo: "pamela.sanchez@diaconia.bo", sedes: ["Centro Infantil Sagrada Familia"] },
-  { id: 53, nombre: "Raisa Noelia Arce Humerez", correo: "raisa.arce@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
-  { id: 37, nombre: "Ramiro Riera", correo: "ramiro.riera@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
-  { id: 35, nombre: "Reynaldo Alavi Paz", correo: "reynaldo.alavi@diaconia.bo", sedes: ["Agencia Villa Dolores"] },
-  { id: 41, nombre: "Ricardo Martin Menacho Salas", correo: "ricardo.menacho@diaconia.bo", sedes: ["Hogar de Niños Amor y Esperanza"] },
-  { id: 29, nombre: "Rodrigo Solorzano San Martin", correo: "rodrigo.solorzano@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
-  { id: 43, nombre: "Samuel Martín Durán Baspineiro", correo: "samuel.duran@diaconia.bo", sedes: ["Centro Infantil Sagrada Familia"] },
-  { id: 46, nombre: "Walter Laime Poma", correo: "walter.laime@diaconia.bo", sedes: ["Oficina Central Bloque A"] },
+  { id: 45, nombre: "Adams Callejas", correo: "adams.callejas@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 36, nombre: "Alberto Iber Leon Coronado", correo: "alberto.leon@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 55, nombre: "Alejandra Lizeth Romay Valdez", correo: "alejandra.romay@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 47, nombre: "Anai Linda Paye Fabian", correo: "anai.paye@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 2, nombre: "Angel Javier Ali Paz", correo: "angel.ali@bumand.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 42, nombre: "Brian Marcelo Siles Loras", correo: "brian.siles@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 44, nombre: "Carlos Alanoca Pari", correo: "carlos.alanoca@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 39, nombre: "Cheryl Lissett Zegarra Corminales", correo: "cheryl.zegarra@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 28, nombre: "Claudia Consuelo Cabrera Delgado", correo: "claudia.cabrera@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 38, nombre: "Eilen Astorga", correo: "eilen.astorga@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 30, nombre: "Elsa Quinteros Aquino", correo: "elsa.quinteros@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 50, nombre: "Fernando Castillo Vedia", correo: "fernando.castillo@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 34, nombre: "Franz Raul Salazar Vasquez", correo: "franz.salazar@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 31, nombre: "Hugo Seifert", correo: "hugo.seifert@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 49, nombre: "Jaime Rodrigo Poma Cruz", correo: "jaime.poma@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 52, nombre: "Jenny Ramos Ticona", correo: "jenny.ramos@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 40, nombre: "Juan Perez", correo: "juan.perez@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 51, nombre: "María Angélica Crespo Patzi", correo: "maria.crespo@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 48, nombre: "Maritza Aguilar Rodrigo", correo: "maritza.aguilar@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 32, nombre: "Max Arthur Reynoso Espinoza", correo: "max.reynoso@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 33, nombre: "Mildrette Rojas Soliz", correo: "mildrette.rojas@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 54, nombre: "Pamela Sanchez Cachi", correo: "pamela.sanchez@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 53, nombre: "Raisa Noelia Arce Humerez", correo: "raisa.arce@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 37, nombre: "Ramiro Riera", correo: "ramiro.riera@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 35, nombre: "Reynaldo Alavi Paz", correo: "reynaldo.alavi@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 41, nombre: "Ricardo Martin Menacho Salas", correo: "ricardo.menacho@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 29, nombre: "Rodrigo Solorzano San Martin", correo: "rodrigo.solorzano@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 43, nombre: "Samuel Martín Durán Baspineiro", correo: "samuel.duran@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
+  { id: 46, nombre: "Walter Laime Poma", correo: "walter.laime@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
 ];
 
 export const SUPERVISORES_INSTITUCIONALES = SUPERVISORES_CATALOGO_BASE;
@@ -272,868 +272,115 @@ export function esBecarioDeSupervisor(becario: BecarioVista, usuarioActual: any)
   return false;
 }
 
-const BECARIOS_INICIALES: BecarioVista[] = [
-  {
-    id: 51,
-    nombre: "Adai Belen Huayta Cardozo",
-    ci: "13696496",
-    expedicion: "LP",
-    estado_civil: "Soltero",
-    sexo: "F",
-    ceti: 3,
-    celular: "79541458",
-    correo: "adaibelen017@gmail.com",
-    fecha_nacimiento: "01/07/1999",
-    edad: 27,
-    direccion: "Pasaje 21 de noviembre",
-    ciudad: "El Alto",
-    universidad: "Universidad Mayor de San Andrés",
-    carrera: "Estadística",
-    iglesia: "Sinai Los Andes",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 28,
-    tutor_nombre: "Claudia Consuelo Cabrera Delgado",
-    tutor_correo: "claudia.cabrera@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 37.0,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 37.0, meta_horas: 36.0, porcentaje: 103, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 37.5, meta_horas: 36.0, porcentaje: 104, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 52,
-    nombre: "Daniel Davalos Quiñonez",
-    ci: "9107373",
-    expedicion: "LP",
-    estado_civil: "Soltero",
-    sexo: "M",
-    ceti: 2,
-    celular: "78804045",
-    correo: "daniel234.davalos@gmail.com",
-    fecha_nacimiento: "11/12/1995",
-    edad: 31,
-    direccion: "Calle Luis tapia #27 Z.",
-    ciudad: "La Paz",
-    universidad: "Universidad Mayor de San Andrés",
-    carrera: "Informática",
-    iglesia: "IGLESIA METODISTA MONTE DE HOREB",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 45,
-    tutor_nombre: "Adams Callejas",
-    tutor_correo: "adams.callejas@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 36.5,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 36.5, meta_horas: 36.0, porcentaje: 101, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 39.0, meta_horas: 36.0, porcentaje: 108, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 53,
-    nombre: "Edgar Elías Alarcon Huanca",
-    ci: "9160054",
-    expedicion: "LP",
-    estado_civil: "Soltero",
-    sexo: "M",
-    ceti: 2,
-    celular: "60662872",
-    correo: "edgaralarcon112@gmail.com",
-    fecha_nacimiento: "09/07/2000",
-    edad: 26,
-    direccion: "Zona las delicias, calle",
-    ciudad: "La Paz",
-    universidad: "Universidad de Aquino Bolivia",
-    carrera: "Medicina",
-    iglesia: "Eli - Ezer",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 45,
-    tutor_nombre: "Adams Callejas",
-    tutor_correo: "adams.callejas@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 37.0,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 37.0, meta_horas: 36.0, porcentaje: 103, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 40.5, meta_horas: 36.0, porcentaje: 113, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 38.0, meta_horas: 36.0, porcentaje: 106, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 54,
-    nombre: "Nilda Amalia Churata Paye",
-    ci: "10028341",
-    expedicion: "LP",
-    estado_civil: "Soltero",
-    sexo: "F",
-    ceti: 2,
-    celular: "63140016",
-    correo: "nildachurata99@gmail.com",
-    fecha_nacimiento: "16/04/2002",
-    edad: 24,
-    direccion: "Zona Puerto Camacho",
-    ciudad: "El Alto",
-    universidad: "Universidad Pública de El Alto",
-    carrera: "Educación Parvularia",
-    iglesia: "Iglesia Evangélica Amigos Central de Bolivia Bautista Saavedra Más que Vencedores",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 36,
-    tutor_nombre: "Alberto Iber Leon Coronado",
-    tutor_correo: "alberto.leon@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 38.5,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 38.5, meta_horas: 36.0, porcentaje: 107, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 55,
-    nombre: "Alejandro Roberth Paredes Tarquino",
-    ci: "10064956",
-    expedicion: "LP",
-    estado_civil: "Soltero",
-    sexo: "M",
-    ceti: 1,
-    celular: "78816188",
-    correo: "roberthp092@gmail.com",
-    fecha_nacimiento: "24/10/2004",
-    edad: 22,
-    direccion: "Zona Mcal. Santa Cruz",
-    ciudad: "Viacha",
-    universidad: "Universidad Pública de El Alto",
-    carrera: "Comunicación Social",
-    iglesia: "Centró Evangelistico Caluyo",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 2,
-    tutor_nombre: "Angel Javier Ali Paz",
-    tutor_correo: "angel.ali@bumand.bo",
-    estado: "activo",
-    horas_mes_actual: 38.0,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 38.0, meta_horas: 36.0, porcentaje: 106, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 37.5, meta_horas: 36.0, porcentaje: 104, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 56,
-    nombre: "Aydee Ruth Ali Condori",
-    ci: "9952878",
-    expedicion: "LP",
-    estado_civil: "Soltero",
-    sexo: "F",
-    ceti: 1,
-    celular: "63101324",
-    correo: "alicondoriaydeeruth@gmail.com",
-    fecha_nacimiento: "03/08/2004",
-    edad: 22,
-    direccion: "Zona Mcal. Sucre Sec",
-    ciudad: "El Alto",
-    universidad: "Universidad Pública de El Alto",
-    carrera: "Contaduría Pública",
-    iglesia: "Iglesia del Nazareno El Progreso",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 46,
-    tutor_nombre: "Walter Laime Poma",
-    tutor_correo: "walter.laime@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 36.0,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 39.0, meta_horas: 36.0, porcentaje: 108, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 38.0, meta_horas: 36.0, porcentaje: 106, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 57,
-    nombre: "Carlos Oscar Luna Lizarraga",
-    ci: "9943280",
-    expedicion: "El Alto",
-    estado_civil: "Soltero",
-    sexo: "M",
-    ceti: 1,
-    celular: "69902655",
-    correo: "shionaries477@gmail.com",
-    fecha_nacimiento: "04/04/2002",
-    edad: 24,
-    direccion: "Zona El Kenko, Av. Ka",
-    ciudad: "El Alto",
-    universidad: "Universidad Mayor de San Andrés",
-    carrera: "Economía",
-    iglesia: "Nazareno 6 de junio",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 36,
-    tutor_nombre: "Alberto Iber Leon Coronado",
-    tutor_correo: "alberto.leon@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 37.5,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 37.5, meta_horas: 36.0, porcentaje: 104, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 40.5, meta_horas: 36.0, porcentaje: 113, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 58,
-    nombre: "Isaías Daniel Herrera Mamani",
-    ci: "10920862",
-    expedicion: "El Alto",
-    estado_civil: "Soltero",
-    sexo: "M",
-    ceti: 1,
-    celular: "62484594",
-    correo: "herreraisaias667@gmail.com",
-    fecha_nacimiento: "31/05/2004",
-    edad: 22,
-    direccion: "Zona Senkata Av. Ojo",
-    ciudad: "El Alto",
-    universidad: "Universidad Pública de El Alto",
-    carrera: "Arquitectura",
-    iglesia: "Bautista para la familia",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 55,
-    tutor_nombre: "Alejandra Lizeth Romay Valdez",
-    tutor_correo: "alejandra.romay@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 37.0,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 37.0, meta_horas: 36.0, porcentaje: 103, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 59,
-    nombre: "José Marcos Suñagua Quispe",
-    ci: "14378720",
-    expedicion: "Viacha",
-    estado_civil: "Soltero",
-    sexo: "M",
-    ceti: 1,
-    celular: "62270620",
-    correo: "marcossunagua0@gmail.com",
-    fecha_nacimiento: "07/02/2003",
-    edad: 23,
-    direccion: "Zona Tilata - Viacha C",
-    ciudad: "Viacha",
-    universidad: "Universidad Mayor de San Andrés",
-    carrera: "Informática",
-    iglesia: "6 de Junio",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 55,
-    tutor_nombre: "Alejandra Lizeth Romay Valdez",
-    tutor_correo: "alejandra.romay@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 37.5,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 37.5, meta_horas: 36.0, porcentaje: 104, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 37.5, meta_horas: 36.0, porcentaje: 104, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 38.0, meta_horas: 36.0, porcentaje: 106, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 60,
-    nombre: "Mariela Dayana Jimenez Chambi",
-    ci: "12959656",
-    expedicion: "La Paz",
-    estado_civil: "Soltero",
-    sexo: "F",
-    ceti: 1,
-    celular: "70590493",
-    correo: "jimenezcmarielaa@gmail.com",
-    fecha_nacimiento: "19/07/2001",
-    edad: 25,
-    direccion: "Zona Obrajes Bella Vi",
-    ciudad: "La Paz",
-    universidad: "Universidad Mayor de San Andrés",
-    carrera: "Contaduría Pública",
-    iglesia: "Ministerio misión Boliviana",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 28,
-    tutor_nombre: "Claudia Consuelo Cabrera Delgado",
-    tutor_correo: "claudia.cabrera@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 39.0,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 39.0, meta_horas: 36.0, porcentaje: 108, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 39.0, meta_horas: 36.0, porcentaje: 108, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 61,
-    nombre: "Mayherli Alejandra Loza Villalobos",
-    ci: "9925727",
-    expedicion: "El Alto",
-    estado_civil: "Soltero",
-    sexo: "F",
-    ceti: 1,
-    celular: "60107414",
-    correo: "villalobosbetty96@gmail.com",
-    fecha_nacimiento: "07/06/2003",
-    edad: 23,
-    direccion: "Zona Villa Adela Plan",
-    ciudad: "El Alto",
-    universidad: "Universidad Mayor de San Andrés",
-    carrera: "Contaduría Pública",
-    iglesia: "CANAAN",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 47,
-    tutor_nombre: "Anai Linda Paye Fabian",
-    tutor_correo: "anai.paye@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 36.0,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 40.5, meta_horas: 36.0, porcentaje: 113, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 62,
-    nombre: "Noemi Callisaya Alvarez",
-    ci: "7093658",
-    expedicion: "El Alto",
-    estado_civil: "Soltero",
-    sexo: "F",
-    ceti: 1,
-    celular: "60140086",
-    correo: "k6924383@gmail.com",
-    fecha_nacimiento: "24/04/1999",
-    edad: 27,
-    direccion: "Zona 31 de Enero Av.",
-    ciudad: "El Alto",
-    universidad: "Universidad Pública de El Alto",
-    carrera: "Psicomotricidad y Deportes",
-    iglesia: "El Progreso",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 47,
-    tutor_nombre: "Anai Linda Paye Fabian",
-    tutor_correo: "anai.paye@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 36.5,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 36.5, meta_horas: 36.0, porcentaje: 101, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 38.0, meta_horas: 36.0, porcentaje: 106, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 63,
-    nombre: "Ronald Mauricio Quiquijana Mayta",
-    ci: "6172054",
-    expedicion: "El Alto",
-    estado_civil: "Soltero",
-    sexo: "M",
-    ceti: 1,
-    celular: "65604882",
-    correo: "quiquijana333@gmail.com",
-    fecha_nacimiento: "30/06/2001",
-    edad: 25,
-    direccion: "Zona Villa Dolores \"F\"",
-    ciudad: "El Alto",
-    universidad: "Escuela Militar de Ingeniería",
-    carrera: "Ingeniería en Telecomunicaciones",
-    iglesia: "Centro Evangelistico Caluyo",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 2,
-    tutor_nombre: "Angel Javier Ali Paz",
-    tutor_correo: "angel.ali@bumand.bo",
-    estado: "activo",
-    horas_mes_actual: 38.0,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 38.0, meta_horas: 36.0, porcentaje: 106, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 37.5, meta_horas: 36.0, porcentaje: 104, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 64,
-    nombre: "Ruddy Flores Tapia",
-    ci: "9974211",
-    expedicion: "El Alto",
-    estado_civil: "Soltero",
-    sexo: "M",
-    ceti: 1,
-    celular: "78777631",
-    correo: "ruddyalan123@gmail.com",
-    fecha_nacimiento: "03/01/1997",
-    edad: 29,
-    direccion: "Zona 16 de Febrero C",
-    ciudad: "El Alto",
-    universidad: "Universidad Mayor de San Andrés",
-    carrera: "Informática",
-    iglesia: "Iglesia del Nazareno Río Seco",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 2,
-    tutor_nombre: "Angel Javier Ali Paz",
-    tutor_correo: "angel.ali@bumand.bo",
-    estado: "activo",
-    horas_mes_actual: 37.5,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 37.5, meta_horas: 36.0, porcentaje: 104, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 39.0, meta_horas: 36.0, porcentaje: 108, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 65,
-    nombre: "Gonzalo Valencia Laura",
-    ci: "8416501",
-    expedicion: "Provincial",
-    estado_civil: "Soltero",
-    sexo: "M",
-    ceti: 2,
-    celular: "75161427",
-    correo: "gonzalovalencialau@gmail.com",
-    fecha_nacimiento: "22/04/2002",
-    edad: 24,
-    direccion: "-16.470978,-68.5061",
-    ciudad: "Provincial",
-    universidad: "Universidad Pública de El Alto",
-    carrera: "Contaduría Pública",
-    iglesia: "Iglesia Central El Alto",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 42,
-    tutor_nombre: "Brian Marcelo Siles Loras",
-    tutor_correo: "brian.siles@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 38.0,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 38.0, meta_horas: 36.0, porcentaje: 106, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 40.5, meta_horas: 36.0, porcentaje: 113, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 38.0, meta_horas: 36.0, porcentaje: 106, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 66,
-    nombre: "Gustavo Ariel Condori Montaño",
-    ci: "13088041",
-    expedicion: "La Paz",
-    estado_civil: "Soltero",
-    sexo: "M",
-    ceti: 2,
-    celular: "67339896",
-    correo: "tavitolpb@gmail.com",
-    fecha_nacimiento: "29/07/2003",
-    edad: 23,
-    direccion: "Al inicio de la Av. Mar",
-    ciudad: "La Paz",
-    universidad: "Universidad Salesiana de Bolivia",
-    carrera: "Contaduría Pública",
-    iglesia: "Iglesia Central El Alto",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 42,
-    tutor_nombre: "Brian Marcelo Siles Loras",
-    tutor_correo: "brian.siles@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 37.0,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 37.0, meta_horas: 36.0, porcentaje: 103, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 67,
-    nombre: "Lisbeth Pacasi Machaca",
-    ci: "13603536",
-    expedicion: "La Paz",
-    estado_civil: "Soltera",
-    sexo: "F",
-    ceti: 2,
-    celular: "78022401",
-    correo: "lizbethpacasiesperanza@gmail.com",
-    fecha_nacimiento: "27/07/2006",
-    edad: 20,
-    direccion: "Jupapina, calle 11, N",
-    ciudad: "La Paz",
-    universidad: "Universidad de Aquino Bolivia",
-    carrera: "Bioquímica y Farmacia",
-    iglesia: "Iglesia Central El Alto",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 28,
-    tutor_nombre: "Claudia Consuelo Cabrera Delgado",
-    tutor_correo: "claudia.cabrera@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 36.5,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 36.5, meta_horas: 36.0, porcentaje: 101, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 37.5, meta_horas: 36.0, porcentaje: 104, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 68,
-    nombre: "Selena Fernanda Pillco Mamani",
-    ci: "13693151",
-    expedicion: "El Alto",
-    estado_civil: "Soltera",
-    sexo: "F",
-    ceti: 2,
-    celular: "71957515",
-    correo: "selenafernandapillcomamani@gmail.com",
-    fecha_nacimiento: "25/06/2007",
-    edad: 19,
-    direccion: "EA Junthuma Fabril C",
-    ciudad: "El Alto",
-    universidad: "Universidad Mayor de San Andrés",
-    carrera: "Economía",
-    iglesia: "Iglesia Central El Alto",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 30,
-    tutor_nombre: "Elsa Quinteros Aquino",
-    tutor_correo: "elsa.quinteros@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 37.0,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 37.0, meta_horas: 36.0, porcentaje: 103, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 39.0, meta_horas: 36.0, porcentaje: 108, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 38.0, meta_horas: 36.0, porcentaje: 106, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 69,
-    nombre: "Milenka Quispe Coarite",
-    ci: "14155448",
-    expedicion: "El Alto",
-    estado_civil: "Soltera",
-    sexo: "F",
-    ceti: 2,
-    celular: "63155199",
-    correo: "milenkaquispecoarite@gmail.com",
-    fecha_nacimiento: "21/06/2006",
-    edad: 20,
-    direccion: "z/ Ballivian c/Jose Ch",
-    ciudad: "El Alto",
-    universidad: "Universidad Tecnológica Boliviana",
-    carrera: "Administración de Empresas",
-    iglesia: "Iglesia Central El Alto",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 30,
-    tutor_nombre: "Elsa Quinteros Aquino",
-    tutor_correo: "elsa.quinteros@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 38.5,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 38.5, meta_horas: 36.0, porcentaje: 107, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 40.5, meta_horas: 36.0, porcentaje: 113, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 70,
-    nombre: "Joselin Wara Huanca Paucara",
-    ci: "12604724",
-    expedicion: "El Alto",
-    estado_civil: "Soltera",
-    sexo: "F",
-    ceti: 2,
-    celular: "75263547",
-    correo: "joselinhuancapaucara@gmail.com",
-    fecha_nacimiento: "02/03/2000",
-    edad: 26,
-    direccion: "Zona Alto Villa Victori",
-    ciudad: "El Alto",
-    universidad: "Universidad Pública de El Alto",
-    carrera: "Contaduría Pública",
-    iglesia: "Iglesia Central El Alto",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 32,
-    tutor_nombre: "Max Arthur Reynoso Espinoza",
-    tutor_correo: "max.reynoso@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 38.0,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 38.0, meta_horas: 36.0, porcentaje: 106, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 71,
-    nombre: "Johan Ludving Misme Flores",
-    ci: "9208456",
-    expedicion: "El Alto",
-    estado_civil: "Soltero",
-    sexo: "M",
-    ceti: 2,
-    celular: "69865195",
-    correo: "johan69865195@gmail.com",
-    fecha_nacimiento: "27/04/2004",
-    edad: 22,
-    direccion: "Z.EL MIRADOR, AV.",
-    ciudad: "El Alto",
-    universidad: "Universidad Mayor de San Andrés",
-    carrera: "Informática",
-    iglesia: "Iglesia Central El Alto",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 32,
-    tutor_nombre: "Max Arthur Reynoso Espinoza",
-    tutor_correo: "max.reynoso@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 36.0,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 37.5, meta_horas: 36.0, porcentaje: 104, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 38.0, meta_horas: 36.0, porcentaje: 106, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 72,
-    nombre: "Matias Jose Uri Flores",
-    ci: "13627440",
-    expedicion: "El Alto",
-    estado_civil: "Soltero",
-    sexo: "M",
-    ceti: 2,
-    celular: "72018255",
-    correo: "matiasjoseuriflores@gmail.com",
-    fecha_nacimiento: "24/04/2006",
-    edad: 20,
-    direccion: "Zona 23 de Marzo Ca",
-    ciudad: "El Alto",
-    universidad: "Universidad Mayor de San Andrés",
-    carrera: "Lingüística e Idiomas",
-    iglesia: "Iglesia Central El Alto",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 29,
-    tutor_nombre: "Rodrigo Solorzano San Martin",
-    tutor_correo: "rodrigo.solorzano@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 37.5,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 37.5, meta_horas: 36.0, porcentaje: 104, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 39.0, meta_horas: 36.0, porcentaje: 108, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 73,
-    nombre: "Mateo Miguel Cussi Flores",
-    ci: "8411610",
-    expedicion: "La Paz",
-    estado_civil: "Soltero",
-    sexo: "M",
-    ceti: 2,
-    celular: "65120464",
-    correo: "mateocussi11@gmail.com",
-    fecha_nacimiento: "11/06/2002",
-    edad: 24,
-    direccion: "Z/ BARRIO MUNICIP",
-    ciudad: "La Paz",
-    universidad: "Universidad Mayor de San Andrés",
-    carrera: "Informática",
-    iglesia: "Iglesia Central El Alto",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 29,
-    tutor_nombre: "Rodrigo Solorzano San Martin",
-    tutor_correo: "rodrigo.solorzano@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 37.0,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 37.0, meta_horas: 36.0, porcentaje: 103, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 40.5, meta_horas: 36.0, porcentaje: 113, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 84,
-    nombre: "Fernando Rene Yujra Quispe",
-    ci: "12423846",
-    expedicion: "LP",
-    estado_civil: "Soltero",
-    sexo: "M",
-    ceti: 2,
-    celular: "70000000",
-    correo: "fernando.yujra@diaconia.bo",
-    fecha_nacimiento: "01/01/2000",
-    edad: 22,
-    direccion: "Av. Principal",
-    ciudad: "La Paz",
-    universidad: "Universidad Mayor de San Andrés",
-    carrera: "Ingeniería Civil",
-    iglesia: "Iglesia Central El Alto",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 43,
-    tutor_nombre: "Samuel Martín Durán Baspineiro",
-    tutor_correo: "samuel.duran@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 37.5,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 37.5, meta_horas: 36.0, porcentaje: 104, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 38.0, meta_horas: 36.0, porcentaje: 106, estado: "cumplido" },
-    ],
-  },
-  {
-    id: 85,
-    nombre: "Luis Santiago Enrriquez Conde",
-    ci: "9927657",
-    expedicion: "LP",
-    estado_civil: "Soltero",
-    sexo: "M",
-    ceti: 2,
-    celular: "70000000",
-    correo: "luis.enrriquez@diaconia.bo",
-    fecha_nacimiento: "01/01/2000",
-    edad: 22,
-    direccion: "Av. Principal",
-    ciudad: "La Paz",
-    universidad: "Universidad Mayor de San Andrés",
-    carrera: "Ciencias de la Comunicación Social",
-    iglesia: "Iglesia Central El Alto",
-    lugar_practica: "Oficina Central Diaconía IFD - El Alto",
-    supervisor_id: 43,
-    tutor_nombre: "Samuel Martín Durán Baspineiro",
-    tutor_correo: "samuel.duran@diaconia.bo",
-    estado: "activo",
-    horas_mes_actual: 39.0,
-    horas_meta_mes: 36.0,
-    historial_horas_mes: [
-      { mes: "Octubre 2026", horas_realizadas: 39.0, meta_horas: 36.0, porcentaje: 108, estado: "cumplido" },
-      { mes: "Septiembre 2026", horas_realizadas: 37.5, meta_horas: 36.0, porcentaje: 104, estado: "cumplido" },
-      { mes: "Agosto 2026", horas_realizadas: 40.0, meta_horas: 36.0, porcentaje: 111, estado: "cumplido" },
-    ],
-  }
-];
+const BECARIOS_INICIALES: BecarioVista[] = [];
 
 function normalizarBecario(remoto: any): BecarioVista {
   if (!remoto || typeof remoto !== "object") {
-    return BECARIOS_INICIALES[0];
+    return {
+      id: 0,
+      nombre: "Becario Institucional",
+      ci: "0000000",
+      expedicion: "LP",
+      estado_civil: "Soltero(a)",
+      sexo: "M",
+      carrera: "No especificada",
+      universidad: "No especificada",
+      ceti: 1,
+      celular: "00000000",
+      correo: "",
+      fecha_nacimiento: "01/01/2000",
+      edad: 20,
+      direccion: "",
+      ciudad: "El Alto",
+      iglesia: "",
+      lugar_practica: "Oficina Central Diaconía IFD - El Alto",
+      supervisor_id: null,
+      tutor_nombre: "",
+      tutor_correo: "",
+      estado: "activo",
+      horas_mes_actual: 0,
+      horas_meta_mes: 36.0,
+      historial_horas_mes: [],
+    };
   }
 
   const ci_str = remoto.ci ? String(remoto.ci).trim() : "";
-  const match_inicial = BECARIOS_INICIALES.find(
-    (b) =>
-      (ci_str && b.ci === ci_str) ||
-      (remoto.usuario?.nombre && (b.nombre || "").toLowerCase() === String(remoto.usuario.nombre).toLowerCase()) ||
-      (remoto.nombre && (b.nombre || "").toLowerCase() === String(remoto.nombre).toLowerCase())
-  );
 
   const nombre =
     (typeof remoto.nombre === "string" && remoto.nombre.trim() !== "" ? remoto.nombre : null) ||
     (remoto.usuario && typeof remoto.usuario.nombre === "string" ? remoto.usuario.nombre : null) ||
-    match_inicial?.nombre ||
     "Becario Institucional";
 
   const correo =
     (typeof remoto.correo === "string" && remoto.correo.trim() !== "" ? remoto.correo : null) ||
     (remoto.usuario && typeof remoto.usuario.correo === "string" ? remoto.usuario.correo : null) ||
-    match_inicial?.correo ||
     `${(nombre || "becario").toLowerCase().replace(/\s+/g, "")}@diaconia.bo`;
 
   const iglesia =
     typeof remoto.iglesia === "string"
       ? remoto.iglesia
-      : remoto.iglesia?.nombre || match_inicial?.iglesia || "Iglesia Institucional";
+      : remoto.iglesia?.nombre || "Iglesia Institucional";
 
   const lugar_practica =
     typeof remoto.lugar_practica === "string"
       ? remoto.lugar_practica
-      : remoto.lugar_practica?.nombre || match_inicial?.lugar_practica || "Oficina Central Bloque A";
+      : remoto.lugar_practica?.nombre || "Oficina Central Diaconía IFD - El Alto";
 
   const tutor_nombre =
     remoto.tutor_nombre ||
     remoto.supervisor?.nombre ||
-    match_inicial?.tutor_nombre ||
     SUPERVISORES_INSTITUCIONALES[0].nombre;
 
   const tutor_correo =
     remoto.tutor_correo ||
     remoto.supervisor?.correo ||
-    match_inicial?.tutor_correo ||
     SUPERVISORES_INSTITUCIONALES[0].correo;
 
   const supervisor_id =
     remoto.supervisor_id ??
-    (remoto.supervisor ? remoto.supervisor.id : match_inicial?.supervisor_id ?? null);
+    (remoto.supervisor ? remoto.supervisor.id : null);
 
   const horas_mes_actual =
     typeof remoto.horas_mes_actual === "number"
       ? remoto.horas_mes_actual
-      : match_inicial?.horas_mes_actual ?? 36.0;
+      : 0;
 
   const horas_meta_mes =
     typeof remoto.horas_meta_mes === "number"
       ? remoto.horas_meta_mes
-      : match_inicial?.horas_meta_mes ?? 36.0;
+      : 36.0;
 
   const historial_horas_mes: HorasMesHistorico[] =
     Array.isArray(remoto.historial_horas_mes) && remoto.historial_horas_mes.length > 0
       ? remoto.historial_horas_mes
-      : match_inicial?.historial_horas_mes || [
-          {
-            mes: "Octubre 2026",
-            horas_realizadas: horas_mes_actual,
-            meta_horas: horas_meta_mes,
-            porcentaje: Math.round((horas_mes_actual / (horas_meta_mes || 36)) * 100),
-            estado:
-              horas_mes_actual >= horas_meta_mes
-                ? "cumplido"
-                : horas_mes_actual >= 27
-                ? "en_progreso"
-                : "en_riesgo",
-          },
-          { mes: "Septiembre 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
-          { mes: "Agosto 2026", horas_realizadas: 36.0, meta_horas: 36.0, porcentaje: 100, estado: "cumplido" },
-        ];
+      : [];
 
   const estado: "activo" | "pendiente_validacion" =
     remoto.estado === "activo" || remoto.estado === "pendiente_validacion"
       ? remoto.estado
       : remoto.datos_validados === false || remoto.confirmacion_datos_pendiente
       ? "pendiente_validacion"
-      : match_inicial?.estado || "activo";
+      : "activo";
+
+  const exp_raw = (remoto.expedicion || remoto.lugar_expedicion || "LP").trim().toUpperCase();
 
   return {
-    id: remoto.id || match_inicial?.id || 1,
+    id: remoto.id || 1,
     nombre,
-    ci: ci_str || match_inicial?.ci || "0000000",
-    expedicion: TERMINACIONES_CI_BOLIVIA.some(
-      (t) => t.codigo === (remoto.expedicion || remoto.lugar_expedicion || match_inicial?.expedicion || "LP").trim().toUpperCase()
-    )
-      ? (remoto.expedicion || remoto.lugar_expedicion || match_inicial?.expedicion || "LP").trim().toUpperCase()
-      : "LP",
+    ci: ci_str || "0000000",
+    expedicion: TERMINACIONES_CI_BOLIVIA.some((t) => t.codigo === exp_raw) ? exp_raw : "LP",
     complemento: remoto.complemento || (ci_str.includes("-") ? ci_str.split("-")[1]?.trim().toUpperCase() : undefined),
-    estado_civil: remoto.estado_civil || match_inicial?.estado_civil || "Soltero(a)",
-    sexo: remoto.sexo === "M" || remoto.sexo === "F" ? remoto.sexo : match_inicial?.sexo || "M",
-    carrera: remoto.carrera || match_inicial?.carrera || "Carrera Universitaria",
-    universidad: remoto.universidad || match_inicial?.universidad || "Universidad Mayor de San Andrés",
-    ceti: typeof remoto.ceti === "number" ? remoto.ceti : match_inicial?.ceti || 1,
-    celular: remoto.celular || match_inicial?.celular || "70000000",
+    estado_civil: remoto.estado_civil || "Soltero(a)",
+    sexo: remoto.sexo === "M" || remoto.sexo === "F" ? remoto.sexo : "M",
+    carrera: remoto.carrera || "Carrera Universitaria",
+    universidad: remoto.universidad || "Universidad Mayor de San Andrés",
+    ceti: typeof remoto.ceti === "number" ? remoto.ceti : 1,
+    celular: remoto.celular || "70000000",
     correo,
-    fecha_nacimiento: remoto.fecha_nacimiento || match_inicial?.fecha_nacimiento || "01/01/2000",
-    edad: typeof remoto.edad === "number" ? remoto.edad : match_inicial?.edad || 22,
-    direccion: remoto.direccion || match_inicial?.direccion || "Zona Central",
-    ciudad: remoto.ciudad || match_inicial?.ciudad || "La Paz",
+    fecha_nacimiento: remoto.fecha_nacimiento || "01/01/2000",
+    edad: typeof remoto.edad === "number" ? remoto.edad : 22,
+    direccion: remoto.direccion || "Zona Central",
+    ciudad: remoto.ciudad || "El Alto",
     iglesia,
     lugar_practica,
     supervisor_id,
@@ -1147,13 +394,13 @@ function normalizarBecario(remoto: any): BecarioVista {
       ? Boolean(remoto.usuario || remoto.usuario_id)
       : true,
     usuario_id: remoto.usuario_id ?? (remoto.usuario ? remoto.usuario.id : null),
-    url_carnet: remoto.url_carnet || match_inicial?.url_carnet,
-    nombre_archivo_carnet: remoto.nombre_archivo_carnet || match_inicial?.nombre_archivo_carnet || `CI_${ci_str || "doc"}.pdf`,
-    url_kardex: remoto.url_kardex || match_inicial?.url_kardex,
-    nombre_archivo_kardex: remoto.nombre_archivo_kardex || match_inicial?.nombre_archivo_kardex || `Kardex_2026_${remoto.universidad || match_inicial?.universidad || "UMSA"}.pdf`,
-    fecha_subida_documentos: remoto.fecha_subida_documentos || match_inicial?.fecha_subida_documentos || "2026-02-15",
-    modalidad_pasajes: (remoto.modalidad_pasajes as any) || (match_inicial as any)?.modalidad_pasajes || "ida_y_vuelta",
-    configuracion_pasajes_actividades: (remoto.configuracion_pasajes_actividades as any) || (match_inicial as any)?.configuracion_pasajes_actividades || {
+    url_carnet: remoto.url_carnet,
+    nombre_archivo_carnet: remoto.nombre_archivo_carnet || `CI_${ci_str || "doc"}.pdf`,
+    url_kardex: remoto.url_kardex,
+    nombre_archivo_kardex: remoto.nombre_archivo_kardex || `Kardex_2026_${remoto.universidad || "UMSA"}.pdf`,
+    fecha_subida_documentos: remoto.fecha_subida_documentos || "2026-02-15",
+    modalidad_pasajes: (remoto.modalidad_pasajes as any) || "ida_y_vuelta",
+    configuracion_pasajes_actividades: (remoto.configuracion_pasajes_actividades as any) || {
       practicas: "ida_y_vuelta",
       escuela_lideres: "ida_y_vuelta",
       acciones_servicio: "ida_y_vuelta",
@@ -1207,12 +454,8 @@ export function GestionBecarios() {
   const es_admin = esAdministradorAutenticado(usuario);
   const es_supervisor = esMentorAutenticado(usuario);
 
-  const [lista_becarios, set_lista_becarios] = useState<BecarioVista[]>(() => {
-    if (esMentorAutenticado(usuario)) {
-      return BECARIOS_INICIALES.filter((b) => esBecarioDeSupervisor(b, usuario));
-    }
-    return BECARIOS_INICIALES;
-  });
+  const [lista_becarios, set_lista_becarios] = useState<BecarioVista[]>([]);
+  const [sedes_bd, set_sedes_bd] = useState<string[]>([]);
   const [busqueda, set_busqueda] = useState("");
   const [modal_abierto, set_modal_abierto] = useState(false);
 
@@ -1254,35 +497,40 @@ export function GestionBecarios() {
     };
   }, [becario_horas_modal, modal_horas_mes_seleccionado]);
 
-  // Consulta API con datos precargados y normalización defensiva
+  useEffect(() => {
+    clienteApi
+      .get<any[]>("/api/lugares-practica")
+      .then((res) => {
+        if (Array.isArray(res) && res.length > 0) {
+          const nombres = res.map((l) => l.nombre).filter(Boolean);
+          if (nombres.length > 0) {
+            set_sedes_bd(nombres);
+            set_nuevo_lugar(nombres[0]);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const { datos: becarios_remotos, invalidar } = useConsulta<BecarioVista[]>(
     `lista_becarios_${usuario?.id || "global"}`,
     async () => {
       try {
         const respuesta = await clienteApi.get<any[]>("/api/becarios");
-        if (Array.isArray(respuesta) && respuesta.length > 0) {
+        if (Array.isArray(respuesta)) {
           const normalizados = respuesta.map(normalizarBecario);
           if (esMentorAutenticado(usuario)) {
             return normalizados.filter((b) => esBecarioDeSupervisor(b, usuario));
           }
           return normalizados;
         }
-        if (esMentorAutenticado(usuario)) {
-          return BECARIOS_INICIALES.filter((b) => esBecarioDeSupervisor(b, usuario));
-        }
-        return BECARIOS_INICIALES;
       } catch {
-        if (esMentorAutenticado(usuario)) {
-          return BECARIOS_INICIALES.filter((b) => esBecarioDeSupervisor(b, usuario));
-        }
-        return BECARIOS_INICIALES;
+        return [];
       }
+      return [];
     },
     {
-      datos_iniciales:
-        esMentorAutenticado(usuario)
-          ? BECARIOS_INICIALES.filter((b) => esBecarioDeSupervisor(b, usuario))
-          : BECARIOS_INICIALES,
+      datos_iniciales: [],
     }
   );
 
@@ -1747,11 +995,7 @@ export function GestionBecarios() {
         url_kardex: nuevo_kardex_url || undefined,
         nombre_archivo_kardex: nuevo_kardex_nombre || undefined,
         fecha_subida_documentos: new Date().toISOString().split("T")[0],
-        historial_horas_mes: [
-          { mes: "Octubre 2026", horas_realizadas: 0, meta_horas: 36.0, porcentaje: 0, estado: "en_riesgo" },
-          { mes: "Septiembre 2026", horas_realizadas: 0, meta_horas: 36.0, porcentaje: 0, estado: "en_riesgo" },
-          { mes: "Agosto 2026", horas_realizadas: 0, meta_horas: 36.0, porcentaje: 0, estado: "en_riesgo" },
-        ],
+        historial_horas_mes: [],
         tiene_usuario: false,
         usuario_id: null,
       });
@@ -3308,10 +2552,14 @@ export function GestionBecarios() {
                       <SelectValue placeholder="Seleccionar sede" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Oficina Central Bloque A">Oficina Central Bloque A</SelectItem>
-                      <SelectItem value="Oficina Central Bloque B">Oficina Central Bloque B</SelectItem>
-                      <SelectItem value="Sucursal Juan Pablo II">Sucursal Juan Pablo II</SelectItem>
-                      <SelectItem value="Sucursal Villa Adela">Sucursal Villa Adela</SelectItem>
+                      {(sedes_bd.length > 0
+                        ? sedes_bd
+                        : ["Oficina Central Diaconía IFD - El Alto"]
+                      ).map((nombre_sede) => (
+                        <SelectItem key={nombre_sede} value={nombre_sede}>
+                          {nombre_sede}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -4848,11 +4096,14 @@ export function GestionBecarios() {
                         <SelectValue placeholder="Sede asignada" />
                       </SelectTrigger>
                       <SelectContent className="bg-white border-[#E5E7EB]">
-                        <SelectItem value="Oficina Central Bloque A">Oficina Central Bloque A</SelectItem>
-                        <SelectItem value="Centro Infantil Sagrada Familia">Centro Infantil Sagrada Familia</SelectItem>
-                        <SelectItem value="Agencia Villa Dolores">Agencia Villa Dolores</SelectItem>
-                        <SelectItem value="Consultorio Médico San Lucas">Consultorio Médico San Lucas</SelectItem>
-                        <SelectItem value="Hogar de Niños Amor y Esperanza">Hogar de Niños Amor y Esperanza</SelectItem>
+                        {(sedes_bd.length > 0
+                          ? sedes_bd
+                          : ["Oficina Central Diaconía IFD - El Alto"]
+                        ).map((nombre_sede) => (
+                          <SelectItem key={nombre_sede} value={nombre_sede}>
+                            {nombre_sede}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

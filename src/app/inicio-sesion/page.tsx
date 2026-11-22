@@ -68,14 +68,23 @@ export default function PaginaInicioSesion() {
               rol: "administrador",
             },
           },
-          "daniel234.davalos@gmail.com": {
+          "ddavalosq@fcpn.edu.bo": {
             pass: "Bumand2026!",
             user: {
               id: 7,
               nombre: "Daniel Davalos Quiñonez",
-              correo: "daniel234.davalos@gmail.com",
+              correo: "ddavalosq@fcpn.edu.bo",
               rol: "becario",
               becario_id: 2,
+            },
+          },
+          "daniel234.davalos@gmail.com": {
+            pass: "Bumand2026!",
+            user: {
+              id: 3,
+              nombre: "Daniel Davalos Quiñonez",
+              correo: "daniel234.davalos@gmail.com",
+              rol: "administrador",
             },
           },
           "angel.ali@bumand.bo": {
@@ -84,8 +93,6 @@ export default function PaginaInicioSesion() {
               id: 3,
               nombre: "Angel Javier Ali Paz",
               correo: "angel.ali@bumand.bo",
-              correo_alternativo: "angel.ali@diaconia.bo",
-              correos_adicionales: [{ id: 101, correo: "angel.ali@diaconia.bo", etiqueta: "Institucional Diaconía" }],
               rol: "supervisor",
             },
           },
@@ -95,8 +102,6 @@ export default function PaginaInicioSesion() {
               id: 3,
               nombre: "Angel Javier Ali Paz",
               correo: "angel.ali@bumand.bo",
-              correo_alternativo: "angel.ali@diaconia.bo",
-              correos_adicionales: [{ id: 101, correo: "angel.ali@diaconia.bo", etiqueta: "Institucional Diaconía" }],
               rol: "supervisor",
             },
           },
@@ -376,14 +381,14 @@ export default function PaginaInicioSesion() {
                   type="button"
                   id="btn-semilla-becario"
                   onClick={() => {
-                    set_correo("daniel234.davalos@gmail.com");
+                    set_correo("ddavalosq@fcpn.edu.bo");
                     set_contrasena("Bumand2026!");
                     set_mostrar_contrasena(true);
                   }}
                   className="p-1.5 text-center rounded-lg border border-[#FFB600]/30 bg-[#FFB600]/10 hover:bg-[#FFB600]/20 text-[10px] font-medium text-[#B8860B] transition-colors cursor-pointer"
                 >
                   <div className="font-bold">Becario</div>
-                  <div className="text-[9px] text-muted-foreground truncate">daniel234...</div>
+                  <div className="text-[9px] text-muted-foreground truncate">ddavalosq@...</div>
                 </button>
               </div>
             </div>

@@ -165,52 +165,7 @@ function normalizarMapaRespuestas(
   return resultado;
 }
 
-const NOMINA_INICIAL_SOCIOECONOMICA: RegistroSocioeconomicoBecario[] = [
-  {
-    id: 100,
-    becario_id: 100,
-    nombre_completo: "María Catunta Laime",
-    ci: "7077936 LP",
-    universidad: "Universidad Pública de El Alto",
-    carrera: "Economía",
-    respuestas_completadas: 26,
-    total_preguntas: 26,
-    puntaje_20: 18.5,
-    semaforo: "verde",
-    estado: "aprobado",
-    convalidado: true,
-    observaciones: "Condición familiar estable y rendimiento socioeconómico verificado.",
-    respuestas: generarRespuestasPorPuntaje(18.5),
-  },
-  ...BECARIOS_SEMESTRE_II.map((b, idx) => {
-    const puntaje_ajustado = Math.max(b.socioeconomico, 6.0);
-    const semaforo_asignado: "verde" | "amarillo" | "rojo" =
-      b.id === 2
-        ? "rojo"
-        : b.id === 6 || b.id === 8 || b.id === 11 || b.id === 17
-        ? "amarillo"
-        : "verde";
-    const en_revision = idx === 1 || idx === 5 || idx === 7;
-    return {
-      id: b.id,
-      becario_id: b.id,
-      nombre_completo: b.nombre_completo,
-      ci: b.ci,
-      universidad: b.universidad,
-      carrera: b.carrera,
-      respuestas_completadas: 26,
-      total_preguntas: 26,
-      puntaje_20: puntaje_ajustado,
-      semaforo: semaforo_asignado,
-      estado: en_revision ? "en_revision" : "aprobado",
-      convalidado: !en_revision,
-      observaciones: en_revision
-        ? "Enviado desde aplicación móvil BUMAND. Pendiente de convalidación de Trabajo Social."
-        : "Evaluación socioeconómica convalidada en sistema.",
-      respuestas: generarRespuestasPorPuntaje(puntaje_ajustado),
-    };
-  }),
-];
+const NOMINA_INICIAL_SOCIOECONOMICA: RegistroSocioeconomicoBecario[] = [];
 
 export function EvaluacionSocioeconomicaVista() {
   const { usuario } = usarAutenticacion();
@@ -253,9 +208,7 @@ export function EvaluacionSocioeconomicaVista() {
   const [busqueda_nomina, set_busqueda_nomina] = useState<string>("");
 
   // Respuestas activas en el cuestionario en pantalla
-  const [respuestas_activas, set_respuestas_activas] = useState<Record<number, "A" | "B" | "C" | "D">>(() =>
-    generarRespuestasPorPuntaje(18.5)
-  );
+  const [respuestas_activas, set_respuestas_activas] = useState<Record<number, "A" | "B" | "C" | "D">>({});
 
   const [guardando_evaluacion, set_guardando_evaluacion] = useState<boolean>(false);
   const [becario_enviado, set_becario_enviado] = useState<boolean>(false);
@@ -302,18 +255,24 @@ export function EvaluacionSocioeconomicaVista() {
               ? Number(raw.puntaje) <= 20
                 ? Number(raw.puntaje)
                 : Number(((Number(raw.puntaje) / 100) * 20).toFixed(1))
-              : 17.0;
+              : 0;
 
-          const respuestas_norm = normalizarMapaRespuestas(
-            raw.respuestas_detalle || raw.respuestas || raw.datos_formulario?.respuestas,
-            puntaje_20
-          );
-          const contestadas =
+          const contestadas_raw =
             raw.respuestas_contestadas !== undefined
               ? Number(raw.respuestas_contestadas)
               : raw.respuestas_completadas !== undefined
               ? Number(raw.respuestas_completadas)
-              : Object.keys(respuestas_norm).length || 26;
+              : puntaje_20 > 0
+              ? 26
+              : 0;
+          const respuestas_norm =
+            contestadas_raw > 0
+              ? normalizarMapaRespuestas(
+                  raw.respuestas_detalle || raw.respuestas || raw.datos_formulario?.respuestas,
+                  puntaje_20
+                )
+              : {};
+          const contestadas = contestadas_raw;
 
           const convalidado =
             raw.convalidado !== undefined

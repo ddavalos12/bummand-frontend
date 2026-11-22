@@ -10,31 +10,19 @@ const COLOR_DORADO: [number, number, number] = [255, 182, 0]; // #FFB600 Amarill
 const COLOR_GRIS_FONDO: [number, number, number] = [248, 250, 252]; // #F8FAFC
 const COLOR_TEXTO_OSCURO: [number, number, number] = [30, 41, 59]; // #1E293B
 
-export const BECARIOS_EXPEDIENTES_COMPLETOS = [
-  { id: 1, nombre: "Adai Belen Huayta Cardozo", ci: "13696496", carrera: "Estadística", universidad: "UMSA", sede: "Sede Central Blq. A", m1: 20.0, m2: 19.5, m3: 19.8, m4: 20.0, m5: 19.5 },
-  { id: 2, nombre: "Alejandro Roberth Paredes Tarquino", ci: "10064956", carrera: "Comunicación Social", universidad: "UMSA", sede: "Marketing y Comunicación", m1: 19.0, m2: 18.5, m3: 19.0, m4: 19.5, m5: 19.0 },
-  { id: 3, nombre: "Aydee Ruth Ali Condori", ci: "9952878", carrera: "Contaduría Pública", universidad: "UPEA", sede: "Finanzas y Tesorería", m1: 19.5, m2: 19.0, m3: 19.2, m4: 19.0, m5: 19.0 },
-  { id: 4, nombre: "Carlos Oscar Luna Lizarraga", ci: "9943280", carrera: "Economía", universidad: "UMSA", sede: "Auditoría Interna", m1: 20.0, m2: 20.0, m3: 19.8, m4: 20.0, m5: 19.5 },
-  { id: 5, nombre: "Christian David Mamani Alanoca", ci: "8341920", carrera: "Ingeniería de Sistemas", universidad: "UPEA", sede: "Tecnología y Sistemas", m1: 18.5, m2: 19.0, m3: 18.8, m4: 19.0, m5: 18.5 },
-  { id: 6, nombre: "Daniel Davalos Quiñoñez", ci: "9107373", carrera: "Informática", universidad: "UMSA", sede: "Seguridad Física", m1: 19.0, m2: 19.5, m3: 19.0, m4: 18.5, m5: 19.0 },
-  { id: 7, nombre: "Edgar Elias Alarcon Huanca", ci: "9160054", carrera: "Medicina", universidad: "UMSA", sede: "Consultorio Médico", m1: 20.0, m2: 20.0, m3: 20.0, m4: 20.0, m5: 20.0 },
-  { id: 8, nombre: "Fernando Rene Yujra Quispe", ci: "10984321", carrera: "Derecho", universidad: "UMSA", sede: "Asesoría Legal", m1: 18.0, m2: 18.5, m3: 18.0, m4: 19.0, m5: 18.5 },
-  { id: 9, nombre: "Isaias Daniel Herrera Mamani", ci: "10920862", carrera: "Arquitectura", universidad: "UMSA", sede: "Infraestructura", m1: 19.5, m2: 19.0, m3: 19.5, m4: 19.0, m5: 19.0 },
-  { id: 10, nombre: "Jhonny Poma", ci: "7829104", carrera: "Agronomía", universidad: "UPEA", sede: "Proyectos Productivos", m1: 18.5, m2: 18.0, m3: 18.5, m4: 18.5, m5: 18.0 },
-  { id: 11, nombre: "Jhoselin Quispe Morales", ci: "12849301", carrera: "Psicología", universidad: "UMSA", sede: "Desarrollo Humano", m1: 19.0, m2: 19.5, m3: 19.2, m4: 19.0, m5: 19.0 },
-  { id: 12, nombre: "José Marcos Suñagua Quispe", ci: "14378720", carrera: "Informática", universidad: "UMSA", sede: "Gestión de Riesgos", m1: 18.0, m2: 17.5, m3: 18.0, m4: 18.5, m5: 18.0 },
-  { id: 13, nombre: "Luis Santiago Enrriquez Conde", ci: "9048392", carrera: "Ingeniería Comercial", universidad: "UPEA", sede: "Operaciones", m1: 19.0, m2: 19.0, m3: 18.8, m4: 19.0, m5: 18.5 },
-  { id: 14, nombre: "Mariela Dayana Jimenez Chambi", ci: "12959656", carrera: "Contaduría Pública", universidad: "UMSA", sede: "Seguros", m1: 19.5, m2: 19.0, m3: 19.5, m4: 19.5, m5: 19.0 },
-  { id: 15, nombre: "Mario Catunta Laime", ci: "7077936", carrera: "Economía", universidad: "UPEA", sede: "Planificación Estratégica", m1: 20.0, m2: 20.0, m3: 19.5, m4: 20.0, m5: 20.0 },
-  { id: 16, nombre: "Mayherli Alejandra Loza Villalobos", ci: "9925727", carrera: "Contaduría Pública", universidad: "UMSA", sede: "Finanzas y Tesorería", m1: 19.0, m2: 19.5, m3: 19.0, m4: 19.0, m5: 19.0 },
-  { id: 17, nombre: "Mónica Mamani Mamani", ci: "11049284", carrera: "Trabajo Social", universidad: "UMSA", sede: "Bienestar Social", m1: 19.5, m2: 19.0, m3: 19.2, m4: 19.5, m5: 19.0 },
-  { id: 18, nombre: "Nilda Amalia Churata Paye", ci: "10028341", carrera: "Educación Parvularia", universidad: "UMSA", sede: "Seguridad Física", m1: 18.5, m2: 18.5, m3: 18.0, m4: 18.5, m5: 18.5 },
-  { id: 19, nombre: "Noemi Callisaya Alvarez", ci: "7093658", carrera: "Psicomotricidad", universidad: "UPEA", sede: "Consultorio Médico", m1: 19.0, m2: 19.0, m3: 18.8, m4: 19.0, m5: 19.0 },
-  { id: 20, nombre: "Ronald Franz Mamani Quispe", ci: "13948291", carrera: "Ingeniería Eléctrica", universidad: "UMSA", sede: "Mantenimiento Técnico", m1: 18.5, m2: 18.0, m3: 18.5, m4: 18.5, m5: 18.0 },
-  { id: 21, nombre: "Ronald Mauricio Quiquijana Mayta", ci: "6172054", carrera: "Telecomunicaciones", universidad: "UMSA", sede: "Seguridad Informática", m1: 19.0, m2: 19.5, m3: 19.0, m4: 19.0, m5: 18.5 },
-  { id: 22, nombre: "Ruddy Flores Tapia", ci: "9974211", carrera: "Contaduría Pública", universidad: "UMSA", sede: "Planificación y Control", m1: 20.0, m2: 19.5, m3: 19.8, m4: 19.5, m5: 19.5 },
-  { id: 23, nombre: "Ruth Alesandra Choque Huanca", ci: "12739482", carrera: "Bioquímica y Farmacia", universidad: "UMSA", sede: "Consultorio Médico", m1: 19.5, m2: 19.0, m3: 19.2, m4: 19.5, m5: 19.0 },
-];
+export const BECARIOS_EXPEDIENTES_COMPLETOS: Array<{
+  id: number;
+  nombre: string;
+  ci: string;
+  carrera: string;
+  universidad: string;
+  sede: string;
+  m1: number;
+  m2: number;
+  m3: number;
+  m4: number;
+  m5: number;
+}> = [];
 
 /**
  * Agrega el membrete institucional oficial en cualquier página PDF
@@ -311,13 +299,7 @@ export function generarPdfRefrigerios(): Blob {
     47
   );
 
-  const duplas = [
-    ["1", "23/10/2026", "Adai Belen Huayta y Alejandro Roberth Paredes", "23", "Bs 115.00", "Adai Belen Huayta", "100% Devuelto"],
-    ["2", "16/10/2026", "Aydee Ruth Ali y Carlos Oscar Luna", "23", "Bs 115.00", "Aydee Ruth Ali", "100% Devuelto"],
-    ["3", "09/10/2026", "Daniel Davalos y Nilda Amalia Churata", "23", "Bs 115.00", "Daniel Davalos", "100% Devuelto"],
-    ["4", "02/10/2026", "Edgar Elias Alarcon y Christian David Mamani", "23", "Bs 115.00", "Edgar Elias Alarcon", "100% Devuelto"],
-    ["5", "30/10/2026", "Fernando Rene Yujra e Isaias Daniel Herrera", "23", "Bs 115.00", "Por rendir", "Dupla Asignada"],
-  ];
+  const duplas: string[][] = [];
 
   autoTable(doc, {
     startY: 56,
@@ -379,17 +361,12 @@ export function generarPdfFormularioF03(id_evaluacion = 1): Blob {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   doc.setTextColor(...COLOR_TEXTO_OSCURO);
-  doc.text("Becario Universitario: Carlos Oscar Luna Lizarraga", 18, 48);
-  doc.text("Cédula de Identidad: 9943280 LP · Carrera: Economía (UMSA)", 18, 53);
-  doc.text("Iglesia Local: Iglesia Bautista Central El Alto", 18, 58);
-  doc.text("Pastor Titular Evaluador: Pr. Samuel Mendoza Quispe", 100, 58);
+  doc.text("Becario Universitario: Sin evaluación F-03 registrada", 18, 48);
+  doc.text("Cédula de Identidad: S/N · Carrera: Sin especificar", 18, 53);
+  doc.text("Iglesia Local: Sin congregación asignada", 18, 58);
+  doc.text("Pastor Titular Evaluador: Sin asignar", 100, 58);
 
-  const reactivos = [
-    ["1", "Asistencia y Puntualidad a los Cultos Dominicales", "5.0 / 5.0", "Asistencia fiel y puntual todas las semanas."],
-    ["2", "Participación en Ministerios de la Iglesia (Música, Enseñanza, Jóvenes)", "5.0 / 5.0", "Lidera con devoción el ministerio de jóvenes."],
-    ["3", "Testimonio Cristiano, Ética y Relaciones Interpersonales", "4.8 / 5.0", "Excelente testimonio dentro y fuera de la congregación."],
-    ["4", "Madurez Espiritual, Vida de Oración y Estudio Bíblico", "4.7 / 5.0", "Compromiso visible con su crecimiento espiritual."],
-  ];
+  const reactivos: string[][] = [];
 
   autoTable(doc, {
     startY: 68,
@@ -424,10 +401,10 @@ export function generarPdfFormularioF03(id_evaluacion = 1): Blob {
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
-  doc.text("CALIFICACIÓN FINAL MÓDULO 1 (IGLESIA): 19.5 / 20.0 PUNTOS", 18, y_final + 8);
+  doc.text("CALIFICACIÓN FINAL MÓDULO 1 (IGLESIA): 0.0 / 20.0 PUNTOS", 18, y_final + 8);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
-  doc.text("Recomendación: El estudiante cumple a cabalidad con el perfil de vocación diaconal y testimonio cristiano.", 18, y_final + 14);
+  doc.text("Sin evaluación F-03 registrada en base de datos para este expediente.", 18, y_final + 14);
 
   agregarPiePaginaYFirmas(doc, false);
   return doc.output("blob");
@@ -514,8 +491,14 @@ export function generarPdfExpedienteRecorridos(
 ): Blob {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const becario =
-    BECARIOS_EXPEDIENTES_COMPLETOS.find((b) => b.id === becario_id) ||
-    BECARIOS_EXPEDIENTES_COMPLETOS[3]; // Por defecto Carlos Oscar Luna
+    BECARIOS_EXPEDIENTES_COMPLETOS.find((b) => b.id === becario_id) || {
+      id: becario_id,
+      nombre: `Estudiante BUMAND #${becario_id}`,
+      ci: "S/N",
+      carrera: "Sin especificar",
+      universidad: "Sin especificar",
+      sede: "Oficina Central Diaconía IFD - El Alto",
+    };
 
   agregarMembreteInstitucional(
     doc,
@@ -541,35 +524,8 @@ export function generarPdfExpedienteRecorridos(
   doc.text(`C.I.: ${becario.ci} LP · Carrera: ${becario.carrera} (${becario.universidad})`, 18, 47);
   doc.text(`Unidad Asignada: ${becario.sede} · Tarifa Aplicada: Minibús Tramo Directo (Bs 3.00)`, 18, 52);
 
-  // Tabla de Recorridos Diarios (20 jornadas al mes)
+  // Tabla de Recorridos Diarios
   const jornadas: string[][] = [];
-  const dias = [
-    "01", "02", "05", "06", "07", "08", "09", "12", "13", "14",
-    "15", "16", "19", "20", "21", "22", "23", "26", "27", "28",
-  ];
-
-  const origen_declarado = "Av. Juan Pablo II (Zona 16 de Julio)";
-  const parada_intermedia = "Estación Teleférico Línea Azul";
-  const destino_declarado = `${becario.sede} (Diaconía)`;
-
-  dias.forEach((dia, idx) => {
-    jornadas.push([
-      String(idx + 1),
-      `${dia}/10/2026`,
-      `${origen_declarado} → ${parada_intermedia} → ${destino_declarado} (Ida)`,
-      "Minibús",
-      "Bs 3.00",
-      "Bs 2.40",
-    ]);
-    jornadas.push([
-      "",
-      `${dia}/10/2026`,
-      `${destino_declarado} → ${parada_intermedia} → ${origen_declarado} (Retorno)`,
-      "Minibús",
-      "Bs 3.00",
-      "Bs 2.40",
-    ]);
-  });
 
   autoTable(doc, {
     startY: 62,
@@ -600,10 +556,10 @@ export function generarPdfExpedienteRecorridos(
   });
 
   // Resumen Financiero al final
-  const total_gastado = 120.0;
-  const total_subsidio = 96.0;
+  const total_gastado = 0.0;
+  const total_subsidio = 0.0;
   const multas_asistencia = 0.0;
-  const liquido_pagable = Math.max(0, total_subsidio - multas_asistencia);
+  const liquido_pagable = 0.0;
 
   // Calculamos la posición después de la tabla
   const autoTableDoc = doc as jsPDF & { lastAutoTable?: { finalY?: number } };
@@ -614,7 +570,7 @@ export function generarPdfExpedienteRecorridos(
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
-  doc.text(`TOTAL (100%): Bs ${total_gastado.toFixed(2)} (40 Tramos) · 80% RECONOCIDO: Bs ${total_subsidio.toFixed(2)}`, 18, y_resumen + 6.5);
+  doc.text(`TOTAL (100%): Bs ${total_gastado.toFixed(2)} (0 Tramos) · 80% RECONOCIDO: Bs ${total_subsidio.toFixed(2)}`, 18, y_resumen + 6.5);
   doc.text(`(-) MULTAS ASISTENCIA: Bs ${multas_asistencia.toFixed(2)} · LÍQUIDO PAGABLE (NETO RSD): Bs ${liquido_pagable.toFixed(2)}`, 18, y_resumen + 12.5);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(6.5);
@@ -633,8 +589,13 @@ export function generarPdfAsistenciaMensual(
 ): Blob {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const becario =
-    BECARIOS_EXPEDIENTES_COMPLETOS.find((b) => b.id === becario_id) ||
-    BECARIOS_EXPEDIENTES_COMPLETOS[0]; // Por defecto Adai Belen Huayta
+    BECARIOS_EXPEDIENTES_COMPLETOS.find((b) => b.id === becario_id) || {
+      id: becario_id,
+      nombre: `Estudiante BUMAND #${becario_id}`,
+      ci: "S/N",
+      carrera: "Sin especificar",
+      sede: "Oficina Central Diaconía IFD - El Alto",
+    };
 
   agregarMembreteInstitucional(
     doc,
@@ -657,23 +618,10 @@ export function generarPdfAsistenciaMensual(
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   doc.setTextColor(...COLOR_TEXTO_OSCURO);
-  doc.text(`C.I.: ${becario.ci} LP · Carrera: ${becario.carrera} · Sede: ${becario.sede}`, 18, 47);
+  doc.text(`C.I.: ${becario.ci} · Carrera: ${becario.carrera} · Sede: ${becario.sede}`, 18, 47);
   doc.text("Horario de Práctica: 08:00 a 12:00 (Lunes a Viernes · 4 horas diarias)", 18, 52);
 
-  const dias = [
-    "01", "02", "05", "06", "07", "08", "09", "12", "13", "14",
-    "15", "16", "19", "20", "21", "22", "23", "26", "27", "28",
-  ];
-
-  const filas = dias.map((dia, idx) => [
-    String(idx + 1),
-    `${dia}/10/2026`,
-    "08:00 AM",
-    `07:5${Math.floor(Math.random() * 5 + 3)} AM`,
-    "4.0 hrs",
-    "0 min",
-    "PUNTUAL",
-  ]);
+  const filas: string[][] = [];
 
   autoTable(doc, {
     startY: 60,
@@ -712,7 +660,7 @@ export function generarPdfAsistenciaMensual(
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
-  doc.text("TOTAL HORAS CUMPLIDAS: 80.0 HORAS · PUNTUALIDAD: 100% · FALTAS: 0", 18, y_resumen + 5.5);
+  doc.text("TOTAL HORAS CUMPLIDAS: 0.0 HORAS · PUNTUALIDAD: 0% · FALTAS: 0", 18, y_resumen + 5.5);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.text("Todas las marcaciones validadas por geocerca WGS84 y dentro del radio institucional de 50 metros.", 18, y_resumen + 10.5);
@@ -752,7 +700,7 @@ export function generarPdfAuditoriaIntervalo(
   doc.setFontSize(7.5);
   doc.setTextColor(...COLOR_TEXTO_OSCURO);
   doc.text(
-    `Módulo: ${modulo} | Desde: ${fecha_inicio} | Hasta: ${fecha_fin} | Registros verificados: 23 | Estado: CONFORME`,
+    `Módulo: ${modulo} | Desde: ${fecha_inicio} | Hasta: ${fecha_fin} | Registros verificados: 0 | Estado: SIN REGISTROS`,
     18,
     47
   );
@@ -887,13 +835,7 @@ export function generarPdfJustificacionesGeneral(
     true
   );
 
-  const incidencias_ejemplo = [
-    ["1", "Nilda Amalia Churata Paye", "06/10/2026", "Atención odontológica de urgencia SSU", "Prácticas", "Certificado Médico SSU", "APROBADA", "Exención 100% Multa"],
-    ["2", "Edgar Elias Alarcon Huanca", "02/10/2026", "Examen parcial universitario UPEA", "Escuela Líderes", "Boleta de Examen", "APROBADA", "Exención 100% Multa"],
-    ["3", "Adai Belen Huayta Cardozo", "16/10/2026", "Cruce académico de taller de grado", "Escuela Líderes", "Matrícula Universitaria", "APROBADA", "Exención 100% Multa"],
-    ["4", "Carlos Oscar Luna Lizarraga", "14/10/2026", "Trámite de titulación intermedia UMSA", "Prácticas", "Formulario UMSA", "APROBADA", "Sin Sanción"],
-    ["5", "Daniel Davalos Quiñoñez", "21/10/2026", "Baja médica ambulatoria", "Prácticas", "Receta Médica", "APROBADA", "Exención 100% Multa"],
-  ];
+  const incidencias_ejemplo: string[][] = [];
 
   autoTable(doc, {
     startY: 38,

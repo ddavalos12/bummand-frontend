@@ -94,196 +94,17 @@ export interface EventoGeolocalizado {
   asistencias: AsistenciaBecarioEvento[];
 }
 
-const EVENTOS_INICIALES: EventoGeolocalizado[] = [
-  {
-    id: 1,
-    titulo: "Encuentro de Liderazgo y Acción Diaconal 2026",
-    descripcion:
-      "Jornada intensiva de formación ética, confraternización y servicio comunitario con la cohorte activa de becarios de El Alto y La Paz.",
-    tipo_evento: "escuela_lideres_especial",
-    fecha: "2026-10-09",
-    hora_inicio: "08:30",
-    hora_fin: "13:30",
-    latitud: -16.500054,
-    longitud: -68.173455,
-    radio_tolerancia_m: 120,
-    direccion_referencia: "Auditorio Central Diaconía, Av. Juan Pablo II #2540, El Alto",
-    estado: "en_curso",
-    total_convocados: 32,
-    asistencias: [
-      {
-        id: 1,
-        becario_id: 101,
-        nombre: "Nilda Amalia Churata Paye",
-        carrera: "Educación Parvularia",
-        hora_marcacion: "08:24:15",
-        distancia_m: 18.2,
-        dentro_de_radio: true,
-        estado: "presente",
-        observaciones: "Ingreso puntual verificado en geocerca central.",
-        monto_multa_bs: 0,
-        confirmado_presencial: true,
-      },
-      {
-        id: 2,
-        becario_id: 102,
-        nombre: "Edgar Elias Alarcon Huanca",
-        carrera: "Ingeniería de Sistemas",
-        hora_marcacion: "08:28:40",
-        distancia_m: 25.4,
-        dentro_de_radio: true,
-        estado: "presente",
-        observaciones: "Ubicación GPS confirmada a 25m del epicentro.",
-        monto_multa_bs: 0,
-        confirmado_presencial: true,
-      },
-      {
-        id: 3,
-        becario_id: 103,
-        nombre: "Adai Belen Huayta Cardozo",
-        carrera: "Contaduría Pública",
-        hora_marcacion: "08:42:10",
-        distancia_m: 34.1,
-        dentro_de_radio: true,
-        estado: "retraso",
-        observaciones: "Retraso de 12 minutos por congestión en autopista La Paz-El Alto.",
-        monto_multa_bs: 10,
-        confirmado_presencial: true,
-      },
-      {
-        id: 4,
-        becario_id: 104,
-        nombre: "Ronald Franz Mamani Quispe",
-        carrera: "Bioquímica y Farmacia",
-        hora_marcacion: "--:--:--",
-        distancia_m: 0,
-        dentro_de_radio: false,
-        estado: "ausente",
-        observaciones: "Sin marcación en el perímetro geodésico fijado.",
-      },
-      {
-        id: 5,
-        becario_id: 105,
-        nombre: "Abigail Ruth Condori Flores",
-        carrera: "Trabajo Social",
-        hora_marcacion: "08:19:50",
-        distancia_m: 12.0,
-        dentro_de_radio: true,
-        estado: "presente",
-        observaciones: "Llegada anticipada al recinto.",
-      },
-      {
-        id: 6,
-        becario_id: 106,
-        nombre: "Christian David Mamani Alanoca",
-        carrera: "Derecho",
-        hora_marcacion: "--:--:--",
-        distancia_m: 0,
-        dentro_de_radio: false,
-        estado: "justificado",
-        observaciones: "Permiso institucional concedido por examen de grado universitario.",
-      },
-    ],
-  },
-  {
-    id: 2,
-    titulo: "Taller Práctico de Formulario Pastoral F-03",
-    descripcion:
-      "Instrucción metodológica sobre los 5 ejes canónicos diaconales y convalidación semestral de horas con trazabilidad en sistema.",
-    tipo_evento: "taller",
-    fecha: "2026-10-18",
-    hora_inicio: "09:00",
-    hora_fin: "12:00",
-    latitud: -16.505412,
-    longitud: -68.129845,
-    radio_tolerancia_m: 100,
-    direccion_referencia: "Sede Sopocachi, Calle Fernando Guachalla esq. Sánchez Lima #480, La Paz",
-    estado: "programado",
-    total_convocados: 45,
-    asistencias: [],
-  },
-  {
-    id: 3,
-    titulo: "Servicio Comunitario Diaconal en Centro Infantil",
-    descripcion:
-      "Acompañamiento pedagógico y voluntariado formativo en centros de estimulación temprana en la zona Ballivián.",
-    tipo_evento: "servicio_diaconal",
-    fecha: "2026-09-28",
-    hora_inicio: "08:00",
-    hora_fin: "14:00",
-    latitud: -16.48912,
-    longitud: -68.18231,
-    radio_tolerancia_m: 150,
-    direccion_referencia: "Centro Infantil Arcoíris, Av. Ballivián entre calles 3 y 4, El Alto",
-    estado: "finalizado",
-    total_convocados: 25,
-    asistencias: [
-      {
-        id: 21,
-        becario_id: 101,
-        nombre: "Nilda Amalia Churata Paye",
-        carrera: "Educación Parvularia",
-        hora_marcacion: "07:55:00",
-        distancia_m: 21.0,
-        dentro_de_radio: true,
-        estado: "presente",
-        observaciones: "Apoyo en actividades lúdicas infantiles.",
-      },
-      {
-        id: 22,
-        becario_id: 102,
-        nombre: "Edgar Elias Alarcon Huanca",
-        carrera: "Ingeniería de Sistemas",
-        hora_marcacion: "07:58:20",
-        distancia_m: 19.5,
-        dentro_de_radio: true,
-        estado: "presente",
-        observaciones: "Coordinación logística y sonido.",
-      },
-      {
-        id: 23,
-        becario_id: 103,
-        nombre: "Adai Belen Huayta Cardozo",
-        carrera: "Contaduría Pública",
-        hora_marcacion: "08:02:11",
-        distancia_m: 15.8,
-        dentro_de_radio: true,
-        estado: "presente",
-        observaciones: "Puntual en sala de recepción.",
-      },
-    ],
-  },
-];
-
 const PREDETERMINADOS_GPS = [
   {
-    etiqueta: "Oficina Central Diaconía (El Alto)",
+    etiqueta: "Oficina Central Diaconía - Bloque A (El Alto)",
     latitud: -16.500054,
     longitud: -68.173455,
-    referencia: "Av. Juan Pablo II #2540, El Alto",
-  },
-  {
-    etiqueta: "Sede Sopocachi (La Paz)",
-    latitud: -16.505412,
-    longitud: -68.129845,
-    referencia: "Calle Fernando Guachalla esq. Sánchez Lima #480, La Paz",
-  },
-  {
-    etiqueta: "Iglesia Central El Alto (Cruce Viacha)",
-    latitud: -16.52134,
-    longitud: -68.18921,
-    referencia: "Av. 6 de Marzo frente al Cruce Viacha, El Alto",
-  },
-  {
-    etiqueta: "Auditorio Miraflores (La Paz)",
-    latitud: -16.49652,
-    longitud: -68.11874,
-    referencia: "Av. Busch esq. Villalobos, Miraflores, La Paz",
+    referencia: "Av. Juan Pablo II esq. Calle Sbtte. Jorge Eulert 125, El Alto",
   },
 ];
 
 export function GestionEventos() {
-  const [eventos, set_eventos] = useState<EventoGeolocalizado[]>(EVENTOS_INICIALES);
+  const [eventos, set_eventos] = useState<EventoGeolocalizado[]>([]);
   const [filtro_estado, set_filtro_estado] = useState<string>("todos");
   const [dialogo_nuevo_abierto, set_dialogo_nuevo_abierto] = useState(false);
   const [evento_seleccionado_acta, set_evento_seleccionado_acta] = useState<EventoGeolocalizado | null>(null);
@@ -327,7 +148,7 @@ export function GestionEventos() {
     async function cargarEventosServidor() {
       try {
         const respuesta = await clienteApi.get<any[]>("/api/eventos");
-        if (Array.isArray(respuesta) && respuesta.length > 0) {
+        if (Array.isArray(respuesta)) {
           const eventos_mapeados: EventoGeolocalizado[] = respuesta.map((ev) => ({
             id: ev.id,
             titulo: ev.titulo,
@@ -341,7 +162,7 @@ export function GestionEventos() {
             radio_tolerancia_m: ev.radio_tolerancia_m || 100,
             direccion_referencia: ev.direccion_referencia || "Recinto Institucional Diaconía",
             estado: ev.estado || "programado",
-            total_convocados: ev.asistencias ? Math.max(ev.asistencias.length, 23) : 23,
+            total_convocados: ev.total_convocados ?? (Array.isArray(ev.asistencias) ? ev.asistencias.length : 0),
             asistencias: Array.isArray(ev.asistencias)
               ? ev.asistencias.map((a: any) => ({
                   id: a.id,
@@ -361,7 +182,7 @@ export function GestionEventos() {
           set_eventos(eventos_mapeados);
         }
       } catch {
-        // Mantiene EVENTOS_INICIALES como respaldo si el backend no responde
+        set_eventos([]);
       }
     }
     cargarEventosServidor();

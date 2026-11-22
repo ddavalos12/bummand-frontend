@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,12 +29,14 @@ import {
   Trash2,
   KeyRound,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 import { VisorGoogleMapsGeocerca } from "./visor-google-maps-geocerca";
 import { SelectorUbicacionGoogleMaps } from "./selector-ubicacion-google-maps";
 import { useGoogleMaps } from "@/hooks/use-google-maps";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
+import { clienteApi } from "@/lib/cliente-api";
 import { toast } from "sonner";
 
 export interface BloqueSede {
@@ -56,97 +58,86 @@ export interface SedePractica {
   bloques: BloqueSede[];
 }
 
-const SEDES_INICIALES: SedePractica[] = [
-  {
-    id: 1,
-    nombre: "Oficina Central El Alto",
-    direccion: "Av. Juan Pablo II #2540, El Alto",
-    latitud: -16.500053,
-    longitud: -68.173455,
-    radio_tolerancia_m: 80,
-    becarios_asignados: 20,
-    bloques: [
-      {
-        id: "bloque-a",
-        nombre: "Bloque A (Administración Central)",
-        descripcion: "Pisos 1 al 4, Gerencia de Créditos y Dirección General",
-        latitud: -16.500053,
-        longitud: -68.173455,
-      },
-      {
-        id: "bloque-b",
-        nombre: "Bloque B (Auditorio y Capacitación)",
-        descripcion: "Centro de Cómputo, Aulas BUMAND y Auditorio Pastoral",
-        latitud: -16.499912,
-        longitud: -68.173204,
-      },
-    ],
-  },
-  {
-    id: 2,
-    nombre: "Agencia Juan Pablo II",
-    direccion: "Ceja de El Alto, cruce Villa Esperanza",
-    latitud: -16.50231,
-    longitud: -68.16892,
-    radio_tolerancia_m: 100,
-    becarios_asignados: 5,
-    bloques: [
-      {
-        id: "bloque-unico",
-        nombre: "Bloque A (Plataforma y Cajas)",
-        descripcion: "Atención al cliente y asesoría financiera",
-        latitud: -16.50231,
-        longitud: -68.16892,
-      },
-    ],
-  },
-  {
-    id: 3,
-    nombre: "Agencia La Paz Central",
-    direccion: "Calle Mercado esq. Socabaya, La Paz",
-    latitud: -16.49652,
-    longitud: -68.13421,
-    radio_tolerancia_m: 90,
-    becarios_asignados: 4,
-    bloques: [
-      {
-        id: "bloque-a",
-        nombre: "Bloque A (Operaciones Urbanas)",
-        descripcion: "Plataforma central y área contable",
-        latitud: -16.49652,
-        longitud: -68.13421,
-      },
-    ],
-  },
-  {
-    id: 4,
-    nombre: "Sucursal Villa Adela",
-    direccion: "Plaza Bolivia, Av. Ladislao Cabrera #100",
-    latitud: -16.52512,
-    longitud: -68.18954,
-    radio_tolerancia_m: 75,
-    becarios_asignados: 3,
-    bloques: [
-      {
-        id: "bloque-a",
-        nombre: "Bloque A (Agencia y Servicios)",
-        descripcion: "Cajas y asesoría de microcrédito",
-        latitud: -16.52512,
-        longitud: -68.18954,
-      },
-    ],
-  },
-];
+function mapearLugarPractica(lugar: any, conteo_becarios: Map<number, number>): SedePractica {
+  const lat = Number(lugar.latitud) || -16.500054;
+  const lng = Number(lugar.longitud) || -68.173455;
+  const radio = Number(lugar.radio_tolerancia_m ?? lugar.radioToleranciaM ?? 60) || 60;
+  const nombres_bloques: string[] = Array.isArray(lugar.bloques) && lugar.bloques.length > 0
+    ? lugar.bloques
+    : ["Bloque A (Administración Central)"];
+
+  const bloques: BloqueSede[] = nombres_bloques.map((nombre_blq, idx) => ({
+    id: `bloque-${idx + 1}`,
+    nombre: nombre_blq,
+    descripcion: idx === 0 ? (lugar.direccion || lugar.nombre) : `${lugar.nombre} · ${nombre_blq}`,
+    latitud: idx === 0 ? lat : Number((lat + idx * 0.00014).toFixed(6)),
+    longitud: idx === 0 ? lng : Number((lng + idx * 0.00025).toFixed(6)),
+  }));
+
+  return {
+    id: Number(lugar.id),
+    nombre: lugar.nombre || `Sede #${lugar.id}`,
+    direccion: lugar.direccion || "",
+    latitud: lat,
+    longitud: lng,
+    radio_tolerancia_m: radio,
+    becarios_asignados: conteo_becarios.get(Number(lugar.id)) || 0,
+    bloques,
+  };
+}
 
 export function MapaLugaresPractica() {
   const { usuario } = usarAutenticacion();
   const es_admin = usuario?.rol === "administrador";
 
-  const [sedes, set_sedes] = useState<SedePractica[]>(SEDES_INICIALES);
-  const [sede_seleccionada, set_sede_seleccionada] = useState<SedePractica>(SEDES_INICIALES[0]);
-  const [bloque_activo, set_bloque_activo] = useState<BloqueSede>(SEDES_INICIALES[0].bloques[0]);
-  const [radio_editado, set_radio_editado] = useState(SEDES_INICIALES[0].radio_tolerancia_m);
+  const [sedes, set_sedes] = useState<SedePractica[]>([]);
+  const [cargando_sedes, set_cargando_sedes] = useState<boolean>(true);
+  const [sede_seleccionada, set_sede_seleccionada] = useState<SedePractica | null>(null);
+  const [bloque_activo, set_bloque_activo] = useState<BloqueSede | null>(null);
+  const [radio_editado, set_radio_editado] = useState<number>(60);
   const [modal_abierto, set_modal_abierto] = useState(false);
+
+  const cargarSedesDesdeBd = useCallback(async (id_preferido?: number) => {
+    set_cargando_sedes(true);
+    try {
+      const [lugares, becarios] = await Promise.all([
+        clienteApi.get<any[]>("/api/lugares-practica"),
+        clienteApi.get<any[]>("/api/becarios").catch(() => []),
+      ]);
+
+      const conteo = new Map<number, number>();
+      if (Array.isArray(becarios)) {
+        for (const b of becarios) {
+          const lp_id = Number(b.lugar_practica_id || b.lugar_practica?.id || 0);
+          if (lp_id > 0) conteo.set(lp_id, (conteo.get(lp_id) || 0) + 1);
+        }
+      }
+
+      if (Array.isArray(lugares)) {
+        const mapeadas = lugares.map((l) => mapearLugarPractica(l, conteo));
+        set_sedes(mapeadas);
+        if (mapeadas.length > 0) {
+          const objetivo =
+            (id_preferido ? mapeadas.find((s) => s.id === id_preferido) : null) ||
+            mapeadas[0];
+          set_sede_seleccionada(objetivo);
+          set_bloque_activo(objetivo.bloques[0] || null);
+          set_radio_editado(objetivo.radio_tolerancia_m);
+        } else {
+          set_sede_seleccionada(null);
+          set_bloque_activo(null);
+        }
+      }
+    } catch {
+      toast.error("No se pudieron cargar las sedes desde la base de datos.");
+    } finally {
+      set_cargando_sedes(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    cargarSedesDesdeBd();
+  }, [cargarSedesDesdeBd]);
 
   // Integración de Google Maps API (SDK y clave)
   const { clave_api, guardarClaveApi } = useGoogleMaps();
@@ -195,19 +186,26 @@ export function MapaLugaresPractica() {
     set_radio_editado(sede.radio_tolerancia_m);
   };
 
-  const manejarActualizarRadio = () => {
-    if (!es_admin) {
+  const manejarActualizarRadio = async () => {
+    if (!es_admin || !sede_seleccionada) {
       toast.error("Permiso denegado: Solo el Administrador puede modificar parámetros de geocerca.");
       return;
     }
-    set_sedes((prev) =>
-      prev.map((s) => (s.id === sede_seleccionada.id ? { ...s, radio_tolerancia_m: radio_editado } : s))
-    );
-    set_sede_seleccionada((prev) => ({ ...prev, radio_tolerancia_m: radio_editado }));
-    toast.success(`Geocerca actualizada: Radio calibrado a ${radio_editado} metros.`);
+    try {
+      await clienteApi.put(`/api/lugares-practica/${sede_seleccionada.id}`, {
+        radio_tolerancia_m: radio_editado,
+      });
+      set_sedes((prev) =>
+        prev.map((s) => (s.id === sede_seleccionada.id ? { ...s, radio_tolerancia_m: radio_editado } : s))
+      );
+      set_sede_seleccionada((prev) => (prev ? { ...prev, radio_tolerancia_m: radio_editado } : prev));
+      toast.success(`Geocerca actualizada en base de datos: Radio calibrado a ${radio_editado} metros.`);
+    } catch {
+      toast.error("No se pudo actualizar el radio de geocerca en la base de datos.");
+    }
   };
 
-  const manejarCrearSede = (e: React.FormEvent) => {
+  const manejarCrearSede = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!es_admin) {
       toast.error("Permiso denegado: Solo el Administrador puede crear sedes y bloques.");
@@ -217,44 +215,27 @@ export function MapaLugaresPractica() {
     const lat = parseFloat(lat_nueva);
     const lng = parseFloat(lng_nueva);
     const radio = parseInt(radio_nuevo, 10) || 80;
+    const bloques_nombres = incluir_bloque_b
+      ? ["Bloque A (Principal)", "Bloque B (Auditorio / Servicios)"]
+      : ["Bloque A (Principal)"];
 
-    const bloques_generados: BloqueSede[] = [
-      {
-        id: "bloque-a",
-        nombre: "Bloque A (Principal)",
-        descripcion: "Oficinas y operaciones centrales",
+    try {
+      const creada = await clienteApi.post<any>("/api/lugares-practica", {
+        nombre: nombre_sede.trim(),
+        direccion: dir_sede.trim(),
         latitud: lat,
         longitud: lng,
-      },
-    ];
-
-    if (incluir_bloque_b) {
-      bloques_generados.push({
-        id: "bloque-b",
-        nombre: "Bloque B (Auditorio / Servicios)",
-        descripcion: "Salas de reuniones y formación",
-        latitud: lat + 0.00014,
-        longitud: lng + 0.00025,
+        radio_tolerancia_m: radio,
+        bloques: bloques_nombres,
       });
+      await cargarSedesDesdeBd(creada?.id);
+      set_nombre_sede("");
+      set_dir_sede("");
+      set_modal_abierto(false);
+      toast.success(`Sede "${nombre_sede.trim()}" registrada en base de datos.`);
+    } catch {
+      toast.error("No se pudo registrar la sede en la base de datos.");
     }
-
-    const nueva: SedePractica = {
-      id: sedes.length + 1,
-      nombre: nombre_sede,
-      direccion: dir_sede,
-      latitud: lat,
-      longitud: lng,
-      radio_tolerancia_m: radio,
-      becarios_asignados: 0,
-      bloques: bloques_generados,
-    };
-
-    set_sedes([nueva, ...sedes]);
-    manejarSeleccionarSede(nueva);
-    set_nombre_sede("");
-    set_dir_sede("");
-    set_modal_abierto(false);
-    toast.success(`Sede "${nueva.nombre}" registrada con ${bloques_generados.length} bloque(s).`);
   };
 
   return (
@@ -306,7 +287,7 @@ export function MapaLugaresPractica() {
                       <div className="space-y-1">
                         <Label className="text-xs font-semibold">Nombre de la Sede</Label>
                         <Input
-                          placeholder="Ej. Sucursal Villa Adela"
+                          placeholder="Ej. Oficina Central Bloque B"
                           value={nombre_sede}
                           onChange={(e) => set_nombre_sede(e.target.value)}
                           required
@@ -411,12 +392,22 @@ export function MapaLugaresPractica() {
           </div>
         </CardHeader>
         <CardContent className="p-3 space-y-2 overflow-y-auto max-h-[500px]">
-          {sedes.map((s) => (
+          {cargando_sedes ? (
+            <div className="py-10 text-center text-xs text-muted-foreground flex flex-col items-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin text-[#00ABBD]" />
+              <span>Cargando sedes desde la base de datos...</span>
+            </div>
+          ) : sedes.length === 0 ? (
+            <div className="py-10 text-center text-xs text-muted-foreground">
+              No hay sedes registradas en la base de datos.
+            </div>
+          ) : (
+            sedes.map((s) => (
             <div
               key={s.id}
               onClick={() => manejarSeleccionarSede(s)}
               className={`p-3 rounded-xl border cursor-pointer transition-all ${
-                sede_seleccionada.id === s.id
+                sede_seleccionada?.id === s.id
                   ? "bg-[#00ABBD]/10 border-[#00ABBD] shadow-sm"
                   : "bg-white border-[#E5E7EB]/60 hover:bg-slate-50"
               }`}
@@ -440,12 +431,9 @@ export function MapaLugaresPractica() {
                           titulo: "¿Eliminar sede institucional?",
                           descripcion: `¿Está seguro de eliminar la sede "${s.nombre}" (${s.direccion}) y sus geocercas asociadas?`,
                           nombre_item: s.nombre,
-                          onConfirmar: () => {
-                            const nuevas = sedes.filter((item) => item.id !== s.id);
-                            set_sedes(nuevas);
-                            if (sede_seleccionada.id === s.id && nuevas.length > 0) {
-                              manejarSeleccionarSede(nuevas[0]);
-                            }
+                          onConfirmar: async () => {
+                            await clienteApi.delete(`/api/lugares-practica/${s.id}`);
+                            await cargarSedesDesdeBd();
                           },
                           mensaje_exito: `Sede "${s.nombre}" eliminada exitosamente`,
                         });
@@ -476,12 +464,20 @@ export function MapaLugaresPractica() {
                 <span className="text-[#035683] font-semibold">{s.becarios_asignados} becarios</span>
               </div>
             </div>
-          ))}
+          )))}
         </CardContent>
       </Card>
 
       {/* Columna Derecha: Mapa Interactivo y Configuración de Geocerca */}
       <Card className="border-[#E5E7EB] shadow-sm bg-white rounded-xl lg:col-span-2 flex flex-col">
+        {!sede_seleccionada || !bloque_activo ? (
+          <CardContent className="p-10 text-center text-xs text-muted-foreground flex-1 flex items-center justify-center">
+            {cargando_sedes
+              ? "Sincronizando visor geodésico con la base de datos..."
+              : "Seleccione o registre una sede para configurar su geocerca."}
+          </CardContent>
+        ) : (
+        <>
         <CardHeader className="pb-3 border-b border-[#E5E7EB]/60">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
@@ -602,6 +598,8 @@ export function MapaLugaresPractica() {
             )}
           </div>
         </CardContent>
+        </>
+        )}
       </Card>
 
       {/* Modal de Configuración de Clave API de Google Maps */}

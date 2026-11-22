@@ -72,107 +72,7 @@ interface ReporteItem {
 
 export const LISTA_23_BECARIOS_REPORTES = BECARIOS_EXPEDIENTES_COMPLETOS;
 
-const REPORTES_DISPONIBLES: ReporteItem[] = [
-  {
-    id: 1,
-    titulo: "Evaluación del Semestre II - 2026 (2 Páginas Landscape)",
-    tipo: "evaluacion_semestral_ii",
-    periodo: "Semestre II - 2026",
-    fecha_generacion: "2026-10-18 10:00",
-    becario_nombre: "Consolidado Institucional (21 Becarios)",
-    tamano_kb: 76,
-    endpoint: "/pdf/evaluacion-semestral?periodo=II_2026",
-    nombre_archivo: "Evaluacion_Semestre_II_2026.pdf",
-  },
-  {
-    id: 2,
-    titulo: "Expediente Mensual de Recorridos (Por Estudiante)",
-    tipo: "pasajes",
-    periodo: "Octubre 2026",
-    fecha_generacion: "2026-10-22 10:00",
-    becario_nombre: "Carlos Oscar Luna Lizarraga",
-    tamano_kb: 320,
-    endpoint: "/pdf/recorridos-estudiante/7?mes=2026-10",
-    nombre_archivo: "Expediente_Recorridos_Carlos_Luna_Octubre_2026.pdf",
-  },
-  {
-    id: 3,
-    titulo: "Kárdex Individual de Asistencia Mensual",
-    tipo: "asistencia",
-    periodo: "Octubre 2026",
-    fecha_generacion: "2026-10-22 10:00",
-    becario_nombre: "Adai Belen Huayta Cardozo",
-    tamano_kb: 360,
-    endpoint: "/pdf/asistencia-estudiante/1?mes=2026-10",
-    nombre_archivo: "Asistencia_Mensual_Adai_Huayta_Octubre_2026.pdf",
-  },
-  {
-    id: 4,
-    titulo: "Corte Oficial de Horas y Prácticas Preprofesionales",
-    tipo: "asistencia",
-    periodo: "Octubre 2026",
-    fecha_generacion: "2026-10-20 18:30",
-    becario_nombre: "Auditoría General de Prácticas",
-    tamano_kb: 420,
-    endpoint: "/pdf/corte-asistencia?tipo=todas",
-    nombre_archivo: "Corte_Horas_Practicas_Octubre_2026.pdf",
-  },
-  {
-    id: 5,
-    titulo: "Formulario F-03: Evaluación Pastoral y Eclesiástica",
-    tipo: "evaluacion_f03",
-    periodo: "Semestre II - 2026",
-    fecha_generacion: "2026-10-15 11:00",
-    becario_nombre: "María Catunta Laime",
-    tamano_kb: 285,
-    endpoint: "/pdf/evaluacion/1",
-    nombre_archivo: "Formulario_F03_Evaluacion_Pastoral.pdf",
-  },
-  {
-    id: 6,
-    titulo: "Acta de Asistencia a Encuentro y Acción de Servicio",
-    tipo: "evento",
-    periodo: "Gestión 2026",
-    fecha_generacion: "2026-10-12 16:45",
-    becario_nombre: "Control Geodésico de Convocatoria",
-    tamano_kb: 310,
-    endpoint: "/pdf/evento/1",
-    nombre_archivo: "Acta_Asistencia_Evento_Oficial.pdf",
-  },
-  {
-    id: 7,
-    titulo: "Corte Semanal de Horas de Escuela de Líderes (Viernes)",
-    tipo: "asistencia",
-    periodo: "Octubre 2026",
-    fecha_generacion: "2026-10-17 19:00",
-    becario_nombre: "Módulo Teológico CETI",
-    tamano_kb: 340,
-    endpoint: "/pdf/corte-asistencia?tipo=escuela_lideres",
-    nombre_archivo: "Corte_Asistencia_Escuela_Lideres.pdf",
-  },
-  {
-    id: 8,
-    titulo: "Reporte de Refrigerios (Devolución 100% y Duplas)",
-    tipo: "refrigerios",
-    periodo: "Gestión 2026",
-    fecha_generacion: "2026-10-24 16:00",
-    becario_nombre: "Nómina de Duplas y Rendiciones (23 Becarios)",
-    tamano_kb: 295,
-    endpoint: "/pdf/refrigerios",
-    nombre_archivo: "Reporte_Oficial_Refrigerios_Diaconia.pdf",
-  },
-  {
-    id: 9,
-    titulo: "Consolidado Integral de Contabilidad BUMAND (Multas, Horas, Refrigerios y Pasajes)",
-    tipo: "consolidado-auditoria",
-    periodo: "Octubre 2026",
-    fecha_generacion: "2026-10-25 18:00",
-    becario_nombre: "Contabilidad Financiera y Operativa General",
-    tamano_kb: 512,
-    endpoint: "/pdf/consolidado-auditoria",
-    nombre_archivo: "Consolidado_Contabilidad_General_BUMAND.pdf",
-  },
-];
+const REPORTES_DISPONIBLES: ReporteItem[] = [];
 
 export function VisorReportesPdf() {
   const [reportes] = useState<ReporteItem[]>(REPORTES_DISPONIBLES);
@@ -183,8 +83,8 @@ export function VisorReportesPdf() {
   const [fecha_fin_global, set_fecha_fin_global] = useState<string>("2026-10-31");
 
   // Estados para exportación individual por estudiante
-  const [lista_becarios, set_lista_becarios] = useState(LISTA_23_BECARIOS_REPORTES);
-  const [estudiante_seleccionado_id, set_estudiante_seleccionado_id] = useState<number>(7);
+  const [lista_becarios, set_lista_becarios] = useState<typeof LISTA_23_BECARIOS_REPORTES>([]);
+  const [estudiante_seleccionado_id, set_estudiante_seleccionado_id] = useState<number>(1);
   const [mes_individual, set_mes_individual] = useState<string>("2026-10");
 
   useEffect(() => {
@@ -194,27 +94,27 @@ export function VisorReportesPdf() {
         const { clienteApi } = await import("@/lib/cliente-api");
         const resp = await clienteApi.get<any>("/becarios");
         const datos = Array.isArray(resp) ? resp : resp?.items || resp?.data || [];
-        if (!cancelado && Array.isArray(datos) && datos.length > 0) {
+        if (!cancelado && Array.isArray(datos)) {
           const mapeados = datos.map((b: any) => ({
             id: Number(b.id),
             nombre: String(b.usuario?.nombre || b.nombre || `Becario #${b.id}`),
             ci: String(b.ci || "Sin CI"),
             carrera: String(b.carrera || "Carrera BUMAND"),
             universidad: String(b.universidad || "Universidad"),
-            sede: String(b.lugar_practica?.nombre || b.ubicacion || "Sede Central"),
-            m1: 20,
-            m2: 20,
-            m3: 20,
-            m4: 20,
-            m5: 20,
+            sede: String(b.lugar_practica?.nombre || b.ubicacion || "Oficina Central Diaconía IFD - El Alto"),
+            m1: 0,
+            m2: 0,
+            m3: 0,
+            m4: 0,
+            m5: 0,
           }));
           set_lista_becarios(mapeados);
-          if (!mapeados.some((m: any) => m.id === estudiante_seleccionado_id)) {
+          if (mapeados.length > 0 && !mapeados.some((m: any) => m.id === estudiante_seleccionado_id)) {
             set_estudiante_seleccionado_id(mapeados[0].id);
           }
         }
       } catch {
-        // Mantiene LISTA_23_BECARIOS_REPORTES como fallback resiliente
+        set_lista_becarios([]);
       }
     }
     cargarBecariosReales();
@@ -1214,7 +1114,14 @@ export function VisorReportesPdf() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {reportes.map((r) => {
+              {reportes.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-xs text-muted-foreground">
+                    No hay reportes emitidos ni archivados en este período. Utilice los controles superiores para generar un reporte PDF desde base de datos.
+                  </TableCell>
+                </TableRow>
+              ) : (
+              reportes.map((r) => {
                 const en_descarga = descargando_id === String(r.id);
                 return (
                   <TableRow key={r.id} className="border-b border-[#E5E7EB]/40 hover:bg-[#00ABBD]/5 text-xs">
@@ -1285,7 +1192,8 @@ export function VisorReportesPdf() {
                     </TableCell>
                   </TableRow>
                 );
-              })}
+              })
+              )}
             </TableBody>
           </Table>
         </CardContent>

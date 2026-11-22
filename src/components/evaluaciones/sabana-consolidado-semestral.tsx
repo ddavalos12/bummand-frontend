@@ -75,9 +75,10 @@ const OPCIONES_FILTRO_BECA: OpcionCombobox[] = [
 ];
 
 export function SabanaConsolidadoSemestral() {
-  const { es_mentor, filtrarPorMentor } = usarBecariosDesignadosMentor();
+  const { es_mentor, becarios_designados, filtrarPorMentor } = usarBecariosDesignadosMentor();
   const [registros_sabana, set_registros_sabana] =
-    useState<BecarioEvaluacionSemestral[]>(BECARIOS_SEMESTRE_II);
+    useState<BecarioEvaluacionSemestral[]>([]);
+  const [total_titulares_bd, set_total_titulares_bd] = useState<number>(23);
   const [busqueda, set_busqueda] = useState<string>("");
   const [filtro_calificacion, set_filtro_calificacion] = useState<string>("todos");
   const [becario_detalle, set_becario_detalle] = useState<BecarioEvaluacionSemestral | null>(null);
@@ -88,7 +89,10 @@ export function SabanaConsolidadoSemestral() {
     try {
       const res = await clienteApi.get<any>("/evaluaciones/consolidado-semestral");
       const lista = Array.isArray(res) ? res : res?.registros;
-      if (Array.isArray(lista) && lista.length > 0) {
+      if (typeof res?.total_becarios === "number") {
+        set_total_titulares_bd(res.total_becarios);
+      }
+      if (Array.isArray(lista)) {
         set_registros_sabana(
           lista.map((r: any) => ({
             ...r,
@@ -102,7 +106,7 @@ export function SabanaConsolidadoSemestral() {
         );
       }
     } catch {
-      // Fallback en BECARIOS_SEMESTRE_II
+      set_registros_sabana([]);
     }
   }, []);
 
@@ -124,13 +128,13 @@ export function SabanaConsolidadoSemestral() {
   );
 
   const notas_ceti_para_rol = useMemo(
-    () => filtrarPorMentor(NOTAS_CETI_SEMESTRE_II),
-    [filtrarPorMentor]
+    () => [] as typeof NOTAS_CETI_SEMESTRE_II,
+    []
   );
 
   const evaluaciones_mentores_para_rol = useMemo(
-    () => filtrarPorMentor(EVALUACIONES_MENTORES_SEMESTRE_II),
-    [filtrarPorMentor]
+    () => [] as typeof EVALUACIONES_MENTORES_SEMESTRE_II,
+    []
   );
 
   // Filtrado de becarios
@@ -191,12 +195,12 @@ export function SabanaConsolidadoSemestral() {
               </Badge>
               <span className="text-xs text-[#00ABBD] font-mono">
                 {es_mentor
-                  ? `Evaluacion Semestre II · ${registros_sabana_para_rol.length} Becarios Designados`
-                  : "Evaluacion Semestre II (2) · 21 Becarios Titulares"}
+                  ? `Evaluacion Semestre II · ${becarios_designados.length} Becarios Designados`
+                  : `Evaluacion Semestre II · ${total_titulares_bd} Becarios Titulares`}
               </span>
               {es_mentor && (
                 <InsigniaBecariosDesignados
-                  cantidad={registros_sabana_para_rol.length}
+                  cantidad={becarios_designados.length}
                   className="bg-white/15 text-white border-white/30"
                 />
               )}
@@ -321,7 +325,14 @@ export function SabanaConsolidadoSemestral() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {becarios_filtrados.map((b) => {
+                  {becarios_filtrados.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={15} className="text-center py-8 text-xs text-muted-foreground">
+                        No existen calificaciones ni evaluaciones semestrales registradas en este período.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                  becarios_filtrados.map((b) => {
                     const es_optima = b.total_calificacion.toLowerCase().includes("optima");
                     const es_condicionada = b.total_calificacion.toLowerCase().includes("condicionada");
 
@@ -377,7 +388,8 @@ export function SabanaConsolidadoSemestral() {
                         </TableCell>
                       </TableRow>
                     );
-                  })}
+                  })
+                  )}
                 </TableBody>
               </Table>
             </div>

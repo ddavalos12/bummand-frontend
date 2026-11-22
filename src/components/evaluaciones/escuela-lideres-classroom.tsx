@@ -313,13 +313,13 @@ interface BecarioSelectorItem {
 
 export function EscuelaLideresClassroom({
   becario_id_actual = 1,
-  nombre_becario_actual = "Ruddy Flores Tapia",
+  nombre_becario_actual = "",
   es_supervisor_o_admin = true,
   alActualizarNotaModulo4,
 }: EscuelaLideresClassroomProps) {
   const { es_mentor, filtrarPorMentor } = usarBecariosDesignadosMentor();
   const [becarios_crudos, set_becarios_crudos] =
-    useState<BecarioSelectorItem[]>(BECARIOS_SEMESTRE_II);
+    useState<BecarioSelectorItem[]>([]);
 
   useEffect(() => {
     let montado = true;
@@ -395,8 +395,8 @@ export function EscuelaLideresClassroom({
     }
   }, [becarios_disponibles, becario_seleccionado_id, nombre_becario_activo]);
 
-  // Lista canónica de tareas
-  const [tareas, set_tareas] = useState<TareaCetiCanonica[]>(TAREAS_CETI_INICIALES);
+  // Lista de tareas cargada desde base de datos
+  const [tareas, set_tareas] = useState<TareaCetiCanonica[]>([]);
   const [filtro_estado, set_filtro_estado] = useState<
     "todas" | "pendientes" | "entregadas" | "revisadas" | "observadas"
   >("todas");
@@ -437,61 +437,48 @@ export function EscuelaLideresClassroom({
 
   // Carga desde el backend (catálogo global + entregas del becario seleccionado)
   const cargarTareas = useCallback(async () => {
-    let catalogo_base: TareaCetiCanonica[] = [...TAREAS_CETI_INICIALES];
+    let catalogo_base: TareaCetiCanonica[] = [];
 
     try {
       const res_catalogo = await clienteApi.get<any>("/evaluaciones/escuela-lideres/catalogo-tareas");
       const lista_catalogo = Array.isArray(res_catalogo)
         ? res_catalogo
         : res_catalogo?.tareas || res_catalogo?.catalogo;
-      if (Array.isArray(lista_catalogo) && lista_catalogo.length > 0) {
-        const mapa_iniciales = new Map(TAREAS_CETI_INICIALES.map((t) => [t.numero, t]));
+      if (Array.isArray(lista_catalogo)) {
         const combinadas: TareaCetiCanonica[] = lista_catalogo.map((item: any, idx: number) => {
           const num = Number(item.numero ?? item.tarea_numero ?? idx + 1);
-          const base = mapa_iniciales.get(num);
           return {
-            id: Number(item.id ?? base?.id ?? num),
+            id: Number(item.id ?? num),
             numero: num,
-            titulo: item.titulo || item.titulo_tarea || base?.titulo || `Tarea #${num}`,
+            titulo: item.titulo || item.titulo_tarea || `Tarea #${num}`,
             modulo_tematico:
               item.modulo_tematico ||
               item.modulo ||
-              base?.modulo_tematico ||
               "Módulo Formativo Escuela de Líderes",
             descripcion:
               item.descripcion ||
               item.instrucciones ||
-              base?.descripcion ||
               "Consigna oficial de formación diaconal CETI.",
-            fecha_limite: item.fecha_limite || base?.fecha_limite || "2026-12-15",
-            ponderacion: Number(item.ponderacion ?? item.ponderacion_maxima ?? base?.ponderacion ?? 8.33),
-            estado: base?.estado || "pendiente",
+            fecha_limite: item.fecha_limite || "2026-12-15",
+            ponderacion: Number(item.ponderacion ?? item.ponderacion_maxima ?? 8.33),
+            estado: "pendiente",
             publicada_apk: true,
             lecturas_pdf: Array.isArray(item.lecturas_pdf)
               ? item.lecturas_pdf
               : item.lectura_pdf_url
               ? [{ nombre: item.lectura_pdf_nombre || "Lectura PDF", url: item.lectura_pdf_url }]
-              : base?.lecturas_pdf || [],
+              : [],
             enlaces_lectura: Array.isArray(item.enlaces_lectura)
               ? item.enlaces_lectura
               : item.enlace_lectura
               ? [{ titulo: "Enlace de Lectura", url: item.enlace_lectura }]
-              : base?.enlaces_lectura || [],
-            archivo_nombre: base?.archivo_nombre,
-            archivo_url: base?.archivo_url,
-            archivo_tamano: base?.archivo_tamano,
-            fecha_entrega: base?.fecha_entrega,
-            comentario_estudiante: base?.comentario_estudiante,
-            calificacion_100: base?.calificacion_100,
-            retroalimentacion_docente: base?.retroalimentacion_docente,
-            docente_revisor: base?.docente_revisor,
-            fecha_revision: base?.fecha_revision,
+              : [],
           };
         });
         catalogo_base = combinadas;
       }
     } catch {
-      // Fallback en catálogo local inicial
+      catalogo_base = [];
     }
 
     try {

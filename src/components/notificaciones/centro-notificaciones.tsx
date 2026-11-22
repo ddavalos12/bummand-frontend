@@ -24,40 +24,7 @@ interface PropiedadesCentroNotificaciones {
   alNavegarASeccion?: (seccion: string) => void;
 }
 
-const NOTIFICACIONES_INICIALES: NotificacionVista[] = [
-  {
-    id: 1,
-    tipo: "asistencia",
-    titulo: "Recordatorio de Marcación de Salida",
-    mensaje: "Tienes un ingreso activo en Oficina Central Bloque A desde las 08:30. Recuerda registrar tu salida.",
-    tiempo: "Hace 20 min",
-    leido: false,
-  },
-  {
-    id: 2,
-    tipo: "pasajes",
-    titulo: "Solicitud de Pasajes Observada",
-    mensaje: "El supervisor observó la tarifa del tramo 2 en tu formulario de Septiembre. Por favor revisa las observaciones.",
-    tiempo: "Hace 2 horas",
-    leido: false,
-  },
-  {
-    id: 3,
-    tipo: "evaluacion",
-    titulo: "Formulario F-03 Completado",
-    mensaje: "El Pastor de tu congregación ha subido la evaluación pastoral F-03 correspondiente al Semestre II.",
-    tiempo: "Ayer",
-    leido: true,
-  },
-  {
-    id: 4,
-    tipo: "general",
-    titulo: "Habilitación de Declaración de Pasajes",
-    mensaje: "El periodo del 24 al 30 de Septiembre está habilitado para el envío de formularios de pasajes.",
-    tiempo: "Hace 3 días",
-    leido: true,
-  },
-];
+const NOTIFICACIONES_INICIALES: NotificacionVista[] = [];
 
 export function CentroNotificaciones({
   alNavegarASeccion,

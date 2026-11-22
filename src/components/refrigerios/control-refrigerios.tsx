@@ -118,25 +118,25 @@ export const BECARIOS_OFICIALES = [
   "Alejandro Roberth Paredes Tarquino",
   "Aydee Ruth Ali Condori",
   "Carlos Oscar Luna Lizarraga",
-  "Christian David Mamani Alanoca",
-  "Daniel Davalos Quiñoñez",
-  "Edgar Elias Alarcon Huanca",
-  "Fernando Rene Yujra Quispe",
-  "Isaias Daniel Herrera Mamani",
-  "Jhonny Poma",
-  "Jhoselin Quispe Morales",
+  "Daniel Davalos Quiñonez",
+  "Edgar Elías Alarcon Huanca",
+  "Gonzalo Valencia Laura",
+  "Gustavo Ariel Condori Montaño",
+  "Isaías Daniel Herrera Mamani",
+  "Johan Ludving Misme Flores",
   "José Marcos Suñagua Quispe",
-  "Luis Santiago Enrriquez Conde",
+  "Joselin Wara Huanca Paucara",
+  "Lisbeth Pacasi Machaca",
   "Mariela Dayana Jimenez Chambi",
-  "Mario Catunta Laime",
+  "Mateo Miguel Cussi Flores",
+  "Matias Jose Uri Flores",
   "Mayherli Alejandra Loza Villalobos",
-  "Mónica Mamani Mamani",
+  "Milenka Quispe Coarite",
   "Nilda Amalia Churata Paye",
   "Noemi Callisaya Alvarez",
-  "Ronald Franz Mamani Quispe",
   "Ronald Mauricio Quiquijana Mayta",
   "Ruddy Flores Tapia",
-  "Ruth Alesandra Choque Huanca",
+  "Selena Fernanda Pillco Mamani",
 ];
 
 export function ControlRefrigerios() {
@@ -207,6 +207,7 @@ export function ControlRefrigerios() {
     useState<RegistroRacionRefrigerio | null>(null);
 
   const [lista_becarios, set_lista_becarios] = useState<string[]>(BECARIOS_OFICIALES);
+  const [sedes_bd, set_sedes_bd] = useState<string[]>([]);
 
   // Estados para la asignación de duplas por directiva
   const [sorteo_viernes_fecha, set_sorteo_viernes_fecha] = useState("2026-10-30");
@@ -221,9 +222,12 @@ export function ControlRefrigerios() {
   const [descargando_pdf_id, set_descargando_pdf_id] = useState<number | null>(null);
 
   useEffect(() => {
-    async function cargarBecarios() {
+    async function cargarBecariosYSedes() {
       try {
-        const respuesta = await clienteApi.get<any[]>("/api/becarios");
+        const [respuesta, sedes_api] = await Promise.all([
+          clienteApi.get<any[]>("/api/becarios").catch(() => []),
+          clienteApi.get<any[]>("/api/lugares-practica").catch(() => []),
+        ]);
         if (Array.isArray(respuesta) && respuesta.length > 0) {
           const nombres = respuesta
             .map((b) => b.nombre || (b.usuario ? b.usuario.nombre : null))
@@ -232,11 +236,18 @@ export function ControlRefrigerios() {
             set_lista_becarios(nombres);
           }
         }
+        if (Array.isArray(sedes_api) && sedes_api.length > 0) {
+          const nombres_sedes = sedes_api.map((s) => s.nombre).filter(Boolean);
+          if (nombres_sedes.length > 0) {
+            set_sedes_bd(nombres_sedes);
+            set_nueva_sede(nombres_sedes[0]);
+          }
+        }
       } catch {
-        // Usa lista oficial predeterminada
+        // Mantiene estado limpio si falla la carga
       }
     }
-    cargarBecarios();
+    cargarBecariosYSedes();
   }, []);
 
   // Formulario nuevo refrigerio (Escuela de Líderes - Dupla del Viernes)
@@ -563,16 +574,16 @@ export function ControlRefrigerios() {
   const refrigerio_vigente = registros[0];
   const es_encargado_este_viernes =
     Boolean(usuario?.nombre) &&
+    registros.length > 0 &&
     (refrigerio_vigente?.becario_encargado_1 === usuario?.nombre ||
-      refrigerio_vigente?.becario_encargado_2 === usuario?.nombre ||
-      usuario?.rol === "becario");
+      refrigerio_vigente?.becario_encargado_2 === usuario?.nombre);
 
   const companero_dupla =
     refrigerio_vigente?.becario_encargado_1 === usuario?.nombre
       ? refrigerio_vigente?.becario_encargado_2
       : refrigerio_vigente?.becario_encargado_1 || "Compañero Asignado";
 
-  // Métricas dinámicas
+  // Métricas dinámicas desde base de datos
   const total_raciones = registros.reduce((acc, r) => acc + r.cantidad_raciones, 0);
   const costo_total_acumulado = registros.reduce((acc, r) => acc + r.costo_total_bs, 0);
   const raciones_pendientes = registros.filter(
@@ -581,7 +592,21 @@ export function ControlRefrigerios() {
       r.estado_reposicion === "rendido_pendiente" ||
       r.estado_reposicion === "sorteado_programado"
   ).length;
-  const fondo_multas_aplicado = 850.0;
+  const [fondo_multas_aplicado, set_fondo_multas_aplicado] = useState<number>(0);
+
+  useEffect(() => {
+    clienteApi
+      .get<{ total_multas_bs?: number; multas_recaudadas_bs?: number }>("/dashboard/estadisticas")
+      .then((res) => {
+        if (res) {
+          const monto = res.multas_recaudadas_bs ?? res.total_multas_bs ?? 0;
+          set_fondo_multas_aplicado(Number(monto) || 0);
+        }
+      })
+      .catch(() => {
+        set_fondo_multas_aplicado(0);
+      });
+  }, []);
 
   const registros_filtrados = registros.filter(
     (r) =>
@@ -839,10 +864,14 @@ export function ControlRefrigerios() {
                           <SelectValue placeholder="Oficina Central El Alto" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Oficina Central El Alto">Oficina Central El Alto</SelectItem>
-                          <SelectItem value="Agencia Juan Pablo II">Agencia Juan Pablo II</SelectItem>
-                          <SelectItem value="Agencia La Paz Central">Agencia La Paz Central</SelectItem>
-                          <SelectItem value="Sucursal Villa Adela">Sucursal Villa Adela</SelectItem>
+                          {(sedes_bd.length > 0
+                            ? sedes_bd
+                            : ["Oficina Central Diaconía IFD - El Alto"]
+                          ).map((nombre_sede) => (
+                            <SelectItem key={nombre_sede} value={nombre_sede}>
+                              {nombre_sede}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
