@@ -401,6 +401,10 @@ export function VisorReportesPdf() {
   };
 
   const manejarExportarExcelIndividual = async () => {
+    if (!estudiante_actual) {
+      toast.warning("No hay ningún estudiante cargado para exportar.");
+      return;
+    }
     try {
       set_exportando_excel_individual(true);
       const calculo = await obtenerCalculoPagoPasajes({
@@ -1000,10 +1004,16 @@ export function VisorReportesPdf() {
           </div>
 
           {/* Tarjeta Informativa del Becario Seleccionado */}
+          {!estudiante_actual ? (
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-muted-foreground flex items-center gap-2">
+              <Users className="w-4 h-4 text-[#00ABBD]" />
+              <span>Cargando o sin becarios disponibles en la nómina para exportación individual...</span>
+            </div>
+          ) : (
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-[#035683] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
-                {estudiante_actual.nombre.charAt(0)}
+                {(estudiante_actual.nombre || "B").charAt(0)}
               </div>
               <div>
                 <span className="font-bold text-[#035683]">{estudiante_actual.nombre}</span>
@@ -1087,6 +1097,7 @@ export function VisorReportesPdf() {
               </Button>
             </div>
           </div>
+          )}
         </CardContent>
       </Card>
 

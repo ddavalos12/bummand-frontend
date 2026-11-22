@@ -557,6 +557,10 @@ export function EvaluacionSocioeconomicaVista() {
 
   // Guardar evaluación socioeconómica (Admin/Supervisor)
   const manejarGuardarEvaluacionSocioeconomica = async () => {
+    if (!becario_actual) {
+      toast.error("No hay un becario seleccionado para guardar la evaluación.");
+      return;
+    }
     set_guardando_evaluacion(true);
     try {
       const id_destino = becario_actual.becario_id || becario_actual.id;
@@ -707,10 +711,10 @@ export function EvaluacionSocioeconomicaVista() {
     if (!termino) return nomina_para_rol;
     return nomina_para_rol.filter(
       (b) =>
-        b.nombre_completo.toLowerCase().includes(termino) ||
-        b.ci.toLowerCase().includes(termino) ||
-        b.universidad.toLowerCase().includes(termino) ||
-        b.carrera.toLowerCase().includes(termino)
+        (b.nombre_completo || "").toLowerCase().includes(termino) ||
+        (b.ci || "").toLowerCase().includes(termino) ||
+        (b.universidad || "").toLowerCase().includes(termino) ||
+        (b.carrera || "").toLowerCase().includes(termino)
     );
   }, [nomina_para_rol, busqueda_nomina]);
 
@@ -1064,7 +1068,11 @@ export function EvaluacionSocioeconomicaVista() {
                 <div className="flex items-center gap-3 text-xs">
                   <Sparkles className="w-4 h-4 text-[#00ABBD] shrink-0" />
                   <span>
-                    Becario auditado: <strong className="text-[#035683]">{becario_actual.nombre_completo}</strong> · Calificación oficial:{" "}
+                    Becario auditado:{" "}
+                    <strong className="text-[#035683]">
+                      {becario_actual?.nombre_completo || "Sin becario asignado"}
+                    </strong>{" "}
+                    · Calificación oficial:{" "}
                     <strong className="font-mono text-[#035683]">{puntaje_calculado_20.toFixed(1)} / 20 pts</strong>
                   </span>
                 </div>
@@ -1586,12 +1594,14 @@ export function EvaluacionSocioeconomicaVista() {
       )}
 
       {/* Modal Rápido Opcional */}
-      <CuestionarioBienestarModal
-        abierto={modal_bienestar_abierto}
-        alCambiarAbierto={set_modal_bienestar_abierto}
-        becario_id={becario_actual.id}
-        nombre_becario={becario_actual.nombre_completo}
-      />
+      {becario_actual && (
+        <CuestionarioBienestarModal
+          abierto={modal_bienestar_abierto}
+          alCambiarAbierto={set_modal_bienestar_abierto}
+          becario_id={becario_actual.id}
+          nombre_becario={becario_actual.nombre_completo || "Estudiante Becario"}
+        />
+      )}
 
       {/* Modal de Revisión, Ajuste de Puntaje (/20 pts) y Convalidación de Evaluación Socioeconómica */}
       {becario_en_revision && (

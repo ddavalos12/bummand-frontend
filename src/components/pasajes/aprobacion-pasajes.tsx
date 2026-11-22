@@ -50,6 +50,7 @@ import {
   Printer,
   Loader2,
   ShieldCheck,
+  Trash2,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
@@ -123,7 +124,13 @@ export interface SolicitudPasajeVista {
 
 const SOLICITUDES_INICIALES: SolicitudPasajeVista[] = [];
 
-export function RecorridoEnriquecidoCard({ recorrido }: { recorrido: RecorridoItem }) {
+export function RecorridoEnriquecidoCard({
+  recorrido,
+  alEliminar,
+}: {
+  recorrido: RecorridoItem;
+  alEliminar?: () => void;
+}) {
   const calles = (recorrido.calles_declaradas || `${recorrido.origen} → ${recorrido.destino}`)
     .split(/→|->/)
     .map((s) => s.trim())
@@ -195,6 +202,16 @@ export function RecorridoEnriquecidoCard({ recorrido }: { recorrido: RecorridoIt
           <span className="font-mono font-bold text-xs text-[#035683] bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200">
             Bs {recorrido.tarifa.toFixed(2)}
           </span>
+          {alEliminar && (
+            <button
+              type="button"
+              onClick={alEliminar}
+              className="p-1.5 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
+              title="Eliminar este tramo erróneo de la solicitud (Web + APK)"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -687,6 +704,43 @@ export function AprobacionPasajes() {
     await invalidar();
   };
 
+  const [solicitud_para_eliminar, set_solicitud_para_eliminar] = useState<SolicitudPasajeVista | null>(null);
+  const [recorrido_para_eliminar, set_recorrido_para_eliminar] = useState<RecorridoItem | null>(null);
+  const [eliminando_pasaje, set_eliminando_pasaje] = useState(false);
+
+  const manejarConfirmarEliminacionPasajes = async () => {
+    if (!solicitud_para_eliminar && !recorrido_para_eliminar) return;
+    set_eliminando_pasaje(true);
+    try {
+      if (recorrido_para_eliminar) {
+        await clienteApi.delete(`/api/pasajes/recorridos/${recorrido_para_eliminar.id}`);
+        toast.success("Tramo eliminado", {
+          description: `El tramo #${recorrido_para_eliminar.id} se quitó de la base de datos y la APK.`,
+        });
+        set_recorrido_para_eliminar(null);
+      } else if (solicitud_para_eliminar) {
+        await clienteApi.delete(`/api/pasajes/${solicitud_para_eliminar.id}`);
+        set_solicitudes_locales((prev) =>
+          prev.filter((s) => s.id !== solicitud_para_eliminar.id)
+        );
+        if (solicitud_seleccionada?.id === solicitud_para_eliminar.id) {
+          set_solicitud_seleccionada(null);
+        }
+        toast.success("Solicitud de pasajes eliminada", {
+          description: `La solicitud de ${solicitud_para_eliminar.becario_nombre} fue eliminada (Web + APK).`,
+        });
+        set_solicitud_para_eliminar(null);
+      }
+      await invalidar();
+    } catch (error) {
+      toast.error("No se pudo eliminar el registro de pasajes", {
+        description: error instanceof Error ? error.message : "Verifica tus permisos.",
+      });
+    } finally {
+      set_eliminando_pasaje(false);
+    }
+  };
+
   const renderizarDetalleCard = (con_boton_volver = true) => !solicitud_activa ? (
     <Card className="border-[#E5E7EB] shadow-xs bg-white rounded-2xl p-10 text-center text-slate-500">
       <p className="text-sm font-medium">No hay ninguna declaración de pasajes registrada en el periodo actual.</p>
@@ -829,6 +883,19 @@ export function AprobacionPasajes() {
                 Observar
               </Button>
             )}
+
+            {(es_admin || (es_supervisor && solicitud_activa.estado !== "aprobado" && solicitud_activa.estado !== "aprobado_administracion")) && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => set_solicitud_para_eliminar(solicitud_activa)}
+                className="h-8 px-2.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 text-xs font-semibold rounded-xl gap-1 cursor-pointer"
+                title="Eliminar solicitud completa de pasajes (Web + APK)"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Quitar</span>
+              </Button>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -922,7 +989,18 @@ export function AprobacionPasajes() {
 
             <div className="space-y-2.5">
               {solicitud_activa.recorridos.map((r) => (
-                <RecorridoEnriquecidoCard key={r.id} recorrido={r} />
+                <RecorridoEnriquecidoCard
+                  key={r.id}
+                  recorrido={r}
+                  alEliminar={
+                    es_admin ||
+                    (es_supervisor &&
+                      solicitud_activa.estado !== "aprobado" &&
+                      solicitud_activa.estado !== "aprobado_administracion")
+                      ? () => set_recorrido_para_eliminar(r)
+                      : undefined
+                  }
+                />
               ))}
             </div>
           </div>
@@ -1685,6 +1763,20 @@ export function AprobacionPasajes() {
                                     ✓ Aprobado
                                   </span>
                                 )}
+                                {(es_admin || (es_supervisor && !es_aprobado)) && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      set_solicitud_para_eliminar(item);
+                                    }}
+                                    className="h-8 px-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg cursor-pointer"
+                                    title="Eliminar solicitud de pasajes (Web + APK)"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -1862,6 +1954,58 @@ export function AprobacionPasajes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Diálogo Confirmación de Eliminación (Solicitud o Tramo de Pasajes) */}
+      <AlertDialog
+        open={Boolean(solicitud_para_eliminar || recorrido_para_eliminar)}
+        onOpenChange={(abierto) => {
+          if (!abierto && !eliminando_pasaje) {
+            set_solicitud_para_eliminar(null);
+            set_recorrido_para_eliminar(null);
+          }
+        }}
+      >
+        <AlertDialogContent className="sm:max-w-[460px] p-6 bg-white rounded-2xl border-[#E5E7EB]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base font-bold text-rose-700 flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-rose-600" />
+              {recorrido_para_eliminar
+                ? "¿Eliminar tramo declarado?"
+                : "¿Eliminar solicitud de pasajes?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-slate-600">
+              {recorrido_para_eliminar ? (
+                <>
+                  Se eliminará el tramo{" "}
+                  <strong>
+                    {recorrido_para_eliminar.origen} → {recorrido_para_eliminar.destino}
+                  </strong>{" "}
+                  (Bs {recorrido_para_eliminar.tarifa.toFixed(2)}) de la base de datos y se recalcularán los montos automáticamente en Web y APK.
+                </>
+              ) : (
+                <>
+                  Se eliminará la planilla de pasajes de{" "}
+                  <strong className="text-[#035683]">
+                    {solicitud_para_eliminar?.becario_nombre || ""}
+                  </strong>{" "}
+                  ({solicitud_para_eliminar?.periodo || ""}) junto con todos sus tramos en Web y APK.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="pt-2">
+            <AlertDialogCancel disabled={eliminando_pasaje}>Cancelar</AlertDialogCancel>
+            <Button
+              type="button"
+              disabled={eliminando_pasaje}
+              onClick={manejarConfirmarEliminacionPasajes}
+              className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl"
+            >
+              {eliminando_pasaje ? "Eliminando..." : "Sí, eliminar definitivamente"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

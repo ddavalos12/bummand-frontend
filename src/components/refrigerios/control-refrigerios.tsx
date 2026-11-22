@@ -61,6 +61,7 @@ import {
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { clienteApi } from "@/lib/cliente-api";
 import { useConsulta } from "@/hooks/useConsulta";
+import { useTiempoReal } from "@/hooks/useTiempoReal";
 import { toast } from "sonner";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import { SelectorPlanillaDonacion } from "@/components/reportes/selector-planilla-donacion";
@@ -158,31 +159,51 @@ export function ControlRefrigerios() {
       try {
         const resp = await clienteApi.get<any[]>("/api/refrigerios");
         if (Array.isArray(resp)) {
-          return resp.map((item, idx) => ({
-            id: item.id || idx + 1,
-            fecha: item.fecha ? String(item.fecha).split("T")[0] : "2026-10-23",
-            evento_o_jornada: item.descripcion || item.evento_o_jornada || "Viernes Formativo - Escuela de Líderes",
-            tipo_refrigerio: item.tipo_refrigerio || "refrigerio_tarde",
-            becario_encargado: item.becario_encargado || item.becario_nombre || "Becarios Asignados",
-            becario_encargado_1: item.becario_encargado_1 || (item.becario_encargado ? item.becario_encargado.split(" y ")[0] : "Becario 1"),
-            becario_encargado_2: item.becario_encargado_2 || (item.becario_encargado ? item.becario_encargado.split(" y ")[1] : "Becario 2"),
-            modalidad_preparacion: item.modalidad_preparacion || "cocina_diaconia",
-            cantidad_raciones: Number(item.cantidad_raciones) || 23,
-            costo_unitario_bs: Number(item.costo_unitario_bs) || 5.0,
-            costo_total_bs: Number(item.costo_total_bs) || 115.0,
-            presupuesto_referencial_bs: 115.0,
-            porcentaje_devolucion: 100,
-            monto_devolucion_bs: Number(item.monto_devolucion_bs || item.costo_total_bs) || 115.0,
-            becario_receptor_devolucion_nombre: item.becario_receptor_devolucion_nombre || null,
-            fecha_devolucion: item.fecha_devolucion || null,
-            sede_nombre: item.sede_nombre || "Oficina Central El Alto",
-            bloque: item.bloque || "Bloque B (Auditorio)",
-            responsable_entrega: item.responsable_entrega || "Coordinación General BUMAND",
-            estado_reposicion: (item.estado_reposicion || "rendido_pendiente") as RegistroRacionRefrigerio["estado_reposicion"],
-            administrador_revisor: item.administrador_revisor || item.administrador_nombre || null,
-            fecha_aprobacion_admin: item.fecha_aprobacion_admin || null,
-            observaciones: item.observaciones || "Rendición de refrigerio por la dupla.",
-          }));
+          return resp.map((item, idx) => {
+            const nombre_compuesto =
+              item.becario_nombre ||
+              item.becario_encargado ||
+              [item.becario_encargado_1_nombre, item.becario_encargado_2_nombre]
+                .filter(Boolean)
+                .join(" y ") ||
+              "Becarios Asignados";
+            const enc_1 =
+              item.becario_encargado_1_nombre ||
+              item.becario_encargado_1 ||
+              (nombre_compuesto.includes(" y ") ? nombre_compuesto.split(" y ")[0] : nombre_compuesto) ||
+              "Becario 1";
+            const enc_2 =
+              item.becario_encargado_2_nombre ||
+              item.becario_encargado_2 ||
+              (nombre_compuesto.includes(" y ") ? nombre_compuesto.split(" y ")[1] : "") ||
+              "Becario 2";
+
+            return {
+              id: item.id || idx + 1,
+              fecha: item.fecha ? String(item.fecha).split("T")[0] : new Date().toISOString().split("T")[0],
+              evento_o_jornada: item.descripcion || item.evento_o_jornada || "Viernes Formativo - Escuela de Líderes",
+              tipo_refrigerio: item.tipo_refrigerio || "refrigerio_tarde",
+              becario_encargado: `${enc_1}${enc_2 ? ` y ${enc_2}` : ""}`,
+              becario_encargado_1: enc_1,
+              becario_encargado_2: enc_2,
+              modalidad_preparacion: item.modalidad_preparacion || "cocina_diaconia",
+              cantidad_raciones: Number(item.cantidad_raciones) || 23,
+              costo_unitario_bs: Number(item.costo_unitario_bs) || 5.0,
+              costo_total_bs: Number(item.costo_total_bs) || 0,
+              presupuesto_referencial_bs: Number(item.presupuesto_referencial_bs) || 115.0,
+              porcentaje_devolucion: Number(item.porcentaje_devolucion) || 100,
+              monto_devolucion_bs: Number(item.monto_devolucion_bs ?? item.costo_total_bs) || 0,
+              becario_receptor_devolucion_nombre: item.becario_receptor_devolucion_nombre || null,
+              fecha_devolucion: item.fecha_entrega_devolucion || item.fecha_devolucion || null,
+              sede_nombre: item.lugar_practica?.nombre || item.sede_nombre || "Oficina Central Diaconía IFD - El Alto",
+              bloque: item.bloque || "Bloque B (Auditorio)",
+              responsable_entrega: item.responsable_entrega || "Coordinación General BUMAND",
+              estado_reposicion: (item.estado_reposicion || "rendido_pendiente") as RegistroRacionRefrigerio["estado_reposicion"],
+              administrador_revisor: item.administrador_revisor || item.administrador_nombre || null,
+              fecha_aprobacion_admin: item.fecha_aprobacion_admin || null,
+              observaciones: item.observaciones || "Rendición de refrigerio por la dupla.",
+            };
+          });
         }
       } catch {}
       return [];
@@ -206,14 +227,17 @@ export function ControlRefrigerios() {
   const [planilla_seleccionada, set_planilla_seleccionada] =
     useState<RegistroRacionRefrigerio | null>(null);
 
-  const [lista_becarios, set_lista_becarios] = useState<string[]>(BECARIOS_OFICIALES);
+  const [lista_becarios, set_lista_becarios] = useState<string[]>([]);
+  const [mapa_becario_ids, set_mapa_becario_ids] = useState<Record<string, number>>({});
   const [sedes_bd, set_sedes_bd] = useState<string[]>([]);
 
   // Estados para la asignación de duplas por directiva
-  const [sorteo_viernes_fecha, set_sorteo_viernes_fecha] = useState("2026-10-30");
+  const [sorteo_viernes_fecha, set_sorteo_viernes_fecha] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [sorteo_evento, set_sorteo_evento] = useState("Escuela de Líderes (Viernes Formativo)");
-  const [sorteo_encargado_1, set_sorteo_encargado_1] = useState(BECARIOS_OFICIALES[0]);
-  const [sorteo_encargado_2, set_sorteo_encargado_2] = useState(BECARIOS_OFICIALES[1]);
+  const [sorteo_encargado_1, set_sorteo_encargado_1] = useState("");
+  const [sorteo_encargado_2, set_sorteo_encargado_2] = useState("");
 
   // Estados para auditoría por intervalo de fechas
   const [fecha_inicio_auditoria, set_fecha_inicio_auditoria] = useState("2026-10-01");
@@ -221,19 +245,44 @@ export function ControlRefrigerios() {
   const [descargando_pdf_auditoria, set_descargando_pdf_auditoria] = useState(false);
   const [descargando_pdf_id, set_descargando_pdf_id] = useState<number | null>(null);
 
+  useTiempoReal({
+    eventos: {
+      refrigerio_actualizado: () => {
+        invalidar();
+      },
+    },
+  });
+
   useEffect(() => {
     async function cargarBecariosYSedes() {
       try {
-        const [respuesta, sedes_api] = await Promise.all([
+        const [respuesta_directorio, respuesta_becarios, sedes_api] = await Promise.all([
+          clienteApi.get<any[]>("/api/becarios/directorio-nombres").catch(() => []),
           clienteApi.get<any[]>("/api/becarios").catch(() => []),
           clienteApi.get<any[]>("/api/lugares-practica").catch(() => []),
         ]);
-        if (Array.isArray(respuesta) && respuesta.length > 0) {
-          const nombres = respuesta
-            .map((b) => b.nombre || (b.usuario ? b.usuario.nombre : null))
-            .filter(Boolean);
-          if (nombres.length > 0) {
-            set_lista_becarios(nombres);
+        const fuente =
+          Array.isArray(respuesta_becarios) && respuesta_becarios.length > 0
+            ? respuesta_becarios
+            : respuesta_directorio;
+
+        if (Array.isArray(fuente) && fuente.length > 0) {
+          const mapa_ids: Record<string, number> = {};
+          const nombres: string[] = [];
+          for (const b of fuente) {
+            const nom = String(b.nombre || b.usuario?.nombre || "").trim();
+            if (!nom) continue;
+            nombres.push(nom);
+            if (b.id) mapa_ids[nom] = Number(b.id);
+          }
+          const nombres_unicos = Array.from(new Set(nombres)).sort((a, b) => a.localeCompare(b));
+          if (nombres_unicos.length > 0) {
+            set_lista_becarios(nombres_unicos);
+            set_mapa_becario_ids(mapa_ids);
+            set_sorteo_encargado_1((prev) => prev || nombres_unicos[0]);
+            set_sorteo_encargado_2((prev) => prev || nombres_unicos[1] || nombres_unicos[0]);
+            set_nuevo_encargado_1((prev) => prev || nombres_unicos[0]);
+            set_nuevo_encargado_2((prev) => prev || nombres_unicos[1] || nombres_unicos[0]);
           }
         }
         if (Array.isArray(sedes_api) && sedes_api.length > 0) {
@@ -331,38 +380,57 @@ export function ControlRefrigerios() {
   };
 
   const confirmarProgramacionDupla = async () => {
+    if (!sorteo_encargado_1 || !sorteo_encargado_2) {
+      toast.error("Selecciona a los dos becarios encargados.");
+      return;
+    }
     if (sorteo_encargado_1 === sorteo_encargado_2) {
       toast.error("Deben ser dos becarios distintos para conformar la dupla.");
       return;
     }
 
-    const nuevo_refrigerio: RegistroRacionRefrigerio = {
-      id: Date.now(),
-      fecha: sorteo_viernes_fecha,
-      evento_o_jornada: sorteo_evento,
-      tipo_refrigerio: "refrigerio_tarde",
-      becario_encargado: `${sorteo_encargado_1} y ${sorteo_encargado_2}`,
-      becario_encargado_1: sorteo_encargado_1,
-      becario_encargado_2: sorteo_encargado_2,
-      modalidad_preparacion: "cocina_diaconia",
-      cantidad_raciones: 23,
-      costo_unitario_bs: 5.0,
-      costo_total_bs: 115.0,
-      presupuesto_referencial_bs: 115.0,
-      porcentaje_devolucion: 100,
-      sede_nombre: "Oficina Central El Alto",
-      bloque: "Bloque B (Auditorio)",
-      responsable_entrega: usuario?.nombre || "Administración Central",
-      estado_reposicion: "sorteado_programado",
-      observaciones: "Dupla oficial designada por la Directiva para este viernes. Presupuesto asignado Bs 115.00.",
-    };
+    const id_enc_1 = mapa_becario_ids[sorteo_encargado_1];
+    const id_enc_2 = mapa_becario_ids[sorteo_encargado_2];
 
-    set_registros([nuevo_refrigerio, ...registros]);
-    set_modal_sorteo_abierto(false);
-    toast.success("Viernes de refrigerio programado exitosamente", {
-      description: `Dupla designada por Directiva: ${sorteo_encargado_1} y ${sorteo_encargado_2} para el ${sorteo_viernes_fecha}.`,
-    });
-    await invalidar();
+    try {
+      if (id_enc_1 && id_enc_2) {
+        await clienteApi.post("/api/refrigerios/sortear-dupla", {
+          fecha: sorteo_viernes_fecha,
+          descripcion: sorteo_evento,
+          cantidad_raciones: 23,
+          presupuesto_referencial_bs: 115.0,
+          becario_encargado_1_id: id_enc_1,
+          becario_encargado_2_id: id_enc_2,
+        });
+      } else {
+        await clienteApi.post("/api/refrigerios", {
+          fecha: sorteo_viernes_fecha,
+          descripcion: sorteo_evento,
+          cantidad_raciones: 23,
+          costo_unitario_bs: 5.0,
+          costo_total_bs: 0.0,
+          presupuesto_referencial_bs: 115.0,
+          responsable_id: usuario?.id || 1,
+          responsable_entrega: usuario?.nombre || "Coordinación General BUMAND",
+          becario_encargado_1_nombre: sorteo_encargado_1,
+          becario_encargado_2_nombre: sorteo_encargado_2,
+          becario_nombre: `${sorteo_encargado_1} y ${sorteo_encargado_2}`,
+          estado_reposicion: "sorteado_programado",
+          observaciones:
+            "Dupla oficial designada por la Directiva para este viernes. Presupuesto asignado Bs 115.00.",
+        });
+      }
+
+      set_modal_sorteo_abierto(false);
+      toast.success("Viernes de refrigerio programado exitosamente", {
+        description: `Dupla designada: ${sorteo_encargado_1} y ${sorteo_encargado_2} para el ${sorteo_viernes_fecha}.`,
+      });
+      await invalidar();
+    } catch (error) {
+      toast.error("No se pudo guardar la dupla de refrigerio", {
+        description: error instanceof Error ? error.message : "Verifica tu sesión e intenta nuevamente.",
+      });
+    }
   };
 
   // Guardar nuevo registro de entrega de raciones de refrigerio
@@ -374,34 +442,6 @@ export function ControlRefrigerios() {
     const precio_u = parseFloat(nuevo_costo_unitario) || 5.0;
     const evento_final = nuevo_evento.trim() || "Escuela de Líderes (Viernes Formativo)";
 
-    const nuevo: RegistroRacionRefrigerio = {
-      id: Date.now(),
-      fecha: nueva_fecha,
-      evento_o_jornada: evento_final,
-      tipo_refrigerio: "refrigerio_tarde",
-      becario_encargado: `${nuevo_encargado_1} y ${nuevo_encargado_2}`,
-      becario_encargado_1: nuevo_encargado_1,
-      becario_encargado_2: nuevo_encargado_2,
-      cantidad_raciones: cant,
-      costo_unitario_bs: precio_u,
-      costo_total_bs: costo_t,
-      presupuesto_referencial_bs: 115.0,
-      porcentaje_devolucion: 100,
-      monto_devolucion_bs: costo_t,
-      sede_nombre: nueva_sede,
-      bloque: nuevo_bloque,
-      responsable_entrega: nuevo_responsable_entrega.trim() || "Coordinación General BUMAND",
-      estado_reposicion: "rendido_pendiente",
-      observaciones: nuevas_observaciones.trim() || "Sin observaciones adicionales.",
-    };
-
-    set_registros([nuevo, ...registros]);
-    resetearFormularioRefrigerio();
-    set_modal_nuevo_abierto(false);
-    toast.success(`Rendición de refrigerio registrada para ${cant} raciones.`, {
-      description: `Dupla: ${nuevo_encargado_1} y ${nuevo_encargado_2}. Costo total: Bs ${costo_t.toFixed(2)}.`,
-    });
-
     try {
       await clienteApi.post("/api/refrigerios", {
         fecha: nueva_fecha,
@@ -412,12 +452,26 @@ export function ControlRefrigerios() {
         responsable_id: usuario?.id || 1,
         responsable_entrega: nuevo_responsable_entrega.trim() || "Coordinación General BUMAND",
         observaciones: nuevas_observaciones.trim() || undefined,
+        sede_nombre: nueva_sede,
+        bloque: nuevo_bloque,
+        becario_encargado_1_id: mapa_becario_ids[nuevo_encargado_1],
+        becario_encargado_2_id: mapa_becario_ids[nuevo_encargado_2],
+        becario_encargado_1_nombre: nuevo_encargado_1,
+        becario_encargado_2_nombre: nuevo_encargado_2,
         becario_nombre: `${nuevo_encargado_1} y ${nuevo_encargado_2}`,
         estado_reposicion: "rendido_pendiente",
       });
+
+      resetearFormularioRefrigerio();
+      set_modal_nuevo_abierto(false);
+      toast.success(`Rendición de refrigerio registrada para ${cant} raciones.`, {
+        description: `Dupla: ${nuevo_encargado_1} y ${nuevo_encargado_2}. Costo total: Bs ${costo_t.toFixed(2)}.`,
+      });
       await invalidar();
-    } catch {
-      // Fallback local
+    } catch (error) {
+      toast.error("No se pudo registrar el refrigerio en base de datos", {
+        description: error instanceof Error ? error.message : "Intente nuevamente.",
+      });
     }
   };
 
@@ -562,10 +616,22 @@ export function ControlRefrigerios() {
   const manejarEliminarRegistro = (item: RegistroRacionRefrigerio) => {
     confirmarEliminacionRegistro({
       titulo: "¿Eliminar registro de refrigerio?",
-      descripcion: `¿Está seguro de eliminar el registro de raciones de "${item.evento_o_jornada}" del ${item.fecha}? Esta acción no se puede deshacer.`,
+      descripcion: `¿Está seguro de eliminar el registro de raciones de "${item.evento_o_jornada}" del ${item.fecha}? Se eliminará permanentemente de la base de datos y de la aplicación móvil.`,
       nombre_item: `${item.evento_o_jornada} (${item.fecha})`,
-      onConfirmar: () => {
-        set_registros((prev) => prev.filter((r) => r.id !== item.id));
+      onConfirmar: async () => {
+        try {
+          await clienteApi.delete(`/api/refrigerios/${item.id}`);
+          set_registros((prev) => prev.filter((r) => r.id !== item.id));
+          await invalidar();
+          toast.success("Registro de refrigerio eliminado de la base de datos y APK");
+        } catch (error) {
+          toast.error("No se pudo eliminar el registro de refrigerio", {
+            description:
+              error instanceof Error
+                ? error.message
+                : "Verifica tus permisos de Administrador/Supervisor.",
+          });
+        }
       },
     });
   };
@@ -1203,13 +1269,13 @@ export function ControlRefrigerios() {
                     </Button>
 
                     {/* Botón: Eliminar */}
-                    {es_admin && (
+                    {(es_admin || es_supervisor) && (
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => manejarEliminarRegistro(item)}
-                        className="h-8 px-2 text-xs rounded-lg hover:bg-red-50 text-red-600 hover:text-red-700"
-                        title="Eliminar Registro de Raciones"
+                        className="h-8 px-2 text-xs rounded-lg hover:bg-red-50 text-red-600 hover:text-red-700 cursor-pointer"
+                        title="Eliminar Registro de Raciones (Web + APK)"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>

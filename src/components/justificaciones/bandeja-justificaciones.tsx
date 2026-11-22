@@ -22,6 +22,7 @@ import {
   Upload,
   Download,
   ShieldCheck,
+  Trash2,
 } from "lucide-react";
 import { clienteApi } from "@/lib/cliente-api";
 import { useConsulta } from "@/hooks/useConsulta";
@@ -138,6 +139,8 @@ export function BandejaJustificaciones() {
   const [justificacion_rechazo, set_justificacion_rechazo] = useState<JustificacionIncidencia | null>(null);
   const [observacion_rechazo, set_observacion_rechazo] = useState<string>("");
   const [justificacion_detalle, set_justificacion_detalle] = useState<JustificacionIncidencia | null>(null);
+  const [justificacion_eliminar, set_justificacion_eliminar] = useState<JustificacionIncidencia | null>(null);
+  const [eliminando_permiso, set_eliminando_permiso] = useState<boolean>(false);
   const [mensaje_alerta, set_mensaje_alerta] = useState<string | null>(null);
 
   const [lista_becarios, set_lista_becarios] = useState(BECARIOS_OFICIALES);
@@ -574,6 +577,28 @@ export function BandejaJustificaciones() {
     setTimeout(() => set_mensaje_alerta(null), 4000);
   };
 
+  const manejarConfirmarEliminarPermiso = async () => {
+    if (!justificacion_eliminar) return;
+    set_eliminando_permiso(true);
+    try {
+      await clienteApi.delete(`/api/justificaciones/${justificacion_eliminar.id}`);
+      set_justificaciones_locales((prev) =>
+        prev.filter((j) => j.id !== justificacion_eliminar.id)
+      );
+      toast.success("Permiso / justificación eliminado", {
+        description: `Registro de ${justificacion_eliminar.becario_nombre} eliminado permanentemente (Web + APK).`,
+      });
+      set_justificacion_eliminar(null);
+      await invalidar();
+    } catch (error) {
+      toast.error("No se pudo eliminar el permiso", {
+        description: error instanceof Error ? error.message : "Verifica tus permisos.",
+      });
+    } finally {
+      set_eliminando_permiso(false);
+    }
+  };
+
   const formatearTipoIncidencia = (_tipo: JustificacionIncidencia["tipo_incidencia"]) => {
     switch (_tipo) {
       case "asistencia_practicas":
@@ -891,6 +916,19 @@ export function BandejaJustificaciones() {
                             En revisión institucional
                           </Badge>
                         )}
+
+                        {(es_admin || es_supervisor || (es_becario && es_pendiente)) && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => set_justificacion_eliminar(just)}
+                            className="h-8 px-2.5 rounded-xl text-rose-600 hover:text-rose-700 hover:bg-rose-50 text-xs font-semibold gap-1 cursor-pointer"
+                            title="Eliminar permiso / justificación de la base de datos y APK"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Quitar</span>
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -900,6 +938,41 @@ export function BandejaJustificaciones() {
           })
         )}
       </div>
+
+      {/* Diálogo Confirmación de Eliminación de Permiso */}
+      {justificacion_eliminar && (
+        <AlertDialog
+          open={!!justificacion_eliminar}
+          onOpenChange={(abierto) => {
+            if (!abierto && !eliminando_permiso) set_justificacion_eliminar(null);
+          }}
+        >
+          <AlertDialogContent className="sm:max-w-[460px] p-6 bg-white border-[#E5E7EB] rounded-2xl">
+            <AlertDialogHeader className="pb-2">
+              <AlertDialogTitle className="text-base font-bold text-rose-700 flex items-center gap-2">
+                <Trash2 className="w-5 h-5 text-rose-600" />
+                ¿Eliminar permiso / justificación?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-xs text-slate-600">
+                Se eliminará permanentemente la solicitud de{" "}
+                <strong className="text-[#035683]">{justificacion_eliminar.becario_nombre}</strong>{" "}
+                ({justificacion_eliminar.motivo} · {justificacion_eliminar.fecha_incidencia}) tanto del sistema web como de la aplicación móvil.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="pt-3">
+              <AlertDialogCancel disabled={eliminando_permiso}>Cancelar</AlertDialogCancel>
+              <Button
+                type="button"
+                disabled={eliminando_permiso}
+                onClick={manejarConfirmarEliminarPermiso}
+                className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl"
+              >
+                {eliminando_permiso ? "Eliminando..." : "Sí, eliminar permiso"}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
 
       {/* Diálogo Modal para Rechazo Motivado de la Justificación con AlertDialog */}
       {justificacion_rechazo && (

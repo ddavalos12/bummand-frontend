@@ -140,10 +140,10 @@ export function SabanaConsolidadoSemestral() {
   // Filtrado de becarios
   const becarios_filtrados = registros_sabana_para_rol.filter((b) => {
     const coincide_busqueda =
-      b.nombre_completo.toLowerCase().includes(busqueda.toLowerCase()) ||
-      b.ci.includes(busqueda) ||
-      b.carrera.toLowerCase().includes(busqueda.toLowerCase()) ||
-      b.universidad.toLowerCase().includes(busqueda.toLowerCase());
+      (b.nombre_completo || "").toLowerCase().includes(busqueda.toLowerCase()) ||
+      (b.ci || "").includes(busqueda) ||
+      (b.carrera || "").toLowerCase().includes(busqueda.toLowerCase()) ||
+      (b.universidad || "").toLowerCase().includes(busqueda.toLowerCase());
 
     const coincide_calificacion =
       filtro_calificacion === "todos" ||
