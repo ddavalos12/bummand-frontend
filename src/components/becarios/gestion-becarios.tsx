@@ -26,6 +26,7 @@ import {
   generarOpcionesIglesias,
 } from "./constantes-academicas-eclesiales";
 import { ModalVisorDocumentoBecario } from "./modal-visor-documento-becario";
+import { BotonSolicitudVerificacion } from "./boton-solicitud-verificacion";
 import { Switch } from "@/components/ui/switch";
 import {
   Search,
@@ -1336,6 +1337,16 @@ export function GestionBecarios() {
               <Badge variant="outline" className="h-7 px-2.5 border-[#E5E7EB] text-[#035683] font-mono text-xs font-bold">
                 Total: {lista_para_rol.length} {es_supervisor ? "asignados" : "becarios"}
               </Badge>
+              {es_admin && (
+                <BotonSolicitudVerificacion
+                  total_becarios={lista_para_rol.length}
+                  confirmarAccionInstitucional={confirmarAccionInstitucional}
+                  alEmitirOrden={() => {
+                    set_verificacion_mensual_activa(true);
+                    invalidar();
+                  }}
+                />
+              )}
               {verificacion_mensual_activa && (
                 <Badge className="h-7 px-2.5 bg-amber-500 text-white font-mono text-[11px] font-bold flex items-center gap-1 animate-pulse">
                   <Clock className="w-3 h-3" /> Verificación en Curso

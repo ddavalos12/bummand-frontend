@@ -78,7 +78,7 @@ export function BotonSolicitudVerificacion({
       toast.success(
         respuesta?.mensaje || "Orden institucional de verificación emitida exitosamente.",
         {
-          description: `Se notificó a los becarios. Próxima emisión disponible en 7 días.`,
+          description: `Todos los becarios verán la confirmación de datos al iniciar sesión.`,
         }
       );
     } catch (error: any) {
@@ -91,8 +91,8 @@ export function BotonSolicitudVerificacion({
   const manejarClic = () => {
     confirmarAccionInstitucional({
       titulo: "¿Emitir Orden Institucional de Verificación de Datos?",
-      descripcion: `Esta orden cambiará el estado de los expedientes a "Pendiente Validación" y requerirá que los becarios confirmen sus datos en la aplicación móvil. El botón se desactivará de inmediato por 7 días. ¿Desea proceder?`,
-      texto_confirmar: "Sí, Solicitar Verificación (7 días)",
+      descripcion: `Esta orden restablecerá el estado de confirmación de los expedientes y solicitará que todos los becarios confirmen sus datos la próxima vez que ingresen a la aplicación móvil. ¿Desea proceder?`,
+      texto_confirmar: "Sí, Solicitar Verificación",
       texto_cancelar: "Cancelar",
       tipo: "primario",
       onConfirmar: ejecutarSolicitud,
@@ -153,7 +153,7 @@ export function BotonSolicitudVerificacion({
           </Button>
         </TooltipTrigger>
         <TooltipContent className="text-xs max-w-xs bg-slate-900 text-white p-2 rounded-lg">
-          Emite una orden formal para que todos los becarios verifiquen y ratifiquen sus datos institucionales. Bloqueo automático de 7 días tras la emisión.
+          Emite una orden formal para que todos los becarios verifiquen y ratifiquen sus datos institucionales en su próximo ingreso.
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
