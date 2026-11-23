@@ -92,12 +92,6 @@ export function CuestionarioBienestarModal({
       // Usar preguntas iniciales por defecto
     }
 
-    // Inicializar respuestas por defecto si está vacío
-    const iniciales: Record<number, "A" | "B" | "C" | "D"> = {};
-    PREGUNTAS_BIENESTAR_INICIALES.forEach((p) => {
-      iniciales[p.numero] = p.numero > 20 ? "D" : "A";
-    });
-    set_respuestas_seleccionadas(iniciales);
   }, []);
 
   const seleccionarOpcion = (numero_pregunta: number, inciso: "A" | "B" | "C" | "D") => {
@@ -135,7 +129,7 @@ export function CuestionarioBienestarModal({
       }
     });
 
-    if (max_puntos === 0) return 20;
+    if (max_puntos === 0 || Object.keys(respuestas_seleccionadas).length === 0) return 0;
     const puntaje_final = (suma_puntos / max_puntos) * 20;
     return Math.min(Math.max(Number(puntaje_final.toFixed(1)), 0), 20);
   };

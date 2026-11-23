@@ -32,9 +32,8 @@ import { useTiempoReal } from "@/hooks/use-tiempo-real";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import { exportarSabanaEvaluacionesExcel } from "@/lib/generador-excel-cliente";
 import {
-  BECARIOS_SEMESTRE_II,
-  NOTAS_CETI_SEMESTRE_II,
-  EVALUACIONES_MENTORES_SEMESTRE_II,
+  NotaCetiBecario,
+  EvaluacionMentorRegistro,
   RANGOS_APROBACION_OFICIALES,
   BecarioEvaluacionSemestral,
 } from "./evaluaciones-datos-semestre";
@@ -78,7 +77,7 @@ export function SabanaConsolidadoSemestral() {
   const { es_mentor, becarios_designados, filtrarPorMentor } = usarBecariosDesignadosMentor();
   const [registros_sabana, set_registros_sabana] =
     useState<BecarioEvaluacionSemestral[]>([]);
-  const [total_titulares_bd, set_total_titulares_bd] = useState<number>(23);
+  const [total_titulares_bd, set_total_titulares_bd] = useState<number>(0);
   const [busqueda, set_busqueda] = useState<string>("");
   const [filtro_calificacion, set_filtro_calificacion] = useState<string>("todos");
   const [becario_detalle, set_becario_detalle] = useState<BecarioEvaluacionSemestral | null>(null);
@@ -128,12 +127,12 @@ export function SabanaConsolidadoSemestral() {
   );
 
   const notas_ceti_para_rol = useMemo(
-    () => [] as typeof NOTAS_CETI_SEMESTRE_II,
+    () => [] as NotaCetiBecario[],
     []
   );
 
   const evaluaciones_mentores_para_rol = useMemo(
-    () => [] as typeof EVALUACIONES_MENTORES_SEMESTRE_II,
+    () => [] as EvaluacionMentorRegistro[],
     []
   );
 

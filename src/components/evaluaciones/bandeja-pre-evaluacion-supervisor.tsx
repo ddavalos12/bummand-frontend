@@ -72,62 +72,6 @@ export interface BecarioPendientePreEvaluacion {
   observaciones_estudiante?: string;
 }
 
-const REGISTROS_DEMO_PRE_EVALUACION: BecarioPendientePreEvaluacion[] = [
-  {
-    evaluacion_id: 101,
-    becario_id: 1,
-    nombre: "Nilda Amalia Churata Paye",
-    ci: "8347291 LP",
-    carrera: "Educación Parvularia",
-    universidad: "UMSA",
-    periodo: "Semestre II - 2026",
-    promedio_estudiante: 88.5,
-    kardex_nombre: "Record_Academico_Churata_2026_II.pdf",
-    kardex_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    kardex_tamano: "1.2 MB",
-    programacion_nombre: "Programacion_Churata_2026_II.pdf",
-    programacion_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    programacion_tamano: "840 KB",
-    estado: "en_revision_supervisor",
-    fecha_envio: "2026-10-25",
-    observaciones_estudiante: "Adjunto kárdex con firma de la dirección de carrera.",
-    materias: [
-      { id: "m1", nombre: "Psicología del Desarrollo Infantil II", sigla: "EP-201", nota: 90, nota_original: 90 },
-      { id: "m2", nombre: "Didáctica de la Lectoescritura", sigla: "EP-202", nota: 88, nota_original: 88 },
-      { id: "m3", nombre: "Nutrición y Salud Infantil", sigla: "EP-203", nota: 86, nota_original: 86 },
-      { id: "m4", nombre: "Expresión Plástica y Corporal", sigla: "EP-204", nota: 90, nota_original: 90 },
-    ],
-  },
-  {
-    evaluacion_id: 102,
-    becario_id: 2,
-    nombre: "Joel David Alarcón Ticona",
-    ci: "9123847 LP",
-    carrera: "Ingeniería de Sistemas",
-    universidad: "UPEA",
-    periodo: "Semestre II - 2026",
-    promedio_estudiante: 84.0,
-    kardex_nombre: "Kardex_Oficial_Alarcon_UPEA.pdf",
-    kardex_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    kardex_tamano: "1.5 MB",
-    programacion_nombre: "Boleta_Inscripcion_Alarcon.pdf",
-    programacion_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    programacion_tamano: "920 KB",
-    carnet_renovado_nombre: "CI_Renovado_Alarcon.pdf",
-    carnet_renovado_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    carnet_renovado_tamano: "1.1 MB",
-    estado: "en_revision_supervisor",
-    fecha_envio: "2026-10-26",
-    observaciones_estudiante: "Renové mi cédula de identidad en SEGIP este mes.",
-    materias: [
-      { id: "m10", nombre: "Sistemas Operativos II", sigla: "SIS-301", nota: 85, nota_original: 85 },
-      { id: "m11", nombre: "Bases de Datos Distribuidas", sigla: "SIS-302", nota: 80, nota_original: 80 },
-      { id: "m12", nombre: "Redes y Telecomunicaciones", sigla: "SIS-303", nota: 82, nota_original: 82 },
-      { id: "m13", nombre: "Ingeniería de Software II", sigla: "SIS-304", nota: 89, nota_original: 89 },
-    ],
-  },
-];
-
 export interface BandejaPreEvaluacionSupervisorProps {
   alAbrirVisor: (titulo: string, nombre_archivo: string, url: string) => void;
   alAprobarPreEvaluacion?: (datos: {
@@ -142,11 +86,9 @@ export function BandejaPreEvaluacionSupervisor({
   alAprobarPreEvaluacion,
 }: BandejaPreEvaluacionSupervisorProps) {
   const { es_mentor, filtrarPorMentor } = usarBecariosDesignadosMentor();
-  const [registros, set_registros] = useState<BecarioPendientePreEvaluacion[]>(
-    REGISTROS_DEMO_PRE_EVALUACION
-  );
-  const [registro_seleccionado_id, set_registro_seleccionado_id] = useState<number>(
-    REGISTROS_DEMO_PRE_EVALUACION[0].evaluacion_id
+  const [registros, set_registros] = useState<BecarioPendientePreEvaluacion[]>([]);
+  const [registro_seleccionado_id, set_registro_seleccionado_id] = useState<number | null>(
+    null
   );
   const [busqueda, set_busqueda] = useState<string>("");
   const [observaciones_supervisor, set_observaciones_supervisor] = useState<string>("");
@@ -157,23 +99,27 @@ export function BandejaPreEvaluacionSupervisor({
     clienteApi
       .get<any[]>("/evaluaciones/academica/pendientes-supervisor")
       .then((res) => {
-        if (!montado || !Array.isArray(res) || res.length === 0) return;
+        if (!montado) return;
+        if (!Array.isArray(res)) {
+          set_registros([]);
+          return;
+        }
         const mapeados: BecarioPendientePreEvaluacion[] = res.map((ev: any, idx: number) => ({
-          evaluacion_id: Number(ev.id || ev.evaluacion_id || 200 + idx),
-          becario_id: Number(ev.becario_id || ev.becario?.id || idx + 1),
+          evaluacion_id: Number(ev.id || ev.evaluacion_id || idx + 1),
+          becario_id: Number(ev.becario_id || ev.becario?.id || 0),
           nombre: ev.becario?.usuario?.nombre || ev.becario?.nombre || ev.nombre || `Becario ${idx + 1}`,
           ci: String(ev.becario?.ci || ev.ci || ""),
-          carrera: ev.becario?.carrera || ev.carrera || "Carrera BUMAND",
-          universidad: ev.becario?.universidad || ev.universidad || "Universidad",
-          periodo: ev.periodo?.nombre || ev.periodo || "Semestre II - 2026",
+          carrera: ev.becario?.carrera || ev.carrera || "",
+          universidad: ev.becario?.universidad || ev.universidad || "",
+          periodo: ev.periodo?.nombre || ev.periodo || "",
           promedio_estudiante: Number(ev.puntaje ?? ev.promedio_estudiante ?? 0),
           materias: Array.isArray(ev.materias) && ev.materias.length > 0 ? ev.materias : [],
-          kardex_nombre: ev.kardex_nombre || "Kardex_Oficial.pdf",
+          kardex_nombre: ev.kardex_nombre || "",
           kardex_url: ev.kardex_url || "",
-          programacion_nombre: ev.programacion_nombre || "Programacion.pdf",
+          programacion_nombre: ev.programacion_nombre || "",
           programacion_url: ev.programacion_url || "",
           estado: (ev.estado || "en_revision_supervisor") as BecarioPendientePreEvaluacion["estado"],
-          fecha_envio: ev.creado_en ? String(ev.creado_en).split("T")[0] : "2026-10-25",
+          fecha_envio: ev.creado_en ? String(ev.creado_en).split("T")[0] : "",
           observaciones_estudiante: ev.observaciones || undefined,
           supervisor_id: ev.becario?.supervisor_id ?? ev.becario?.supervisor?.id ?? null,
           supervisor_nombre: ev.becario?.supervisor?.nombre ?? ev.becario?.supervisor?.usuario?.nombre ?? null,
@@ -181,7 +127,7 @@ export function BandejaPreEvaluacionSupervisor({
         set_registros(mapeados);
       })
       .catch(() => {
-        // Mantiene respaldo local si el backend no devuelve registros
+        if (montado) set_registros([]);
       });
     return () => {
       montado = false;
@@ -300,14 +246,10 @@ export function BandejaPreEvaluacionSupervisor({
         observaciones_supervisor: observaciones_supervisor.trim() || undefined,
       };
 
-      try {
-        await clienteApi.put(
-          `/evaluaciones/academica/${registro_activo.evaluacion_id}/pre-evaluacion`,
-          payload
-        );
-      } catch (e) {
-        // Fallback local
-      }
+      await clienteApi.put(
+        `/evaluaciones/academica/${registro_activo.evaluacion_id}/pre-evaluacion`,
+        payload
+      );
 
       set_registros(
         registros.map((r) =>
@@ -328,6 +270,8 @@ export function BandejaPreEvaluacionSupervisor({
           materias: registro_activo.materias,
         });
       }
+    } catch {
+      toast.error("No se pudo registrar la pre-evaluación en el servidor.");
     } finally {
       set_guardando(false);
     }
@@ -342,19 +286,15 @@ export function BandejaPreEvaluacionSupervisor({
 
     set_guardando(true);
     try {
-      try {
-        await clienteApi.put(
-          `/evaluaciones/academica/${registro_activo.evaluacion_id}/pre-evaluacion`,
-          {
-            evaluacion_id: registro_activo.evaluacion_id,
-            accion: "observar",
-            materias: registro_activo.materias,
-            observaciones_supervisor: observaciones_supervisor.trim(),
-          }
-        );
-      } catch (e) {
-        // Fallback local
-      }
+      await clienteApi.put(
+        `/evaluaciones/academica/${registro_activo.evaluacion_id}/pre-evaluacion`,
+        {
+          evaluacion_id: registro_activo.evaluacion_id,
+          accion: "observar",
+          materias: registro_activo.materias,
+          observaciones_supervisor: observaciones_supervisor.trim(),
+        }
+      );
 
       set_registros(
         registros.map((r) =>
@@ -367,6 +307,8 @@ export function BandejaPreEvaluacionSupervisor({
       toast.warning("Evaluación observada y devuelta", {
         description: `Se notificó al estudiante para que corrija sus notas o documentos.`,
       });
+    } catch {
+      toast.error("No se pudo registrar la observación en el servidor.");
     } finally {
       set_guardando(false);
     }

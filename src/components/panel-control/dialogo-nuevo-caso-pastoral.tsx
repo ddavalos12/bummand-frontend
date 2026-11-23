@@ -51,7 +51,7 @@ export function DialogoNuevoCasoPastoral({
   );
   const [origen, set_origen] = useState<string>("Comunicación Directa del Pastor");
   const [prioridad, set_prioridad] = useState<"BAJA" | "MEDIA" | "ALTA" | "CRITICA">("MEDIA");
-  const [tutor_asignado, set_tutor_asignado] = useState<string>("Pr. Carlos Mendoza");
+  const [tutor_asignado, set_tutor_asignado] = useState<string>("");
   const [observaciones, set_observaciones] = useState<string>("");
   const [guardando, set_guardando] = useState<boolean>(false);
 
@@ -73,9 +73,8 @@ export function DialogoNuevoCasoPastoral({
   ];
 
   const TUTORES_SUGERIDOS = [
-    "Pr. Carlos Mendoza (Comisión Pastoral)",
-    "Lic. María Elena Quispe (Trabajo Social)",
     "Coord. Pastoral BUMAND",
+    "Trabajo Social BUMAND",
     "Pastor Local de Congregación",
   ];
 

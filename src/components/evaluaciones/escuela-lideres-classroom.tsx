@@ -61,7 +61,6 @@ import {
 } from "@/lib/filtro-mentor";
 import { InsigniaBecariosDesignados } from "@/components/ui/insignia-becarios-designados";
 import { useTiempoReal } from "@/hooks/use-tiempo-real";
-import { BECARIOS_SEMESTRE_II } from "./evaluaciones-datos-semestre";
 import { BotonesAccionEvaluacion } from "./botones-accion-evaluacion";
 
 export interface LecturaPdfTarea {
@@ -98,201 +97,6 @@ export interface TareaCetiCanonica {
   docente_revisor?: string;
   fecha_revision?: string;
 }
-
-const TAREAS_CETI_INICIALES: TareaCetiCanonica[] = [
-  {
-    id: 1,
-    numero: 1,
-    titulo: "Liderazgo Servidor y Mayordomía Cristiana",
-    modulo_tematico: "Módulo I: Fundamentos del Carácter Diaconal",
-    descripcion:
-      "Ensayo analítico sobre los principios bíblicos del liderazgo de servicio según el modelo de Jesús en los Evangelios y su contraste con los esquemas seculares de poder.",
-    fecha_limite: "2026-08-15",
-    ponderacion: 8.33,
-    estado: "revisado",
-    archivo_nombre: "Tarea_01_Liderazgo_Servidor_Flores.pdf",
-    archivo_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    archivo_tamano: "1.2 MB",
-    fecha_entrega: "2026-08-14",
-    comentario_estudiante: "Presento el ensayo integrando las lecturas del manual CETI y vivencia personal.",
-    calificacion_100: 95,
-    retroalimentacion_docente: "Excelente profundidad teológica y reflexión personal muy contextualizada.",
-    docente_revisor: "Pr. Samuel Quispe (CETI)",
-    fecha_revision: "2026-08-17",
-  },
-  {
-    id: 2,
-    numero: 2,
-    titulo: "Misión Integral y Vocación Diaconal",
-    modulo_tematico: "Módulo I: Fundamentos del Carácter Diaconal",
-    descripcion:
-      "Investigación sobre las 5 dimensiones de la misión integral de la iglesia y el papel de las microfinanzas y el desarrollo humano en comunidades vulnerables.",
-    fecha_limite: "2026-08-29",
-    ponderacion: 8.33,
-    estado: "revisado",
-    archivo_nombre: "Tarea_02_Mision_Integral_Flores.pdf",
-    archivo_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    archivo_tamano: "1.5 MB",
-    fecha_entrega: "2026-08-28",
-    comentario_estudiante: "Se incluye estudio de caso de una familia en El Alto.",
-    calificacion_100: 90,
-    retroalimentacion_docente: "Muy buen análisis de la acción social de Diaconía.",
-    docente_revisor: "Pr. Samuel Quispe (CETI)",
-    fecha_revision: "2026-08-31",
-  },
-  {
-    id: 3,
-    numero: 3,
-    titulo: "Ética Profesional en el Ámbito Financiero y Social",
-    modulo_tematico: "Módulo II: Conducta y Mayordomía",
-    descripcion:
-      "Resolución de dilemas éticos reales en administración, contabilidad, leyes y salud, con sustento moral bíblico y normativa institucional.",
-    fecha_limite: "2026-09-12",
-    ponderacion: 8.33,
-    estado: "revisado",
-    archivo_nombre: "Tarea_03_Etica_Profesional.pdf",
-    archivo_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    archivo_tamano: "980 KB",
-    fecha_entrega: "2026-09-11",
-    comentario_estudiante: "Desarrollo de los 3 casos prácticos propuestos en clase.",
-    calificacion_100: 92,
-    retroalimentacion_docente: "Casuística bien argumentada conforme al Código de Ética de Diaconía.",
-    docente_revisor: "Pr. Samuel Quispe (CETI)",
-    fecha_revision: "2026-09-14",
-  },
-  {
-    id: 4,
-    numero: 4,
-    titulo: "Acompañamiento a Grupos Vulnerables",
-    modulo_tematico: "Módulo II: Conducta y Mayordomía",
-    descripcion:
-      "Plan de visitación y apoyo pastoral-diaconal a personas en situación de vulnerabilidad, niñez o adultos mayores de la comunidad circundante.",
-    fecha_limite: "2026-09-26",
-    ponderacion: 8.33,
-    estado: "revisado",
-    archivo_nombre: "Tarea_04_Acompanamiento_Vulnerable.pdf",
-    archivo_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    archivo_tamano: "1.4 MB",
-    fecha_entrega: "2026-09-25",
-    comentario_estudiante: "Informe con bitácora fotográfica de la actividad comunitaria.",
-    calificacion_100: 88,
-    retroalimentacion_docente: "Muy sensible al contexto y con gran calidez pastoral.",
-    docente_revisor: "Pr. Samuel Quispe (CETI)",
-    fecha_revision: "2026-09-28",
-  },
-  {
-    id: 5,
-    numero: 5,
-    titulo: "Resolución Bíblica de Conflictos en la Comunidad",
-    modulo_tematico: "Módulo III: Gestión de Relaciones Humanas",
-    descripcion:
-      "Taller práctico de mediación según Mateo 18 y Gálatas 6, identificando etapas de conflicto y herramientas de reconciliación interpersonal.",
-    fecha_limite: "2026-10-10",
-    ponderacion: 8.33,
-    estado: "revisado",
-    archivo_nombre: "Tarea_05_Resolucion_Conflictos.pdf",
-    archivo_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    archivo_tamano: "1.1 MB",
-    fecha_entrega: "2026-10-09",
-    comentario_estudiante: "Matriz comparativa de estilos de mediación.",
-    calificacion_100: 90,
-    retroalimentacion_docente: "Aporte metódico y muy aplicable al ambiente laboral diaconal.",
-    docente_revisor: "Pr. Samuel Quispe (CETI)",
-    fecha_revision: "2026-10-12",
-  },
-  {
-    id: 6,
-    numero: 6,
-    titulo: "Diseño y Planificación de Proyectos de Servicio",
-    modulo_tematico: "Módulo III: Gestión de Relaciones Humanas",
-    descripcion:
-      "Perfil de proyecto social comunitario (árbol de problemas, árbol de objetivos y marco lógico preliminar) en favor de un barrio periurbano.",
-    fecha_limite: "2026-10-24",
-    ponderacion: 8.33,
-    estado: "revisado",
-    archivo_nombre: "Tarea_06_Proyecto_Servicio.pdf",
-    archivo_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    archivo_tamano: "2.1 MB",
-    fecha_entrega: "2026-10-23",
-    comentario_estudiante: "Proyecto de reforzamiento escolar en Achachicala.",
-    calificacion_100: 94,
-    retroalimentacion_docente: "Marco lógico impecable. Proyecto con alto potencial de réplica.",
-    docente_revisor: "Pr. Samuel Quispe (CETI)",
-    fecha_revision: "2026-10-25",
-  },
-  {
-    id: 7,
-    numero: 7,
-    titulo: "Oración, Intercesión y Vida Devocional Comunitaria",
-    modulo_tematico: "Módulo IV: Espiritualidad Integral",
-    descripcion:
-      "Registro de bitácora devocional de 21 días, lecturas bíblicas comentadas y motivos de intercesión por la juventud y la patria.",
-    fecha_limite: "2026-11-07",
-    ponderacion: 8.33,
-    estado: "entregado",
-    archivo_nombre: "Tarea_07_Bitacora_Devocional_Flores.pdf",
-    archivo_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    archivo_tamano: "1.3 MB",
-    fecha_entrega: "2026-10-27",
-    comentario_estudiante: "Entrego con anticipación mi bitácora devocional con reflexiones semanales.",
-    calificacion_100: undefined,
-  },
-  {
-    id: 8,
-    numero: 8,
-    titulo: "Teología del Trabajo y Excelencia Laboral",
-    modulo_tematico: "Módulo IV: Espiritualidad Integral",
-    descripcion:
-      "Ensayo crítico sobre el trabajo como culto a Dios (Colosenses 3:23) y la responsabilidad del profesional cristiano en el progreso social.",
-    fecha_limite: "2026-11-14",
-    ponderacion: 8.33,
-    estado: "pendiente",
-  },
-  {
-    id: 9,
-    numero: 9,
-    titulo: "Mayordomía del Tiempo y Gestión Personal",
-    modulo_tematico: "Módulo V: Habilidades de Liderazgo",
-    descripcion:
-      "Plan de organización personal, equilibrio académico-laboral-espiritual y matriz de prioridades de Eisenhower aplicada al estudiante diaconal.",
-    fecha_limite: "2026-11-21",
-    ponderacion: 8.33,
-    estado: "pendiente",
-  },
-  {
-    id: 10,
-    numero: 10,
-    titulo: "Liderazgo Pastoral y Cuidado de la Juventud",
-    modulo_tematico: "Módulo V: Habilidades de Liderazgo",
-    descripcion:
-      "Guía práctica de mentoría para discipular y acompañar a adolescentes y jóvenes en la iglesia local frente a las crisis de la posmodernidad.",
-    fecha_limite: "2026-11-28",
-    ponderacion: 8.33,
-    estado: "pendiente",
-  },
-  {
-    id: 11,
-    numero: 11,
-    titulo: "Evangelismo Contextualizado y Discipulado Bíblico",
-    modulo_tematico: "Módulo VI: Proyección Eclesial",
-    descripcion:
-      "Estrategia de comunicación del Evangelio adaptada a la era digital, redes sociales y dinámicas universitarias contemporáneas.",
-    fecha_limite: "2026-12-05",
-    ponderacion: 8.33,
-    estado: "pendiente",
-  },
-  {
-    id: 12,
-    numero: 12,
-    titulo: "Proyecto Final de Aplicación Comunitaria Diaconal",
-    modulo_tematico: "Módulo VI: Proyección Eclesial",
-    descripcion:
-      "Monografía final integradora de los 12 módulos CETI con informe de implementación real en la iglesia o comunidad beneficiaria.",
-    fecha_limite: "2026-12-15",
-    ponderacion: 8.33,
-    estado: "pendiente",
-  },
-];
 
 export interface EscuelaLideresClassroomProps {
   becario_id_actual?: number;
@@ -362,7 +166,7 @@ export function EscuelaLideresClassroom({
         }
       })
       .catch(() => {
-        // Mantiene BECARIOS_SEMESTRE_II como respaldo si falla
+        if (montado) set_becarios_crudos([]);
       });
     return () => {
       montado = false;
@@ -431,7 +235,7 @@ export function EscuelaLideresClassroom({
   const [guardando_entrega, set_guardando_entrega] = useState<boolean>(false);
 
   // Campos para la revisión del supervisor / administrador
-  const [nota_calificacion_input, set_nota_calificacion_input] = useState<string>("90");
+  const [nota_calificacion_input, set_nota_calificacion_input] = useState<string>("");
   const [retroalimentacion_input, set_retroalimentacion_input] = useState<string>("");
   const [guardando_revision, set_guardando_revision] = useState<boolean>(false);
 
@@ -923,12 +727,9 @@ export function EscuelaLideresClassroom({
     set_archivo_entrega_tamano(tarea.archivo_tamano || "");
     set_comentario_entrega(tarea.comentario_estudiante || "");
     set_nota_calificacion_input(
-      tarea.calificacion_100 !== undefined ? String(tarea.calificacion_100) : "90"
+      tarea.calificacion_100 !== undefined ? String(tarea.calificacion_100) : ""
     );
-    set_retroalimentacion_input(
-      tarea.retroalimentacion_docente ||
-        "Buen trabajo reflexivo. Continúa profundizando en la vocación diaconal."
-    );
+    set_retroalimentacion_input(tarea.retroalimentacion_docente || "");
     set_modal_abierto(true);
   };
 
@@ -971,22 +772,16 @@ export function EscuelaLideresClassroom({
         periodo_id: 2,
         tarea_numero: tarea_activa.numero,
         becario_id: becario_seleccionado_id,
-        archivo_evidencia_url:
-          archivo_entrega_url || `/uploads/escuela-lideres/${archivo_entrega_nombre}`,
+        archivo_evidencia_url: archivo_entrega_url,
         nombre_archivo: archivo_entrega_nombre,
         tamano_archivo: archivo_entrega_tamano || undefined,
         comentario_becario: comentario_entrega || undefined,
       };
 
-      let entrega_creada: any = null;
-      try {
-        entrega_creada = await clienteApi.post(
-          "/evaluaciones/escuela-lideres/tareas/entregar",
-          payload
-        );
-      } catch (_e) {
-        // Fallback reactivo
-      }
+      const entrega_creada: any = await clienteApi.post(
+        "/evaluaciones/escuela-lideres/tareas/entregar",
+        payload
+      );
 
       set_tareas((prev) =>
         prev.map((t) =>
@@ -1010,6 +805,8 @@ export function EscuelaLideresClassroom({
       });
 
       set_modal_abierto(false);
+    } catch {
+      toast.error("No se pudo registrar la entrega de la tarea en el servidor.");
     } finally {
       set_guardando_entrega(false);
     }

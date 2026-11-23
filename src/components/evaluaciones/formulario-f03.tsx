@@ -20,7 +20,6 @@ import {
   Award,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { CATALOGO_IGLESIAS_INSTITUCIONALES, IglesiaInstitucional } from "./evaluaciones-datos-semestre";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
@@ -64,21 +63,6 @@ export interface PropiedadesFormularioF03 {
 
 export type FormularioF03Props = PropiedadesFormularioF03;
 
-function generarRespuestasPorDefecto(nombre_becario: string, nombre_iglesia?: string) {
-  const iglesia = nombre_iglesia || "su congregación local";
-  return {
-    conviccion_llamado: `Demuestra vocación espiritual, convicción ministerial y compromiso constante en el servicio dentro de ${iglesia}.`,
-    ejemplo_congregacion: `Es referente de puntualidad, respeto a las autoridades eclesiásticas y fidelidad en sus responsabilidades asignadas.`,
-    compromiso_capacitaciones: `Asiste a los talleres formativos, discipulados y estudios bíblicos convocados por el liderazgo pastoral.`,
-    testimonio_cristiano: `Mantiene un testimonio íntegro y ejemplar tanto en su vida eclesial como en el entorno universitario y familiar.`,
-    relacion_miembros: `Trato fraterno, empático, humilde y colaborativo con todos los ministerios y miembros de la congregación.`,
-    desarrollo_nuevos_lideres: `Acompaña y mentorea a jóvenes y adolescentes de la congregación en formación ministerial.`,
-    fortalezas: `Responsabilidad, espíritu de servicio, integridad, empatía e iniciativa proactiva.`,
-    debilidades: `Continuar equilibrando la alta carga académica universitaria con los horarios de los ministerios locales.`,
-    opinion_general: `El/la estudiante ${nombre_becario} es de bendición para la iglesia y recomendamos ampliamente su certificación y continuidad en BUMAND.`,
-  };
-}
-
 /**
  * @component FormularioF03
  * @description Formulario ministerial F-03 del Pastor de la congregación con sus 3 secciones
@@ -86,9 +70,9 @@ function generarRespuestasPorDefecto(nombre_becario: string, nombre_iglesia?: st
  * con C.I., calificación oficial sobre 20 puntos y exportación a PDF oficial convalidado).
  */
 export function FormularioF03({
-  becario_id = 1,
+  becario_id,
   becario_ci,
-  nombre_becario_inicial = "Becario Institucional",
+  nombre_becario_inicial = "",
   iglesia_actual,
   pastor_actual,
   celular_actual,
@@ -112,38 +96,31 @@ export function FormularioF03({
   const puede_calificar = !solo_lectura || Boolean(modo_revision_admin);
 
   const lista_iglesias =
-    catalogo_iglesias && catalogo_iglesias.length > 0
-      ? catalogo_iglesias
-      : CATALOGO_IGLESIAS_INSTITUCIONALES;
-
-  const respuestas_iniciales = generarRespuestasPorDefecto(
-    nombre_becario_inicial,
-    iglesia_actual
-  );
+    catalogo_iglesias && catalogo_iglesias.length > 0 ? catalogo_iglesias : [];
 
   // Sección I: Datos Pastor e Iglesia con soporte de Catálogo Institucional
   const [origen_datos_iglesia, set_origen_datos_iglesia] = useState<"catalogo" | "manual">("catalogo");
   const [iglesia_seleccionada_id, set_iglesia_seleccionada_id] = useState<string>(
-    String(lista_iglesias[0]?.id || "1")
+    lista_iglesias[0]?.id !== undefined ? String(lista_iglesias[0].id) : ""
   );
 
   const [pastor_nombre, set_pastor_nombre] = useState(
-    pastor_actual || (datos_f03?.pastor_nombre as string) || (lista_iglesias[0] as any)?.pastor_nombre || "Pastor Principal"
+    pastor_actual || (datos_f03?.pastor_nombre as string) || (lista_iglesias[0] as any)?.pastor_nombre || ""
   );
   const [pastor_correo, set_pastor_correo] = useState(
-    (datos_f03?.pastor_correo as string) || (lista_iglesias[0] as any)?.pastor_correo || (lista_iglesias[0] as any)?.pastor_email || "pastor@diaconia.bo"
+    (datos_f03?.pastor_correo as string) || (lista_iglesias[0] as any)?.pastor_correo || ""
   );
   const [pastor_celular, set_pastor_celular] = useState(
-    celular_actual || (datos_f03?.pastor_celular as string) || (lista_iglesias[0] as any)?.pastor_telefono || (lista_iglesias[0] as any)?.pastor_celular || "70000000"
+    celular_actual || (datos_f03?.pastor_celular as string) || (lista_iglesias[0] as any)?.pastor_telefono || ""
   );
   const [iglesia_nombre, set_iglesia_nombre] = useState(
-    iglesia_actual || (datos_f03?.iglesia_nombre as string) || lista_iglesias[0]?.nombre || "Iglesia Evangélica Local"
+    iglesia_actual || (datos_f03?.iglesia_nombre as string) || lista_iglesias[0]?.nombre || ""
   );
   const [iglesia_direccion, set_iglesia_direccion] = useState(
-    (datos_f03?.iglesia_direccion as string) || (lista_iglesias[0] as any)?.direccion || "Zona Central / Sede Local"
+    (datos_f03?.iglesia_direccion as string) || (lista_iglesias[0] as any)?.direccion || ""
   );
-  const [lider_nombre, set_lider_nombre] = useState((datos_f03?.lider_nombre as string) || "Líder de Jóvenes");
-  const [lider_cargo, set_lider_cargo] = useState((datos_f03?.lider_cargo as string) || "Líder Ministerial");
+  const [lider_nombre, set_lider_nombre] = useState((datos_f03?.lider_nombre as string) || "");
+  const [lider_cargo, set_lider_cargo] = useState((datos_f03?.lider_cargo as string) || "");
 
   // Calificación Módulo 1 (Sobre 20 puntos)
   const [puntaje_f03, set_puntaje_f03] = useState<number>(
@@ -151,71 +128,66 @@ export function FormularioF03({
       ? Number(puntaje_inicial)
       : datos_f03?.puntaje_f03 !== undefined && datos_f03?.puntaje_f03 !== null
       ? Number(datos_f03.puntaje_f03)
-      : 19.0
+      : 0
   );
 
   // Sección II: Preguntas 1 a 13
   const [becario_nombre, set_becario_nombre] = useState(nombre_becario_inicial);
   const [frecuencia_asistencia, set_frecuencia_asistencia] = useState(
-    (datos_f03?.frecuencia_asistencia as string) || (datos_f03?.p5_puntualidad as string) || "Es miembro en plena comunión"
+    (datos_f03?.frecuencia_asistencia as string) || (datos_f03?.p5_puntualidad as string) || ""
   );
   const [demuestra_compromiso, set_demuestra_compromiso] = useState(
-    (datos_f03?.demuestra_compromiso as string) || (datos_f03?.p7_actitud as string) || "Sí"
+    (datos_f03?.demuestra_compromiso as string) || (datos_f03?.p7_actitud as string) || ""
   );
   const [ocupa_cargo, set_ocupa_cargo] = useState(
-    (datos_f03?.ocupa_cargo as string) || "Sí"
+    (datos_f03?.ocupa_cargo as string) || ""
   );
   const [cargo_actual, set_cargo_actual] = useState(
-    (datos_f03?.cargo_actual as string) || (datos_f03?.cargo_2025 as string) || (datos_f03?.p4_actividades as string) || "Líder de Jóvenes"
+    (datos_f03?.cargo_actual as string) || (datos_f03?.cargo_2025 as string) || (datos_f03?.p4_actividades as string) || ""
   );
   const [cumplimiento_cargos, set_cumplimiento_cargos] = useState(
-    (datos_f03?.cumplimiento_cargos as string) || "Muy bien"
+    (datos_f03?.cumplimiento_cargos as string) || ""
   );
 
   const [pregunta_conviccion, set_pregunta_conviccion] = useState(
-    (datos_f03?.conviccion_llamado as string) || (datos_f03?.p1_conviccion as string) || respuestas_iniciales.conviccion_llamado
+    (datos_f03?.conviccion_llamado as string) || (datos_f03?.p1_conviccion as string) || ""
   );
   const [pregunta_ejemplo, set_pregunta_ejemplo] = useState(
-    (datos_f03?.ejemplo_congregacion as string) || (datos_f03?.p2_ejemplo as string) || respuestas_iniciales.ejemplo_congregacion
+    (datos_f03?.ejemplo_congregacion as string) || (datos_f03?.p2_ejemplo as string) || ""
   );
   const [pregunta_capacitaciones, set_pregunta_capacitaciones] = useState(
-    (datos_f03?.compromiso_capacitaciones as string) || (datos_f03?.p3_capacitaciones as string) || respuestas_iniciales.compromiso_capacitaciones
+    (datos_f03?.compromiso_capacitaciones as string) || (datos_f03?.p3_capacitaciones as string) || ""
   );
   const [pregunta_testimonio, set_pregunta_testimonio] = useState(
-    (datos_f03?.testimonio_cristiano as string) || (datos_f03?.p8_testimonio as string) || respuestas_iniciales.testimonio_cristiano
+    (datos_f03?.testimonio_cristiano as string) || (datos_f03?.p8_testimonio as string) || ""
   );
   const [pregunta_relacion, set_pregunta_relacion] = useState(
-    (datos_f03?.relacion_miembros as string) || (datos_f03?.p9_relacion_miembros as string) || respuestas_iniciales.relacion_miembros
+    (datos_f03?.relacion_miembros as string) || (datos_f03?.p9_relacion_miembros as string) || ""
   );
   const [pregunta_nuevos_lideres, set_pregunta_nuevos_lideres] = useState(
-    (datos_f03?.desarrollo_nuevos_lideres as string) || (datos_f03?.p6_liderazgo as string) || respuestas_iniciales.desarrollo_nuevos_lideres
+    (datos_f03?.desarrollo_nuevos_lideres as string) || (datos_f03?.p6_liderazgo as string) || ""
   );
   const [pregunta_fortalezas, set_pregunta_fortalezas] = useState(
-    (datos_f03?.fortalezas as string) || (datos_f03?.p10_fortalezas as string) || respuestas_iniciales.fortalezas
+    (datos_f03?.fortalezas as string) || (datos_f03?.p10_fortalezas as string) || ""
   );
   const [pregunta_debilidades, set_pregunta_debilidades] = useState(
-    (datos_f03?.debilidades as string) || (datos_f03?.p11_debilidades as string) || (datos_f03?.p12_aspectos_mejorar as string) || respuestas_iniciales.debilidades
+    (datos_f03?.debilidades as string) || (datos_f03?.p11_debilidades as string) || (datos_f03?.p12_aspectos_mejorar as string) || ""
   );
   const [pregunta_opinion, set_pregunta_opinion] = useState(
-    (datos_f03?.opinion_general as string) || (datos_f03?.p13_recomendacion as string) || respuestas_iniciales.opinion_general
+    (datos_f03?.opinion_general as string) || (datos_f03?.p13_recomendacion as string) || ""
   );
 
   // Sección III: Declaración Jurada
   const [declara_nombre, set_declara_nombre] = useState(
-    (datos_f03?.declara_nombre as string) || pastor_actual || (lista_iglesias[0] as any)?.pastor_nombre || "Pastor Principal"
+    (datos_f03?.declara_nombre as string) || pastor_actual || (lista_iglesias[0] as any)?.pastor_nombre || ""
   );
-  const [declara_ci, set_declara_ci] = useState((datos_f03?.declara_ci as string) || "3498214 LP");
+  const [declara_ci, set_declara_ci] = useState((datos_f03?.declara_ci as string) || "");
   const [declara_aceptada, set_declara_aceptada] = useState(
-    datos_f03?.declara_aceptada !== undefined ? Boolean(datos_f03.declara_aceptada) : true
+    datos_f03?.declara_aceptada !== undefined ? Boolean(datos_f03.declara_aceptada) : false
   );
 
   // Sincronizar dinámicamente cuando cambian las props iniciales o datos_f03 del becario seleccionado
   useEffect(() => {
-    const respuestas_defecto = generarRespuestasPorDefecto(
-      nombre_becario_inicial || "el/la becario",
-      iglesia_actual
-    );
-
     if (nombre_becario_inicial) set_becario_nombre(nombre_becario_inicial);
     if (iglesia_actual) set_iglesia_nombre(iglesia_actual);
     if (pastor_actual) {
@@ -253,31 +225,31 @@ export function FormularioF03({
       }
 
       set_pregunta_conviccion(
-        String(datos_f03.conviccion_llamado || datos_f03.p1_conviccion || respuestas_defecto.conviccion_llamado)
+        String(datos_f03.conviccion_llamado || datos_f03.p1_conviccion || "")
       );
       set_pregunta_ejemplo(
-        String(datos_f03.ejemplo_congregacion || datos_f03.p2_ejemplo || respuestas_defecto.ejemplo_congregacion)
+        String(datos_f03.ejemplo_congregacion || datos_f03.p2_ejemplo || "")
       );
       set_pregunta_capacitaciones(
-        String(datos_f03.compromiso_capacitaciones || datos_f03.p3_capacitaciones || respuestas_defecto.compromiso_capacitaciones)
+        String(datos_f03.compromiso_capacitaciones || datos_f03.p3_capacitaciones || "")
       );
       set_pregunta_testimonio(
-        String(datos_f03.testimonio_cristiano || datos_f03.p8_testimonio || respuestas_defecto.testimonio_cristiano)
+        String(datos_f03.testimonio_cristiano || datos_f03.p8_testimonio || "")
       );
       set_pregunta_relacion(
-        String(datos_f03.relacion_miembros || datos_f03.p9_relacion_miembros || respuestas_defecto.relacion_miembros)
+        String(datos_f03.relacion_miembros || datos_f03.p9_relacion_miembros || "")
       );
       set_pregunta_nuevos_lideres(
-        String(datos_f03.desarrollo_nuevos_lideres || datos_f03.p6_liderazgo || respuestas_defecto.desarrollo_nuevos_lideres)
+        String(datos_f03.desarrollo_nuevos_lideres || datos_f03.p6_liderazgo || "")
       );
       set_pregunta_fortalezas(
-        String(datos_f03.fortalezas || datos_f03.p10_fortalezas || respuestas_defecto.fortalezas)
+        String(datos_f03.fortalezas || datos_f03.p10_fortalezas || "")
       );
       set_pregunta_debilidades(
-        String(datos_f03.debilidades || datos_f03.p11_debilidades || datos_f03.p12_aspectos_mejorar || respuestas_defecto.debilidades)
+        String(datos_f03.debilidades || datos_f03.p11_debilidades || datos_f03.p12_aspectos_mejorar || "")
       );
       set_pregunta_opinion(
-        String(datos_f03.opinion_general || datos_f03.p13_recomendacion || respuestas_defecto.opinion_general)
+        String(datos_f03.opinion_general || datos_f03.p13_recomendacion || "")
       );
 
       if (datos_f03.declara_nombre) set_declara_nombre(String(datos_f03.declara_nombre));
@@ -287,15 +259,15 @@ export function FormularioF03({
         set_puntaje_f03(Number(datos_f03.puntaje_f03));
       }
     } else {
-      set_pregunta_conviccion(respuestas_defecto.conviccion_llamado);
-      set_pregunta_ejemplo(respuestas_defecto.ejemplo_congregacion);
-      set_pregunta_capacitaciones(respuestas_defecto.compromiso_capacitaciones);
-      set_pregunta_testimonio(respuestas_defecto.testimonio_cristiano);
-      set_pregunta_relacion(respuestas_defecto.relacion_miembros);
-      set_pregunta_nuevos_lideres(respuestas_defecto.desarrollo_nuevos_lideres);
-      set_pregunta_fortalezas(respuestas_defecto.fortalezas);
-      set_pregunta_debilidades(respuestas_defecto.debilidades);
-      set_pregunta_opinion(respuestas_defecto.opinion_general);
+      set_pregunta_conviccion("");
+      set_pregunta_ejemplo("");
+      set_pregunta_capacitaciones("");
+      set_pregunta_testimonio("");
+      set_pregunta_relacion("");
+      set_pregunta_nuevos_lideres("");
+      set_pregunta_fortalezas("");
+      set_pregunta_debilidades("");
+      set_pregunta_opinion("");
     }
   }, [becario_id, nombre_becario_inicial, iglesia_actual, pastor_actual, celular_actual, puntaje_inicial, datos_f03]);
 

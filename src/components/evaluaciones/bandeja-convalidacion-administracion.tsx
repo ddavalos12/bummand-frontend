@@ -63,107 +63,6 @@ export interface ItemConvalidacionAdmin {
   observaciones_supervisor?: string;
 }
 
-const REGISTROS_CONSOLIDADO_ADMIN: ItemConvalidacionAdmin[] = [
-  {
-    evaluacion_id: 101,
-    becario_id: 1,
-    nombre: "Nilda Amalia Churata Paye",
-    ci: "8347291 LP",
-    carrera: "Educación Parvularia",
-    universidad: "UMSA",
-    supervisor_nombre: "Lic. Ramiro Pérez (Tutor)",
-    promedio_final: 88.5,
-    promedio_original: 88.5,
-    hubo_edicion_supervisor: false,
-    periodo_nombre: "Semestre II · 2026",
-    record_academico_nombre: "Record_Academico_Churata_2026_II.pdf",
-    record_academico_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    historial_academico_nombre: "Historial_Academico_Churata_Completo.pdf",
-    historial_academico_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    kardex_nombre: "Record_Academico_Churata_2026_II.pdf",
-    kardex_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    programacion_nombre: "Programacion_Churata_2026_II.pdf",
-    programacion_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    estado: "pre_evaluado",
-    fecha_pre_evaluacion: "2026-10-26",
-    observaciones_supervisor: "Cotejado con Récord e Historial rectorado. Notas completas y conformes.",
-  },
-  {
-    evaluacion_id: 102,
-    becario_id: 2,
-    nombre: "Joel David Alarcón Ticona",
-    ci: "9123847 LP",
-    carrera: "Ingeniería de Sistemas",
-    universidad: "UPEA",
-    supervisor_nombre: "Ing. Carlos Mendoza (Tutor)",
-    promedio_final: 84.0,
-    promedio_original: 82.0,
-    hubo_edicion_supervisor: true,
-    periodo_nombre: "Semestre II · 2026",
-    record_academico_nombre: "Record_Academico_Alarcon_UPEA_2026.pdf",
-    record_academico_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    historial_academico_nombre: "Historial_Academico_Alarcon_UPEA.pdf",
-    historial_academico_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    kardex_nombre: "Kardex_Oficial_Alarcon_UPEA.pdf",
-    kardex_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    programacion_nombre: "Boleta_Inscripcion_Alarcon.pdf",
-    programacion_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    carnet_renovado_nombre: "CI_Renovado_Alarcon.pdf",
-    carnet_renovado_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    estado: "pre_evaluado",
-    fecha_pre_evaluacion: "2026-10-26",
-    observaciones_supervisor: "Se corrigió nota de Redes y Telecomunicaciones de 74 a 82 según Récord oficial.",
-  },
-  {
-    evaluacion_id: 103,
-    becario_id: 3,
-    nombre: "Mariana Huayta Quispe",
-    ci: "7482910 LP",
-    carrera: "Bioquímica y Farmacia",
-    universidad: "UMSA",
-    supervisor_nombre: "Dra. Miriam Colque (Tutor)",
-    promedio_final: 79.0,
-    promedio_original: 79.0,
-    hubo_edicion_supervisor: false,
-    periodo_nombre: "Semestre II · 2026",
-    record_academico_nombre: "Record_Academico_Huayta_2026.pdf",
-    record_academico_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    historial_academico_nombre: "Historial_Academico_Huayta_UMSA.pdf",
-    historial_academico_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    kardex_nombre: "Kardex_Academico_Huayta.pdf",
-    kardex_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    programacion_nombre: "Inscripcion_2026_II_Huayta.pdf",
-    programacion_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    estado: "completado",
-    fecha_pre_evaluacion: "2026-10-20",
-    observaciones_supervisor: "Convalidado satisfactoriamente.",
-  },
-  {
-    evaluacion_id: 104,
-    becario_id: 4,
-    nombre: "Brayan Christian Paredes Choque",
-    ci: "8930192 LP",
-    carrera: "Contaduría Pública",
-    universidad: "UMSA",
-    supervisor_nombre: "Lic. Ramiro Pérez (Tutor)",
-    promedio_final: 76.5,
-    promedio_original: 76.5,
-    hubo_edicion_supervisor: false,
-    periodo_nombre: "Semestre II · 2026",
-    record_academico_nombre: "Record_Academico_Paredes_II_2026.pdf",
-    record_academico_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    historial_academico_nombre: "Historial_Academico_Paredes_UMSA.pdf",
-    historial_academico_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    kardex_nombre: "Kardex_Paredes_II_2026.pdf",
-    kardex_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    programacion_nombre: "Programacion_Paredes_2026.pdf",
-    programacion_url: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-    estado: "en_revision_supervisor",
-    fecha_pre_evaluacion: "2026-10-26",
-    observaciones_supervisor: "Envío directo del estudiante para convalidación inmediata de Administración.",
-  },
-];
-
 export interface BandejaConvalidacionAdministracionProps {
   alAbrirVisor: (titulo: string, nombre_archivo: string, url: string) => void;
   alConvalidarOficial?: (evaluacion_id: number) => void;
@@ -173,7 +72,7 @@ export function BandejaConvalidacionAdministracion({
   alAbrirVisor,
   alConvalidarOficial,
 }: BandejaConvalidacionAdministracionProps) {
-  const [registros, set_registros] = useState<ItemConvalidacionAdmin[]>(REGISTROS_CONSOLIDADO_ADMIN);
+  const [registros, set_registros] = useState<ItemConvalidacionAdmin[]>([]);
   const [filtro_estado, set_filtro_estado] = useState<
     "todos" | "pendientes" | "pre_evaluado" | "en_revision" | "completado"
   >("pendientes");
@@ -184,12 +83,12 @@ export function BandejaConvalidacionAdministracion({
     try {
       const res = await clienteApi.get<any>("/evaluaciones/academica/pendientes-administracion");
       const lista = Array.isArray(res) ? res : res?.registros;
-      if (Array.isArray(lista) && lista.length > 0) {
+      if (Array.isArray(lista)) {
         const mapeados: ItemConvalidacionAdmin[] = lista.map((ev: any, idx: number) => {
           const datos_form = ev.datos_formulario || {};
           const bec = ev.becario || {};
           const per = ev.periodo || {};
-          const prom_final = Number(ev.promedio_academico ?? datos_form.promedio_academico ?? 80);
+          const prom_final = Number(ev.promedio_academico ?? datos_form.promedio_academico ?? 0);
           const prom_orig = Number(datos_form.promedio_original ?? prom_final);
 
           const estado_mapeado: ItemConvalidacionAdmin["estado"] =
@@ -204,64 +103,56 @@ export function BandejaConvalidacionAdministracion({
           const record_url =
             ev.archivo_record_academico ||
             datos_form.archivo_record_academico ||
-            "data:application/pdf;base64,JVBERi0xLjQKJ...";
+            "";
           const historial_url =
             ev.archivo_historial_academico ||
             datos_form.archivo_historial_academico ||
             record_url;
 
           return {
-            evaluacion_id: Number(ev.id ?? 200 + idx),
-            becario_id: Number(ev.becario_id ?? bec.id ?? idx + 1),
+            evaluacion_id: Number(ev.id ?? idx + 1),
+            becario_id: Number(ev.becario_id ?? bec.id ?? 0),
             nombre: bec.nombre_completo || datos_form.nombre_becario || `Becario #${ev.becario_id || idx + 1}`,
-            ci: bec.ci || datos_form.ci || "S/CI",
-            carrera: bec.carrera || datos_form.carrera || "Carrera Universitaria",
-            universidad: bec.universidad || datos_form.universidad || "UMSA",
+            ci: bec.ci || datos_form.ci || "",
+            carrera: bec.carrera || datos_form.carrera || "",
+            universidad: bec.universidad || datos_form.universidad || "",
             supervisor_nombre:
-              datos_form.supervisor_nombre || "Envío Directo desde APK / Portal",
+              datos_form.supervisor_nombre || "Envío directo",
             promedio_final: prom_final,
             promedio_original: prom_orig,
             hubo_edicion_supervisor: Boolean(datos_form.hubo_edicion_supervisor),
-            periodo_nombre: per.nombre || "Semestre II · 2026",
+            periodo_nombre: per.nombre || "",
             record_academico_nombre:
-              datos_form.record_academico_nombre ||
-              `Record_Academico_${(bec.nombre_completo || "Becario").replace(/\s+/g, "_")}.pdf`,
+              datos_form.record_academico_nombre || "",
             record_academico_url: record_url,
             historial_academico_nombre:
-              datos_form.historial_academico_nombre ||
-              `Historial_Academico_${(bec.nombre_completo || "Becario").replace(/\s+/g, "_")}.pdf`,
+              datos_form.historial_academico_nombre || "",
             historial_academico_url: historial_url,
             kardex_nombre:
-              datos_form.record_academico_nombre ||
-              `Kardex_${(bec.nombre_completo || "Becario").replace(/\s+/g, "_")}.pdf`,
+              datos_form.record_academico_nombre || "",
             kardex_url: record_url,
             programacion_nombre:
-              datos_form.programacion_nombre ||
-              `Programacion_${(bec.nombre_completo || "Becario").replace(/\s+/g, "_")}.pdf`,
-            programacion_url: datos_form.archivo_programacion || record_url,
+              datos_form.programacion_nombre || "",
+            programacion_url: datos_form.archivo_programacion || "",
             carnet_renovado_nombre: datos_form.carnet_renovado_nombre,
             carnet_renovado_url: datos_form.archivo_carnet_renovado,
             estado: estado_mapeado,
             fecha_pre_evaluacion: ev.fecha_actualizacion
               ? String(ev.fecha_actualizacion).substring(0, 10)
-              : "2026-10-26",
+              : "",
             observaciones_supervisor:
               ev.observaciones ||
               datos_form.observaciones_supervisor ||
-              "Documentos académicos subidos por el becario para convalidación.",
+              "",
           };
         });
 
-        // Combinar registros reales de BD con la base demostrativa sin duplicar becario_id
-        const ids_en_bd = new Set(mapeados.map((m) => m.becario_id));
-        const combinados = [
-          ...mapeados,
-          ...REGISTROS_CONSOLIDADO_ADMIN.filter((r) => !ids_en_bd.has(r.becario_id)),
-        ];
-        set_registros(combinados);
+        set_registros(mapeados);
+      } else {
+        set_registros([]);
       }
     } catch {
-      // Fallback en registros locales
+      set_registros([]);
     }
   }, []);
 
@@ -280,15 +171,11 @@ export function BandejaConvalidacionAdministracion({
   const convalidarOficialmente = async (item: ItemConvalidacionAdmin) => {
     set_convalidando_id(item.evaluacion_id);
     try {
-      try {
-        await clienteApi.put(`/evaluaciones/academica/${item.evaluacion_id}/convalidar`, {
-          evaluacion_id: item.evaluacion_id,
-          accion: "convalidar",
-          observaciones_administracion: "Convalidación directa formalizada por Administración Central BUMAND.",
-        });
-      } catch (_e) {
-        // Fallback local
-      }
+      await clienteApi.put(`/evaluaciones/academica/${item.evaluacion_id}/convalidar`, {
+        evaluacion_id: item.evaluacion_id,
+        accion: "convalidar",
+        observaciones_administracion: "Convalidación directa formalizada por Administración Central BUMAND.",
+      });
 
       set_registros(
         registros.map((r) =>
@@ -303,6 +190,8 @@ export function BandejaConvalidacionAdministracion({
       if (alConvalidarOficial) {
         alConvalidarOficial(item.evaluacion_id);
       }
+    } catch {
+      toast.error("No se pudo convalidar el expediente en el servidor.");
     } finally {
       set_convalidando_id(null);
     }

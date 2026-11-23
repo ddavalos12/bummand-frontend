@@ -76,13 +76,6 @@ export interface FormularioCargaNotasEstudianteProps {
   alAbrirVisor?: (titulo: string, nombre_archivo: string, url: string) => void;
 }
 
-const MATERIAS_EJEMPLO_INICIALES: MateriaInput[] = [
-  { id: "1", nombre: "Contabilidad de Costos II", sigla: "CPA-201", nota: "85" },
-  { id: "2", nombre: "Matemática Financiera", sigla: "CPA-202", nota: "78" },
-  { id: "3", nombre: "Microeconomía I", sigla: "ECO-105", nota: "82" },
-  { id: "4", nombre: "Derecho Comercial y Laboral", sigla: "DER-104", nota: "86" },
-];
-
 export function FormularioCargaNotasEstudiante({
   becario_id,
   becario_nombre,
@@ -99,51 +92,37 @@ export function FormularioCargaNotasEstudiante({
     periodo_nombre_inicial || "Semestre II · 2026"
   );
 
-  const [materias, set_materias] = useState<MateriaInput[]>(MATERIAS_EJEMPLO_INICIALES);
+  const [materias, set_materias] = useState<MateriaInput[]>([]);
   const [renovar_carnet, set_renovar_carnet] = useState<boolean>(false);
   const [observaciones, set_observaciones] = useState<string>("");
   const [enviando, set_enviando] = useState<boolean>(false);
   const [expediente_enviado, set_expediente_enviado] = useState<boolean>(false);
 
   // TAREA-13: Documentos Semestrales (Récord Académico e Historial Académico con revisión directa por Administración)
-  const [record_academico_nombre, set_record_academico_nombre] = useState<string>(
-    "Record_Academico_Oficial_2026_II.pdf"
-  );
-  const [record_academico_url, set_record_academico_url] = useState<string>(
-    "data:application/pdf;base64,JVBERi0xLjQKJ..."
-  );
-  const [record_academico_tamano, set_record_academico_tamano] = useState<string>("1.8 MB");
+  const [record_academico_nombre, set_record_academico_nombre] = useState<string>("");
+  const [record_academico_url, set_record_academico_url] = useState<string>("");
+  const [record_academico_tamano, set_record_academico_tamano] = useState<string>("");
   const [record_academico_estado, set_record_academico_estado] = useState<EstadoDocumentoAcademico>(
-    "enviado_administracion"
+    "pendiente"
   );
   const [subiendo_record, set_subiendo_record] = useState<boolean>(false);
 
-  const [historial_academico_nombre, set_historial_academico_nombre] = useState<string>(
-    "Historial_Academico_Completo_2026.pdf"
-  );
-  const [historial_academico_url, set_historial_academico_url] = useState<string>(
-    "data:application/pdf;base64,JVBERi0xLjQKJ..."
-  );
-  const [historial_academico_tamano, set_historial_academico_tamano] = useState<string>("2.3 MB");
+  const [historial_academico_nombre, set_historial_academico_nombre] = useState<string>("");
+  const [historial_academico_url, set_historial_academico_url] = useState<string>("");
+  const [historial_academico_tamano, set_historial_academico_tamano] = useState<string>("");
   const [historial_academico_estado, set_historial_academico_estado] = useState<EstadoDocumentoAcademico>(
-    "enviado_administracion"
+    "pendiente"
   );
   const [subiendo_historial, set_subiendo_historial] = useState<boolean>(false);
 
   // Documentos complementarios
-  const [kardex_nombre, set_kardex_nombre] = useState<string>("Kardex_Oficial_2026_I.pdf");
-  const [kardex_url, set_kardex_url] = useState<string>(
-    "data:application/pdf;base64,JVBERi0xLjQKJ..."
-  );
-  const [kardex_tamano, set_kardex_tamano] = useState<string>("1.4 MB");
+  const [kardex_nombre, set_kardex_nombre] = useState<string>("");
+  const [kardex_url, set_kardex_url] = useState<string>("");
+  const [kardex_tamano, set_kardex_tamano] = useState<string>("");
 
-  const [programacion_nombre, set_programacion_nombre] = useState<string>(
-    "Programacion_Inscripcion_2026_II.pdf"
-  );
-  const [programacion_url, set_programacion_url] = useState<string>(
-    "data:application/pdf;base64,JVBERi0xLjQKJ..."
-  );
-  const [programacion_tamano, set_programacion_tamano] = useState<string>("890 KB");
+  const [programacion_nombre, set_programacion_nombre] = useState<string>("");
+  const [programacion_url, set_programacion_url] = useState<string>("");
+  const [programacion_tamano, set_programacion_tamano] = useState<string>("");
 
   const [carnet_nombre, set_carnet_nombre] = useState<string>("");
   const [carnet_url, set_carnet_url] = useState<string>("");
@@ -226,11 +205,7 @@ export function FormularioCargaNotasEstudiante({
       lector.onload = async () => {
         const url_base64 = lector.result as string;
 
-        try {
-          await clienteApi.post("/api/evaluaciones/academica/subir-documento", form_data);
-        } catch (_err) {
-          // Fallback seguro en entorno offline
-        }
+        await clienteApi.post("/api/evaluaciones/academica/subir-documento", form_data);
 
         if (tipo === "record_academico") {
           set_record_academico_nombre(file.name);
@@ -337,11 +312,7 @@ export function FormularioCargaNotasEstudiante({
         observaciones: observaciones.trim() || undefined,
       };
 
-      try {
-        await clienteApi.post("/api/evaluaciones/academica/estudiante", payload);
-      } catch (_err) {
-        // Fallback local en caso de entorno desacoplado
-      }
+      await clienteApi.post("/api/evaluaciones/academica/estudiante", payload);
 
       set_expediente_enviado(true);
       toast.success("¡Notas y documentación académica enviadas a Administración!", {
@@ -356,6 +327,8 @@ export function FormularioCargaNotasEstudiante({
           programacion_nombre,
         });
       }
+    } catch {
+      toast.error("No se pudo enviar el expediente académico al servidor.");
     } finally {
       set_enviando(false);
     }

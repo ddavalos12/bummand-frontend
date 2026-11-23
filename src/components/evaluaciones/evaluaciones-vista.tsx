@@ -98,8 +98,6 @@ import { FormularioMentorModal, EvaluacionInicialMentor } from "./formulario-men
 import { EscuelaLideresClassroom } from "./escuela-lideres-classroom";
 import { BotonesAccionEvaluacion } from "./botones-accion-evaluacion";
 import {
-  BECARIOS_SEMESTRE_II,
-  CATALOGO_IGLESIAS_INSTITUCIONALES,
   PREGUNTAS_MENTOR_ESCALA,
   PREGUNTAS_ABIERTAS_MENTOR,
   PREGUNTAS_BIENESTAR_INICIALES,
@@ -167,23 +165,6 @@ const MODULOS_OFICIALES: ModuloPonderado[] = [
     descripcion: "Diagnóstico socioeconómico y de bienestar estudiantil de 26 preguntas.",
   },
 ];
-
-const TAREAS_CETI_CATALOGO = [
-  { numero: 1, tema: "Liderazgo Servidor y Mayordomía Cristiana", ponderacion: "8.33%" },
-  { numero: 2, tema: "Misión Integral y Vocación Diaconal", ponderacion: "8.33%" },
-  { numero: 3, tema: "Ética Profesional en el Ámbito Financiero y Social", ponderacion: "8.33%" },
-  { numero: 4, tema: "Acompañamiento a Grupos Vulnerables", ponderacion: "8.33%" },
-  { numero: 5, tema: "Resolución de Conflictos en la Comunidad Eclesial", ponderacion: "8.33%" },
-  { numero: 6, tema: "Diseño y Planificación de Proyectos de Servicio", ponderacion: "8.33%" },
-  { numero: 7, tema: "Oración, Intercesión y Vida Devocional Comunitaria", ponderacion: "8.33%" },
-  { numero: 8, tema: "Comunicación Asertiva y Testimonio Universitario", ponderacion: "8.33%" },
-  { numero: 9, tema: "Finanzas Personales Bíblicas y Responsabilidad", ponderacion: "8.33%" },
-  { numero: 10, tema: "Salud Mental y Manejo del Estrés en Época Académica", ponderacion: "8.33%" },
-  { numero: 11, tema: "Discipulado Generacional y Mentoría a Nuevos Becarios", ponderacion: "8.33%" },
-  { numero: 12, tema: "Evaluación Integral de Impacto Comunitario", ponderacion: "8.33%" },
-];
-
-const MUESTRA_KARDEX_PDF_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="420" viewBox="0 0 600 420" fill="none"><rect width="600" height="420" rx="16" fill="%23FFFFFF" stroke="%23CBD5E1" stroke-width="2"/><rect x="24" y="24" width="552" height="64" rx="8" fill="%23EFF6FF" stroke="%2393C5FD"/><text x="44" y="52" fill="%231E3A8A" font-family="sans-serif" font-size="15" font-weight="bold">UNIVERSIDAD MAYOR DE SAN ANDRÉS · RECTORADO</text><text x="44" y="72" fill="%232563EB" font-family="sans-serif" font-size="12">HISTORIAL ACADÉMICO Y RÉCORD DE CALIFICACIONES SEMESTRALES</text><line x1="24" y1="104" x2="576" y2="104" stroke="%23E2E8F0" stroke-width="1.5"/><text x="44" y="132" fill="%23475569" font-family="sans-serif" font-size="12" font-weight="bold">FACULTAD:</text><text x="125" y="132" fill="%230F172A" font-family="sans-serif" font-size="12">Ciencias Económicas y Financieras</text><text x="360" y="132" fill="%23475569" font-family="sans-serif" font-size="12" font-weight="bold">PROMEDIO:</text><text x="440" y="132" fill="%23059669" font-family="sans-serif" font-size="13" font-weight="bold">82.50 pts (APROBADO)</text><rect x="44" y="150" width="512" height="150" rx="8" fill="%23F8FAFC" stroke="%23E2E8F0"/><text x="60" y="175" fill="%23334155" font-family="sans-serif" font-size="11" font-weight="bold">MATERIA</text><text x="380" y="175" fill="%23334155" font-family="sans-serif" font-size="11" font-weight="bold">NOTA</text><text x="460" y="175" fill="%23334155" font-family="sans-serif" font-size="11" font-weight="bold">ESTADO</text><line x1="44" y1="185" x2="556" y2="185" stroke="%23E2E8F0"/><text x="60" y="205" fill="%231E293B" font-family="sans-serif" font-size="11">Contabilidad de Costos II (CPA-201)</text><text x="380" y="205" fill="%23059669" font-family="sans-serif" font-size="11" font-weight="bold">85</text><text x="460" y="205" fill="%23059669" font-family="sans-serif" font-size="11">Aprobado</text><text x="60" y="230" fill="%231E293B" font-family="sans-serif" font-size="11">Matemática Financiera (CPA-202)</text><text x="380" y="230" fill="%23059669" font-family="sans-serif" font-size="11" font-weight="bold">78</text><text x="460" y="230" fill="%23059669" font-family="sans-serif" font-size="11">Aprobado</text><text x="60" y="255" fill="%231E293B" font-family="sans-serif" font-size="11">Microeconomía I (ECO-105)</text><text x="380" y="255" fill="%23059669" font-family="sans-serif" font-size="11" font-weight="bold">81</text><text x="460" y="255" fill="%23059669" font-family="sans-serif" font-size="11">Aprobado</text><text x="60" y="280" fill="%231E293B" font-family="sans-serif" font-size="11">Derecho Comercial y Laboral (DER-104)</text><text x="380" y="280" fill="%23059669" font-family="sans-serif" font-size="11" font-weight="bold">86</text><text x="460" y="280" fill="%23059669" font-family="sans-serif" font-size="11">Aprobado</text><rect x="44" y="315" width="512" height="70" rx="8" fill="%23FFFFFF" stroke="%23E2E8F0"/><text x="60" y="342" fill="%23475569" font-family="sans-serif" font-size="11">Sello Digital Rectorado:</text><text x="60" y="362" fill="%23035683" font-family="sans-serif" font-size="12" font-weight="bold">División de Títulos y Archivo Universitario UMSA · Ref. #8921-2026</text><circle cx="500" cy="350" r="22" fill="%23059669" fill-opacity="0.1" stroke="%23059669" stroke-dasharray="3 3"/><text x="477" y="354" fill="%23059669" font-family="sans-serif" font-size="10" font-weight="bold">CONVALIDADO</text></svg>`;
 
 export interface DocumentoAcademicoSemestral {
   id: number;
@@ -399,7 +380,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
       set_becario_carga_id(becarios_semestre_disponibles[0].id);
     }
   }, [becarios_semestre_disponibles, becario_carga_id]);
-  const [promedio_carga, set_promedio_carga] = useState<string>("82.5");
+  const [promedio_carga, set_promedio_carga] = useState<string>("");
   const [archivo_record_nombre, set_archivo_record_nombre] = useState<string>("");
   const [archivo_record_url, set_archivo_record_url] = useState<string>("");
   const [archivo_record_tamano, set_archivo_record_tamano] = useState<string>("");
@@ -480,12 +461,12 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
 
     const becario_sel =
       becarios_semestre_disponibles.find((b) => b.id === becario_carga_id) ||
-      becarios_semestre_disponibles[0] || {
-        id: becario_carga_id || 1,
-        nombre_completo: usuario?.nombre || "Becario",
-        carrera: "Universitaria",
-        universidad: "UMSA",
-      };
+      becarios_semestre_disponibles[0];
+    if (!becario_sel) {
+      set_subiendo_documentos(false);
+      toast.error("Seleccione un becario válido de la nómina.");
+      return;
+    }
 
     try {
       await clienteApi.post("/api/evaluaciones/receptor/academica", {
@@ -496,7 +477,9 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
         archivo_historial_academico: archivo_historial_nombre,
       });
     } catch {
-      // Fallback local continuo si backend no responde
+      set_subiendo_documentos(false);
+      toast.error("No se pudo registrar la documentación académica en el servidor.");
+      return;
     }
 
     const nuevo_doc: DocumentoAcademicoSemestral = {
@@ -508,11 +491,11 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
       periodo: "Semestre II - 2026",
       promedio_semestral: promedio_num,
       record_archivo_nombre: archivo_record_nombre,
-      record_archivo_url: archivo_record_url || MUESTRA_KARDEX_PDF_SVG,
-      record_archivo_tamano: archivo_record_tamano || "1.2 MB",
+      record_archivo_url: archivo_record_url,
+      record_archivo_tamano: archivo_record_tamano,
       historial_archivo_nombre: archivo_historial_nombre,
-      historial_archivo_url: archivo_historial_url || MUESTRA_KARDEX_PDF_SVG,
-      historial_archivo_tamano: archivo_historial_tamano || "2.1 MB",
+      historial_archivo_url: archivo_historial_url,
+      historial_archivo_tamano: archivo_historial_tamano,
       estado: promedio_num >= 75 ? "convalidado" : "observado",
       fecha_recepcion: new Date().toISOString().split("T")[0],
     };
@@ -596,37 +579,8 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
   const [form_iglesia_radio, set_form_iglesia_radio] = useState<number>(60);
   const [guardando_iglesia, set_guardando_iglesia] = useState<boolean>(false);
 
-  const generarCamposFormularioF03Individual = (
-    nombre_becario: string,
-    iglesia_nombre?: string | null,
-    puntaje?: number | null,
-    carrera?: string | null
-  ): Record<string, unknown> => {
-    const iglesia = iglesia_nombre || "Iglesia Evangélica Local";
-    const nota = puntaje !== null && puntaje !== undefined ? Number(puntaje) : 19.0;
-    return {
-      conviccion_llamado: `El/la becario ${nombre_becario} demuestra una convicción espiritual madura y firme vocación en las actividades ministeriales de ${iglesia}.`,
-      ejemplo_congregacion: `Referente de puntualidad en los cultos semanales, testimonio cristiano ejemplar y respeto fraternal hacia líderes y hermanos.`,
-      compromiso_capacitaciones: `Asiste con regularidad y disposición proactiva a las capacitaciones bíblicas, talleres formativos de liderazgo y discipulados.`,
-      testimonio_cristiano: `Excelente testimonio de vida cristiana tanto en la comunidad eclesial como en sus estudios ${carrera ? `de ${carrera}` : "universitarios"}.`,
-      relacion_miembros: `Mantiene una actitud humilde, empática y de servicio desinteresado para con los miembros y ministerios de la congregación.`,
-      desarrollo_nuevos_lideres: `Participa activamente en la formación, discipulado y mentoreo de las nuevas generaciones de jóvenes de la congregación.`,
-      fortalezas: `Fidelidad ministerial, vocación de servicio, integridad moral, proactividad y liderazgo espiritual servicial.`,
-      debilidades: `Continuar gestionando adecuadamente sus tiempos entre las responsabilidades de servicio eclesiástico y los proyectos universitarios.`,
-      opinion_general: `Agradecemos el impacto formativo de BUMAND en la vida de ${nombre_becario} y certificamos con plena satisfacción su labor ministerial.`,
-      frecuencia_asistencia: "Es miembro en plena comunión",
-      demuestra_compromiso: "Sí",
-      ocupa_cargo: "Sí",
-      cargo_actual: "Líder de Jóvenes y Discipulado",
-      cumplimiento_cargos: "Muy bien",
-      declara_ci: "3498214 LP",
-      declara_aceptada: true,
-      puntaje_f03: nota,
-    };
-  };
-
   const [becarios_consolidado, set_becarios_consolidado] = useState<any[]>([]);
-  const [total_becarios_programa, set_total_becarios_programa] = useState<number>(23);
+  const [total_becarios_programa, set_total_becarios_programa] = useState<number>(0);
 
   const cargarConsolidado = async () => {
     try {
@@ -683,33 +637,13 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
     try {
       set_cargando_iglesias(true);
       const res = await clienteApi.get<IglesiaItem[]>("/iglesias");
-      if (res && Array.isArray(res) && res.length > 0) {
+      if (res && Array.isArray(res)) {
         set_iglesias(res);
       } else {
-        set_iglesias(
-          CATALOGO_IGLESIAS_INSTITUCIONALES.map((ig, idx) => ({
-            id: Number(ig.id) || idx + 1,
-            nombre: ig.nombre,
-            direccion: ig.direccion,
-            pastor_nombre: ig.pastor_nombre,
-            pastor_telefono: ig.pastor_celular,
-            pastor_correo: ig.pastor_email,
-            radio_tolerancia_m: 60,
-          }))
-        );
+        set_iglesias([]);
       }
     } catch (_e) {
-      set_iglesias(
-        CATALOGO_IGLESIAS_INSTITUCIONALES.map((ig, idx) => ({
-          id: Number(ig.id) || idx + 1,
-          nombre: ig.nombre,
-          direccion: ig.direccion,
-          pastor_nombre: ig.pastor_nombre,
-          pastor_telefono: ig.pastor_celular,
-          pastor_correo: ig.pastor_email,
-          radio_tolerancia_m: 60,
-        }))
-      );
+      set_iglesias([]);
     } finally {
       set_cargando_iglesias(false);
     }
@@ -717,29 +651,22 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
 
   const aprobarDirectamenteF03 = async (item: BecarioF03Item) => {
     set_aprobando_f03_id(item.becario_id);
-    const puntaje_final = item.puntaje && item.puntaje > 0 ? Number(item.puntaje) : 19.0;
-    const campos =
-      item.campos_formulario && Object.keys(item.campos_formulario).length > 0
-        ? item.campos_formulario
-        : generarCamposFormularioF03Individual(item.nombre, item.iglesia_nombre, puntaje_final);
+    const puntaje_final = item.puntaje && item.puntaje > 0 ? Number(item.puntaje) : 0;
+    const campos = item.campos_formulario || {};
 
     try {
-      try {
-        await clienteApi.post(`/evaluaciones/f03/becario/${item.becario_id}`, {
-          becario_id: item.becario_id,
-          becario_ci: item.ci,
-          becario_nombre: item.nombre,
-          pastor_nombre: item.pastor_nombre || "Luis Álvaro Quispe Condori",
-          pastor_celular: item.pastor_celular || "73236864",
-          iglesia_nombre: item.iglesia_nombre || "Iglesia Evangélica Amigos Central",
-          puntaje: puntaje_final,
-          campos_formulario: { ...campos, convalidado: true },
-          estado: "completada",
-          convalidado: true,
-        });
-      } catch {
-        // Fallback local resiliente ante reinicio o indisponibilidad temporal del backend
-      }
+      await clienteApi.post(`/evaluaciones/f03/becario/${item.becario_id}`, {
+        becario_id: item.becario_id,
+        becario_ci: item.ci,
+        becario_nombre: item.nombre,
+        pastor_nombre: item.pastor_nombre || "",
+        pastor_celular: item.pastor_celular || "",
+        iglesia_nombre: item.iglesia_nombre || "",
+        puntaje: puntaje_final,
+        campos_formulario: { ...campos, convalidado: true },
+        estado: "completada",
+        convalidado: true,
+      });
 
       set_nomina_f03((prev) =>
         prev.map((b) =>
@@ -759,6 +686,8 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
       toast.success("Evaluación F-03 Aprobada", {
         description: `Se convalidó la evaluación ministerial de ${item.nombre} (${puntaje_final.toFixed(1)} / 20 pts).`,
       });
+    } catch {
+      toast.error("No se pudo convalidar la evaluación F-03 en el servidor.");
     } finally {
       set_aprobando_f03_id(null);
     }
@@ -905,13 +834,6 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
       toast.error(`La suma debe ser exactamente 100%. Actual: ${suma_ponderaciones}%.`);
       return;
     }
-    set_modulos((prev) =>
-      prev.map((m) => ({
-        ...m,
-        ponderacion_porcentaje: ponderacion_temporal[m.clave] ?? m.ponderacion_porcentaje,
-      }))
-    );
-
     try {
       await clienteApi.put("/evaluaciones/periodos/2", {
         peso_f03: ponderacion_temporal.liderazgo ?? 20,
@@ -920,12 +842,18 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
         peso_practicas: ponderacion_temporal.mentor ?? 20,
         peso_socioeconomica: ponderacion_temporal.socioeconomica ?? 20,
       });
-    } catch {
-      // Fallback reactivo
-    }
 
-    toast.success("Ponderaciones oficiales actualizadas y persistidas exitosamente (Suma = 100 pts).");
-    set_panel_ponderacion_abierto(false);
+      set_modulos((prev) =>
+        prev.map((m) => ({
+          ...m,
+          ponderacion_porcentaje: ponderacion_temporal[m.clave] ?? m.ponderacion_porcentaje,
+        }))
+      );
+      toast.success("Ponderaciones oficiales actualizadas y persistidas exitosamente (Suma = 100 pts).");
+      set_panel_ponderacion_abierto(false);
+    } catch {
+      toast.error("No se pudieron guardar las ponderaciones en el servidor.");
+    }
   };
 
   return (
@@ -1847,7 +1775,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                     abierto: true,
                     titulo,
                     nombre_archivo,
-                    url: url || MUESTRA_KARDEX_PDF_SVG,
+                    url: url || "",
                     es_pdf: nombre_archivo.toLowerCase().endsWith(".pdf"),
                   });
                 }}
@@ -1866,7 +1794,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                   abierto: true,
                   titulo,
                   nombre_archivo,
-                  url: url || MUESTRA_KARDEX_PDF_SVG,
+                  url: url || "",
                   es_pdf: nombre_archivo.toLowerCase().endsWith(".pdf"),
                 });
               }}
@@ -1884,7 +1812,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
                   abierto: true,
                   titulo,
                   nombre_archivo,
-                  url: url || MUESTRA_KARDEX_PDF_SVG,
+                  url: url || "",
                   es_pdf: nombre_archivo.toLowerCase().endsWith(".pdf"),
                 });
               }}

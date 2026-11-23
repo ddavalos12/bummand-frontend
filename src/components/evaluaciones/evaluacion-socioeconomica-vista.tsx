@@ -57,7 +57,6 @@ import {
   PreguntaBienestar,
   OpcionBienestar,
   PREGUNTAS_BIENESTAR_INICIALES,
-  BECARIOS_SEMESTRE_II,
 } from "./evaluaciones-datos-semestre";
 import { CuestionarioBienestarModal } from "./cuestionario-bienestar-modal";
 
@@ -104,30 +103,6 @@ function obtenerCategoriaPorNumero(numero: number): Exclude<CategoriaBienestar, 
   return "Estudios y Proyecto de Vida";
 }
 
-function generarRespuestasPorPuntaje(puntaje_objetivo: number): Record<number, "A" | "B" | "C" | "D"> {
-  const mapa: Record<number, "A" | "B" | "C" | "D"> = {};
-  PREGUNTAS_BIENESTAR_INICIALES.forEach((p) => {
-    if (p.numero <= 20) {
-      if (puntaje_objetivo >= 16) {
-        mapa[p.numero] = "A";
-      } else if (puntaje_objetivo >= 11) {
-        mapa[p.numero] = p.numero % 3 === 0 ? "B" : "A";
-      } else {
-        mapa[p.numero] = p.numero % 2 === 0 ? "B" : "C";
-      }
-    } else {
-      if (puntaje_objetivo >= 16) {
-        mapa[p.numero] = "D";
-      } else if (puntaje_objetivo >= 11) {
-        mapa[p.numero] = "C";
-      } else {
-        mapa[p.numero] = "B";
-      }
-    }
-  });
-  return mapa;
-}
-
 function determinarColorSemaforo(puntaje_20: number): "verde" | "amarillo" | "rojo" {
   if (puntaje_20 >= 12) return "verde";
   if (puntaje_20 >= 8) return "amarillo";
@@ -143,12 +118,10 @@ function normalizarSemaforo(valor: unknown, puntaje_20: number): "verde" | "amar
 }
 
 function normalizarMapaRespuestas(
-  raw: unknown,
-  puntaje_respaldo: number
+  raw: unknown
 ): Record<number, "A" | "B" | "C" | "D"> {
-  const base = generarRespuestasPorPuntaje(puntaje_respaldo);
-  if (!raw || typeof raw !== "object") return base;
-  const resultado: Record<number, "A" | "B" | "C" | "D"> = { ...base };
+  if (!raw || typeof raw !== "object") return {};
+  const resultado: Record<number, "A" | "B" | "C" | "D"> = {};
   for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
     const num = parseInt(String(k).replace(/\D+/g, ""), 10);
     if (isNaN(num) || num < 1) continue;
@@ -219,7 +192,7 @@ export function EvaluacionSocioeconomicaVista() {
   // Modal de Revisión y Calificación Socioeconómica (Acción "Revisar")
   const [modal_revision_abierto, set_modal_revision_abierto] = useState<boolean>(false);
   const [becario_en_revision, set_becario_en_revision] = useState<RegistroSocioeconomicoBecario | null>(null);
-  const [puntaje_revision_input, set_puntaje_revision_input] = useState<string>("18.5");
+  const [puntaje_revision_input, set_puntaje_revision_input] = useState<string>("0.0");
   const [semaforo_revision_input, set_semaforo_revision_input] = useState<"verde" | "amarillo" | "rojo">("verde");
   const [observaciones_revision_input, set_observaciones_revision_input] = useState<string>("");
   const [respuestas_revision, set_respuestas_revision] = useState<Record<number, "A" | "B" | "C" | "D">>({});
@@ -268,8 +241,7 @@ export function EvaluacionSocioeconomicaVista() {
           const respuestas_norm =
             contestadas_raw > 0
               ? normalizarMapaRespuestas(
-                  raw.respuestas_detalle || raw.respuestas || raw.datos_formulario?.respuestas,
-                  puntaje_20
+                  raw.respuestas_detalle || raw.respuestas || raw.datos_formulario?.respuestas
                 )
               : {};
           const contestadas = contestadas_raw;
@@ -418,22 +390,10 @@ export function EvaluacionSocioeconomicaVista() {
         convalidado: convalidado_final,
       };
 
-      try {
-        if (aprobar_directo) {
-          await clienteApi.patch(`/evaluaciones/socioeconomica/${id_destino}/aprobar`, payload);
-        } else {
-          await clienteApi.patch(`/evaluaciones/socioeconomica/${id_destino}/revisar`, payload);
-        }
-      } catch {
-        // Fallback a receptor socioeconómica
-        await clienteApi
-          .post("/evaluaciones/receptor/socioeconomica", {
-            becario_id: id_destino,
-            respuestas: respuestas_revision,
-            puntaje_obtenido: puntaje_num,
-            semaforo: semaforo_revision_input,
-          })
-          .catch(() => {});
+      if (aprobar_directo) {
+        await clienteApi.patch(`/evaluaciones/socioeconomica/${id_destino}/aprobar`, payload);
+      } else {
+        await clienteApi.patch(`/evaluaciones/socioeconomica/${id_destino}/revisar`, payload);
       }
 
       const nuevo_estado = convalidado_final ? "aprobado" : "en_revision";
@@ -479,18 +439,14 @@ export function EvaluacionSocioeconomicaVista() {
     const id_destino = becario.becario_id || becario.id;
     set_aprobando_becario_id(becario.id);
     try {
-      try {
-        await clienteApi.patch(`/evaluaciones/socioeconomica/${id_destino}/aprobar`, {
-          becario_id: id_destino,
-          puntaje_sobre_20: becario.puntaje_20,
-          semaforo: becario.semaforo,
-          observaciones:
-            becario.observaciones || "Evaluación socioeconómica aprobada y convalidada por Administración.",
-          convalidado: true,
-        });
-      } catch {
-        // Fallback local si ruta aún está reiniciando
-      }
+      await clienteApi.patch(`/evaluaciones/socioeconomica/${id_destino}/aprobar`, {
+        becario_id: id_destino,
+        puntaje_sobre_20: becario.puntaje_20,
+        semaforo: becario.semaforo,
+        observaciones:
+          becario.observaciones || "Evaluación socioeconómica aprobada y convalidada por Administración.",
+        convalidado: true,
+      });
 
       set_nomina_becarios((prev) =>
         prev.map((item) =>
@@ -509,6 +465,8 @@ export function EvaluacionSocioeconomicaVista() {
       toast.success("Evaluación Socioeconómica Aprobada", {
         description: `Se convalidó la calificación de ${becario.nombre_completo} (${becario.puntaje_20.toFixed(1)} / 20 pts).`,
       });
+    } catch {
+      toast.error("No se pudo aprobar la evaluación socioeconómica en el servidor.");
     } finally {
       set_aprobando_becario_id(null);
     }
@@ -540,7 +498,7 @@ export function EvaluacionSocioeconomicaVista() {
       }
     });
 
-    if (max_puntos === 0) return 20;
+    if (max_puntos === 0 || Object.keys(respuestas_activas).length === 0) return 0;
     const calculado = (suma_puntos / max_puntos) * 20;
     return Math.min(Math.max(Number(calculado.toFixed(1)), 0), 20);
   }, [preguntas, respuestas_activas]);
@@ -616,18 +574,24 @@ export function EvaluacionSocioeconomicaVista() {
       texto_cancelar: "Revisar respuestas",
       tipo: "primario",
       onConfirmar: async () => {
-        await clienteApi
-          .post("/evaluaciones/receptor/socioeconomica", {
-            becario_id: usuario?.becario_id || usuario?.id || 1,
+        const becario_id_envio = usuario?.becario_id || usuario?.id;
+        if (!becario_id_envio) {
+          toast.error("Sesión de becario no identificada.");
+          return;
+        }
+        try {
+          await clienteApi.post("/evaluaciones/receptor/socioeconomica", {
+            becario_id: becario_id_envio,
             respuestas: respuestas_activas,
-          })
-          .catch(() => {});
-
-        set_becario_enviado(true);
-        toast.success("Cuestionario de Bienestar Universitario enviado correctamente", {
-          description:
-            "Sus 26 respuestas han sido registradas en su expediente semestral de Trabajo Social.",
-        });
+          });
+          set_becario_enviado(true);
+          toast.success("Cuestionario de Bienestar Universitario enviado correctamente", {
+            description:
+              "Sus respuestas han sido registradas en su expediente semestral de Trabajo Social.",
+          });
+        } catch {
+          toast.error("No se pudo enviar el cuestionario al servidor. Intenta nuevamente.");
+        }
       },
     });
   };
@@ -805,10 +769,19 @@ export function EvaluacionSocioeconomicaVista() {
                     Becarios Evaluados
                   </p>
                   <h3 className="text-2xl sm:text-3xl font-display font-bold text-[#035683]">
-                    {es_mentor ? `${nomina_para_rol.length} designados` : "21 / 23"}
+                    {(() => {
+                      const evaluados = nomina_para_rol.filter(
+                        (b) => b.respuestas_completadas > 0 || b.convalidado
+                      ).length;
+                      return es_mentor
+                        ? `${evaluados} / ${nomina_para_rol.length} designados`
+                        : `${evaluados} / ${nomina_para_rol.length}`;
+                    })()}
                   </h3>
                   <p className="text-xs text-emerald-700 font-semibold">
-                    Semestre II · 100% digitalizado
+                    {nomina_para_rol.filter((b) => b.respuestas_completadas > 0 || b.convalidado).length > 0
+                      ? "Registros recibidos desde servidor"
+                      : "Sin respuestas registradas aún"}
                   </p>
                 </div>
                 <div className="p-3 bg-[#035683]/10 rounded-xl">
@@ -827,7 +800,16 @@ export function EvaluacionSocioeconomicaVista() {
                     Promedio Socioeconómico
                   </p>
                   <h3 className="text-2xl sm:text-3xl font-display font-bold text-[#035683]">
-                    17.9 <span className="text-sm font-normal text-muted-foreground">/ 20 pts</span>
+                    {(() => {
+                      const evaluados = nomina_para_rol.filter(
+                        (b) => b.respuestas_completadas > 0 || b.convalidado
+                      );
+                      const prom =
+                        evaluados.length > 0
+                          ? evaluados.reduce((acc, b) => acc + b.puntaje_20, 0) / evaluados.length
+                          : 0;
+                      return prom.toFixed(1);
+                    })()} <span className="text-sm font-normal text-muted-foreground">/ 20 pts</span>
                   </h3>
                   <p className="text-xs text-[#00ABBD] font-semibold">
                     Base 20 puntos (Ponderación 20%)
@@ -866,7 +848,7 @@ export function EvaluacionSocioeconomicaVista() {
               <TabsList className="bg-slate-100 p-1 rounded-xl w-full sm:w-auto inline-flex">
                 <TabsTrigger value="nomina" className="text-xs font-bold rounded-lg px-4 py-2">
                   <Users className="w-3.5 h-3.5 mr-1.5 text-[#035683]" />
-                  Nómina Oficial de Becarios (21/23 Becarios)
+                  Nómina Oficial de Becarios ({nomina_para_rol.length} Becarios)
                 </TabsTrigger>
                 <TabsTrigger value="cuestionario" className="text-xs font-bold rounded-lg px-4 py-2">
                   <Eye className="w-3.5 h-3.5 mr-1.5 text-[#00ABBD]" />
@@ -905,7 +887,7 @@ export function EvaluacionSocioeconomicaVista() {
                       <Label className="text-xs font-mono uppercase font-bold text-[#035683]">
                         {es_mentor
                           ? `Seleccionar Becario para Auditar Respuestas (${nomina_para_rol.length} Becarios Designados)`
-                          : "Seleccionar Becario para Auditar Respuestas (21/23 Becarios Activos)"}
+                          : `Seleccionar Becario para Auditar Respuestas (${nomina_para_rol.length} Becarios Activos)`}
                       </Label>
                       <select
                         value={becario_seleccionado_id}
@@ -1730,8 +1712,10 @@ export function EvaluacionSocioeconomicaVista() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                   {preguntas.map((p) => {
-                    const inciso_elegido = respuestas_revision[p.numero] || "A";
-                    const opcion_actual = p.opciones.find((o) => o.inciso === inciso_elegido);
+                    const inciso_elegido = respuestas_revision[p.numero];
+                    const opcion_actual = inciso_elegido
+                      ? p.opciones.find((o) => o.inciso === inciso_elegido)
+                      : undefined;
                     return (
                       <div
                         key={p.id}
@@ -1741,14 +1725,25 @@ export function EvaluacionSocioeconomicaVista() {
                           <span className="text-xs font-bold text-[#035683] leading-snug">
                             #{p.numero}. {p.titulo}
                           </span>
-                          <Badge variant="outline" className="font-mono text-[10px] border-[#035683]/30 text-[#035683] shrink-0">
-                            Inciso {inciso_elegido}
+                          <Badge
+                            variant="outline"
+                            className={`font-mono text-[10px] shrink-0 ${
+                              inciso_elegido
+                                ? "border-[#035683]/30 text-[#035683]"
+                                : "border-slate-300 text-slate-400"
+                            }`}
+                          >
+                            {inciso_elegido ? `Inciso ${inciso_elegido}` : "Sin respuesta"}
                           </Badge>
                         </div>
                         <p className="text-[11px] text-slate-600 leading-snug">{p.enunciado}</p>
-                        {opcion_actual && (
+                        {opcion_actual ? (
                           <p className="text-[11px] font-semibold text-emerald-800 bg-emerald-50/70 px-2.5 py-1 rounded-lg border border-emerald-200">
                             ✓ {opcion_actual.inciso}: {opcion_actual.texto} ({opcion_actual.puntaje.toFixed(2)} pts)
+                          </p>
+                        ) : (
+                          <p className="text-[11px] italic text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+                            Sin respuesta registrada aún por el becario.
                           </p>
                         )}
                         <div className="flex items-center gap-1.5 pt-0.5">

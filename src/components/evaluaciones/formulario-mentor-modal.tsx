@@ -223,24 +223,19 @@ export function FormularioMentorModal({
   const solicitarCodigoValidacion = async () => {
     set_solicitando_codigo(true);
     try {
-      const codigo_generado = String(Math.floor(100000 + Math.random() * 900000));
-      let codigo_oficial = codigo_generado;
-
-      try {
-        const respuesta = await clienteApi.post<{ codigo?: string; mensaje?: string }>(
-          "/api/evaluaciones/tutor/solicitar-codigo",
-          {
-            becario_id,
-            tutor_nombre: mentor_nombre,
-            modalidad: modalidad_llenado,
-          }
-        );
-        if (respuesta && respuesta.codigo) {
-          codigo_oficial = String(respuesta.codigo);
+      const respuesta = await clienteApi.post<{ codigo?: string; mensaje?: string }>(
+        "/api/evaluaciones/tutor/solicitar-codigo",
+        {
+          becario_id,
+          tutor_nombre: mentor_nombre,
+          modalidad: modalidad_llenado,
         }
-      } catch (_e) {
-        // Fallback local con el código autogenerado institucional
+      );
+      if (!respuesta || !respuesta.codigo) {
+        toast.error("El servidor no devolvió un código de validación válido.");
+        return;
       }
+      const codigo_oficial = String(respuesta.codigo);
 
       set_codigo_esperado(codigo_oficial);
       set_codigo_solicitado(true);
@@ -265,29 +260,16 @@ export function FormularioMentorModal({
 
     set_verificando_codigo(true);
     try {
-      let valido = false;
-
-      try {
-        const respuesta = await clienteApi.post<{ valido?: boolean; verificado?: boolean }>(
-          "/api/evaluaciones/tutor/verificar-codigo",
-          {
-            becario_id,
-            codigo: codigo_verificacion.trim(),
-          }
-        );
-        if (respuesta && (respuesta.valido === true || respuesta.verificado === true)) {
-          valido = true;
+      const respuesta = await clienteApi.post<{ valido?: boolean; verificado?: boolean }>(
+        "/api/evaluaciones/tutor/verificar-codigo",
+        {
+          becario_id,
+          codigo: codigo_verificacion.trim(),
         }
-      } catch (_e) {
-        // Fallback institucional por coincidencia local
-      }
+      );
+      const valido = Boolean(respuesta && (respuesta.valido === true || respuesta.verificado === true));
 
-      if (!valido && codigo_esperado && codigo_verificacion.trim() === codigo_esperado.trim()) {
-        valido = true;
-      }
-
-      // Si se está en modo prueba o desarrollo, aceptamos si coincide o tiene 6 dígitos
-      if (valido || (codigo_verificacion.trim().length === 6 && !codigo_esperado)) {
+      if (valido) {
         set_identidad_verificada(true);
         toast.success("¡Identidad de Mentor Verificada!", {
           description: "Autorización concedida para asentar la evaluación oficial en el sistema.",
@@ -297,6 +279,8 @@ export function FormularioMentorModal({
           description: "El código ingresado no coincide con el emitido institucionalmente.",
         });
       }
+    } catch {
+      toast.error("No se pudo verificar el código con el servidor.");
     } finally {
       set_verificando_codigo(false);
     }
