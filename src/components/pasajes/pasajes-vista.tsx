@@ -562,24 +562,49 @@ export function PasajesVista() {
         const addr = data.address || {};
         const calle =
           addr.road || addr.pedestrian || addr.footway || addr.path || addr.residential || addr.amenity || addr.building;
-        const barrio =
-          addr.neighbourhood || addr.quarter || addr.suburb;
-        const distrito =
-          addr.city_district || addr.city || addr.town;
+        let barrio = String(addr.neighbourhood || addr.quarter || addr.suburb || "").trim();
+        const suburb_raw = String(addr.suburb || "").trim();
+        const limpiarCiudad = (v?: string) =>
+          String(v || "")
+            .replace(/^Municipio\s+Nuestra\s+Se[ñn]ora\s+de\s+/i, "")
+            .replace(/^Municipio\s+de\s+/i, "")
+            .trim();
+        const distrito = limpiarCiudad(addr.city_district || addr.city || addr.town);
+        const ciudad = limpiarCiudad(addr.city || addr.town);
+
+        const calle_lower = String(calle || "").toLowerCase();
+        const en_bella_vista =
+          (lat >= -16.5355 && lat <= -16.5195 && lng >= -68.1070 && lng <= -68.0915) ||
+          calle_lower.includes("pastor tejada") ||
+          calle_lower.includes("bella vista");
+        if (en_bella_vista && (!barrio || /irpavi|obrajes/i.test(barrio))) {
+          barrio = "Bella Vista";
+        }
+
+        const parada_cercana_ref =
+          parada_cercana && parada_cercana.distancia <= 350 ? parada_cercana.nombre : "";
 
         if (calle && String(calle).trim().length > 0) {
-          if (barrio && String(barrio).trim().length > 0) {
+          if (barrio) {
             return `${calle}, ${barrio}`;
-          } else if (distrito && String(distrito).trim().length > 0) {
+          } else if (distrito) {
             return `${calle}, ${distrito}`;
           }
           return `${calle}`;
         } else {
           const zona = barrio || distrito;
           if (zona) {
-            return `Zona ${zona} · Ref. ${parada_ref}`;
+            const contexto =
+              suburb_raw && suburb_raw.toLowerCase() !== zona.toLowerCase() && !en_bella_vista
+                ? suburb_raw
+                : ciudad;
+            const etiqueta_zona =
+              contexto && contexto.toLowerCase() !== zona.toLowerCase()
+                ? `Zona ${zona}, ${contexto}`
+                : `Zona ${zona}`;
+            return parada_cercana_ref ? `${etiqueta_zona} · Ref. ${parada_cercana_ref}` : etiqueta_zona;
           }
-          return `Ref. ${parada_ref}`;
+          return parada_cercana_ref ? `Ref. ${parada_cercana_ref}` : `Ref. ${parada_ref}`;
         }
       }
     } catch (_e) {
