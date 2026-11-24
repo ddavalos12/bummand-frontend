@@ -794,7 +794,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
   // Métricas Administrativas Oficiales del Semestre II (o Becarios Designados para Mentor)
   const total_becarios = es_mentor
     ? becarios_designados.length || total_becarios_programa
-    : total_becarios_programa || 23;
+    : total_becarios_programa;
   const becarios_optimos = becarios_consolidado_filtrados.filter((b) => Number(b.total || 0) >= 70).length;
   const becarios_condicionados = becarios_consolidado_filtrados.filter((b) => Number(b.total || 0) >= 51 && Number(b.total || 0) < 70).length;
   const becarios_reprobados = becarios_consolidado_filtrados.filter((b) => Number(b.total || 0) > 0 && Number(b.total || 0) < 51).length;
@@ -1164,7 +1164,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-3 bg-white rounded-xl border border-slate-200">
                   <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Total Becarios</span>
-                  <span className="text-xl font-bold font-mono text-[#035683]">{es_mentor ? nomina_f03_filtrada.length : nomina_f03_filtrada.length || 23}</span>
+                  <span className="text-xl font-bold font-mono text-[#035683]">{nomina_f03_filtrada.length}</span>
                   <span className="text-[10px] text-muted-foreground block mt-0.5">{es_mentor ? "Becarios designados" : "Nómina oficial"}</span>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-emerald-200 bg-emerald-50/30">

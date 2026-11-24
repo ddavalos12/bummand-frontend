@@ -281,6 +281,8 @@ export function EvaluacionSocioeconomicaVista() {
           };
         });
         set_nomina_becarios(mapeada);
+      } else {
+        set_nomina_becarios([]);
       }
     } catch (_e) {
       // Mantiene la nómina inicial de respaldo si el servidor aún no responde

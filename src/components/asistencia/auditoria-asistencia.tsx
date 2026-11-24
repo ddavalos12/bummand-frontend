@@ -49,6 +49,15 @@ import {
   DialogBody,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import {
   Select,
@@ -251,7 +260,6 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
 
   const {
     confirmarCierreSinCompletar,
-    confirmarEliminacionRegistro,
     DialogoConfirmacionInstitucional,
   } = useConfirmacionDialogo();
 
@@ -287,7 +295,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
   const [becario_detalle_mensual, set_becario_detalle_mensual] =
     useState<HorasMensualesBecario | null>(null);
 
-  const { datos: horas_mensuales_servidor } = useConsulta<HorasMensualesBecario[]>(
+  const { datos: horas_mensuales_servidor, invalidar: invalidarHorasMensuales } = useConsulta<HorasMensualesBecario[]>(
     `horas_mensuales_${mes_seleccionado}`,
     async () => {
       try {
@@ -329,7 +337,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
   );
 
   useEffect(() => {
-    if (horas_mensuales_servidor && horas_mensuales_servidor.length > 0) {
+    if (Array.isArray(horas_mensuales_servidor)) {
       set_horas_mensuales_locales(horas_mensuales_servidor);
     }
   }, [horas_mensuales_servidor]);
@@ -457,6 +465,8 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
   const [dialogo_justificar_abierto, set_dialogo_justificar_abierto] = useState<boolean>(false);
   const [incidencia_a_justificar, set_incidencia_a_justificar] =
     useState<IncidenciaAsistenciaInicial | null>(null);
+  const [registro_eliminar, set_registro_eliminar] = useState<RegistroAuditoriaAsistencia | null>(null);
+  const [eliminando_registro, set_eliminando_registro] = useState<boolean>(false);
 
   const abrirJustificacionParaRegistro = (item: RegistroAuditoriaAsistencia) => {
     let tipo_incidencia: IncidenciaAsistenciaInicial["tipo_incidencia"] = "asistencia_practicas";
@@ -479,6 +489,46 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
           : undefined),
     });
     set_dialogo_justificar_abierto(true);
+  };
+
+  const manejarConfirmarEliminarAsistencia = async () => {
+    if (!registro_eliminar) return;
+    set_eliminando_registro(true);
+    try {
+      await clienteApi.delete(`/asistencia/${registro_eliminar.id}`);
+      set_registros_locales((prev) =>
+        prev.filter((r) => r.id !== registro_eliminar.id)
+      );
+      if (registro_eliminar.horas_trabajadas) {
+        set_horas_mensuales_locales((prev) =>
+          prev.map((h) =>
+            h.becario_id === registro_eliminar.becario_id
+              ? {
+                  ...h,
+                  horas_realizadas: Math.max(
+                    0,
+                    Math.round(
+                      (h.horas_realizadas - registro_eliminar.horas_trabajadas!) * 10
+                    ) / 10
+                  ),
+                  dias_asistidos: Math.max(0, h.dias_asistidos - 1),
+                }
+              : h
+          )
+        );
+      }
+      toast.success("Registro de asistencia eliminado", {
+        description: `Marcación de ${registro_eliminar.becario_nombre} (${registro_eliminar.fecha}) eliminada permanentemente (Web + APK).`,
+      });
+      set_registro_eliminar(null);
+      await Promise.all([invalidar(), invalidarHorasMensuales()]);
+    } catch (error) {
+      toast.error("No se pudo eliminar el registro de asistencia", {
+        description: error instanceof Error ? error.message : "Verifica tus permisos.",
+      });
+    } finally {
+      set_eliminando_registro(false);
+    }
   };
 
   // Estados para Auditoría de Asistencia por Intervalo de Fechas
@@ -614,7 +664,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
               item.lugar_practica?.nombre ||
               item.sede_nombre ||
               item.lugar_practica ||
-              "Oficina Central Bloque A";
+              "Oficina Central Diaconía IFD - El Alto";
 
             return {
               id: item.id,
@@ -645,6 +695,8 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
               minutos_retraso: item.minutos_retraso ?? 0,
               monto_multa_bs: item.monto_multa_bs ?? 0,
               es_viernes: item.es_viernes ?? false,
+              es_registro_manual: Boolean(item.es_registro_manual),
+              exime_multa: Boolean(item.exime_multa),
               tipo_actividad: item.tipo_actividad || "practicas",
               ci: item.becario?.ci ? String(item.becario.ci) : becario_match?.ci,
               supervisor_id: item.becario?.supervisor_id ?? item.becario?.supervisor?.id ?? item.supervisor_id ?? null,
@@ -1357,47 +1409,16 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                             </>
                           )}
 
-                          {/* Botón para eliminar/anular registro de asistencia manual */}
-                          {item.es_registro_manual && es_admin_o_supervisor && (
+                          {es_admin_o_supervisor && (
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => {
-                                confirmarEliminacionRegistro({
-                                  titulo: "¿Anular y eliminar asistencia manual?",
-                                  descripcion: `¿Está seguro de anular el registro de contingencia para ${item.becario_nombre} (${item.fecha})? Esta acción revertirá las horas acumuladas asociadas.`,
-                                  nombre_item: `${item.becario_nombre} - ${item.fecha}`,
-                                  onConfirmar: () => {
-                                    set_registros_locales((prev) =>
-                                      prev.filter((r) => r.id !== item.id)
-                                    );
-                                    if (item.horas_trabajadas) {
-                                      set_horas_mensuales_locales((prev) =>
-                                        prev.map((h) =>
-                                          h.becario_id === item.becario_id
-                                            ? {
-                                                ...h,
-                                                horas_realizadas: Math.max(
-                                                  0,
-                                                  Math.round(
-                                                    (h.horas_realizadas - item.horas_trabajadas!) * 10
-                                                  ) / 10
-                                                ),
-                                                dias_asistidos: Math.max(0, h.dias_asistidos - 1),
-                                              }
-                                            : h
-                                        )
-                                      );
-                                    }
-                                  },
-                                  mensaje_exito:
-                                    "Registro de asistencia manual anulado correctamente",
-                                });
-                              }}
-                              className="h-8 px-2 text-[#E2694B] hover:text-[#c9573b] hover:bg-rose-50 rounded-lg text-xs"
-                              title="Anular / Eliminar registro manual"
+                              onClick={() => set_registro_eliminar(item)}
+                              className="h-8 px-2.5 rounded-xl text-rose-600 hover:text-rose-700 hover:bg-rose-50 text-xs font-semibold gap-1 cursor-pointer"
+                              title="Eliminar registro de asistencia de la base de datos y APK"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
+                              <span>Quitar</span>
                             </Button>
                           )}
                         </div>
@@ -2602,6 +2623,42 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Diálogo Confirmación de Eliminación de Registro de Asistencia */}
+      {registro_eliminar && (
+        <AlertDialog
+          open={!!registro_eliminar}
+          onOpenChange={(abierto) => {
+            if (!abierto && !eliminando_registro) set_registro_eliminar(null);
+          }}
+        >
+          <AlertDialogContent className="sm:max-w-[460px] p-6 bg-white border-[#E5E7EB] rounded-2xl">
+            <AlertDialogHeader className="pb-2">
+              <AlertDialogTitle className="text-base font-bold text-rose-700 flex items-center gap-2">
+                <Trash2 className="w-5 h-5 text-rose-600" />
+                ¿Eliminar registro de asistencia?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-xs text-slate-600">
+                Se eliminará permanentemente la marcación de{" "}
+                <strong className="text-[#035683]">{registro_eliminar.becario_nombre}</strong>{" "}
+                ({registro_eliminar.fecha} · {registro_eliminar.hora_ingreso}
+                {registro_eliminar.hora_salida ? ` - ${registro_eliminar.hora_salida}` : ""}) tanto del sistema web como de la aplicación móvil.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="pt-3">
+              <AlertDialogCancel disabled={eliminando_registro}>Cancelar</AlertDialogCancel>
+              <Button
+                type="button"
+                disabled={eliminando_registro}
+                onClick={manejarConfirmarEliminarAsistencia}
+                className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl"
+              >
+                {eliminando_registro ? "Eliminando..." : "Sí, quitar registro"}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
 
       {/* Diálogo de Confirmación Institucional Unificado */}
       {DialogoConfirmacionInstitucional}

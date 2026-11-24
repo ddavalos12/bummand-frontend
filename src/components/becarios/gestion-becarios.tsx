@@ -152,6 +152,8 @@ export interface SupervisorInstitucional {
   sedes?: string[];
 }
 
+export const SEDE_INSTITUCIONAL_POR_DEFECTO = "Oficina Central Diaconía IFD - El Alto";
+
 export const SUPERVISORES_CATALOGO_BASE: SupervisorInstitucional[] = [
   { id: 45, nombre: "Adams Callejas", correo: "adams.callejas@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
   { id: 36, nombre: "Alberto Iber Leon Coronado", correo: "alberto.leon@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
@@ -330,12 +332,12 @@ function normalizarBecario(remoto: any): BecarioVista {
   const tutor_nombre =
     remoto.tutor_nombre ||
     remoto.supervisor?.nombre ||
-    SUPERVISORES_INSTITUCIONALES[0].nombre;
+    "";
 
   const tutor_correo =
     remoto.tutor_correo ||
     remoto.supervisor?.correo ||
-    SUPERVISORES_INSTITUCIONALES[0].correo;
+    "";
 
   const supervisor_id =
     remoto.supervisor_id ??
@@ -557,7 +559,7 @@ export function GestionBecarios() {
   const [nueva_carrera, set_nueva_carrera] = useState("");
   const [nueva_universidad, set_nueva_universidad] = useState("UMSA");
   const [nueva_iglesia, set_nueva_iglesia] = useState("");
-  const [nuevo_lugar, set_nuevo_lugar] = useState("Oficina Central Bloque A");
+  const [nuevo_lugar, set_nuevo_lugar] = useState(SEDE_INSTITUCIONAL_POR_DEFECTO);
   const [nuevo_estado, set_nuevo_estado] = useState<"pendiente_validacion" | "activo">("pendiente_validacion");
   const [nuevo_documento_nombre, set_nuevo_documento_nombre] = useState("");
   const [nuevo_documento_url, set_nuevo_documento_url] = useState("");
@@ -591,9 +593,9 @@ export function GestionBecarios() {
   const [edit_direccion, set_edit_direccion] = useState("");
   const [edit_ciudad, set_edit_ciudad] = useState("La Paz");
   const [edit_iglesia, set_edit_iglesia] = useState("");
-  const [edit_sede, set_edit_sede] = useState("Oficina Central Bloque A");
-  const [edit_supervisor, set_edit_supervisor] = useState(SUPERVISORES_INSTITUCIONALES[0].nombre);
-  const [edit_supervisor_id, set_edit_supervisor_id] = useState<number>(2);
+  const [edit_sede, set_edit_sede] = useState(SEDE_INSTITUCIONAL_POR_DEFECTO);
+  const [edit_supervisor, set_edit_supervisor] = useState("");
+  const [edit_supervisor_id, set_edit_supervisor_id] = useState<number>(0);
   const [filtro_supervisor_edicion, set_filtro_supervisor_edicion] = useState("");
   const [edit_estado, set_edit_estado] = useState<"activo" | "pendiente_validacion">("activo");
   const [edit_ceti, set_edit_ceti] = useState(1);
@@ -703,39 +705,69 @@ export function GestionBecarios() {
   // Estado para Asignar / Cambiar Supervisor (Modal)
   const [modal_supervisor_abierto, set_modal_supervisor_abierto] = useState(false);
   const [becario_seleccionado, set_becario_seleccionado] = useState<BecarioVista | null>(null);
-  const [supervisor_seleccionado, set_supervisor_seleccionado] = useState(
-    SUPERVISORES_INSTITUCIONALES[0].nombre
-  );
-  const [supervisor_seleccionado_id, set_supervisor_seleccionado_id] = useState<number>(2);
+  const [supervisor_seleccionado, set_supervisor_seleccionado] = useState("");
+  const [supervisor_seleccionado_id, set_supervisor_seleccionado_id] = useState<number>(0);
   const [filtro_supervisor_modal, set_filtro_supervisor_modal] = useState("");
 
-  // Cargar dinámicamente los supervisores reales desde PostgreSQL al montar el componente
   useEffect(() => {
     let montado = true;
     async function cargarSupervisoresRemotos() {
       try {
         const respuesta = await clienteApi.get<any[]>("/usuarios?rol=supervisor");
         if (montado && Array.isArray(respuesta) && respuesta.length > 0) {
-          const mapa = new Map<number, SupervisorInstitucional>();
-          SUPERVISORES_CATALOGO_BASE.forEach((s) => mapa.set(s.id, s));
-          respuesta.forEach((item) => {
-            if (item?.id) {
-              const existente = mapa.get(item.id);
-              mapa.set(item.id, {
-                id: item.id,
-                nombre: item.nombre || existente?.nombre || "Mentor",
-                correo: item.correo || existente?.correo || "",
-                sedes: existente?.sedes || ["Oficina Central Bloque A"],
-              });
-            }
+          const catalogo_por_correo = new Map<string, SupervisorInstitucional>();
+          const catalogo_por_nombre = new Map<string, SupervisorInstitucional>();
+          SUPERVISORES_CATALOGO_BASE.forEach((s) => {
+            const correo_norm = (s.correo || "").toLowerCase().trim();
+            const nombre_norm = (s.nombre || "").toLowerCase().trim();
+            if (correo_norm) catalogo_por_correo.set(correo_norm, s);
+            if (nombre_norm) catalogo_por_nombre.set(nombre_norm, s);
           });
-          const ordenados = Array.from(mapa.values()).sort((a, b) =>
+
+          const mapa_por_id = new Map<number, SupervisorInstitucional>();
+          const correos_vistos = new Set<string>();
+
+          respuesta.forEach((item) => {
+            if (!item?.id) return;
+            const id_num = Number(item.id);
+            const nombre = String(item.nombre || "Mentor").trim();
+            const correo = String(item.correo || "").trim();
+            const correo_norm = correo.toLowerCase();
+            const nombre_norm = nombre.toLowerCase();
+
+            if (correo_norm && correos_vistos.has(correo_norm)) return;
+            if (correo_norm) correos_vistos.add(correo_norm);
+
+            const base =
+              (correo_norm ? catalogo_por_correo.get(correo_norm) : undefined) ||
+              catalogo_por_nombre.get(nombre_norm);
+
+            const sedes_remotas: string[] =
+              Array.isArray(item.sedes) && item.sedes.length > 0
+                ? item.sedes.filter(Boolean)
+                : item.lugar_practica?.nombre
+                ? [String(item.lugar_practica.nombre)]
+                : typeof item.sede === "string" && item.sede.trim()
+                ? [item.sede.trim()]
+                : base?.sedes && base.sedes.length > 0
+                ? base.sedes
+                : [SEDE_INSTITUCIONAL_POR_DEFECTO];
+
+            mapa_por_id.set(id_num, {
+              id: id_num,
+              nombre: nombre || base?.nombre || "Mentor",
+              correo: correo || base?.correo || "",
+              sedes: sedes_remotas,
+            });
+          });
+
+          const ordenados = Array.from(mapa_por_id.values()).sort((a, b) =>
             a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" })
           );
           set_lista_supervisores(ordenados);
         }
       } catch (error) {
-        console.warn("No se pudieron cargar supervisores dinámicos, usando catálogo base de 29:", error);
+        console.warn("No se pudieron cargar supervisores dinámicos, usando catálogo base de respaldo:", error);
       }
     }
     cargarSupervisoresRemotos();
@@ -788,17 +820,25 @@ export function GestionBecarios() {
     return Array.from(conjunto);
   }, [lista_para_rol]);
 
-  // Estadísticas y agrupaciones para la pestaña "Supervisores con Becarios Designados"
   const estadisticas_supervisores = useMemo(() => {
     const total_supervisores = lista_supervisores.length;
     const asignaciones = lista_supervisores.map((sup) => {
+      const correo_sup = (sup.correo || "").toLowerCase().trim();
+      const nombre_sup = (sup.nombre || "").toLowerCase().trim();
       const becarios_asignados = lista_para_rol.filter((b) => {
-        if (b.supervisor_id && Number(b.supervisor_id) === Number(sup.id)) return true;
-        if (b.tutor_correo && b.tutor_correo.toLowerCase() === sup.correo.toLowerCase()) return true;
+        if (b.supervisor_id != null && Number(b.supervisor_id) === Number(sup.id)) {
+          return true;
+        }
+        if (b.supervisor_id != null && Number(b.supervisor_id) > 0) {
+          return false;
+        }
+        const correo_tut = (b.tutor_correo || "").toLowerCase().trim();
+        if (correo_tut && correo_sup && correo_tut === correo_sup) return true;
         if (b.tutor_nombre) {
           const nom_b = b.tutor_nombre.toLowerCase().trim();
-          const nom_s = sup.nombre.toLowerCase().trim();
-          if (nom_b === nom_s || nom_s.includes(nom_b) || nom_b.includes(nom_s)) return true;
+          if (nom_b && nombre_sup && (nom_b === nombre_sup || nombre_sup.includes(nom_b) || nom_b.includes(nombre_sup))) {
+            return true;
+          }
         }
         return false;
       });
@@ -986,8 +1026,8 @@ export function GestionBecarios() {
         ciudad: "La Paz",
         iglesia: nueva_iglesia,
         lugar_practica: nuevo_lugar,
-        tutor_nombre: SUPERVISORES_INSTITUCIONALES[0].nombre,
-        tutor_correo: SUPERVISORES_INSTITUCIONALES[0].correo,
+        tutor_nombre: "",
+        tutor_correo: "",
         estado: nuevo_estado,
         horas_mes_actual: 0,
         horas_meta_mes: 36.0,
@@ -1053,7 +1093,7 @@ export function GestionBecarios() {
     set_edit_direccion(becario.direccion || "");
     set_edit_ciudad(becario.ciudad || "La Paz");
     set_edit_iglesia(typeof becario.iglesia === "string" ? becario.iglesia : (becario.iglesia as any)?.nombre || "");
-    set_edit_sede(typeof becario.lugar_practica === "string" ? becario.lugar_practica : (becario.lugar_practica as any)?.nombre || "Oficina Central Bloque A");
+    set_edit_sede(typeof becario.lugar_practica === "string" ? becario.lugar_practica : (becario.lugar_practica as any)?.nombre || SEDE_INSTITUCIONAL_POR_DEFECTO);
     const sup_inicial = resolverSupervisor(
       becario.supervisor_id || becario.tutor_nombre || becario.tutor_correo,
       lista_supervisores
@@ -1793,7 +1833,9 @@ export function GestionBecarios() {
                       {estadisticas_supervisores.total_becarios_supervisados} / {lista_para_rol.length}
                     </p>
                     <p className="text-[11px] text-emerald-700 font-semibold mt-0.5">
-                      100% Cobertura de Cohorte
+                      {lista_para_rol.length > 0
+                        ? `${Math.round((estadisticas_supervisores.total_becarios_supervisados / lista_para_rol.length) * 100)}% Cobertura de Cohorte`
+                        : "Sin becarios en cohorte"}
                     </p>
                   </div>
                 </div>
@@ -1906,7 +1948,7 @@ export function GestionBecarios() {
                                 <span>•</span>
                                 <span className="flex items-center gap-1 text-[11px]">
                                   <Building2 className="w-3 h-3 text-[#00ABBD]" />
-                                  {supervisor.sedes?.[0] || "Oficina Central Bloque A"}
+                                  {supervisor.sedes?.[0] || SEDE_INSTITUCIONAL_POR_DEFECTO}
                                 </span>
                               </div>
                             </div>
@@ -1964,7 +2006,7 @@ export function GestionBecarios() {
                                       </p>
                                       <p className="text-[10px] text-[#035683] font-semibold truncate flex items-center gap-1 mt-0.5">
                                         <Building2 className="w-3 h-3 text-[#00ABBD]" />
-                                        {typeof b.lugar_practica === "string" ? b.lugar_practica : (b.lugar_practica as any)?.nombre || "Oficina Central Bloque A"}
+                                        {typeof b.lugar_practica === "string" ? b.lugar_practica : (b.lugar_practica as any)?.nombre || SEDE_INSTITUCIONAL_POR_DEFECTO}
                                       </p>
                                     </div>
                                   </div>
@@ -2202,7 +2244,7 @@ export function GestionBecarios() {
                           <div className="flex items-center gap-1.5 text-xs text-[#035683] font-semibold">
                             <Building2 className="w-3.5 h-3.5 text-[#00ABBD] shrink-0" />
                             <span className="truncate max-w-[210px]">
-                              {typeof b.lugar_practica === "string" ? b.lugar_practica : (b.lugar_practica as any)?.nombre || "Oficina Central Bloque A"}
+                              {typeof b.lugar_practica === "string" ? b.lugar_practica : (b.lugar_practica as any)?.nombre || SEDE_INSTITUCIONAL_POR_DEFECTO}
                             </span>
                           </div>
                         </TableCell>
@@ -3330,7 +3372,7 @@ export function GestionBecarios() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs">
                     <div>
                       <span className="text-muted-foreground block text-[11px]">Sede de Prácticas</span>
-                      <p className="font-bold text-[#035683]">{typeof becario_ficha_modal.lugar_practica === "string" ? becario_ficha_modal.lugar_practica : (becario_ficha_modal.lugar_practica as any)?.nombre || "Oficina Central Bloque A"}</p>
+                      <p className="font-bold text-[#035683]">{typeof becario_ficha_modal.lugar_practica === "string" ? becario_ficha_modal.lugar_practica : (becario_ficha_modal.lugar_practica as any)?.nombre || SEDE_INSTITUCIONAL_POR_DEFECTO}</p>
                     </div>
                     <div>
                       <span className="text-muted-foreground block text-[11px]">Mentor Tutor Asignado</span>
@@ -3564,7 +3606,7 @@ export function GestionBecarios() {
                   CI: {becario_seleccionado.ci || "-"} · {becario_seleccionado.carrera || "-"} ({becario_seleccionado.universidad || "-"})
                 </p>
                 <p className="text-muted-foreground font-mono text-[11px]">
-                  Sede: {typeof becario_seleccionado.lugar_practica === "string" ? becario_seleccionado.lugar_practica : (becario_seleccionado.lugar_practica as any)?.nombre || "Oficina Central Bloque A"}
+                  Sede: {typeof becario_seleccionado.lugar_practica === "string" ? becario_seleccionado.lugar_practica : (becario_seleccionado.lugar_practica as any)?.nombre || SEDE_INSTITUCIONAL_POR_DEFECTO}
                 </p>
               </div>
             )}
@@ -3591,13 +3633,13 @@ export function GestionBecarios() {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label htmlFor="sel-supervisor" className="text-xs font-semibold text-[#122029]">
-                  {becario_seleccionado?.tutor_nombre ? "Nuevo Mentor Responsable" : "Mentor Responsable"} (29 de Diaconía)
+                  {becario_seleccionado?.tutor_nombre ? "Nuevo Mentor Responsable" : "Mentor Responsable"} ({lista_supervisores.length} de Diaconía)
                 </Label>
               </div>
               <div className="relative">
                 <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar entre los 29 supervisores..."
+                  placeholder={`Buscar entre los ${lista_supervisores.length} supervisores...`}
                   value={filtro_supervisor_modal}
                   onChange={(e) => set_filtro_supervisor_modal(e.target.value)}
                   className="h-8 pl-8 text-xs border-[#E5E7EB] bg-slate-50/50 mb-1"
@@ -3620,10 +3662,11 @@ export function GestionBecarios() {
                 </SelectTrigger>
                 <SelectContent className="bg-white border-[#E5E7EB] max-h-64">
                   {supervisores_filtrados_modal.map((sup) => {
-                    const conteo = lista_becarios.filter(
-                      (b) =>
-                        (b.supervisor_id && Number(b.supervisor_id) === sup.id) ||
-                        b.tutor_nombre === sup.nombre
+                    const conteo = lista_becarios.filter((b) =>
+                      b.supervisor_id != null && Number(b.supervisor_id) > 0
+                        ? Number(b.supervisor_id) === sup.id
+                        : (b.tutor_correo && b.tutor_correo.toLowerCase().trim() === sup.correo.toLowerCase().trim()) ||
+                          (b.tutor_nombre && b.tutor_nombre.toLowerCase().trim() === sup.nombre.toLowerCase().trim())
                     ).length;
                     return (
                       <SelectItem
@@ -4121,12 +4164,12 @@ export function GestionBecarios() {
 
                   <div className="space-y-1">
                     <Label className="text-xs font-semibold text-[#122029]">
-                      Mentor Tutor Asignado (29 disponibles)
+                      Mentor Tutor Asignado ({lista_supervisores.length} disponibles)
                     </Label>
                     <div className="relative">
                       <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-muted-foreground" />
                       <Input
-                        placeholder="Buscar entre los 29 supervisores..."
+                        placeholder={`Buscar entre los ${lista_supervisores.length} supervisores...`}
                         value={filtro_supervisor_edicion}
                         onChange={(e) => set_filtro_supervisor_edicion(e.target.value)}
                         className="h-8 pl-8 text-xs border-[#E5E7EB] bg-slate-50/50 mb-1"
@@ -4149,10 +4192,11 @@ export function GestionBecarios() {
                       </SelectTrigger>
                       <SelectContent className="bg-white border-[#E5E7EB] max-h-64">
                         {supervisores_filtrados_edicion.map((sup) => {
-                          const conteo = lista_becarios.filter(
-                            (b) =>
-                              (b.supervisor_id && Number(b.supervisor_id) === sup.id) ||
-                              b.tutor_nombre === sup.nombre
+                          const conteo = lista_becarios.filter((b) =>
+                            b.supervisor_id != null && Number(b.supervisor_id) > 0
+                              ? Number(b.supervisor_id) === sup.id
+                              : (b.tutor_correo && b.tutor_correo.toLowerCase().trim() === sup.correo.toLowerCase().trim()) ||
+                                (b.tutor_nombre && b.tutor_nombre.toLowerCase().trim() === sup.nombre.toLowerCase().trim())
                           ).length;
                           return (
                             <SelectItem
