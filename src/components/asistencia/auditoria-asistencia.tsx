@@ -1322,7 +1322,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                           ) : null}
 
                           {/* Visualización Transparente de Multas de Escuela de Líderes */}
-                          {item.monto_multa_bs && item.monto_multa_bs > 0 && !item.exime_multa && item.estado !== "convalidado" ? (
+                          {item.tipo_actividad === "escuela_lideres" && item.monto_multa_bs && item.monto_multa_bs > 0 && !item.exime_multa && item.estado !== "convalidado" ? (
                             <div className="flex items-center justify-end">
                               <Badge variant="outline" className="bg-rose-50 border-rose-300 text-rose-700 text-[10px] font-mono font-bold gap-1">
                                 <Coins className="w-3 h-3 text-rose-600" />
@@ -1971,7 +1971,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                     </div>
                     <div className="text-muted-foreground">{registro_detalle.carrera}</div>
                   </div>
-                  {registro_detalle.monto_multa_bs && registro_detalle.monto_multa_bs > 0 ? (
+                  {registro_detalle.tipo_actividad === "escuela_lideres" && registro_detalle.monto_multa_bs && registro_detalle.monto_multa_bs > 0 ? (
                     <Badge variant="outline" className="bg-rose-50 border-rose-300 text-rose-700 font-bold text-xs gap-1">
                       <Coins className="w-3.5 h-3.5 text-rose-600" />
                       Multa Escuela de Líderes: Bs {Number(registro_detalle.monto_multa_bs || 0).toFixed(2)}

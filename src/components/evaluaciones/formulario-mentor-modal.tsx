@@ -65,6 +65,7 @@ interface FormularioMentorModalProps {
   nombre_becario?: string;
   unidad_agencia_inicial?: string;
   evaluacion_inicial?: EvaluacionInicialMentor;
+  token_qr?: string;
   modalidad_llenado?: "perfil_supervisor" | "celular_estudiante";
   solo_lectura?: boolean;
   estado_actual?: "pendiente" | "evaluado" | "aprobado";
@@ -112,6 +113,7 @@ export function FormularioMentorModal({
   nombre_becario = "Becario",
   unidad_agencia_inicial = "Oficina Central Diaconía IFD - El Alto",
   evaluacion_inicial,
+  token_qr,
   modalidad_llenado = "perfil_supervisor",
   solo_lectura = false,
   estado_actual = "pendiente",
@@ -325,6 +327,7 @@ export function FormularioMentorModal({
         nota_final_20: nota_final_sobre_20,
         modalidad_llenado: "perfil_supervisor",
         codigo_verificacion: codigo_verificacion.trim() || undefined,
+        ...(token_qr ? { token: token_qr, token_qr } : {}),
       });
 
       toast.success("Evaluación de Mentor asentada exitosamente", {

@@ -228,11 +228,10 @@ export async function descargarExcelInstitucional({
 export async function exportarFormularioContabilidadRsdExcel(
   solicitudes_entrada: readonly object[],
   periodo = "2026-10",
-  descontar_multas = true
+  descontar_multas = false
 ): Promise<void> {
   let suma_total_100 = 0;
   let suma_reconocido_80 = 0;
-  let suma_multas = 0;
   let suma_liquido = 0;
 
   const filas: Array<Array<string | number>> = solicitudes_entrada.map((item, idx) => {
@@ -253,20 +252,11 @@ export async function exportarFormularioContabilidadRsdExcel(
         : sol.monto_devolucion_centavos !== undefined
         ? Number(sol.monto_devolucion_centavos) / 100
         : Number(sol.total_reembolso_80 ?? sol.monto_devolucion ?? monto_total_bs * 0.8);
-    const multa_original_bs =
-      sol.multas_asistencia_centavos !== undefined
-        ? Number(sol.multas_asistencia_centavos) / 100
-        : Number(sol.multas_asistencia_bs ?? 0);
-    const multa_aplicada = descontar_multas
-      ? sol.descuento_multas_aplicado_bs !== undefined
-        ? Number(sol.descuento_multas_aplicado_bs)
-        : multa_original_bs
-      : 0;
-    const liquido_pagable = Math.max(0, Number((monto_80_bs - multa_aplicada).toFixed(2)));
+    void descontar_multas;
+    const liquido_pagable = Number(monto_80_bs.toFixed(2));
 
     suma_total_100 += monto_total_bs;
     suma_reconocido_80 += monto_80_bs;
-    suma_multas += multa_aplicada;
     suma_liquido += liquido_pagable;
 
     const nombre_becario = String(
@@ -297,7 +287,6 @@ export async function exportarFormularioContabilidadRsdExcel(
       String(cantidad_recorridos),
       Number(monto_total_bs.toFixed(2)),
       Number(monto_80_bs.toFixed(2)),
-      Number(multa_aplicada.toFixed(2)),
       liquido_pagable,
       estado,
     ];
@@ -307,9 +296,7 @@ export async function exportarFormularioContabilidadRsdExcel(
     nombre_archivo: `Formulario_Contabilidad_RSD_Pasajes_${periodo.replace(/\s+/g, "_")}.xlsx`,
     nombre_hoja: "Pasajes Contabilidad RSD",
     titulo_reporte: "FORMULARIO PARA CONTABILIDAD Y RSD — LIQUIDACIÓN DE PASAJES",
-    subtitulo: `Liquidación mensual del 80% de pasajes y cálculo líquido ${
-      descontar_multas ? "descontando multas de asistencia" : "sin descuento de multas"
-    } · Periodo: ${periodo}`,
+    subtitulo: `Liquidación mensual del 80% de pasajes sin descuento de multas · Periodo: ${periodo}`,
     columnas: [
       "N°",
       "Becario",
@@ -318,7 +305,6 @@ export async function exportarFormularioContabilidadRsdExcel(
       "Recorridos",
       "TOTAL (100%) Bs",
       "80% RECONOCIDO Bs",
-      "(-) MULTAS ASISTENCIA Bs",
       "LÍQUIDO PAGABLE (NETO RSD) Bs",
       "Estado",
     ],
@@ -331,7 +317,6 @@ export async function exportarFormularioContabilidadRsdExcel(
       "",
       Number(suma_total_100.toFixed(2)),
       Number(suma_reconocido_80.toFixed(2)),
-      Number(suma_multas.toFixed(2)),
       Number(suma_liquido.toFixed(2)),
       "",
     ],

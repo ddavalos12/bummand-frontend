@@ -62,14 +62,6 @@ export interface PlanillaReposicionRefrigerio {
   desglose_ingredientes?: unknown[];
 }
 
-export interface PeticionSortearDupla {
-  fecha: string;
-  becario_1_id?: number;
-  becario_2_id?: number;
-  presupuesto?: number;
-  observaciones?: string;
-}
-
 export interface PeticionRendirRefrigerio {
   costo_total: number;
   modalidad_preparacion: ModalidadPreparacion;
@@ -88,17 +80,6 @@ export interface PeticionAprobarAdminRefrigerio {
   observaciones?: string;
 }
 
-/**
- * Asignar o programar la dupla de dos becarios para el refrigerio del viernes.
- */
-export async function asignarDuplaRefrigerio(
-  datos: PeticionSortearDupla
-): Promise<Refrigerio> {
-  return clienteApi.post<Refrigerio>(
-    RUTAS_API.REFRIGERIOS.ASIGNAR_DUPLA,
-    datos
-  );
-}
 
 /**
  * Consultar si el becario autenticado tiene turno activo de refrigerio.
@@ -205,7 +186,6 @@ export async function eliminarRefrigerio(
 export const refrigeriosServicio = {
   obtenerTodos: listarRefrigerios,
   obtenerPorId: obtenerRefrigerioPorId,
-  asignarDupla: asignarDuplaRefrigerio,
   obtenerMiTurno: obtenerMiTurnoRefrigerio,
   generarPlanillaReposicion,
   rendir: rendirRefrigerio,

@@ -61,11 +61,21 @@ function EvaluarMentorContenido() {
       return;
     }
 
+    const token_limpio = token_qr.trim();
+    if (!token_limpio) {
+      set_error_qr(
+        "Código QR inválido o sin firma de seguridad: falta el token de verificación. Solicite un nuevo código QR al becario o a Administración."
+      );
+      return;
+    }
+
     set_cargando_qr(true);
     set_error_qr(null);
     try {
-      const qs = new URLSearchParams({ becario_id: String(becario_id) });
-      if (token_qr) qs.set("token", token_qr);
+      const qs = new URLSearchParams({
+        becario_id: String(becario_id),
+        token: token_limpio,
+      });
       const res = await clienteApi.get<DatosQrValidado>(
         `/api/evaluaciones/modulo-3/validar-qr?${qs.toString()}`
       );
@@ -280,6 +290,7 @@ function EvaluarMentorContenido() {
           nombre_becario={datos_qr.nombre}
           unidad_agencia_inicial={datos_qr.unidad}
           evaluacion_inicial={evaluacion_inicial}
+          token_qr={token_qr.trim()}
           modalidad_llenado="perfil_supervisor"
           alGuardarExito={() => {
             set_evaluacion_guardada(true);

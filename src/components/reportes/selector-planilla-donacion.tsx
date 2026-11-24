@@ -11,7 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -80,10 +79,21 @@ function calcularRangoDeMes(mes_iso: string): { inicio: string; fin: string } | 
   };
 }
 
+function obtenerRangoMesActual(): { inicio: string; fin: string } {
+  const ahora = new Date();
+  const ano = ahora.getFullYear();
+  const mes = String(ahora.getMonth() + 1).padStart(2, "0");
+  const ultimo_dia = new Date(ano, ahora.getMonth() + 1, 0).getDate();
+  return {
+    inicio: `${ano}-${mes}-01`,
+    fin: `${ano}-${mes}-${String(ultimo_dia).padStart(2, "0")}`,
+  };
+}
+
 export function SelectorPlanillaDonacion({
   tipo_disponible = "ambos",
-  fecha_inicio = "2026-10-01",
-  fecha_fin = "2026-10-31",
+  fecha_inicio,
+  fecha_fin,
   mes_inicial = "",
   descontar_multas_inicial = false,
   al_cambiar_fechas,
@@ -93,23 +103,26 @@ export function SelectorPlanillaDonacion({
   etiqueta_insignia = "FORMATO OFICIAL DIACONÍA",
   className = "",
 }: SelectorPlanillaDonacionProps) {
+  const rango_actual = obtenerRangoMesActual();
+  const fecha_inicio_inicial = fecha_inicio || rango_actual.inicio;
+  const fecha_fin_inicial = fecha_fin || rango_actual.fin;
+
   const [con_firma, set_con_firma] = useState<boolean>(false);
-  const [descontar_multas, set_descontar_multas] = useState<boolean>(descontar_multas_inicial);
+  void descontar_multas_inicial;
+  const descontar_multas = false;
   const [firmante_1, set_firmante_1] = useState<ClaveFirmanteDonacion>("pamela");
   const [firmante_2, set_firmante_2] = useState<ClaveFirmanteDonacion>("samuel");
-  const [fecha_inicio_estado, set_fecha_inicio_estado] = useState<string>(fecha_inicio);
-  const [fecha_fin_estado, set_fecha_fin_estado] = useState<string>(fecha_fin);
+  const [fecha_inicio_estado, set_fecha_inicio_estado] = useState<string>(fecha_inicio_inicial);
+  const [fecha_fin_estado, set_fecha_fin_estado] = useState<string>(fecha_fin_inicial);
   const [mes_seleccionado, set_mes_seleccionado] = useState<string>(mes_inicial);
   const [descargando_tipo, set_descargando_tipo] = useState<"refrigerio" | "transporte" | null>(null);
 
-  const muestra_opcion_transporte = tipo_disponible === "ambos" || tipo_disponible === "transporte";
-
   useEffect(() => {
-    set_fecha_inicio_estado(fecha_inicio);
+    if (fecha_inicio) set_fecha_inicio_estado(fecha_inicio);
   }, [fecha_inicio]);
 
   useEffect(() => {
-    set_fecha_fin_estado(fecha_fin);
+    if (fecha_fin) set_fecha_fin_estado(fecha_fin);
   }, [fecha_fin]);
 
   const info_firmante_1 = FIRMANTES_OFICIALES_DONACION.find((f) => f.clave === firmante_1);
@@ -196,14 +209,94 @@ export function SelectorPlanillaDonacion({
       toast.success(`${nombre_planilla} descargada exitosamente`, {
         description: destino_texto,
       });
-    } catch (error) {
-      const mensaje_real =
-        error instanceof Error && error.message
-          ? error.message
-          : "No se pudo generar la planilla solicitada en el servidor.";
-      toast.error(`Error al emitir ${nombre_planilla}`, {
-        description: mensaje_real,
-      });
+    } catch (_error_servidor) {
+      try {
+        const { clienteApi } = await import("@/lib/cliente-api");
+        const { generarPdfPlanillaDonacionCliente, activarDescargaNavegador } = await (async () => {
+          const gen = await import("@/lib/generador-pdf-cliente");
+          const srv = await import("@/servicios/pdf.servicio");
+          return {
+            generarPdfPlanillaDonacionCliente: gen.generarPdfPlanillaDonacionCliente,
+            activarDescargaNavegador: srv.activarDescargaNavegador,
+          };
+        })();
+
+        let filas: Array<{
+          nombre: string;
+          ci: string;
+          unidad: string;
+          detalle: string;
+          monto_bs: number;
+        }> = [];
+
+        if (tipo === "transporte") {
+          const qs = new URLSearchParams({
+            fecha_inicio: fecha_inicio_estado,
+            fecha_fin: fecha_fin_estado,
+            descontar_multas: descontar_multas ? "true" : "false",
+          });
+          const resp = await clienteApi.get<any>(`/pasajes/calculo-pago?${qs.toString()}`);
+          if (Array.isArray(resp?.becarios)) {
+            filas = resp.becarios.map((b: any) => ({
+              nombre: String(b.becario_nombre || `Becario #${b.becario_id}`),
+              ci: String(b.ci || "S/N"),
+              unidad: String(b.sede || "Oficina Central"),
+              detalle: `${b.cantidad_recorridos ?? 0} tramos (${b.estado || "pendiente"})`,
+              monto_bs: Number(b.monto_liquido_pagable_bs ?? b.monto_reconocido_80_bs ?? 0),
+            }));
+          }
+        } else {
+          const resp = await clienteApi.get<any[]>("/refrigerios");
+          if (Array.isArray(resp)) {
+            filas = resp
+              .filter((r: any) => {
+                const f = String(r.fecha || r.created_at || "").slice(0, 10);
+                return !f || (f >= fecha_inicio_estado && f <= fecha_fin_estado);
+              })
+              .map((r: any) => ({
+                nombre: String(r.becario?.usuario?.nombre || r.becario_nombre || "Dupla / Becario"),
+                ci: String(r.becario?.ci || "S/N"),
+                unidad: String(r.lugar || "Oficina Central"),
+                detalle: String(r.detalle || r.descripcion || "Reposición de refrigerio"),
+                monto_bs: Number(r.monto_total || r.monto || 0),
+              }));
+          }
+        }
+
+        const blob_cliente = generarPdfPlanillaDonacionCliente({
+          tipo,
+          fecha_inicio: fecha_inicio_estado,
+          fecha_fin: fecha_fin_estado,
+          con_firma,
+          descontar_multas,
+          firmante_1_nombre: info_firmante_1?.nombre || "Pamela Sanchez Cachi",
+          firmante_1_cargo: info_firmante_1?.cargo || "Encargado de Responsabilidad Social Diaconal",
+          firmante_2_nombre: info_firmante_2?.nombre || "Samuel Martín Durán Baspineiro",
+          firmante_2_cargo:
+            info_firmante_2?.cargo ||
+            "Subgerente Nacional de Sostenibilidad y Responsabilidad Diaconal",
+          filas,
+        });
+
+        const sufijo_firma = con_firma ? "Archivo_Con_Firma" : "Contabilidad_Sin_Firma";
+        const sufijo_periodo = mes_seleccionado || `${fecha_inicio_estado}_al_${fecha_fin_estado}`;
+        activarDescargaNavegador(
+          blob_cliente,
+          `Planilla_Donacion_${tipo === "refrigerio" ? "Refrigerio" : "Transporte"}_BUMAND_${sufijo_firma}_${sufijo_periodo}.pdf`
+        );
+
+        toast.success(`${nombre_planilla} generada con datos en vivo`, {
+          description: `${destino_texto} (respaldo local ante indisponibilidad del motor PDF del servidor).`,
+        });
+      } catch (error_respaldo) {
+        const mensaje_real =
+          error_respaldo instanceof Error && error_respaldo.message
+            ? error_respaldo.message
+            : "No se pudo generar la planilla solicitada.";
+        toast.error(`Error al emitir ${nombre_planilla}`, {
+          description: mensaje_real,
+        });
+      }
     } finally {
       set_descargando_tipo(null);
     }
@@ -482,43 +575,6 @@ export function SelectorPlanillaDonacion({
             </div>
           </div>
         </div>
-
-        {/* Opción de Descuento de Multas para Planilla de Transporte */}
-        {muestra_opcion_transporte && (
-          <div className="p-3.5 rounded-xl bg-white border border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-start gap-3">
-              <Switch
-                id="switch-donacion-descontar-multas"
-                checked={descontar_multas}
-                onCheckedChange={set_descontar_multas}
-                className="mt-0.5"
-              />
-              <div className="space-y-0.5">
-                <Label
-                  htmlFor="switch-donacion-descontar-multas"
-                  className="text-xs font-bold text-[#035683] cursor-pointer block"
-                >
-                  Descontar multas de asistencia en el pago de pasajes
-                </Label>
-                <p className="text-[11px] text-[#808080] leading-relaxed">
-                  {descontar_multas
-                    ? "La planilla de Donación para Transporte incluirá 80% Reconocido, (-) Multas de Asistencia y Líquido Pagable Neto."
-                    : "La planilla de Donación para Transporte se emitirá con el 80% neto estándar sin descuento de multas."}
-                </p>
-              </div>
-            </div>
-            <Badge
-              variant="outline"
-              className={`shrink-0 self-start sm:self-center text-[10px] font-mono font-bold rounded-full px-2.5 py-0.5 ${
-                descontar_multas
-                  ? "bg-amber-50 text-amber-800 border-amber-300"
-                  : "bg-slate-50 text-slate-600 border-slate-200"
-              }`}
-            >
-              {descontar_multas ? "Con Descuento Multas" : "80% Estándar"}
-            </Badge>
-          </div>
-        )}
 
         {/* Acciones de Emisión PDF */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">

@@ -164,14 +164,14 @@ export function PasajesVista() {
 
   // Estado de paradas de la ida
   const [paradas_ida, set_paradas_ida] = useState<ParadaRuta[]>([
-    { id: "ida-1", numero: 1, nombre: "Villa Adela, El Alto", confirmada: false },
-    { id: "ida-2", numero: 2, nombre: "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)", confirmada: false },
+    { id: "ida-1", numero: 1, nombre: "", confirmada: false },
+    { id: "ida-2", numero: 2, nombre: "", confirmada: false },
   ]);
 
   // Estado de paradas de la vuelta
   const [paradas_vuelta, set_paradas_vuelta] = useState<ParadaRuta[]>([
-    { id: "vuelta-1", numero: 1, nombre: "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)", confirmada: false },
-    { id: "vuelta-2", numero: 2, nombre: "Villa Adela, El Alto", confirmada: false },
+    { id: "vuelta-1", numero: 1, nombre: "", confirmada: false },
+    { id: "vuelta-2", numero: 2, nombre: "", confirmada: false },
   ]);
 
   // Tramos de tarifas y catálogo dinámico
@@ -229,8 +229,6 @@ export function PasajesVista() {
   const [fecha_recorrido, set_fecha_recorrido] = useState<string>(() => new Date().toISOString().split("T")[0]);
   const [recorrido_seleccionado, set_recorrido_seleccionado] = useState<RecorridoMensual | null>(null);
   const [descargando_pdf, set_descargando_pdf] = useState<boolean>(false);
-  const [multas_vigentes_bs, set_multas_vigentes_bs] = useState<number>(0);
-  const [descontar_multas_rsd, set_descontar_multas_rsd] = useState<boolean>(true);
 
   const cargarMisRecorridos = useCallback(async () => {
     try {
@@ -258,21 +256,6 @@ export function PasajesVista() {
       if (Array.isArray(solicitudes) && solicitudes.length > 0) {
         const sol = solicitudes[0];
         set_solicitud_actual(sol);
-        if (sol.multas_asistencia_bs !== undefined) {
-          set_multas_vigentes_bs(Number(sol.multas_asistencia_bs) || 0);
-        } else {
-          try {
-            const multas_res = await clienteApi.get<any[]>("/api/asistencia/multas/mis-multas");
-            if (Array.isArray(multas_res)) {
-              const suma_multas = multas_res
-                .filter((m) => m.estado !== "condonada" && m.estado !== "pagada")
-                .reduce((acc, m) => acc + Number(m.monto_bs ?? m.monto ?? 0), 0);
-              set_multas_vigentes_bs(Number(suma_multas.toFixed(2)));
-            }
-          } catch {
-            // Sin multas
-          }
-        }
       if (Array.isArray(sol.recorridos) && sol.recorridos.length > 0) {
           const mapeados: RecorridoMensual[] = sol.recorridos.map((r: any) => {
             const fecha_str = r.fecha ? String(r.fecha).split("T")[0] : "";
@@ -369,8 +352,7 @@ export function PasajesVista() {
   );
   const monto_total_pasajes = recorridos_reembolsables.reduce((acc, r) => acc + r.monto, 0);
   const devolucion_80 = monto_total_pasajes * 0.8;
-  const multas_descontadas_rsd = descontar_multas_rsd ? multas_vigentes_bs : 0;
-  const liquido_pagable_rsd = Math.max(0, devolucion_80 - multas_descontadas_rsd);
+  const liquido_pagable_rsd = devolucion_80;
 
   // Conteo de puntos capturados
   const total_puntos_capturados =
@@ -476,79 +458,8 @@ export function PasajesVista() {
     }
   };
 
-  // Catálogo ampliado de paradas estratégicas de La Paz y El Alto
-  const PARADAS_OFICIALES_COORDENADAS = [
-    { nombre: "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)", latitud: -16.50005, longitud: -68.17345 },
-    { nombre: "Agencia Diaconía Ceja (El Alto)", latitud: -16.5085, longitud: -68.1630 },
-    { nombre: "Sede Prácticas (La Paz)", latitud: -16.5042, longitud: -68.1315 },
-    { nombre: "La Ceja — Calle 1 / Puente Distribuidor (El Alto)", latitud: -16.5088, longitud: -68.1627 },
-    { nombre: "Cruce Villa Adela (El Alto)", latitud: -16.5245, longitud: -68.1885 },
-    { nombre: "Villa Adela, El Alto", latitud: -16.5360, longitud: -68.1920 },
-    { nombre: "Cruce Viacha (El Alto)", latitud: -16.5178, longitud: -68.1695 },
-    { nombre: "Ex Tranca Río Seco (El Alto)", latitud: -16.4912, longitud: -68.2105 },
-    { nombre: "Extranca Senkata — Av. 6 de Marzo (El Alto)", latitud: -16.5655, longitud: -68.1872 },
-    { nombre: "Ciudad Satélite — Plaza del Tinku (El Alto)", latitud: -16.5195, longitud: -68.1510 },
-    { nombre: "Ballivián / Faro Murillo (El Alto)", latitud: -16.5055, longitud: -68.1525 },
-    { nombre: "UPEA — Villa Esperanza (El Alto)", latitud: -16.4935, longitud: -68.1940 },
-    { nombre: "Terminal Metropolitana El Alto", latitud: -16.5152, longitud: -68.1720 },
-    { nombre: "Puente Vela / Ventilla (El Alto)", latitud: -16.5520, longitud: -68.1960 },
-    { nombre: "Pérez Velasco / Héroes del Pacífico (La Paz)", latitud: -16.4958, longitud: -68.1372 },
-    { nombre: "Plaza San Francisco (La Paz)", latitud: -16.4965, longitud: -68.1378 },
-    { nombre: "San Pedro — Plaza Sucre (La Paz)", latitud: -16.5030, longitud: -68.1360 },
-    { nombre: "El Prado / Obelisco (La Paz)", latitud: -16.4988, longitud: -68.1340 },
-    { nombre: "UMSA — Monoblock Central (La Paz)", latitud: -16.5048, longitud: -68.1298 },
-    { nombre: "Sopocachi — Plaza Abaroa (La Paz)", latitud: -16.5112, longitud: -68.1268 },
-    { nombre: "Miraflores — Estadio Hernando Siles (La Paz)", latitud: -16.4995, longitud: -68.1228 },
-    { nombre: "Miraflores — Plaza Triangular / Hospital de Clínicas (La Paz)", latitud: -16.5052, longitud: -68.1211 },
-    { nombre: "Terminal de Buses La Paz / Plaza Antofagasta", latitud: -16.4895, longitud: -68.1415 },
-    { nombre: "Cementerio General / Ajayuni (La Paz)", latitud: -16.4920, longitud: -68.1515 },
-    { nombre: "Periférica — Av. Vásquez / Autopista (La Paz)", latitud: -16.4840, longitud: -68.1425 },
-    { nombre: "Chuquiaguillo / Salida Yungas (La Paz)", latitud: -16.4620, longitud: -68.1050 },
-    { nombre: "Villa Fátima — Plaza del Maestro / Minasa (La Paz)", latitud: -16.4815, longitud: -68.1189 },
-    { nombre: "Obrajes — Calle 17 (Zona Sur, La Paz)", latitud: -16.5275, longitud: -68.1085 },
-    { nombre: "Calacoto — Calle 21 (Zona Sur, La Paz)", latitud: -16.5398, longitud: -68.0865 },
-    { nombre: "Chasquipampa — Calle 53 (Zona Sur, La Paz)", latitud: -16.5440, longitud: -68.0530 },
-    { nombre: "Teleférico Línea Roja (Estación Central / 16 de Julio)", latitud: -16.4918, longitud: -68.1452 },
-    { nombre: "Teleférico Línea Amarilla (Mirador / Sopocachi / Libertador)", latitud: -16.5172, longitud: -68.1338 },
-    { nombre: "Teleférico Línea Morada (Faro Murillo / San José)", latitud: -16.5015, longitud: -68.1355 },
-    { nombre: "Teleférico Línea Azul (Río Seco / UPEA / 16 de Julio)", latitud: -16.4960, longitud: -68.1820 },
-    { nombre: "Teleférico Línea Blanca (Plaza Villarroel / Busch)", latitud: -16.4930, longitud: -68.1195 },
-  ];
-
-  const calcularDistanciaHaversineMetros = (
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ): number => {
-    const R = 6371e3;
-    const rad = Math.PI / 180;
-    const dLat = (lat2 - lat1) * rad;
-    const dLon = (lon2 - lon1) * rad;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return Math.round(R * c);
-  };
-
   const resolverUbicacionGpsReal = async (lat: number, lng: number): Promise<string> => {
-    // 1. Proximidad a parada oficial <= 150m
-    let parada_cercana: { nombre: string; distancia: number } | null = null;
-    for (const p of PARADAS_OFICIALES_COORDENADAS) {
-      const d = calcularDistanciaHaversineMetros(lat, lng, p.latitud, p.longitud);
-      if (!parada_cercana || d < parada_cercana.distancia) {
-        parada_cercana = { nombre: p.nombre, distancia: d };
-      }
-    }
-
-    if (parada_cercana && parada_cercana.distancia <= 150) {
-      return `Parada ${parada_cercana.nombre} (a ${parada_cercana.distancia} m)`;
-    }
-
-    const parada_ref = parada_cercana ? parada_cercana.nombre : "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)";
-
-    // 2. Geocodificación inversa Nominatim para calle/avenida real (> 150m)
+    // Geocodificación inversa Nominatim para calle/avenida real
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 4000);
@@ -581,9 +492,6 @@ export function PasajesVista() {
           barrio = "Bella Vista";
         }
 
-        const parada_cercana_ref =
-          parada_cercana && parada_cercana.distancia <= 350 ? parada_cercana.nombre : "";
-
         if (calle && String(calle).trim().length > 0) {
           if (barrio) {
             return `${calle}, ${barrio}`;
@@ -598,20 +506,17 @@ export function PasajesVista() {
               suburb_raw && suburb_raw.toLowerCase() !== zona.toLowerCase() && !en_bella_vista
                 ? suburb_raw
                 : ciudad;
-            const etiqueta_zona =
-              contexto && contexto.toLowerCase() !== zona.toLowerCase()
-                ? `Zona ${zona}, ${contexto}`
-                : `Zona ${zona}`;
-            return parada_cercana_ref ? `${etiqueta_zona} · Ref. ${parada_cercana_ref}` : etiqueta_zona;
+            return contexto && contexto.toLowerCase() !== zona.toLowerCase()
+              ? `Zona ${zona}, ${contexto}`
+              : `Zona ${zona}`;
           }
-          return parada_cercana_ref ? `Ref. ${parada_cercana_ref}` : `Ref. ${parada_ref}`;
         }
       }
     } catch (_e) {
       // Fallback
     }
 
-    return `Ubicación GPS (${lat.toFixed(4)}, ${lng.toFixed(4)}) · Ref. ${parada_ref}`;
+    return `Ubicación GPS (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
   };
 
   const capturarGpsParada = (seccion: "ida" | "vuelta", id_parada: string) => {
@@ -835,12 +740,12 @@ export function PasajesVista() {
 
     // Limpiar para siguiente registro
     set_paradas_ida([
-      { id: "ida-1", numero: 1, nombre: "Villa Adela, El Alto", confirmada: false },
-      { id: "ida-2", numero: 2, nombre: "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)", confirmada: false },
+      { id: "ida-1", numero: 1, nombre: "", confirmada: false },
+      { id: "ida-2", numero: 2, nombre: "", confirmada: false },
     ]);
     set_paradas_vuelta([
-      { id: "vuelta-1", numero: 1, nombre: "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)", confirmada: false },
-      { id: "vuelta-2", numero: 2, nombre: "Villa Adela, El Alto", confirmada: false },
+      { id: "vuelta-1", numero: 1, nombre: "", confirmada: false },
+      { id: "vuelta-2", numero: 2, nombre: "", confirmada: false },
     ]);
     set_paso_actual("ida");
   };
@@ -1529,12 +1434,11 @@ export function PasajesVista() {
                               recorridos,
                               monto_total_centavos: Math.round(monto_total_pasajes * 100),
                               monto_devolucion_centavos: Math.round(devolucion_80 * 100),
-                              multas_asistencia_bs: multas_vigentes_bs,
                               estado: solicitud_actual?.estado || "borrador",
                             },
                           ],
                           solicitud_actual?.periodo || "2026-10",
-                          descontar_multas_rsd
+                          false
                         );
                         toast.success("Formulario Contabilidad/RSD exportado en Excel (.xlsx)");
                       }}
@@ -1657,19 +1561,6 @@ export function PasajesVista() {
 
               {/* TARJETA DE CÁLCULO DEL 80% Y LÍQUIDO RSD */}
               <div className="p-4 rounded-xl border border-[#E5E7EB] bg-gradient-to-br from-[#035683] to-[#035683] text-white space-y-2.5">
-                <div className="flex items-center justify-between gap-2 pb-2 border-b border-white/15">
-                  <Label
-                    htmlFor="switch-descontar-multas-vista"
-                    className="text-[11px] font-medium text-white/90 cursor-pointer"
-                  >
-                    Descontar multas de asistencia en el pago de pasajes (Cálculo RSD)
-                  </Label>
-                  <Switch
-                    id="switch-descontar-multas-vista"
-                    checked={descontar_multas_rsd}
-                    onCheckedChange={set_descontar_multas_rsd}
-                  />
-                </div>
                 <div className="flex justify-between items-baseline">
                   <span className="text-xs font-mono text-white/80">Total (100%):</span>
                   <span className="text-sm font-mono font-bold text-white">
@@ -1682,12 +1573,6 @@ export function PasajesVista() {
                   </span>
                   <span className="text-base font-mono font-bold text-[#FFB600]">
                     Bs {devolucion_80.toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between items-baseline">
-                  <span className="text-xs font-mono text-rose-200">(-) Multas Asistencia:</span>
-                  <span className="text-sm font-mono font-bold text-rose-200">
-                    - Bs {multas_descontadas_rsd.toFixed(2)}
                   </span>
                 </div>
                 <Separator className="bg-white/20 my-1" />

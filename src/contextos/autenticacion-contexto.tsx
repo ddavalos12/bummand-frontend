@@ -32,6 +32,19 @@ export interface ContextoAutenticacionTipo {
 }
 
 const INTERVALO_RENOVACION_MS = 20 * 60 * 1000; // 20 minutos
+const COOKIE_SESION = "bumand_sesion";
+
+function establecerCookieSesion() {
+  if (typeof document !== "undefined") {
+    document.cookie = `${COOKIE_SESION}=1; path=/; max-age=604800; SameSite=Lax`;
+  }
+}
+
+function limpiarCookieSesion() {
+  if (typeof document !== "undefined") {
+    document.cookie = `${COOKIE_SESION}=; path=/; max-age=0; SameSite=Lax`;
+  }
+}
 
 const AutenticacionContexto = createContext<ContextoAutenticacionTipo | undefined>(undefined);
 
@@ -45,6 +58,7 @@ export function ProveedorAutenticacion({ children }: { children: ReactNode }) {
     set_token(null);
     set_usuario(null);
     if (typeof window !== "undefined") {
+      limpiarCookieSesion();
       try {
         localStorage.removeItem("bumand_token");
         localStorage.removeItem("bumand_usuario");
@@ -104,6 +118,7 @@ export function ProveedorAutenticacion({ children }: { children: ReactNode }) {
       const usuario_guardado = localStorage.getItem("bumand_usuario");
 
       if (token_guardado && usuario_guardado) {
+        establecerCookieSesion();
         set_token(token_guardado);
         const usuario_obj = JSON.parse(usuario_guardado);
         set_usuario(usuario_obj);
@@ -194,6 +209,7 @@ export function ProveedorAutenticacion({ children }: { children: ReactNode }) {
   const iniciarSesion = (nuevo_token: string, nuevo_usuario: Usuario) => {
     let usuario_enriquecido: Usuario = { ...nuevo_usuario };
     if (typeof window !== "undefined") {
+      limpiarCookieSesion();
       try {
         const mapa_raw = localStorage.getItem("bumand_correos_usuarios_mapa");
         if (mapa_raw) {
@@ -222,6 +238,7 @@ export function ProveedorAutenticacion({ children }: { children: ReactNode }) {
       }
       localStorage.setItem("bumand_token", nuevo_token);
       localStorage.setItem("bumand_usuario", JSON.stringify(usuario_enriquecido));
+      establecerCookieSesion();
     }
     set_token(nuevo_token);
     set_usuario(usuario_enriquecido);

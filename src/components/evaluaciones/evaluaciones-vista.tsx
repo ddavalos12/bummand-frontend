@@ -197,6 +197,7 @@ export interface BecarioAsignadoMentor {
   fecha_evaluacion?: string;
   fecha_aprobacion?: string;
   aprobado_por?: string;
+  token_qr?: string;
   evaluacion_datos?: EvaluacionInicialMentor;
 }
 
@@ -339,6 +340,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
             fecha_evaluacion: item.fecha_evaluacion
               ? String(item.fecha_evaluacion).substring(0, 10)
               : undefined,
+            token_qr: item.token_qr || item.token || undefined,
             evaluacion_datos: item.evaluacion_datos || item.datos_formulario || undefined,
           }));
           set_becarios_asignados_modulo3(normalizados);
@@ -2198,6 +2200,7 @@ export function EvaluacionesVista({ pestaña_inicial = "consolidado" }: Evaluaci
               nombre_becario={becario_mentor_seleccionado.nombre}
               unidad_agencia_inicial={becario_mentor_seleccionado.unidad_agencia}
               evaluacion_inicial={becario_mentor_seleccionado.evaluacion_datos}
+              token_qr={becario_mentor_seleccionado.token_qr}
               modalidad_llenado="perfil_supervisor"
               solo_lectura={modal_modo_lectura}
               estado_actual={becario_mentor_seleccionado.estado}

@@ -10,19 +10,44 @@ const COLOR_DORADO: [number, number, number] = [255, 182, 0]; // #FFB600 Amarill
 const COLOR_GRIS_FONDO: [number, number, number] = [248, 250, 252]; // #F8FAFC
 const COLOR_TEXTO_OSCURO: [number, number, number] = [30, 41, 59]; // #1E293B
 
-export const BECARIOS_EXPEDIENTES_COMPLETOS: Array<{
+export interface DatosBecarioPdfCliente {
   id: number;
   nombre: string;
   ci: string;
   carrera: string;
   universidad: string;
   sede: string;
-  m1: number;
-  m2: number;
-  m3: number;
-  m4: number;
-  m5: number;
-}> = [];
+}
+
+export interface RecorridoPdfCliente {
+  fecha: string;
+  origen: string;
+  destino: string;
+  sentido?: string;
+  tipo_transporte: string;
+  costo_pasaje: number;
+  monto_reembolso_80: number;
+}
+
+export interface FilaPasajesGeneralPdfCliente {
+  becario_nombre: string;
+  ci: string;
+  sede: string;
+  cantidad_recorridos: number;
+  monto_total_100_bs: number;
+  monto_reconocido_80_bs: number;
+  descuento_multas_aplicado_bs: number;
+  monto_liquido_pagable_bs: number;
+  estado: string;
+}
+
+export interface FilaDonacionPdfCliente {
+  nombre: string;
+  ci: string;
+  unidad: string;
+  detalle: string;
+  monto_bs: number;
+}
 
 /**
  * Agrega el membrete institucional oficial en cualquier página PDF
@@ -133,25 +158,7 @@ export function generarPdfEvaluacionSemestral(): Blob {
     true
   );
 
-  const cuerpo_tabla = BECARIOS_EXPEDIENTES_COMPLETOS.map((b, i) => {
-    const total = b.m1 + b.m2 + b.m3 + b.m4 + b.m5;
-    const condicion = total >= 80 ? "APROBADO" : "OBSERVADO";
-    return [
-      String(i + 1),
-      b.nombre,
-      b.ci,
-      b.universidad,
-      b.carrera,
-      b.m1.toFixed(1),
-      b.m2.toFixed(1),
-      b.m3.toFixed(1),
-      b.m4.toFixed(1),
-      b.m5.toFixed(1),
-      total.toFixed(1),
-      condicion,
-      "Conforme a reglamento",
-    ];
-  });
+  const cuerpo_tabla: string[][] = [];
 
   autoTable(doc, {
     startY: 36,
@@ -221,16 +228,7 @@ export function generarPdfCorteHoras(): Blob {
     "Auditoría mensual de cumplimiento de horas, geocercas satelitales WGS84 y tolerancia reglamentaria (Octubre 2026)"
   );
 
-  const cuerpo = BECARIOS_EXPEDIENTES_COMPLETOS.map((b, i) => [
-    String(i + 1),
-    b.nombre,
-    b.sede,
-    "80 hrs",
-    "80 hrs",
-    "100%",
-    "0 min",
-    "CUMPLIDO",
-  ]);
+  const cuerpo: string[][] = [];
 
   autoTable(doc, {
     startY: 36,
@@ -439,15 +437,7 @@ export function generarPdfActaEvento(id_evento = 1): Blob {
   doc.text("Evento: Jornada Formativa de Escuela de Líderes · Formato Presencial", 18, 47);
   doc.text("Sede: Oficina Central El Alto · Radio de Geocerca GPS: 50 metros", 18, 52);
 
-  const lista_asistencia = BECARIOS_EXPEDIENTES_COMPLETOS.slice(0, 15).map((b, i) => [
-    String(i + 1),
-    b.nombre,
-    b.carrera,
-    "08:00 AM",
-    "07:54 AM",
-    `${(10 + i * 2)} m (En rango)`,
-    "PRESENTE",
-  ]);
+  const lista_asistencia: string[][] = [];
 
   autoTable(doc, {
     startY: 60,
@@ -487,23 +477,27 @@ export function generarPdfActaEvento(id_evento = 1): Blob {
 // ============================================================================
 export function generarPdfExpedienteRecorridos(
   becario_id: number,
-  mes = "2026-10"
+  mes = new Date().toISOString().slice(0, 7),
+  datos_vivos?: {
+    becario?: Partial<DatosBecarioPdfCliente>;
+    recorridos?: RecorridoPdfCliente[];
+    multas_asistencia?: number;
+  }
 ): Blob {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-  const becario =
-    BECARIOS_EXPEDIENTES_COMPLETOS.find((b) => b.id === becario_id) || {
-      id: becario_id,
-      nombre: `Estudiante BUMAND #${becario_id}`,
-      ci: "S/N",
-      carrera: "Sin especificar",
-      universidad: "Sin especificar",
-      sede: "Oficina Central Diaconía IFD - El Alto",
-    };
+  const becario = {
+    id: becario_id,
+    nombre: datos_vivos?.becario?.nombre || `Estudiante BUMAND #${becario_id}`,
+    ci: datos_vivos?.becario?.ci || "S/N",
+    carrera: datos_vivos?.becario?.carrera || "Sin especificar",
+    universidad: datos_vivos?.becario?.universidad || "Sin especificar",
+    sede: datos_vivos?.becario?.sede || "Oficina Central Diaconía IFD - El Alto",
+  };
 
   agregarMembreteInstitucional(
     doc,
     "FORMULARIO PARA CONTABILIDAD Y RSD — EXPEDIENTE DE PASAJES",
-    `Liquidación mensual del 80% de pasajes y cálculo líquido descontando multas de asistencia · Periodo: ${mes}`
+    `Liquidación mensual del 80% de pasajes sin descuento de multas · Periodo: ${mes}`
   );
 
   // Ficha del Estudiante
@@ -522,15 +516,28 @@ export function generarPdfExpedienteRecorridos(
   doc.setFontSize(7.5);
   doc.setTextColor(...COLOR_TEXTO_OSCURO);
   doc.text(`C.I.: ${becario.ci} LP · Carrera: ${becario.carrera} (${becario.universidad})`, 18, 47);
-  doc.text(`Unidad Asignada: ${becario.sede} · Tarifa Aplicada: Minibús Tramo Directo (Bs 3.00)`, 18, 52);
+  doc.text(`Unidad Asignada: ${becario.sede} · Tarifa Aplicada: Transporte Autorizado (80%)`, 18, 52);
 
   // Tabla de Recorridos Diarios
-  const jornadas: string[][] = [];
+  const recorridos = datos_vivos?.recorridos || [];
+  const jornadas: string[][] = recorridos.map((r, idx) => {
+    const costo = Number(r.costo_pasaje || 0);
+    const subsidio = Number(r.monto_reembolso_80 ?? costo * 0.8);
+    const sentido_etiqueta = r.sentido ? ` (${r.sentido.toUpperCase()})` : "";
+    return [
+      String(idx + 1),
+      String(r.fecha || "").slice(0, 10),
+      `${r.origen || "-"} -> ${r.destino || "-"}${sentido_etiqueta}`,
+      r.tipo_transporte || "Minibús",
+      `Bs ${costo.toFixed(2)}`,
+      `Bs ${subsidio.toFixed(2)}`,
+    ];
+  });
 
   autoTable(doc, {
     startY: 62,
     head: [["#", "Fecha", "Tramo y Recorrido Declarado", "Transporte", "Tarifa Oficial", "Subsidio (80%)"]],
-    body: jornadas,
+    body: jornadas.length > 0 ? jornadas : [["-", "-", "Sin recorridos registrados en el periodo seleccionado", "-", "Bs 0.00", "Bs 0.00"]],
     theme: "striped",
     headStyles: {
       fillColor: COLOR_PRIMARIO,
@@ -556,10 +563,12 @@ export function generarPdfExpedienteRecorridos(
   });
 
   // Resumen Financiero al final
-  const total_gastado = 0.0;
-  const total_subsidio = 0.0;
-  const multas_asistencia = 0.0;
-  const liquido_pagable = 0.0;
+  const total_gastado = recorridos.reduce((acc, r) => acc + Number(r.costo_pasaje || 0), 0);
+  const total_subsidio = recorridos.reduce(
+    (acc, r) => acc + Number(r.monto_reembolso_80 ?? Number(r.costo_pasaje || 0) * 0.8),
+    0
+  );
+  const liquido_pagable = total_subsidio;
 
   // Calculamos la posición después de la tabla
   const autoTableDoc = doc as jsPDF & { lastAutoTable?: { finalY?: number } };
@@ -570,8 +579,16 @@ export function generarPdfExpedienteRecorridos(
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
-  doc.text(`TOTAL (100%): Bs ${total_gastado.toFixed(2)} (0 Tramos) · 80% RECONOCIDO: Bs ${total_subsidio.toFixed(2)}`, 18, y_resumen + 6.5);
-  doc.text(`(-) MULTAS ASISTENCIA: Bs ${multas_asistencia.toFixed(2)} · LÍQUIDO PAGABLE (NETO RSD): Bs ${liquido_pagable.toFixed(2)}`, 18, y_resumen + 12.5);
+  doc.text(
+    `TOTAL (100%): Bs ${total_gastado.toFixed(2)} (${recorridos.length} Tramos) · 80% RECONOCIDO: Bs ${total_subsidio.toFixed(2)}`,
+    18,
+    y_resumen + 6.5
+  );
+  doc.text(
+    `LÍQUIDO PAGABLE (NETO RSD): Bs ${liquido_pagable.toFixed(2)}`,
+    18,
+    y_resumen + 12.5
+  );
   doc.setFont("helvetica", "normal");
   doc.setFontSize(6.5);
   doc.text("Regla del día 24 verificada · Formulario para Contabilidad y RSD", 132, y_resumen + 12.5);
@@ -588,14 +605,13 @@ export function generarPdfAsistenciaMensual(
   mes = "2026-10"
 ): Blob {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-  const becario =
-    BECARIOS_EXPEDIENTES_COMPLETOS.find((b) => b.id === becario_id) || {
-      id: becario_id,
-      nombre: `Estudiante BUMAND #${becario_id}`,
-      ci: "S/N",
-      carrera: "Sin especificar",
-      sede: "Oficina Central Diaconía IFD - El Alto",
-    };
+  const becario = {
+    id: becario_id,
+    nombre: `Estudiante BUMAND #${becario_id}`,
+    ci: "S/N",
+    carrera: "Sin especificar",
+    sede: "Oficina Central Diaconía IFD - El Alto",
+  };
 
   agregarMembreteInstitucional(
     doc,
@@ -705,14 +721,7 @@ export function generarPdfAuditoriaIntervalo(
     47
   );
 
-  const filas = BECARIOS_EXPEDIENTES_COMPLETOS.map((b, i) => [
-    String(i + 1),
-    b.nombre,
-    b.sede,
-    "Verificado",
-    "Sin observaciones",
-    "CONFORME",
-  ]);
+  const filas: string[][] = [];
 
   autoTable(doc, {
     startY: 56,
@@ -750,44 +759,53 @@ export function generarPdfAuditoriaIntervalo(
 // 9. FORMULARIO PARA CONTABILIDAD Y RSD — LIQUIDACIÓN GENERAL DE PASAJES
 // ============================================================================
 export function generarPdfPasajesGeneral(
-  fecha_inicio = "2026-10-01",
-  fecha_fin = "2026-10-31",
-  descontar_multas = true
+  fecha_inicio = "2026-11-01",
+  fecha_fin = "2026-11-30",
+  descontar_multas = false,
+  filas_vivas: FilaPasajesGeneralPdfCliente[] = []
 ): Blob {
+  void descontar_multas;
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   agregarMembreteInstitucional(
     doc,
     "FORMULARIO PARA CONTABILIDAD Y RSD — LIQUIDACIÓN DE PASAJES",
-    `Liquidación mensual del 80% de pasajes y cálculo líquido ${
-      descontar_multas ? "descontando multas de asistencia" : "sin descuento de multas"
-    } · Intervalo: ${fecha_inicio} al ${fecha_fin}`,
+    `Liquidación mensual del 80% de pasajes sin descuento de multas · Intervalo: ${fecha_inicio} al ${fecha_fin}`,
     true
   );
 
-  const filas = BECARIOS_EXPEDIENTES_COMPLETOS.map((b, idx) => {
-    const tramos = 40;
-    const gasto_total = 120.0;
-    const subsidio_80 = 96.0;
-    const multas_bs = 0.0;
-    const liquido_rsd = Math.max(0, subsidio_80 - multas_bs);
-    return [
-      String(idx + 1),
-      b.nombre,
-      b.ci,
-      b.sede,
-      String(tramos),
-      `Bs ${gasto_total.toFixed(2)}`,
-      `Bs ${subsidio_80.toFixed(2)}`,
-      `Bs ${multas_bs.toFixed(2)}`,
-      `Bs ${liquido_rsd.toFixed(2)}`,
-      "APROBADO ADMIN",
-    ];
-  });
+  const filas = filas_vivas.map((b, idx) => [
+    String(idx + 1),
+    b.becario_nombre,
+    b.ci || "S/N",
+    b.sede || "Oficina Central",
+    String(b.cantidad_recorridos ?? 0),
+    `Bs ${Number(b.monto_total_100_bs || 0).toFixed(2)}`,
+    `Bs ${Number(b.monto_reconocido_80_bs || 0).toFixed(2)}`,
+    `Bs ${Number(b.monto_reconocido_80_bs || 0).toFixed(2)}`,
+    String(b.estado || "PENDIENTE").toUpperCase(),
+  ]);
+
+  if (filas.length > 0) {
+    const sum_tramos = filas_vivas.reduce((a, b) => a + Number(b.cantidad_recorridos || 0), 0);
+    const sum_100 = filas_vivas.reduce((a, b) => a + Number(b.monto_total_100_bs || 0), 0);
+    const sum_80 = filas_vivas.reduce((a, b) => a + Number(b.monto_reconocido_80_bs || 0), 0);
+    filas.push([
+      "",
+      "TOTAL GENERAL",
+      "",
+      "",
+      String(sum_tramos),
+      `Bs ${sum_100.toFixed(2)}`,
+      `Bs ${sum_80.toFixed(2)}`,
+      `Bs ${sum_80.toFixed(2)}`,
+      "-",
+    ]);
+  }
 
   autoTable(doc, {
     startY: 38,
-    head: [["#", "Estudiante Becario", "C.I.", "Unidad Asignada", "Tramos", "Total (100%)", "80% Reconocido", "(-) Multas Asist.", "Líquido Pagable (Neto RSD)", "Estado"]],
-    body: filas,
+    head: [["#", "Estudiante Becario", "C.I.", "Unidad Asignada", "Tramos", "Total (100%)", "80% Reconocido", "Líquido Pagable (Neto RSD)", "Estado"]],
+    body: filas.length > 0 ? filas : [["-", "Sin solicitudes de pasajes registradas en el intervalo", "-", "-", "0", "Bs 0.00", "Bs 0.00", "Bs 0.00", "-"]],
     theme: "striped",
     headStyles: {
       fillColor: COLOR_PRIMARIO,
@@ -803,15 +821,14 @@ export function generarPdfPasajesGeneral(
     },
     columnStyles: {
       0: { halign: "center", cellWidth: 9 },
-      1: { fontStyle: "bold", cellWidth: 52 },
-      2: { halign: "center", cellWidth: 20 },
-      3: { cellWidth: 42 },
-      4: { halign: "center", cellWidth: 15 },
-      5: { halign: "right", cellWidth: 23 },
-      6: { halign: "right", fontStyle: "bold", textColor: COLOR_PRIMARIO, cellWidth: 25 },
-      7: { halign: "right", textColor: [220, 38, 38], cellWidth: 24 },
-      8: { halign: "right", fontStyle: "bold", textColor: [16, 185, 129], cellWidth: 30 },
-      9: { halign: "center", fontStyle: "bold", textColor: [16, 185, 129], cellWidth: 28 },
+      1: { fontStyle: "bold", cellWidth: 58 },
+      2: { halign: "center", cellWidth: 22 },
+      3: { cellWidth: 48 },
+      4: { halign: "center", cellWidth: 16 },
+      5: { halign: "right", cellWidth: 26 },
+      6: { halign: "right", fontStyle: "bold", textColor: COLOR_PRIMARIO, cellWidth: 28 },
+      7: { halign: "right", fontStyle: "bold", textColor: [16, 185, 129], cellWidth: 32 },
+      8: { halign: "center", fontStyle: "bold", textColor: [16, 185, 129], cellWidth: 30 },
     },
     margin: { left: 14, right: 14, bottom: 28 },
   });
@@ -886,20 +903,7 @@ export function generarPdfAsistenciaGeneral(
     true
   );
 
-  const filas = BECARIOS_EXPEDIENTES_COMPLETOS.map((b, idx) => {
-    return [
-      String(idx + 1),
-      b.nombre,
-      b.ci,
-      b.carrera,
-      b.sede,
-      "80.0 hrs",
-      "16.0 hrs",
-      "96.0 hrs",
-      "0 min",
-      "100% CUMPLIDO",
-    ];
-  });
+  const filas: string[][] = [];
 
   autoTable(doc, {
     startY: 38,
@@ -938,6 +942,105 @@ export function generarPdfAsistenciaGeneral(
 }
 
 // ============================================================================
+// 11. PLANILLA OFICIAL DE DONACIÓN (TRANSPORTE / REFRIGERIO) - FALLBACK LIVE
+// ============================================================================
+export function generarPdfPlanillaDonacionCliente(opciones: {
+  tipo: "refrigerio" | "transporte";
+  fecha_inicio: string;
+  fecha_fin: string;
+  con_firma: boolean;
+  descontar_multas?: boolean;
+  firmante_1_nombre: string;
+  firmante_1_cargo: string;
+  firmante_2_nombre: string;
+  firmante_2_cargo: string;
+  filas: FilaDonacionPdfCliente[];
+}): Blob {
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const es_transporte = opciones.tipo === "transporte";
+  const titulo = es_transporte
+    ? "PLANILLA DE DONACIÓN PARA TRANSPORTE — BUMAN-D"
+    : "PLANILLA DE DONACIÓN PARA REFRIGERIO — BUMAN-D";
+  const subtitulo = `Periodo: ${opciones.fecha_inicio} al ${opciones.fecha_fin} · ${
+    opciones.con_firma ? "Archivo del Área (Con firma)" : "Contabilidad (Sin firma)"
+  }${es_transporte && opciones.descontar_multas ? " · Con descuento de multas" : ""}`;
+
+  agregarMembreteInstitucional(doc, titulo, subtitulo, false);
+
+  const encabezados = opciones.con_firma
+    ? [["#", "Becario", "C.I.", "Unidad", "Detalle", "Monto (Bs)", "Firma"]]
+    : [["#", "Becario", "C.I.", "Unidad", "Detalle", "Monto (Bs)"]];
+
+  const cuerpo =
+    opciones.filas.length > 0
+      ? opciones.filas.map((f, idx) => {
+          const base = [
+            String(idx + 1),
+            f.nombre,
+            f.ci || "S/N",
+            f.unidad || "Oficina Central",
+            f.detalle || "-",
+            `Bs ${Number(f.monto_bs || 0).toFixed(2)}`,
+          ];
+          return opciones.con_firma ? [...base, ""] : base;
+        })
+      : [
+          opciones.con_firma
+            ? ["-", "Sin registros aprobados en el periodo", "-", "-", "-", "Bs 0.00", ""]
+            : ["-", "Sin registros aprobados en el periodo", "-", "-", "-", "Bs 0.00"],
+        ];
+
+  const total_bs = opciones.filas.reduce((acc, f) => acc + Number(f.monto_bs || 0), 0);
+  if (opciones.filas.length > 0) {
+    cuerpo.push(
+      opciones.con_firma
+        ? ["", "TOTAL PLANILLA", "", "", "", `Bs ${total_bs.toFixed(2)}`, ""]
+        : ["", "TOTAL PLANILLA", "", "", "", `Bs ${total_bs.toFixed(2)}`]
+    );
+  }
+
+  autoTable(doc, {
+    startY: 36,
+    head: encabezados,
+    body: cuerpo,
+    theme: "striped",
+    headStyles: {
+      fillColor: COLOR_PRIMARIO,
+      textColor: [255, 255, 255],
+      fontStyle: "bold",
+      fontSize: 7.5,
+      halign: "center",
+    },
+    bodyStyles: {
+      fontSize: 7.2,
+      textColor: COLOR_TEXTO_OSCURO,
+      cellPadding: 2,
+    },
+    margin: { left: 14, right: 14, bottom: 45 },
+  });
+
+  const autoTableDoc = doc as jsPDF & { lastAutoTable?: { finalY?: number } };
+  const y_firmas = Math.min((autoTableDoc.lastAutoTable?.finalY || 200) + 18, 260);
+  doc.setDrawColor(...COLOR_PRIMARIO);
+  doc.setLineWidth(0.3);
+  doc.line(20, y_firmas, 90, y_firmas);
+  doc.line(120, y_firmas, 190, y_firmas);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(...COLOR_TEXTO_OSCURO);
+  doc.text(opciones.firmante_1_nombre, 55, y_firmas + 4, { align: "center" });
+  doc.text(opciones.firmante_2_nombre, 155, y_firmas + 4, { align: "center" });
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(6.5);
+  doc.text(opciones.firmante_1_cargo, 55, y_firmas + 8, { align: "center", maxWidth: 68 });
+  doc.text(opciones.firmante_2_cargo, 155, y_firmas + 8, { align: "center", maxWidth: 68 });
+
+  return doc.output("blob");
+}
+
+// ============================================================================
 // FUNCIÓN UNIVERSAL DE DESCARGA: DESCARGA LOCAL O SERVIDOR CON RESILIENCIA
 // ============================================================================
 export async function descargarPdfConResiliencia(
@@ -971,19 +1074,25 @@ export async function descargarPdfConResiliencia(
   }
 ): Promise<void> {
   let blob: Blob | null = null;
+  const mes_defecto = new Date().toISOString().slice(0, 7);
 
   // 1. Intento primario con servidor backend (con timeout ampliado a 90s para reportes complejos)
   try {
     const { clienteApi } = await import("@/lib/cliente-api");
-    blob = await clienteApi.descargarBlob(endpoint, { tiempo_espera_ms: 90000 });
+    const candidato = await clienteApi.descargarBlob(endpoint, { tiempo_espera_ms: 90000 });
+    if (candidato && candidato.size > 0 && (!candidato.type || !candidato.type.includes("application/json"))) {
+      blob = candidato;
+    }
   } catch {
-    // Si el backend no responde o no está disponible, activamos el generador cliente de alta fidelidad
+    // Si el backend no responde o falla en cloud, activamos el generador cliente con datos vivos
     blob = null;
   }
 
-  // 2. Si el backend no devolvió el blob, generamos el documento PDF canónico en el cliente
+  // 2. Si el backend no devolvió el blob, generamos el documento PDF canónico en el cliente con datos reales
   if (!blob) {
     const id_becario = params?.becario_id ? Number(params.becario_id) || 1 : 1;
+    const mes_efectivo = params?.mes || mes_defecto;
+
     switch (tipo) {
       case "evaluacion_semestral_ii":
         blob = generarPdfEvaluacionSemestral();
@@ -1001,19 +1110,92 @@ export async function descargarPdfConResiliencia(
       case "evento":
         blob = generarPdfActaEvento(params?.evento_id ? Number(params.evento_id) || 1 : 1);
         break;
-      case "recorridos_estudiante":
-        blob = generarPdfExpedienteRecorridos(id_becario, params?.mes || "2026-10");
+      case "recorridos_estudiante": {
+        const { clienteApi } = await import("@/lib/cliente-api");
+        const [res_becario, res_solicitudes] = await Promise.allSettled([
+          clienteApi.get<any>(`/becarios/${id_becario}`),
+          clienteApi.get<any[]>(`/pasajes/becario/${id_becario}`),
+        ]);
+
+        const raw_bec = res_becario.status === "fulfilled" ? res_becario.value : null;
+        const becario_vivo: Partial<DatosBecarioPdfCliente> = {
+          id: id_becario,
+          nombre: raw_bec?.usuario?.nombre || raw_bec?.nombre || params?.nombre_becario,
+          ci: raw_bec?.ci ? String(raw_bec.ci) : undefined,
+          carrera: raw_bec?.carrera,
+          universidad: raw_bec?.universidad,
+          sede: raw_bec?.lugar_practica?.nombre || raw_bec?.ubicacion,
+        };
+
+        const solicitudes =
+          res_solicitudes.status === "fulfilled" && Array.isArray(res_solicitudes.value)
+            ? res_solicitudes.value
+            : [];
+        const [ano_str, mes_str] = mes_efectivo.split("-");
+        const ano_num = Number(ano_str);
+        const mes_num = Number(mes_str);
+        const recorridos_vivos: RecorridoPdfCliente[] = [];
+        for (const sol of solicitudes) {
+          const coincide_mes =
+            (Number(sol.ano) === ano_num && Number(sol.mes) === mes_num) ||
+            (Array.isArray(sol.recorridos) &&
+              sol.recorridos.some((r: any) => String(r.fecha || "").startsWith(mes_efectivo)));
+          if (coincide_mes && Array.isArray(sol.recorridos)) {
+            for (const r of sol.recorridos) {
+              const fecha_r = String(r.fecha || "").slice(0, 10);
+              if (!params?.fecha_inicio || !params?.fecha_fin || (fecha_r >= params.fecha_inicio && fecha_r <= params.fecha_fin) || fecha_r.startsWith(mes_efectivo)) {
+                recorridos_vivos.push({
+                  fecha: fecha_r,
+                  origen: r.origen || "-",
+                  destino: r.destino || "-",
+                  sentido: r.sentido,
+                  tipo_transporte: r.tipo_transporte || "Minibús",
+                  costo_pasaje: Number(r.costo_pasaje || r.tarifa || 0),
+                  monto_reembolso_80: Number(
+                    r.monto_reembolso_80 ?? Number(r.costo_pasaje || r.tarifa || 0) * 0.8
+                  ),
+                });
+              }
+            }
+          }
+        }
+
+        blob = generarPdfExpedienteRecorridos(id_becario, mes_efectivo, {
+          becario: becario_vivo,
+          recorridos: recorridos_vivos,
+          multas_asistencia: 0,
+        });
         break;
+      }
       case "asistencia_estudiante":
-        blob = generarPdfAsistenciaMensual(id_becario, params?.mes || "2026-10");
+        blob = generarPdfAsistenciaMensual(id_becario, mes_efectivo);
         break;
-      case "pasajes_general":
+      case "pasajes_general": {
+        const { clienteApi } = await import("@/lib/cliente-api");
+        const descontar = false;
+        const qs = new URLSearchParams();
+        if (params?.fecha_inicio) qs.set("fecha_inicio", params.fecha_inicio);
+        if (params?.fecha_fin) qs.set("fecha_fin", params.fecha_fin);
+        qs.set("descontar_multas", "false");
+
+        let filas_vivas: FilaPasajesGeneralPdfCliente[] = [];
+        try {
+          const resp = await clienteApi.get<any>(`/pasajes/calculo-pago?${qs.toString()}`);
+          if (Array.isArray(resp?.becarios)) {
+            filas_vivas = resp.becarios;
+          }
+        } catch {
+          filas_vivas = [];
+        }
+
         blob = generarPdfPasajesGeneral(
           params?.fecha_inicio,
           params?.fecha_fin,
-          params?.descontar_multas ?? true
+          descontar,
+          filas_vivas
         );
         break;
+      }
       case "justificaciones_general":
         blob = generarPdfJustificacionesGeneral(params?.fecha_inicio, params?.fecha_fin);
         break;

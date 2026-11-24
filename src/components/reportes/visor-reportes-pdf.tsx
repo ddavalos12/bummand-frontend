@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Select,
@@ -37,10 +35,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
-import {
-  descargarPdfConResiliencia,
-  BECARIOS_EXPEDIENTES_COMPLETOS,
-} from "@/lib/generador-pdf-cliente";
+import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import {
   descargarExcelInstitucional,
   exportarFormularioContabilidadRsdExcel,
@@ -70,22 +65,68 @@ interface ReporteItem {
   nombre_archivo: string;
 }
 
-export const LISTA_23_BECARIOS_REPORTES = BECARIOS_EXPEDIENTES_COMPLETOS;
+interface BecarioReporteItem {
+  id: number;
+  nombre: string;
+  ci: string;
+  carrera: string;
+  universidad: string;
+  sede: string;
+}
 
 const REPORTES_DISPONIBLES: ReporteItem[] = [];
 
+const NOMBRES_MESES_ES = [
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio",
+  "Julio",
+  "Agosto",
+  "Septiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre",
+];
+
+function obtenerMesActualYFechas() {
+  const ahora = new Date();
+  const ano = ahora.getFullYear();
+  const mes_idx = ahora.getMonth();
+  const mes_num = String(mes_idx + 1).padStart(2, "0");
+  const ultimo_dia = new Date(ano, mes_idx + 1, 0).getDate();
+  const mes_iso = `${ano}-${mes_num}`;
+  const fecha_inicio = `${mes_iso}-01`;
+  const fecha_fin = `${mes_iso}-${String(ultimo_dia).padStart(2, "0")}`;
+
+  const opciones_meses: Array<{ valor: string; etiqueta: string }> = [];
+  for (let i = 0; i < 6; i++) {
+    const d = new Date(ano, mes_idx - i, 1);
+    const y = d.getFullYear();
+    const m = d.getMonth();
+    const valor = `${y}-${String(m + 1).padStart(2, "0")}`;
+    const etiqueta = `${NOMBRES_MESES_ES[m]} ${y}${i === 0 ? " (Actual)" : ""}`;
+    opciones_meses.push({ valor, etiqueta });
+  }
+  return { mes_iso, fecha_inicio, fecha_fin, opciones_meses };
+}
+
 export function VisorReportesPdf() {
+  const { mes_iso: mes_actual_iso, fecha_inicio: inicio_actual, fecha_fin: fin_actual, opciones_meses } =
+    obtenerMesActualYFechas();
   const [reportes] = useState<ReporteItem[]>(REPORTES_DISPONIBLES);
   const [descargando_id, set_descargando_id] = useState<string | null>(null);
 
   // Filtro Global de Rango de Fechas
-  const [fecha_inicio_global, set_fecha_inicio_global] = useState<string>("2026-10-01");
-  const [fecha_fin_global, set_fecha_fin_global] = useState<string>("2026-10-31");
+  const [fecha_inicio_global, set_fecha_inicio_global] = useState<string>(inicio_actual);
+  const [fecha_fin_global, set_fecha_fin_global] = useState<string>(fin_actual);
 
   // Estados para exportación individual por estudiante
-  const [lista_becarios, set_lista_becarios] = useState<typeof LISTA_23_BECARIOS_REPORTES>([]);
+  const [lista_becarios, set_lista_becarios] = useState<BecarioReporteItem[]>([]);
   const [estudiante_seleccionado_id, set_estudiante_seleccionado_id] = useState<number>(1);
-  const [mes_individual, set_mes_individual] = useState<string>("2026-10");
+  const [mes_individual, set_mes_individual] = useState<string>(mes_actual_iso);
 
   useEffect(() => {
     let cancelado = false;
@@ -123,9 +164,9 @@ export function VisorReportesPdf() {
 
   // Estados para panel de auditoría por intervalo de fechas
   const [modulo_auditoria, set_modulo_auditoria] = useState<string>("refrigerios");
-  const [fecha_inicio_auditoria, set_fecha_inicio_auditoria] = useState<string>("2026-10-01");
-  const [fecha_fin_auditoria, set_fecha_fin_auditoria] = useState<string>("2026-10-31");
-  const [descontar_multas, set_descontar_multas] = useState<boolean>(true);
+  const [fecha_inicio_auditoria, set_fecha_inicio_auditoria] = useState<string>(inicio_actual);
+  const [fecha_fin_auditoria, set_fecha_fin_auditoria] = useState<string>(fin_actual);
+  const descontar_multas = false;
   const [descargando_auditoria, set_descargando_auditoria] = useState<boolean>(false);
   const [exportando_excel_auditoria, set_exportando_excel_auditoria] = useState<boolean>(false);
   const [exportando_excel_individual, set_exportando_excel_individual] = useState<boolean>(false);
@@ -152,6 +193,7 @@ export function VisorReportesPdf() {
       | "auditoria",
     params?: {
       becario_id?: number;
+      nombre_becario?: string;
       mes?: string;
       fecha_inicio?: string;
       fecha_fin?: string;
@@ -375,12 +417,14 @@ export function VisorReportesPdf() {
       const registros_asistencia = (Array.isArray(asistencias_resp) ? asistencias_resp : []).map(
         (reg) => {
           const fecha_reg = reg.fecha ? String(reg.fecha).split("T")[0] : "";
-          const multa_asociada =
-            reg.monto_multa_bs !== undefined
+          const es_escuela_lideres = (reg.tipo ?? reg.tipo_actividad) === "escuela_lideres";
+          const multa_asociada = es_escuela_lideres
+            ? reg.monto_multa_bs !== undefined
               ? Number(reg.monto_multa_bs)
               : multas_por_asistencia.get(Number(reg.id)) ??
                 multas_por_becario_fecha.get(`${reg.becario_id}_${fecha_reg}`) ??
-                0;
+                0
+            : 0;
           return {
             ...reg,
             monto_multa_bs: Number(multa_asociada.toFixed(2)),
@@ -623,39 +667,6 @@ export function VisorReportesPdf() {
                 className="h-10 text-xs border-[#E5E7EB] bg-white rounded-xl"
               />
             </div>
-          </div>
-
-          {/* Opción de descuento de multas en pasajes */}
-          <div className="p-3.5 rounded-xl bg-white border border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-start gap-2.5">
-              <Switch
-                id="switch-reportes-descontar-multas"
-                checked={descontar_multas}
-                onCheckedChange={set_descontar_multas}
-                className="mt-0.5"
-              />
-              <div className="space-y-0.5">
-                <Label
-                  htmlFor="switch-reportes-descontar-multas"
-                  className="text-xs font-bold text-[#035683] cursor-pointer block"
-                >
-                  Descontar multas de asistencia en el pago de pasajes
-                </Label>
-                <p className="text-[11px] text-muted-foreground">
-                  Aplica a los reportes PDF y exportaciones Excel (.xlsx) de Contabilidad, Pasajes RSD y cálculo individual.
-                </p>
-              </div>
-            </div>
-            <Badge
-              variant="outline"
-              className={`shrink-0 self-start sm:self-center text-[10px] font-mono font-bold rounded-full px-2.5 py-0.5 ${
-                descontar_multas
-                  ? "bg-amber-50 text-amber-800 border-amber-300"
-                  : "bg-slate-50 text-slate-600 border-slate-200"
-              }`}
-            >
-              {descontar_multas ? "Con Descuento Multas" : "Sin Descuento Multas"}
-            </Badge>
           </div>
 
           {/* Botones de acción de auditoría */}
@@ -994,10 +1005,11 @@ export function VisorReportesPdf() {
                   <SelectValue placeholder="Mes" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-[#E5E7EB]">
-                  <SelectItem value="2026-10">Octubre 2026 (Actual)</SelectItem>
-                  <SelectItem value="2026-09">Septiembre 2026</SelectItem>
-                  <SelectItem value="2026-08">Agosto 2026</SelectItem>
-                  <SelectItem value="2026-07">Julio 2026</SelectItem>
+                  {opciones_meses.map((op) => (
+                    <SelectItem key={op.valor} value={op.valor}>
+                      {op.etiqueta}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -1036,6 +1048,7 @@ export function VisorReportesPdf() {
                     "recorridos_estudiante",
                     {
                       becario_id: estudiante_actual.id,
+                      nombre_becario: estudiante_actual.nombre,
                       mes: mes_individual,
                       fecha_inicio: fecha_inicio_global,
                       fecha_fin: fecha_fin_global,
@@ -1065,6 +1078,7 @@ export function VisorReportesPdf() {
                     "asistencia_estudiante",
                     {
                       becario_id: estudiante_actual.id,
+                      nombre_becario: estudiante_actual.nombre,
                       mes: mes_individual,
                       fecha_inicio: fecha_inicio_global,
                       fecha_fin: fecha_fin_global,
@@ -1183,7 +1197,7 @@ export function VisorReportesPdf() {
                             endpoint_reporte,
                             r.nombre_archivo,
                             mapaTipos[r.tipo] || "evaluacion_semestral_ii",
-                            { becario_id: r.id, mes: "2026-10", descontar_multas }
+                            { becario_id: r.id, mes: mes_individual, descontar_multas }
                           );
                         }}
                         className="h-8 px-3 border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 rounded-lg text-xs font-bold inline-flex items-center gap-1.5"

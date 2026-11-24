@@ -94,8 +94,6 @@ export const RUTAS_API = {
   },
   REFRIGERIOS: {
     BASE: '/refrigerios',
-    ASIGNAR_DUPLA: '/refrigerios/asignar-dupla',
-    SORTEAR_DUPLA: '/refrigerios/sortear-dupla',
     MI_TURNO: '/refrigerios/mi-turno',
     PLANILLA_REPOSICION: (id: number) => `/refrigerios/planilla-reposicion/${id}`,
     POR_ID: (id: number) => `/refrigerios/${id}`,

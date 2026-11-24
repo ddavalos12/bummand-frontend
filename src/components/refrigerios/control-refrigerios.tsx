@@ -218,7 +218,6 @@ export function ControlRefrigerios() {
   }, [registros_servidor]);
   const [busqueda, set_busqueda] = useState("");
   const [modal_nuevo_abierto, set_modal_nuevo_abierto] = useState(false);
-  const [modal_sorteo_abierto, set_modal_sorteo_abierto] = useState(false);
   const [modal_devolucion_abierto, set_modal_devolucion_abierto] = useState(false);
   const [item_para_devolucion, set_item_para_devolucion] =
     useState<RegistroRacionRefrigerio | null>(null);
@@ -230,14 +229,6 @@ export function ControlRefrigerios() {
   const [lista_becarios, set_lista_becarios] = useState<string[]>([]);
   const [mapa_becario_ids, set_mapa_becario_ids] = useState<Record<string, number>>({});
   const [sedes_bd, set_sedes_bd] = useState<string[]>([]);
-
-  // Estados para la asignación de duplas por directiva
-  const [sorteo_viernes_fecha, set_sorteo_viernes_fecha] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [sorteo_evento, set_sorteo_evento] = useState("Escuela de Líderes (Viernes Formativo)");
-  const [sorteo_encargado_1, set_sorteo_encargado_1] = useState("");
-  const [sorteo_encargado_2, set_sorteo_encargado_2] = useState("");
 
   // Estados para auditoría por intervalo de fechas
   const [fecha_inicio_auditoria, set_fecha_inicio_auditoria] = useState("2026-10-01");
@@ -279,8 +270,6 @@ export function ControlRefrigerios() {
           if (nombres_unicos.length > 0) {
             set_lista_becarios(nombres_unicos);
             set_mapa_becario_ids(mapa_ids);
-            set_sorteo_encargado_1((prev) => prev || nombres_unicos[0]);
-            set_sorteo_encargado_2((prev) => prev || nombres_unicos[1] || nombres_unicos[0]);
             set_nuevo_encargado_1((prev) => prev || nombres_unicos[0]);
             set_nuevo_encargado_2((prev) => prev || nombres_unicos[1] || nombres_unicos[0]);
           }
@@ -376,60 +365,6 @@ export function ControlRefrigerios() {
     const cant = parseFloat(nueva_cantidad) || 0;
     if (cant > 0) {
       set_nuevo_costo_total((cant * unitario).toFixed(2));
-    }
-  };
-
-  const confirmarProgramacionDupla = async () => {
-    if (!sorteo_encargado_1 || !sorteo_encargado_2) {
-      toast.error("Selecciona a los dos becarios encargados.");
-      return;
-    }
-    if (sorteo_encargado_1 === sorteo_encargado_2) {
-      toast.error("Deben ser dos becarios distintos para conformar la dupla.");
-      return;
-    }
-
-    const id_enc_1 = mapa_becario_ids[sorteo_encargado_1];
-    const id_enc_2 = mapa_becario_ids[sorteo_encargado_2];
-
-    try {
-      if (id_enc_1 && id_enc_2) {
-        await clienteApi.post("/api/refrigerios/sortear-dupla", {
-          fecha: sorteo_viernes_fecha,
-          descripcion: sorteo_evento,
-          cantidad_raciones: 23,
-          presupuesto_referencial_bs: 115.0,
-          becario_encargado_1_id: id_enc_1,
-          becario_encargado_2_id: id_enc_2,
-        });
-      } else {
-        await clienteApi.post("/api/refrigerios", {
-          fecha: sorteo_viernes_fecha,
-          descripcion: sorteo_evento,
-          cantidad_raciones: 23,
-          costo_unitario_bs: 5.0,
-          costo_total_bs: 0.0,
-          presupuesto_referencial_bs: 115.0,
-          responsable_id: usuario?.id || 1,
-          responsable_entrega: usuario?.nombre || "Coordinación General BUMAND",
-          becario_encargado_1_nombre: sorteo_encargado_1,
-          becario_encargado_2_nombre: sorteo_encargado_2,
-          becario_nombre: `${sorteo_encargado_1} y ${sorteo_encargado_2}`,
-          estado_reposicion: "sorteado_programado",
-          observaciones:
-            "Dupla oficial designada por la Directiva para este viernes. Presupuesto asignado Bs 115.00.",
-        });
-      }
-
-      set_modal_sorteo_abierto(false);
-      toast.success("Viernes de refrigerio programado exitosamente", {
-        description: `Dupla designada: ${sorteo_encargado_1} y ${sorteo_encargado_2} para el ${sorteo_viernes_fecha}.`,
-      });
-      await invalidar();
-    } catch (error) {
-      toast.error("No se pudo guardar la dupla de refrigerio", {
-        description: error instanceof Error ? error.message : "Verifica tu sesión e intenta nuevamente.",
-      });
     }
   };
 
@@ -740,16 +675,6 @@ export function ControlRefrigerios() {
 
         {es_admin && (
           <div className="flex flex-wrap items-center gap-2.5">
-            {/* Botón: Asignar Dupla del Viernes */}
-            <Button
-              onClick={() => set_modal_sorteo_abierto(true)}
-              variant="outline"
-              className="border-[#00ABBD] text-[#035683] hover:bg-[#00ABBD]/10 font-bold rounded-xl text-xs h-10 px-3.5 gap-2 shadow-2xs cursor-pointer"
-            >
-              <Users className="w-4 h-4 text-[#00ABBD]" />
-              <span>👥 Asignar Dupla del Viernes</span>
-            </Button>
-
             {/* Botón: Registrar Raciones e Ingredientes */}
             <Dialog
               open={modal_nuevo_abierto}
@@ -1287,136 +1212,6 @@ export function ControlRefrigerios() {
           </div>
         </CardContent>
       </Card>
-
-      {/* ============================================================== */}
-      {/* DIÁLOGO MODAL: ASIGNACIÓN DE DUPLA DEL VIERNES (DIRECTIVA)    */}
-      {/* ============================================================== */}
-      <Dialog open={modal_sorteo_abierto} onOpenChange={set_modal_sorteo_abierto}>
-        <DialogContent
-          showCloseButton={false}
-          className="sm:max-w-[550px] max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white border-[#E5E7EB] rounded-2xl shadow-2xl"
-        >
-          <DialogHeader
-            showCloseButton={false}
-            className="p-5 pb-3 border-b border-[#E5E7EB] bg-[#F8F9FA] flex flex-row items-center justify-between"
-          >
-            <div>
-              <DialogTitle className="text-base font-bold text-[#035683] flex items-center gap-2">
-                <Users className="w-5 h-5 text-[#00ABBD]" />
-                Asignación de Dupla del Viernes
-              </DialogTitle>
-              <CardDescription className="text-xs text-muted-foreground mt-0.5">
-                Registro oficial de los 2 becarios designados por la Directiva para el refrigerio de la Escuela de Líderes.
-              </CardDescription>
-            </div>
-            <button
-              type="button"
-              onClick={() => set_modal_sorteo_abierto(false)}
-              className="text-slate-400 hover:text-slate-600 rounded-lg p-1 transition-colors ml-2"
-              title="Cerrar"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </DialogHeader>
-
-          <DialogBody className="p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
-            {/* Selección de Integrantes Designados */}
-            <div className="space-y-3">
-              <Label className="text-xs font-bold text-[#035683]">
-                Becarios Designados por Directiva:
-              </Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-[11px] text-slate-600 font-semibold">Becario Encargado 1</Label>
-                  <Select
-                    value={sorteo_encargado_1}
-                    onValueChange={(val) => val && set_sorteo_encargado_1(val)}
-                  >
-                    <SelectTrigger className="h-9 text-xs border-[#E5E7EB]">
-                      <SelectValue placeholder="Encargado 1" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-56">
-                      {lista_becarios.map((b) => (
-                        <SelectItem key={b} value={b}>
-                          {b}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-[11px] text-slate-600 font-semibold">Becario Encargado 2</Label>
-                  <Select
-                    value={sorteo_encargado_2}
-                    onValueChange={(val) => val && set_sorteo_encargado_2(val)}
-                  >
-                    <SelectTrigger className="h-9 text-xs border-[#E5E7EB]">
-                      <SelectValue placeholder="Encargado 2" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-56">
-                      {lista_becarios.map((b) => (
-                        <SelectItem key={b} value={b}>
-                          {b}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-
-            {/* Fecha del Viernes y Evento */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold">Fecha del Viernes</Label>
-                <SeleccionadorFecha
-                  valorString={sorteo_viernes_fecha}
-                  alCambiarString={(val) => set_sorteo_viernes_fecha(val)}
-                  className="h-9 text-xs border-[#E5E7EB]"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold">Evento / Formato</Label>
-                <Input
-                  value={sorteo_evento}
-                  onChange={(e) => set_sorteo_evento(e.target.value)}
-                  className="h-9 text-xs border-[#E5E7EB]"
-                />
-              </div>
-            </div>
-
-            {/* Información de presupuesto referencial */}
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-1">
-              <span className="font-bold flex items-center gap-1 text-[#035683]">
-                <Coins className="w-3.5 h-3.5 text-[#FFB600]" />
-                Presupuesto Oficial de Escuela de Líderes:
-              </span>
-              <p className="text-[11px] text-slate-600">
-                23 raciones × Bs 5.00 = <strong>Bs 115.00</strong> (tarifa institucional de Bs 5.00 por persona). Al rendir la entrega del refrigerio, se procesará la <strong>devolución íntegra del 100%</strong>.
-              </p>
-            </div>
-          </DialogBody>
-
-          <DialogFooter className="p-4 px-6 border-t border-[#E5E7EB] bg-[#F8F9FA] flex justify-end gap-2 shrink-0">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => set_modal_sorteo_abierto(false)}
-              className="rounded-xl text-xs h-9"
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="button"
-              onClick={confirmarProgramacionDupla}
-              className="bg-[#035683] hover:bg-[#035683]/90 text-white font-bold rounded-xl text-xs h-9"
-            >
-              Confirmar Dupla de Refrigerio
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* ============================================================== */}
       {/* DIÁLOGO MODAL OBLIGATORIO: APROBACIÓN DEVOLUCIÓN 100%          */}

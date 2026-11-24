@@ -60,6 +60,9 @@ export class ClienteApi {
     if (typeof window !== "undefined") {
       localStorage.removeItem("bumand_token");
       localStorage.removeItem("bumand_usuario");
+      if (typeof document !== "undefined") {
+        document.cookie = "bumand_sesion=; path=/; max-age=0; SameSite=Lax";
+      }
       window.dispatchEvent(
         new CustomEvent("sesion_expirada", {
           detail: { mensaje },

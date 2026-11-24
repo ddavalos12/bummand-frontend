@@ -6,11 +6,7 @@ import {
   MapPin,
   ArrowRightLeft,
   Navigation,
-  CheckCircle2,
   Calendar as CalendarIcon,
-  Sparkles,
-  Route,
-  Search,
   ShieldAlert,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,116 +30,10 @@ import { useFormularioValidado } from "@/hooks/useFormularioValidado";
 import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
 import { toast } from "sonner";
 
-export interface ParadaFrecuente {
-  id: string;
-  nombre: string;
-  zona: "El Alto" | "La Paz Centro" | "La Paz Sur" | "La Paz" | "La Paz / El Alto";
-  tarifa_sugerida: string;
-}
-
-export interface RutaFrecuente {
-  etiqueta: string;
-  origen: string;
-  destino: string;
-  tarifa: string;
-  medio: string;
-  calles?: string;
-}
-
-const PARADAS_FRECUENTES: ParadaFrecuente[] = [
-  { id: "diaconia_central", nombre: "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
-  { id: "diaconia_ceja", nombre: "Agencia Diaconía Ceja (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
-  { id: "practicas_la_paz", nombre: "Sede Prácticas (La Paz)", zona: "La Paz", tarifa_sugerida: "2.60" },
-  { id: "ceja_distribuidor", nombre: "La Ceja — Calle 1 / Puente Distribuidor (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
-  { id: "cruce_villa_adela", nombre: "Cruce Villa Adela (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
-  { id: "villa_adela", nombre: "Villa Adela, El Alto", zona: "El Alto", tarifa_sugerida: "2.00" },
-  { id: "cruce_viacha", nombre: "Cruce Viacha (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
-  { id: "rio_seco", nombre: "Ex Tranca Río Seco (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
-  { id: "senkata", nombre: "Extranca Senkata — Av. 6 de Marzo (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
-  { id: "satelite", nombre: "Ciudad Satélite — Plaza del Tinku (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
-  { id: "ballivian", nombre: "Ballivián / Faro Murillo (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
-  { id: "upea", nombre: "UPEA — Villa Esperanza (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
-  { id: "terminal_el_alto", nombre: "Terminal Metropolitana El Alto", zona: "El Alto", tarifa_sugerida: "2.00" },
-  { id: "puente_vela", nombre: "Puente Vela / Ventilla (El Alto)", zona: "El Alto", tarifa_sugerida: "2.00" },
-  { id: "perez_velasco", nombre: "Pérez Velasco / Héroes del Pacífico (La Paz)", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
-  { id: "san_francisco", nombre: "Plaza San Francisco (La Paz)", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
-  { id: "san_pedro", nombre: "San Pedro — Plaza Sucre (La Paz)", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
-  { id: "el_prado", nombre: "El Prado / Obelisco (La Paz)", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
-  { id: "umsa", nombre: "UMSA — Monoblock Central (La Paz)", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
-  { id: "sopocachi", nombre: "Sopocachi — Plaza Abaroa (La Paz)", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
-  { id: "miraflores_siles", nombre: "Miraflores — Estadio Hernando Siles (La Paz)", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
-  { id: "miraflores_triangular", nombre: "Miraflores — Plaza Triangular / Hospital de Clínicas (La Paz)", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
-  { id: "terminal_la_paz", nombre: "Terminal de Buses La Paz / Plaza Antofagasta", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
-  { id: "cementerio", nombre: "Cementerio General / Ajayuni (La Paz)", zona: "La Paz Centro", tarifa_sugerida: "3.50" },
-  { id: "periferica", nombre: "Periférica — Av. Vásquez / Autopista (La Paz)", zona: "La Paz", tarifa_sugerida: "3.50" },
-  { id: "chuquiaguillo", nombre: "Chuquiaguillo / Salida Yungas (La Paz)", zona: "La Paz", tarifa_sugerida: "3.50" },
-  { id: "villa_fatima", nombre: "Villa Fátima — Plaza del Maestro / Minasa (La Paz)", zona: "La Paz", tarifa_sugerida: "3.50" },
-  { id: "obrajes", nombre: "Obrajes — Calle 17 (Zona Sur, La Paz)", zona: "La Paz Sur", tarifa_sugerida: "3.50" },
-  { id: "calacoto", nombre: "Calacoto — Calle 21 (Zona Sur, La Paz)", zona: "La Paz Sur", tarifa_sugerida: "3.50" },
-  { id: "chasquipampa", nombre: "Chasquipampa — Calle 53 (Zona Sur, La Paz)", zona: "La Paz Sur", tarifa_sugerida: "3.50" },
-  { id: "teleferico_roja", nombre: "Teleférico Línea Roja (Estación Central / 16 de Julio)", zona: "La Paz / El Alto", tarifa_sugerida: "3.00" },
-  { id: "teleferico_amarilla", nombre: "Teleférico Línea Amarilla (Mirador / Sopocachi / Libertador)", zona: "La Paz / El Alto", tarifa_sugerida: "3.00" },
-  { id: "teleferico_morada", nombre: "Teleférico Línea Morada (Faro Murillo / San José)", zona: "La Paz / El Alto", tarifa_sugerida: "3.00" },
-  { id: "teleferico_azul", nombre: "Teleférico Línea Azul (Río Seco / UPEA / 16 de Julio)", zona: "El Alto", tarifa_sugerida: "3.00" },
-  { id: "teleferico_blanca", nombre: "Teleférico Línea Blanca (Plaza Villarroel / Busch)", zona: "La Paz", tarifa_sugerida: "3.00" },
-];
-
-const RUTAS_FRECUENTES_PREAJUSTADAS: RutaFrecuente[] = [
-  {
-    etiqueta: "Ceja ↔ Pérez Velasco",
-    origen: "Ceja (El Alto)",
-    destino: "Pérez Velasco",
-    tarifa: "3.50",
-    medio: "Minibús Interciudad",
-    calles: "Ceja El Alto (Calle 1) → Autopista La Paz-El Alto → Montes → Pérez Velasco",
-  },
-  {
-    etiqueta: "Cruce Viacha ↔ San Pedro",
-    origen: "Cruce Viacha (El Alto)",
-    destino: "San Pedro (Plaza Sucre)",
-    tarifa: "3.50",
-    medio: "Minibús Interciudad",
-    calles: "Cruce Viacha → Av. 6 de Marzo → Autopista → Calle Colombia → Plaza San Pedro",
-  },
-  {
-    etiqueta: "Sopocachi ↔ Miraflores",
-    origen: "Sopocachi (Plaza Abaroa)",
-    destino: "Miraflores (Plaza Triangular)",
-    tarifa: "2.60",
-    medio: "Minibús Urbano",
-    calles: "Plaza Abaroa → Av. 20 de Octubre → Puente Gemelo → Av. Saavedra → Plaza Triangular",
-  },
-  {
-    etiqueta: "Ciudad Satélite ↔ Sopocachi",
-    origen: "Ciudad Satélite",
-    destino: "Sopocachi (Plaza Abaroa)",
-    tarifa: "3.00",
-    medio: "Mi Teleférico Línea Amarilla",
-    calles: "Ciudad Satélite (Plaza Bolivia) → Estación Mirador → Mi Teleférico Amarilla → Estación Sopocachi",
-  },
-  {
-    etiqueta: "Pérez Velasco ↔ San Pedro",
-    origen: "Pérez Velasco",
-    destino: "San Pedro (Plaza Sucre)",
-    tarifa: "2.00",
-    medio: "Micro / Colectivo",
-    calles: "Pérez Velasco → Av. Mariscal Santa Cruz → Calle Colombia → Plaza Sucre",
-  },
-  {
-    etiqueta: "Río Seco ↔ Ceja El Alto",
-    origen: "Río Seco (El Alto)",
-    destino: "Ceja (El Alto)",
-    tarifa: "2.00",
-    medio: "Minibús Tramo Corto",
-    calles: "Extranca Río Seco → Av. Juan Pablo II → Chacaltaya → Ceja El Alto",
-  },
-];
-
 /**
  * @component RegistroRecorrido
- * @description Formulario enriquecido para registrar recorridos de pasajes con selector rápido
- * de paradas frecuentes y rutas oficiales de la conurbación La Paz - El Alto, autocompletando
- * origen, destino y tarifa fija con cálculo exacto del 80% de reembolso.
+ * @description Formulario para registrar recorridos de pasajes con ingreso libre de paradas,
+ * detección GPS en tiempo real (Nominatim) y cálculo exacto del 80% de reembolso.
  */
 export interface RegistroRecorridoProps {
   onCerrar?: () => void;
@@ -155,8 +45,6 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
   const [tipo_actividad, set_tipo_actividad] = useState<
     "Prácticas" | "Acciones de Servicio"
   >("Prácticas");
-  const [mostrar_dropdown_origen, set_mostrar_dropdown_origen] = useState(false);
-  const [mostrar_dropdown_destino, set_mostrar_dropdown_destino] = useState(false);
 
   const {
     confirmarCierreSinCompletar,
@@ -165,8 +53,8 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
 
   const formulario = useFormularioValidado(
     {
-      origen: "Villa Adela, El Alto",
-      destino: "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)",
+      origen: "",
+      destino: "",
       monto: "3.50",
       fecha: new Date(),
     },
@@ -235,8 +123,6 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
         set_calles_declaradas("");
         set_medio_transporte("Minibús Interciudad");
         set_modo_seleccion("origen");
-        set_mostrar_dropdown_origen(false);
-        set_mostrar_dropdown_destino(false);
         set_tipo_actividad("Prácticas");
         if (onCerrar) {
           onCerrar();
@@ -246,22 +132,17 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
     );
   };
 
-  // Consultar paradas y tarifas oficiales desde el backend
-  const { datos: paradas_servidor } = useConsulta<Array<{ id: number; nombre: string; ciudad: string }>>(
-    "paradas_oficiales",
-    () => clienteApi.get("/api/pasajes/paradas")
-  );
-
+  // Consultar tarifas oficiales desde el backend
   const fecha_consulta_str = formulario.valores.fecha instanceof Date
     ? formulario.valores.fecha.toISOString().split("T")[0]
     : new Date().toISOString().split("T")[0];
 
-  const { datos: tarifas_servidor } = useConsulta<Array<{ id: number; costo_bs: number; medio_transporte: string }>>(
+  useConsulta<Array<{ id: number; costo_bs: number; medio_transporte: string }>>(
     `tarifas_oficiales_${fecha_consulta_str}`,
     () => clienteApi.get(`/api/pasajes/tarifas?fecha=${fecha_consulta_str}`)
   );
 
-  const { conectado } = useTiempoReal({
+  useTiempoReal({
     eventos: {
       pasajes_actualizados: () => {
         // Evento de pasajes recibido en tiempo real
@@ -300,44 +181,6 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
     return "Transporte Público La Paz – El Alto";
   };
 
-  const aplicarRutaFrecuente = (_ruta: RutaFrecuente) => {
-    if (paso === "ida") {
-      formulario.establecerValores({
-        origen: _ruta.origen,
-        destino: _ruta.destino,
-        monto: _ruta.tarifa,
-      });
-      set_medio_transporte(_ruta.medio);
-      set_calles_declaradas(_ruta.calles || `${_ruta.origen} → ${_ruta.destino}`);
-    } else {
-      formulario.establecerValores({
-        origen: _ruta.destino,
-        destino: _ruta.origen,
-        monto: _ruta.tarifa,
-      });
-      set_medio_transporte(_ruta.medio);
-      const calles_rev = _ruta.calles
-        ? _ruta.calles.split("→").reverse().map((c) => c.trim()).join(" → ")
-        : `${_ruta.destino} → ${_ruta.origen}`;
-      set_calles_declaradas(calles_rev);
-    }
-  };
-
-  const aplicarParada = (_nombre_parada: string, _tarifa_sugerida: string) => {
-    if (modo_seleccion === "origen") {
-      formulario.cambiarValor("origen", _nombre_parada);
-      set_modo_seleccion("destino");
-      set_mostrar_dropdown_origen(false);
-      set_mostrar_dropdown_destino(true);
-    } else {
-      formulario.cambiarValor("destino", _nombre_parada);
-      set_mostrar_dropdown_destino(false);
-    }
-    if (!formulario.valores.monto || formulario.valores.monto === "0") {
-      formulario.cambiarValor("monto", _tarifa_sugerida);
-    }
-  };
-
   const intercambiarParadas = () => {
     const temp_origen = String(formulario.valores.origen);
     const temp_destino = String(formulario.valores.destino);
@@ -347,90 +190,8 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
     });
   };
 
-  const paradas_filtradas_origen = PARADAS_FRECUENTES.filter(
-    (p) =>
-      p.nombre.toLowerCase().includes(String(formulario.valores.origen || "").toLowerCase()) ||
-      p.zona.toLowerCase().includes(String(formulario.valores.origen || "").toLowerCase())
-  );
-
-  const paradas_filtradas_destino = PARADAS_FRECUENTES.filter(
-    (p) =>
-      p.nombre.toLowerCase().includes(String(formulario.valores.destino || "").toLowerCase()) ||
-      p.zona.toLowerCase().includes(String(formulario.valores.destino || "").toLowerCase())
-  );
-
-  const PARADAS_OFICIALES_COORDENADAS = [
-    { nombre: "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)", latitud: -16.50005, longitud: -68.17345 },
-    { nombre: "Agencia Diaconía Ceja (El Alto)", latitud: -16.5085, longitud: -68.1630 },
-    { nombre: "Sede Prácticas (La Paz)", latitud: -16.5042, longitud: -68.1315 },
-    { nombre: "La Ceja — Calle 1 / Puente Distribuidor (El Alto)", latitud: -16.5088, longitud: -68.1627 },
-    { nombre: "Cruce Villa Adela (El Alto)", latitud: -16.5245, longitud: -68.1885 },
-    { nombre: "Villa Adela, El Alto", latitud: -16.5360, longitud: -68.1920 },
-    { nombre: "Cruce Viacha (El Alto)", latitud: -16.5178, longitud: -68.1695 },
-    { nombre: "Ex Tranca Río Seco (El Alto)", latitud: -16.4912, longitud: -68.2105 },
-    { nombre: "Extranca Senkata — Av. 6 de Marzo (El Alto)", latitud: -16.5655, longitud: -68.1872 },
-    { nombre: "Ciudad Satélite — Plaza del Tinku (El Alto)", latitud: -16.5195, longitud: -68.1510 },
-    { nombre: "Ballivián / Faro Murillo (El Alto)", latitud: -16.5055, longitud: -68.1525 },
-    { nombre: "UPEA — Villa Esperanza (El Alto)", latitud: -16.4935, longitud: -68.1940 },
-    { nombre: "Terminal Metropolitana El Alto", latitud: -16.5152, longitud: -68.1720 },
-    { nombre: "Puente Vela / Ventilla (El Alto)", latitud: -16.5520, longitud: -68.1960 },
-    { nombre: "Pérez Velasco / Héroes del Pacífico (La Paz)", latitud: -16.4958, longitud: -68.1372 },
-    { nombre: "Plaza San Francisco (La Paz)", latitud: -16.4965, longitud: -68.1378 },
-    { nombre: "San Pedro — Plaza Sucre (La Paz)", latitud: -16.5030, longitud: -68.1360 },
-    { nombre: "El Prado / Obelisco (La Paz)", latitud: -16.4988, longitud: -68.1340 },
-    { nombre: "UMSA — Monoblock Central (La Paz)", latitud: -16.5048, longitud: -68.1298 },
-    { nombre: "Sopocachi — Plaza Abaroa (La Paz)", latitud: -16.5112, longitud: -68.1268 },
-    { nombre: "Miraflores — Estadio Hernando Siles (La Paz)", latitud: -16.4995, longitud: -68.1228 },
-    { nombre: "Miraflores — Plaza Triangular / Hospital de Clínicas (La Paz)", latitud: -16.5052, longitud: -68.1211 },
-    { nombre: "Terminal de Buses La Paz / Plaza Antofagasta", latitud: -16.4895, longitud: -68.1415 },
-    { nombre: "Cementerio General / Ajayuni (La Paz)", latitud: -16.4920, longitud: -68.1515 },
-    { nombre: "Periférica — Av. Vásquez / Autopista (La Paz)", latitud: -16.4840, longitud: -68.1425 },
-    { nombre: "Chuquiaguillo / Salida Yungas (La Paz)", latitud: -16.4620, longitud: -68.1050 },
-    { nombre: "Villa Fátima — Plaza del Maestro / Minasa (La Paz)", latitud: -16.4815, longitud: -68.1189 },
-    { nombre: "Obrajes — Calle 17 (Zona Sur, La Paz)", latitud: -16.5275, longitud: -68.1085 },
-    { nombre: "Calacoto — Calle 21 (Zona Sur, La Paz)", latitud: -16.5398, longitud: -68.0865 },
-    { nombre: "Chasquipampa — Calle 53 (Zona Sur, La Paz)", latitud: -16.5440, longitud: -68.0530 },
-    { nombre: "Teleférico Línea Roja (Estación Central / 16 de Julio)", latitud: -16.4918, longitud: -68.1452 },
-    { nombre: "Teleférico Línea Amarilla (Mirador / Sopocachi / Libertador)", latitud: -16.5172, longitud: -68.1338 },
-    { nombre: "Teleférico Línea Morada (Faro Murillo / San José)", latitud: -16.5015, longitud: -68.1355 },
-    { nombre: "Teleférico Línea Azul (Río Seco / UPEA / 16 de Julio)", latitud: -16.4960, longitud: -68.1820 },
-    { nombre: "Teleférico Línea Blanca (Plaza Villarroel / Busch)", latitud: -16.4930, longitud: -68.1195 },
-  ];
-
-  const calcularDistanciaHaversineMetros = (
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ): number => {
-    const R = 6371e3;
-    const rad = Math.PI / 180;
-    const dLat = (lat2 - lat1) * rad;
-    const dLon = (lon2 - lon1) * rad;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return Math.round(R * c);
-  };
-
   const resolverUbicacionGpsReal = async (lat: number, lng: number): Promise<string> => {
-    // 1. Proximidad a parada <= 150m
-    let parada_cercana: { nombre: string; distancia: number } | null = null;
-    for (const p of PARADAS_OFICIALES_COORDENADAS) {
-      const d = calcularDistanciaHaversineMetros(lat, lng, p.latitud, p.longitud);
-      if (!parada_cercana || d < parada_cercana.distancia) {
-        parada_cercana = { nombre: p.nombre, distancia: d };
-      }
-    }
-
-    if (parada_cercana && parada_cercana.distancia <= 150) {
-      return `Parada ${parada_cercana.nombre} (a ${parada_cercana.distancia} m)`;
-    }
-
-    const parada_ref = parada_cercana ? parada_cercana.nombre : "Oficina Central Diaconía (Av. Juan Pablo II, El Alto)";
-
-    // 2. Geocodificación inversa con Nominatim para calle y zona real (> 150m)
+    // Geocodificación inversa con Nominatim para calle y zona real
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 4000);
@@ -463,9 +224,6 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
           barrio = "Bella Vista";
         }
 
-        const parada_cercana_ref =
-          parada_cercana && parada_cercana.distancia <= 350 ? parada_cercana.nombre : "";
-
         if (calle && String(calle).trim().length > 0) {
           if (barrio) {
             return `${calle}, ${barrio}`;
@@ -480,20 +238,17 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
               suburb_raw && suburb_raw.toLowerCase() !== zona.toLowerCase() && !en_bella_vista
                 ? suburb_raw
                 : ciudad;
-            const etiqueta_zona =
-              contexto && contexto.toLowerCase() !== zona.toLowerCase()
-                ? `Zona ${zona}, ${contexto}`
-                : `Zona ${zona}`;
-            return parada_cercana_ref ? `${etiqueta_zona} · Ref. ${parada_cercana_ref}` : etiqueta_zona;
+            return contexto && contexto.toLowerCase() !== zona.toLowerCase()
+              ? `Zona ${zona}, ${contexto}`
+              : `Zona ${zona}`;
           }
-          return parada_cercana_ref ? `Ref. ${parada_cercana_ref}` : `Ref. ${parada_ref}`;
         }
       }
     } catch (_e) {
       // Fallback
     }
 
-    return `Ubicación GPS (${lat.toFixed(4)}, ${lng.toFixed(4)}) · Ref. ${parada_ref}`;
+    return `Ubicación GPS (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
   };
 
   const [capturando_gps_campo, set_capturando_gps_campo] = useState<"origen" | "destino" | null>(null);
@@ -568,8 +323,6 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
     set_calles_declaradas("");
     set_paso("vuelta");
     set_modo_seleccion("destino");
-    set_mostrar_dropdown_origen(false);
-    set_mostrar_dropdown_destino(false);
   };
 
   // TAREA-14: Determinar si la actividad actual está restringida a "Solo Ida"
@@ -632,8 +385,6 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
       set_calles_declaradas("");
       set_medio_transporte("Minibús Interciudad");
       set_modo_seleccion("origen");
-      set_mostrar_dropdown_origen(false);
-      set_mostrar_dropdown_destino(false);
       set_tipo_actividad("Prácticas");
       set_cargando(false);
     }
@@ -711,8 +462,6 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
       set_calles_declaradas("");
       set_medio_transporte("Minibús Interciudad");
       set_modo_seleccion("origen");
-      set_mostrar_dropdown_origen(false);
-      set_mostrar_dropdown_destino(false);
       set_tipo_actividad("Prácticas");
       set_cargando(false);
     }
@@ -810,41 +559,11 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
           {formulario.renderizarMensajeError("fecha")}
         </div>
 
-        {/* Rutas Frecuentes Preajustadas (La Paz - El Alto) */}
-        <div className="bg-[#F8F9FA] p-3 rounded-xl border border-[#E5E7EB] space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#035683] flex items-center gap-1.5">
-              <Route className="w-3.5 h-3.5 text-[#00ABBD]" />
-              Rutas Troncales Rápidas (La Paz ↔ El Alto)
-            </span>
-            <span className="text-[10px] text-muted-foreground font-mono">Autocompletar</span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-1.5 pt-1">
-            {RUTAS_FRECUENTES_PREAJUSTADAS.map((r) => (
-              <button
-                key={r.etiqueta}
-                type="button"
-                onClick={() => aplicarRutaFrecuente(r)}
-                className="text-left p-2 rounded-lg border border-[#E5E7EB] bg-white hover:border-[#00ABBD] hover:bg-[#E3F9FA]/40 transition-colors group"
-              >
-                <div className="text-[11px] font-bold text-[#035683] truncate group-hover:text-[#007BBE]">
-                  {r.etiqueta}
-                </div>
-                <div className="text-[10px] text-muted-foreground flex items-center justify-between mt-0.5">
-                  <span className="truncate">{r.medio}</span>
-                  <span className="font-bold text-[#035683]">Bs {r.tarifa}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Campos Origen y Destino con Combobox / Autocomplete */}
+        {/* Campos Origen y Destino */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-[#035683]">
-              Tramos de Transporte (Búsqueda y Autocompletado)
+              Tramos de Transporte (Ingreso Libre o Detección GPS)
             </span>
             <button
               type="button"
@@ -856,14 +575,10 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
             </button>
           </div>
 
-          {/* Combobox Dinámico para Origen */}
+          {/* Campo Origen */}
           <div className="relative">
             <div
-              onClick={() => {
-                set_modo_seleccion("origen");
-                set_mostrar_dropdown_origen(true);
-                set_mostrar_dropdown_destino(false);
-              }}
+              onClick={() => set_modo_seleccion("origen")}
               className={`flex items-center gap-3 p-3 bg-white border-1.5 rounded-xl cursor-pointer transition-colors ${
                 formulario.esCampoInvalido("origen")
                   ? "border-[#E2694B] bg-[#E2694B]/5 ring-2 ring-[#E2694B]/20"
@@ -875,24 +590,14 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
               <MapPin className="w-4 h-4 text-[#E2694B] shrink-0" />
               <div className="flex-1">
                 <span className="text-[10px] font-mono text-muted-foreground uppercase block leading-none mb-1">
-                  Punto de Origen (Escriba o seleccione parada)
+                  Punto de Origen (Escriba o fije con GPS)
                 </span>
                 <Input
-                  placeholder="Ej: Ceja (El Alto)"
+                  placeholder="Ej: Calle o zona de partida"
                   value={String(formulario.valores.origen)}
-                  onFocus={() => {
-                    set_modo_seleccion("origen");
-                    set_mostrar_dropdown_origen(true);
-                    set_mostrar_dropdown_destino(false);
-                  }}
-                  onChange={(e) => {
-                    formulario.cambiarValor("origen", e.target.value);
-                    set_mostrar_dropdown_origen(true);
-                  }}
-                  onBlur={() => {
-                    formulario.tocarCampo("origen");
-                    setTimeout(() => set_mostrar_dropdown_origen(false), 200);
-                  }}
+                  onFocus={() => set_modo_seleccion("origen")}
+                  onChange={(e) => formulario.cambiarValor("origen", e.target.value)}
+                  onBlur={() => formulario.tocarCampo("origen")}
                   className="border-none shadow-none h-auto p-0 focus-visible:ring-0 text-xs font-semibold bg-transparent"
                 />
               </div>
@@ -912,52 +617,15 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
                   <Navigation className={`w-3 h-3 text-[#00ABBD] ${capturando_gps_campo === "origen" ? "animate-spin text-[#FFB600]" : ""}`} />
                   <span>{capturando_gps_campo === "origen" ? "Detectando..." : "📍 Fijar GPS"}</span>
                 </Button>
-                <Search className="w-3.5 h-3.5 text-muted-foreground" />
               </div>
             </div>
-
-            {/* Menú Flotante Autocomplete de Origen */}
-            {mostrar_dropdown_origen && paradas_filtradas_origen.length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-1.5 z-30 bg-white border border-[#E5E7EB] rounded-xl shadow-xl max-h-48 overflow-y-auto p-1.5 space-y-0.5">
-                <div className="px-2 py-1 text-[10px] font-mono text-muted-foreground font-bold uppercase border-b border-slate-100 mb-1">
-                  Paradas Sugeridas para Origen
-                </div>
-                {paradas_filtradas_origen.map((parada) => (
-                  <button
-                    key={`orig-${parada.id}`}
-                    type="button"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      aplicarParada(parada.nombre, parada.tarifa_sugerida);
-                    }}
-                    className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#00ABBD]/10 transition-colors flex items-center justify-between text-xs group"
-                  >
-                    <div>
-                      <span className="font-semibold text-[#1E293B] group-hover:text-[#035683]">
-                        {parada.nombre}
-                      </span>
-                      <span className="ml-2 text-[10px] text-muted-foreground font-mono">
-                        ({parada.zona})
-                      </span>
-                    </div>
-                    <span className="text-[11px] font-mono font-bold text-[#035683] bg-slate-100 px-1.5 py-0.5 rounded">
-                      Bs {parada.tarifa_sugerida}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
             {formulario.renderizarMensajeError("origen")}
           </div>
 
-          {/* Combobox Dinámico para Destino */}
+          {/* Campo Destino */}
           <div className="relative">
             <div
-              onClick={() => {
-                set_modo_seleccion("destino");
-                set_mostrar_dropdown_destino(true);
-                set_mostrar_dropdown_origen(false);
-              }}
+              onClick={() => set_modo_seleccion("destino")}
               className={`flex items-center gap-3 p-3 bg-white border-1.5 rounded-xl cursor-pointer transition-colors ${
                 formulario.esCampoInvalido("destino")
                   ? "border-[#E2694B] bg-[#E2694B]/5 ring-2 ring-[#E2694B]/20"
@@ -969,24 +637,14 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
               <MapPin className="w-4 h-4 text-[#007BBE] shrink-0" />
               <div className="flex-1">
                 <span className="text-[10px] font-mono text-muted-foreground uppercase block leading-none mb-1">
-                  Punto de Destino (Escriba o seleccione parada)
+                  Punto de Destino (Escriba o fije con GPS)
                 </span>
                 <Input
-                  placeholder="Ej: Pérez Velasco"
+                  placeholder="Ej: Calle, zona o sede de llegada"
                   value={String(formulario.valores.destino)}
-                  onFocus={() => {
-                    set_modo_seleccion("destino");
-                    set_mostrar_dropdown_destino(true);
-                    set_mostrar_dropdown_origen(false);
-                  }}
-                  onChange={(e) => {
-                    formulario.cambiarValor("destino", e.target.value);
-                    set_mostrar_dropdown_destino(true);
-                  }}
-                  onBlur={() => {
-                    formulario.tocarCampo("destino");
-                    setTimeout(() => set_mostrar_dropdown_destino(false), 200);
-                  }}
+                  onFocus={() => set_modo_seleccion("destino")}
+                  onChange={(e) => formulario.cambiarValor("destino", e.target.value)}
+                  onBlur={() => formulario.tocarCampo("destino")}
                   className="border-none shadow-none h-auto p-0 focus-visible:ring-0 text-xs font-semibold bg-transparent"
                 />
               </div>
@@ -1006,41 +664,8 @@ export function RegistroRecorrido({ onCerrar }: RegistroRecorridoProps = {}) {
                   <Navigation className={`w-3 h-3 text-[#007BBE] ${capturando_gps_campo === "destino" ? "animate-spin text-[#FFB600]" : ""}`} />
                   <span>{capturando_gps_campo === "destino" ? "Detectando..." : "📍 Fijar GPS"}</span>
                 </Button>
-                <Search className="w-3.5 h-3.5 text-muted-foreground" />
               </div>
             </div>
-
-            {/* Menú Flotante Autocomplete de Destino */}
-            {mostrar_dropdown_destino && paradas_filtradas_destino.length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-1.5 z-30 bg-white border border-[#E5E7EB] rounded-xl shadow-xl max-h-48 overflow-y-auto p-1.5 space-y-0.5">
-                <div className="px-2 py-1 text-[10px] font-mono text-muted-foreground font-bold uppercase border-b border-slate-100 mb-1">
-                  Paradas Sugeridas para Destino
-                </div>
-                {paradas_filtradas_destino.map((parada) => (
-                  <button
-                    key={`dest-${parada.id}`}
-                    type="button"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      aplicarParada(parada.nombre, parada.tarifa_sugerida);
-                    }}
-                    className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#00ABBD]/10 transition-colors flex items-center justify-between text-xs group"
-                  >
-                    <div>
-                      <span className="font-semibold text-[#1E293B] group-hover:text-[#035683]">
-                        {parada.nombre}
-                      </span>
-                      <span className="ml-2 text-[10px] text-muted-foreground font-mono">
-                        ({parada.zona})
-                      </span>
-                    </div>
-                    <span className="text-[11px] font-mono font-bold text-[#035683] bg-slate-100 px-1.5 py-0.5 rounded">
-                      Bs {parada.tarifa_sugerida}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
             {formulario.renderizarMensajeError("destino")}
           </div>
         </div>
