@@ -190,6 +190,8 @@ export function VisorReportesPdf() {
       | "pasajes_general"
       | "justificaciones_general"
       | "asistencia_general"
+      | "escuela_lideres"
+      | "consolidado_auditoria"
       | "auditoria",
     params?: {
       becario_id?: number;
@@ -218,7 +220,11 @@ export function VisorReportesPdf() {
         else if (endpoint.includes("asistencia-estudiante")) tipo_final = "asistencia_estudiante";
         else if (endpoint.includes("pasajes-general")) tipo_final = "pasajes_general";
         else if (endpoint.includes("justificaciones-general")) tipo_final = "justificaciones_general";
+        else if (endpoint.includes("asistencia-escuela-lideres")) tipo_final = "escuela_lideres";
         else if (endpoint.includes("asistencia-general")) tipo_final = "asistencia_general";
+        else if (endpoint.includes("consolidado-auditoria") || endpoint.includes("consolidado-contabilidad")) {
+          tipo_final = "consolidado_auditoria";
+        }
         else tipo_final = "auditoria";
       }
 
@@ -922,8 +928,12 @@ export function VisorReportesPdf() {
                   "asistencia_escuela_lideres",
                   `/pdf/asistencia-escuela-lideres?fecha_inicio=${fecha_inicio_global}&fecha_fin=${fecha_fin_global}`,
                   `Asistencia_Escuela_Lideres_Multas_Permisos_${fecha_inicio_global}_al_${fecha_fin_global}.pdf`,
-                  "asistencia_general",
-                  { fecha_inicio: fecha_inicio_global, fecha_fin: fecha_fin_global }
+                  "escuela_lideres",
+                  {
+                    modulo: "escuela_lideres",
+                    fecha_inicio: fecha_inicio_global,
+                    fecha_fin: fecha_fin_global,
+                  }
                 )
               }
               variant="outline"

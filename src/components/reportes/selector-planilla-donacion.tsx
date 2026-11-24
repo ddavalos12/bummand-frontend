@@ -223,11 +223,24 @@ export function SelectorPlanillaDonacion({
 
         let filas: Array<{
           nombre: string;
+          nombres?: string;
+          apellidos?: string;
           ci: string;
           unidad: string;
           detalle: string;
           monto_bs: number;
         }> = [];
+
+        const separarNombresApellidos = (nombre_completo: string) => {
+          const limpio = (nombre_completo || "").trim();
+          const partes = limpio.split(/\s+/).filter(Boolean);
+          if (partes.length <= 1) return { nombres: limpio, apellidos: "" };
+          if (partes.length === 2) return { nombres: partes[0], apellidos: partes[1] };
+          return {
+            nombres: partes.slice(0, -2).join(" "),
+            apellidos: partes.slice(-2).join(" "),
+          };
+        };
 
         if (tipo === "transporte") {
           const qs = new URLSearchParams({
@@ -235,31 +248,143 @@ export function SelectorPlanillaDonacion({
             fecha_fin: fecha_fin_estado,
             descontar_multas: descontar_multas ? "true" : "false",
           });
-          const resp = await clienteApi.get<any>(`/pasajes/calculo-pago?${qs.toString()}`);
-          if (Array.isArray(resp?.becarios)) {
-            filas = resp.becarios.map((b: any) => ({
-              nombre: String(b.becario_nombre || `Becario #${b.becario_id}`),
-              ci: String(b.ci || "S/N"),
-              unidad: String(b.sede || "Oficina Central"),
-              detalle: `${b.cantidad_recorridos ?? 0} tramos (${b.estado || "pendiente"})`,
-              monto_bs: Number(b.monto_liquido_pagable_bs ?? b.monto_reconocido_80_bs ?? 0),
-            }));
+          const [res_calculo, res_becarios] = await Promise.allSettled([
+            clienteApi.get<any>(`/pasajes/calculo-pago?${qs.toString()}`),
+            clienteApi.get<any>("/becarios"),
+          ]);
+
+          const calculo_becarios: any[] =
+            res_calculo.status === "fulfilled" && Array.isArray(res_calculo.value?.becarios)
+              ? res_calculo.value.becarios
+              : [];
+          const mapa_calculo_id = new Map<number, any>();
+          const mapa_calculo_nombre = new Map<string, any>();
+          for (const b of calculo_becarios) {
+            if (b.becario_id) mapa_calculo_id.set(Number(b.becario_id), b);
+            const nom = String(b.becario_nombre || "").trim().toLowerCase();
+            if (nom) mapa_calculo_nombre.set(nom, b);
           }
+
+          const raw_becarios =
+            res_becarios.status === "fulfilled"
+              ? Array.isArray(res_becarios.value)
+                ? res_becarios.value
+                : res_becarios.value?.items || res_becarios.value?.data || []
+              : [];
+
+          if (Array.isArray(raw_becarios) && raw_becarios.length > 0) {
+            filas = raw_becarios.map((bec: any) => {
+              const nombre_completo = String(
+                bec.usuario?.nombre || bec.nombre || `Becario #${bec.id}`
+              ).trim();
+              const partes = separarNombresApellidos(nombre_completo);
+              const calc =
+                mapa_calculo_id.get(Number(bec.id)) ||
+                mapa_calculo_nombre.get(nombre_completo.toLowerCase());
+              const monto = calc
+                ? Number(calc.monto_liquido_pagable_bs ?? calc.monto_reconocido_80_bs ?? 0)
+                : 0;
+              return {
+                nombre: nombre_completo,
+                nombres: partes.nombres,
+                apellidos: partes.apellidos,
+                ci: String(bec.ci || calc?.ci || "S/N"),
+                unidad: String(
+                  bec.lugar_practica?.nombre || bec.ubicacion || calc?.sede || "Oficina Central"
+                ),
+                detalle: calc
+                  ? `${calc.cantidad_recorridos ?? 0} tramos (${calc.estado || "aprobado"})`
+                  : "Sin recorridos en el periodo",
+                monto_bs: Number(monto.toFixed(2)),
+              };
+            });
+          } else {
+            filas = calculo_becarios.map((b: any) => {
+              const nombre_completo = String(b.becario_nombre || `Becario #${b.becario_id}`).trim();
+              const partes = separarNombresApellidos(nombre_completo);
+              return {
+                nombre: nombre_completo,
+                nombres: partes.nombres,
+                apellidos: partes.apellidos,
+                ci: String(b.ci || "S/N"),
+                unidad: String(b.sede || "Oficina Central"),
+                detalle: `${b.cantidad_recorridos ?? 0} tramos (${b.estado || "pendiente"})`,
+                monto_bs: Number(b.monto_liquido_pagable_bs ?? b.monto_reconocido_80_bs ?? 0),
+              };
+            });
+          }
+
+          filas.sort((a, b) => {
+            const cmp_ap = (a.apellidos || "").localeCompare(b.apellidos || "", "es", {
+              sensitivity: "base",
+            });
+            if (cmp_ap !== 0) return cmp_ap;
+            return (a.nombres || a.nombre).localeCompare(b.nombres || b.nombre, "es", {
+              sensitivity: "base",
+            });
+          });
         } else {
-          const resp = await clienteApi.get<any[]>("/refrigerios");
+          const qs = new URLSearchParams();
+          if (fecha_inicio_estado) qs.set("fecha_inicio", fecha_inicio_estado);
+          if (fecha_fin_estado) qs.set("fecha_fin", fecha_fin_estado);
+          const resp = await clienteApi.get<any[]>(`/refrigerios?${qs.toString()}`);
           if (Array.isArray(resp)) {
-            filas = resp
-              .filter((r: any) => {
-                const f = String(r.fecha || r.created_at || "").slice(0, 10);
-                return !f || (f >= fecha_inicio_estado && f <= fecha_fin_estado);
-              })
-              .map((r: any) => ({
-                nombre: String(r.becario?.usuario?.nombre || r.becario_nombre || "Dupla / Becario"),
-                ci: String(r.becario?.ci || "S/N"),
-                unidad: String(r.lugar || "Oficina Central"),
-                detalle: String(r.detalle || r.descripcion || "Reposición de refrigerio"),
-                monto_bs: Number(r.monto_total || r.monto || 0),
-              }));
+            const mapa_responsables = new Map<
+              string,
+              {
+                nombre: string;
+                ci: string;
+                unidad: string;
+                detalle: string;
+                monto_bs: number;
+                cantidad: number;
+              }
+            >();
+            for (const r of resp) {
+              const estado_norm = String(r.estado_reposicion || "").toLowerCase();
+              if (estado_norm.includes("rechaz") || estado_norm.includes("anulad")) {
+                continue;
+              }
+              const f = String(r.fecha || r.created_at || "").slice(0, 10);
+              if (f && fecha_inicio_estado && f < fecha_inicio_estado) continue;
+              if (f && fecha_fin_estado && f > fecha_fin_estado) continue;
+
+              const nombre_resp = String(
+                r.becario_receptor_devolucion_nombre ||
+                  r.becario_encargado_1_nombre ||
+                  r.becario_nombre ||
+                  r.responsable?.nombre ||
+                  ""
+              ).trim();
+              if (!nombre_resp) continue;
+
+              const monto_dev = Number(r.monto_devolucion_bs);
+              const costo_tot = Number(r.costo_total_bs);
+              const monto_fila =
+                Number.isFinite(monto_dev) && monto_dev > 0
+                  ? monto_dev
+                  : Number.isFinite(costo_tot)
+                  ? costo_tot
+                  : 0;
+
+              const clave = nombre_resp.toLowerCase();
+              const previo = mapa_responsables.get(clave);
+              if (previo) {
+                previo.monto_bs = Number((previo.monto_bs + monto_fila).toFixed(2));
+                previo.cantidad += 1;
+                previo.detalle = `${previo.cantidad} jornadas consolidadas`;
+              } else {
+                mapa_responsables.set(clave, {
+                  nombre: nombre_resp,
+                  ci: String(r.responsable?.ci || "S/N"),
+                  unidad: String(r.lugar_practica?.nombre || "Escuela de Líderes"),
+                  detalle: String(r.descripcion || "Refrigerio Escuela de Líderes"),
+                  monto_bs: Number(monto_fila.toFixed(2)),
+                  cantidad: 1,
+                });
+              }
+            }
+            filas = Array.from(mapa_responsables.values());
           }
         }
 

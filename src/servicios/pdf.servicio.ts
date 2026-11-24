@@ -354,6 +354,10 @@ async function descargarPlanillaDonacion(
       }
       throw new Error(mensaje_error);
     }
+    const cabecera_pdf = await blob.slice(0, 5).text();
+    if (cabecera_pdf !== "%PDF-") {
+      throw new Error("La respuesta del servidor no corresponde a un archivo PDF válido.");
+    }
 
     if (descargar_inmediatamente) {
       const sufijo_firma = con_firma ? "Archivo_Con_Firma" : "Contabilidad_Sin_Firma";
