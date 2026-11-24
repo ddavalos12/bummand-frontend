@@ -51,22 +51,20 @@ import {
   type RespuestaExtractoMensual,
   type MovimientoExtractoAsistencia,
 } from "@/servicios/asistencia.servicio";
+import {
+  coincideTextoMesPeriodo,
+  generarMesesGestion,
+  obtenerMesActualLaPaz,
+} from "@/lib/fechas-institucionales";
 
 interface HistorialAsistenciaBecarioProps {
   alAbrirMarcacion?: () => void;
 }
 
-const PILDORAS_MESES = [
-  { clave: "2026-11", etiqueta: "Nov 2026" },
-  { clave: "2026-10", etiqueta: "Oct 2026" },
-  { clave: "2026-09", etiqueta: "Sep 2026" },
-  { clave: "2026-08", etiqueta: "Ago 2026" },
-  { clave: "2026-07", etiqueta: "Jul 2026" },
-  { clave: "2026-06", etiqueta: "Jun 2026" },
-  { clave: "2026-05", etiqueta: "May 2026" },
-  { clave: "2026-04", etiqueta: "Abr 2026" },
-  { clave: "2026-03", etiqueta: "Mar 2026" },
-];
+const PILDORAS_MESES = generarMesesGestion().map((m) => ({
+  clave: m.clave,
+  etiqueta: m.etiqueta_corta,
+}));
 
 const FILTROS_ACTIVIDAD = [
   { clave: "todas", etiqueta: "Todas las Actividades" },
@@ -83,15 +81,15 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
   const [incidencia_a_justificar, set_incidencia_a_justificar] = useState<IncidenciaAsistenciaInicial | null>(null);
 
   // Estados del extracto mensual estilo bancario
-  const [mes_seleccionado, set_mes_seleccionado] = useState<string>("2026-10");
+  const [mes_seleccionado, set_mes_seleccionado] = useState<string>(() => obtenerMesActualLaPaz());
   const [termino_busqueda_mes, set_termino_busqueda_mes] = useState<string>("");
   const [filtro_actividad, set_filtro_actividad] = useState<"todas" | "practicas" | "escuela_lideres" | "acciones_servicio">("todas");
   const [cargando_extracto, set_cargando_extracto] = useState<boolean>(false);
   const [datos_extracto, set_datos_extracto] = useState<RespuestaExtractoMensual>(() =>
-    generarExtractoMensualDeterminista(usuario?.id || 1, "2026-10")
+    generarExtractoMensualDeterminista(usuario?.id || 1, obtenerMesActualLaPaz())
   );
 
-  // Carga remota con respaldo determinístico local de Marzo a Noviembre 2026
+  // Carga remota con respaldo determinístico local de Marzo a Diciembre 2026
   useEffect(() => {
     let montado = true;
     async function cargarExtracto() {
@@ -122,19 +120,9 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
     set_termino_busqueda_mes(valor);
     if (!valor.trim()) return;
 
-    const texto = valor.trim().toLowerCase();
+    const texto = valor.trim();
     const coincidencia = datos_extracto.extractos.find((e) =>
-      e.mes_nombre.toLowerCase().includes(texto) ||
-      e.periodo.toLowerCase().includes(texto) ||
-      (texto === "mayo" && e.periodo === "2026-05") ||
-      (texto === "marzo" && e.periodo === "2026-03") ||
-      (texto === "abril" && e.periodo === "2026-04") ||
-      (texto === "junio" && e.periodo === "2026-06") ||
-      (texto === "julio" && e.periodo === "2026-07") ||
-      (texto === "agosto" && e.periodo === "2026-08") ||
-      (texto === "septiembre" && e.periodo === "2026-09") ||
-      (texto === "octubre" && e.periodo === "2026-10") ||
-      (texto === "noviembre" && e.periodo === "2026-11")
+      coincideTextoMesPeriodo(texto, e.periodo, e.mes_nombre)
     );
 
     if (coincidencia) {
@@ -276,7 +264,7 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <Input
               type="text"
-              placeholder="Teclea el mes a consultar (ej. Mayo, Junio, Agosto, Octubre)..."
+              placeholder="Teclea el mes a consultar (ej. Mayo, Agosto, Noviembre, Diciembre)..."
               value={termino_busqueda_mes}
               onChange={(e) => manejarCambioBusqueda(e.target.value)}
               className="pl-10 h-10 text-xs rounded-xl border-[#E5E7EB] bg-slate-50/70 focus:bg-white"
@@ -302,7 +290,7 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
           </div>
         </div>
 
-        {/* Píldoras rápidas de los 9 meses (Noviembre 2026 a Marzo 2026) */}
+        {/* Píldoras rápidas de los meses de gestión (Diciembre 2026 a Marzo 2026) */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 border-t border-slate-100">
           <span className="text-[11px] font-mono text-muted-foreground mr-1 shrink-0 font-bold">
             Meses:
@@ -670,11 +658,11 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
         </CardContent>
       </Card>
 
-      {/* Historial Comparativo de Horas Realizadas por Mes (Marzo a Noviembre 2026) */}
+      {/* Historial Comparativo de Horas Realizadas por Mes (Marzo a Diciembre 2026) */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683]">
-            Resumen Comparativo de Gestión 2026 (Marzo a Noviembre)
+            Resumen Comparativo de Gestión 2026 (Marzo a Diciembre)
           </h4>
           <span className="text-xs font-mono text-muted-foreground">
             Total Gestión: <strong>{datos_extracto.total_horas_gestion.toFixed(1)} hrs</strong> · Promedio: <strong>{datos_extracto.promedio_mensual.toFixed(1)} h/mes</strong>

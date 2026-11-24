@@ -45,6 +45,13 @@ import {
 import { RUTAS_API } from "@/servicios/rutas-api.constantes";
 import { obtenerCalculoPagoPasajes } from "@/servicios/pasajes.servicio";
 import { SelectorPlanillaDonacion } from "@/components/reportes/selector-planilla-donacion";
+import {
+  generarMesesGestion,
+  obtenerMesActualLaPaz,
+  obtenerRangoMesActualLaPaz,
+  obtenerRangoMesAnteriorLaPaz,
+  obtenerRangoSemestreActualLaPaz,
+} from "@/lib/fechas-institucionales";
 
 interface ReporteItem {
   id: number;
@@ -76,46 +83,14 @@ interface BecarioReporteItem {
 
 const REPORTES_DISPONIBLES: ReporteItem[] = [];
 
-const NOMBRES_MESES_ES = [
-  "Enero",
-  "Febrero",
-  "Marzo",
-  "Abril",
-  "Mayo",
-  "Junio",
-  "Julio",
-  "Agosto",
-  "Septiembre",
-  "Octubre",
-  "Noviembre",
-  "Diciembre",
-];
-
-function obtenerMesActualYFechas() {
-  const ahora = new Date();
-  const ano = ahora.getFullYear();
-  const mes_idx = ahora.getMonth();
-  const mes_num = String(mes_idx + 1).padStart(2, "0");
-  const ultimo_dia = new Date(ano, mes_idx + 1, 0).getDate();
-  const mes_iso = `${ano}-${mes_num}`;
-  const fecha_inicio = `${mes_iso}-01`;
-  const fecha_fin = `${mes_iso}-${String(ultimo_dia).padStart(2, "0")}`;
-
-  const opciones_meses: Array<{ valor: string; etiqueta: string }> = [];
-  for (let i = 0; i < 6; i++) {
-    const d = new Date(ano, mes_idx - i, 1);
-    const y = d.getFullYear();
-    const m = d.getMonth();
-    const valor = `${y}-${String(m + 1).padStart(2, "0")}`;
-    const etiqueta = `${NOMBRES_MESES_ES[m]} ${y}${i === 0 ? " (Actual)" : ""}`;
-    opciones_meses.push({ valor, etiqueta });
-  }
-  return { mes_iso, fecha_inicio, fecha_fin, opciones_meses };
-}
-
 export function VisorReportesPdf() {
-  const { mes_iso: mes_actual_iso, fecha_inicio: inicio_actual, fecha_fin: fin_actual, opciones_meses } =
-    obtenerMesActualYFechas();
+  const mes_actual_iso = obtenerMesActualLaPaz();
+  const { inicio: inicio_actual, fin: fin_actual } = obtenerRangoMesActualLaPaz();
+  const opciones_meses = generarMesesGestion().map((m) => ({
+    valor: m.valor,
+    etiqueta: m.etiqueta_con_actual,
+  }));
+  const rango_semestre = obtenerRangoSemestreActualLaPaz();
   const [reportes] = useState<ReporteItem[]>(REPORTES_DISPONIBLES);
   const [descargando_id, set_descargando_id] = useState<string | null>(null);
 
@@ -536,11 +511,12 @@ export function VisorReportesPdf() {
                   size="sm"
                   variant="outline"
                   onClick={() => {
-                    set_fecha_inicio_global("2026-10-01");
-                    set_fecha_fin_global("2026-10-31");
-                    set_fecha_inicio_auditoria("2026-10-01");
-                    set_fecha_fin_auditoria("2026-10-31");
-                    set_mes_individual("2026-10");
+                    const rango_hoy = obtenerRangoMesActualLaPaz();
+                    set_fecha_inicio_global(rango_hoy.inicio);
+                    set_fecha_fin_global(rango_hoy.fin);
+                    set_fecha_inicio_auditoria(rango_hoy.inicio);
+                    set_fecha_fin_auditoria(rango_hoy.fin);
+                    set_mes_individual(rango_hoy.mes_iso);
                   }}
                   className="h-8 px-2.5 text-[11px] font-semibold border-slate-200 bg-white hover:bg-slate-100 cursor-pointer"
                 >
@@ -551,11 +527,12 @@ export function VisorReportesPdf() {
                   size="sm"
                   variant="outline"
                   onClick={() => {
-                    set_fecha_inicio_global("2026-09-01");
-                    set_fecha_fin_global("2026-09-30");
-                    set_fecha_inicio_auditoria("2026-09-01");
-                    set_fecha_fin_auditoria("2026-09-30");
-                    set_mes_individual("2026-09");
+                    const rango_anterior = obtenerRangoMesAnteriorLaPaz();
+                    set_fecha_inicio_global(rango_anterior.inicio);
+                    set_fecha_fin_global(rango_anterior.fin);
+                    set_fecha_inicio_auditoria(rango_anterior.inicio);
+                    set_fecha_fin_auditoria(rango_anterior.fin);
+                    set_mes_individual(rango_anterior.mes_iso);
                   }}
                   className="h-8 px-2.5 text-[11px] font-semibold border-slate-200 bg-white hover:bg-slate-100 cursor-pointer"
                 >
@@ -566,14 +543,14 @@ export function VisorReportesPdf() {
                   size="sm"
                   variant="outline"
                   onClick={() => {
-                    set_fecha_inicio_global("2026-07-01");
-                    set_fecha_fin_global("2026-11-30");
-                    set_fecha_inicio_auditoria("2026-07-01");
-                    set_fecha_fin_auditoria("2026-11-30");
+                    set_fecha_inicio_global(rango_semestre.inicio);
+                    set_fecha_fin_global(rango_semestre.fin);
+                    set_fecha_inicio_auditoria(rango_semestre.inicio);
+                    set_fecha_fin_auditoria(rango_semestre.fin);
                   }}
                   className="h-8 px-2.5 text-[11px] font-semibold border-[#00ABBD]/40 bg-[#00ABBD]/5 text-[#035683] hover:bg-[#00ABBD]/15 cursor-pointer"
                 >
-                  Semestre II-2026
+                  {rango_semestre.etiqueta}
                 </Button>
               </div>
             </div>

@@ -39,6 +39,10 @@ import {
   descargarPdfDonacionTransporte,
   type ClaveFirmanteDonacion,
 } from "@/servicios/pdf.servicio";
+import {
+  obtenerRangoMes,
+  obtenerRangoMesActualLaPaz,
+} from "@/lib/fechas-institucionales";
 
 export interface SelectorPlanillaDonacionProps {
   tipo_disponible?: "ambos" | "refrigerio" | "transporte";
@@ -67,27 +71,14 @@ const PRESETS_FIRMANTES: readonly CombinacionPresetFirmantes[] = [
 ] as const;
 
 function calcularRangoDeMes(mes_iso: string): { inicio: string; fin: string } | null {
-  const coincidencia = /^(\d{4})-(\d{2})$/.exec(mes_iso.trim());
-  if (!coincidencia) return null;
-  const ano = Number(coincidencia[1]);
-  const mes = Number(coincidencia[2]);
-  if (mes < 1 || mes > 12) return null;
-  const ultimo_dia = new Date(ano, mes, 0).getDate();
-  return {
-    inicio: `${coincidencia[1]}-${coincidencia[2]}-01`,
-    fin: `${coincidencia[1]}-${coincidencia[2]}-${String(ultimo_dia).padStart(2, "0")}`,
-  };
+  if (!/^\d{4}-\d{2}$/.test(mes_iso.trim())) return null;
+  const { inicio, fin } = obtenerRangoMes(mes_iso);
+  return { inicio, fin };
 }
 
 function obtenerRangoMesActual(): { inicio: string; fin: string } {
-  const ahora = new Date();
-  const ano = ahora.getFullYear();
-  const mes = String(ahora.getMonth() + 1).padStart(2, "0");
-  const ultimo_dia = new Date(ano, ahora.getMonth() + 1, 0).getDate();
-  return {
-    inicio: `${ano}-${mes}-01`,
-    fin: `${ano}-${mes}-${String(ultimo_dia).padStart(2, "0")}`,
-  };
+  const { inicio, fin } = obtenerRangoMesActualLaPaz();
+  return { inicio, fin };
 }
 
 export function SelectorPlanillaDonacion({

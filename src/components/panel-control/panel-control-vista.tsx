@@ -10,6 +10,12 @@ import { InsigniaBecariosDesignados } from "@/components/ui/insignia-becarios-de
 import { clienteApi } from "@/lib/cliente-api";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import {
+  obtenerRangoAnioActualLaPaz,
+  obtenerRangoMesActualLaPaz,
+  obtenerRangoSemestreActualLaPaz,
+  obtenerRangoUltimoTrimestreLaPaz,
+} from "@/lib/fechas-institucionales";
+import {
   ContadorAnimado,
   ContenedorEscalonado,
   ElementoEscalonado,
@@ -508,8 +514,8 @@ export function PanelControlVista() {
 
   // --- CONTROL DE RANGO DE FECHAS ANALÍTICO ---
   const [tipo_rango, set_tipo_rango] = useState<"este_mes" | "ultimo_trimestre" | "semestre_actual" | "personalizado">("semestre_actual");
-  const [fecha_inicio, set_fecha_inicio] = useState<string>("2026-07-01");
-  const [fecha_fin, set_fecha_fin] = useState<string>("2026-12-31");
+  const [fecha_inicio, set_fecha_inicio] = useState<string>(() => obtenerRangoSemestreActualLaPaz().inicio);
+  const [fecha_fin, set_fecha_fin] = useState<string>(() => obtenerRangoSemestreActualLaPaz().fin);
   const [cargando_metricas, set_cargando_metricas] = useState<boolean>(false);
   const [multas_recaudadas, set_multas_recaudadas] = useState<number>(0);
   const [incidencias_multas, set_incidencias_multas] = useState<number>(0);
@@ -774,14 +780,17 @@ export function PanelControlVista() {
     set_tipo_rango(tipo);
     set_vista_anual(false);
     if (tipo === "este_mes") {
-      set_fecha_inicio("2026-10-01");
-      set_fecha_fin("2026-10-31");
+      const rango = obtenerRangoMesActualLaPaz();
+      set_fecha_inicio(rango.inicio);
+      set_fecha_fin(rango.fin);
     } else if (tipo === "ultimo_trimestre") {
-      set_fecha_inicio("2026-07-01");
-      set_fecha_fin("2026-09-30");
+      const rango = obtenerRangoUltimoTrimestreLaPaz();
+      set_fecha_inicio(rango.inicio);
+      set_fecha_fin(rango.fin);
     } else if (tipo === "semestre_actual") {
-      set_fecha_inicio("2026-07-01");
-      set_fecha_fin("2026-12-31");
+      const rango = obtenerRangoSemestreActualLaPaz();
+      set_fecha_inicio(rango.inicio);
+      set_fecha_fin(rango.fin);
     }
   };
 
@@ -1413,9 +1422,10 @@ export function PanelControlVista() {
                         onCheckedChange={(checked) => {
                           set_vista_anual(checked);
                           if (checked) {
+                            const rango_anual = obtenerRangoAnioActualLaPaz();
                             set_tipo_rango("personalizado");
-                            set_fecha_inicio("2026-01-01");
-                            set_fecha_fin("2026-12-31");
+                            set_fecha_inicio(rango_anual.inicio);
+                            set_fecha_fin(rango_anual.fin);
                           } else {
                             aplicarRangoRapido("semestre_actual");
                           }

@@ -86,6 +86,11 @@ import { InsigniaBecariosDesignados } from "@/components/ui/insignia-becarios-de
 import { toast } from "sonner";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import { exportarAuditoriaAsistenciaExcel } from "@/lib/generador-excel-cliente";
+import {
+  generarMesesGestion,
+  obtenerMesActualLaPaz,
+  obtenerRangoMesActualLaPaz,
+} from "@/lib/fechas-institucionales";
 
 export interface RegistroAuditoriaAsistencia {
   id: number;
@@ -290,7 +295,8 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
 
   // Sub-vista de Control de Asistencia: En Vivo vs Consolidado Mensual
   const [vista_activa, set_vista_activa] = useState<"en_vivo" | "mensual">("en_vivo");
-  const [mes_seleccionado, set_mes_seleccionado] = useState<string>("2026-10");
+  const [mes_seleccionado, set_mes_seleccionado] = useState<string>(() => obtenerMesActualLaPaz());
+  const opciones_meses_gestion = React.useMemo(() => generarMesesGestion(), []);
   const [filtro_estado_mensual, set_filtro_estado_mensual] = useState<string>("todos");
   const [becario_detalle_mensual, set_becario_detalle_mensual] =
     useState<HorasMensualesBecario | null>(null);
@@ -532,8 +538,12 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
   };
 
   // Estados para Auditoría de Asistencia por Intervalo de Fechas
-  const [fecha_inicio_auditoria, set_fecha_inicio_auditoria] = useState<string>("2026-10-01");
-  const [fecha_fin_auditoria, set_fecha_fin_auditoria] = useState<string>("2026-10-31");
+  const [fecha_inicio_auditoria, set_fecha_inicio_auditoria] = useState<string>(
+    () => obtenerRangoMesActualLaPaz().inicio
+  );
+  const [fecha_fin_auditoria, set_fecha_fin_auditoria] = useState<string>(
+    () => obtenerRangoMesActualLaPaz().fin
+  );
   const [descargando_pdf_auditoria, set_descargando_pdf_auditoria] = useState<boolean>(false);
 
   const manejarDescargarPdfAuditoria = async () => {
@@ -947,9 +957,11 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   <SelectValue placeholder="Seleccionar mes" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-[#E5E7EB]">
-                  <SelectItem value="2026-10">Octubre 2026 (Actual)</SelectItem>
-                  <SelectItem value="2026-09">Septiembre 2026</SelectItem>
-                  <SelectItem value="2026-08">Agosto 2026</SelectItem>
+                  {opciones_meses_gestion.map((opcion) => (
+                    <SelectItem key={opcion.valor} value={opcion.valor}>
+                      {opcion.etiqueta_con_actual}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

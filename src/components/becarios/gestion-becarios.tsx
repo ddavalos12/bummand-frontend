@@ -77,6 +77,11 @@ import { InsigniaBecariosDesignados } from "@/components/ui/insignia-becarios-de
 import { toast } from "sonner";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import {
+  coincideTextoMesPeriodo,
+  generarMesesGestion,
+  obtenerMesActualLaPaz,
+} from "@/lib/fechas-institucionales";
+import {
   obtenerExtractoMensualAsistencia,
   generarExtractoMensualDeterminista,
   type RespuestaExtractoMensual,
@@ -415,17 +420,21 @@ export function GestionBecarios() {
   const { usuario } = usarAutenticacion();
   const [descargando_pdf_estudiante, set_descargando_pdf_estudiante] = useState<string | null>(null);
 
-  const descargarExpedienteRecorridosEstudiante = async (becario_id: number, nombre: string) => {
+  const descargarExpedienteRecorridosEstudiante = async (
+    becario_id: number,
+    nombre: string,
+    mes_consulta = obtenerMesActualLaPaz()
+  ) => {
     try {
       set_descargando_pdf_estudiante('recorridos_' + becario_id);
       toast.info('Generando expediente mensual de recorridos...', {
-        description: 'Estudiante: ' + nombre,
+        description: 'Estudiante: ' + nombre + ' · Mes: ' + mes_consulta,
       });
       await descargarPdfConResiliencia(
-        '/pdf/recorridos-estudiante/' + becario_id + '?mes=2026-10',
-        'Expediente_Recorridos_' + nombre.replace(/\s+/g, '_') + '_2026_10.pdf',
+        '/pdf/recorridos-estudiante/' + becario_id + '?mes=' + mes_consulta,
+        'Expediente_Recorridos_' + nombre.replace(/\s+/g, '_') + '_' + mes_consulta.replace('-', '_') + '.pdf',
         'recorridos_estudiante',
-        { becario_id, mes: '2026-10' }
+        { becario_id, mes: mes_consulta }
       );
       toast.success('Expediente de recorridos descargado exitosamente');
     } catch (_e) {
@@ -435,7 +444,11 @@ export function GestionBecarios() {
     }
   };
 
-  const descargarAsistenciaMensualEstudiante = async (becario_id: number, nombre: string, mes_consulta = '2026-10') => {
+  const descargarAsistenciaMensualEstudiante = async (
+    becario_id: number,
+    nombre: string,
+    mes_consulta = obtenerMesActualLaPaz()
+  ) => {
     try {
       set_descargando_pdf_estudiante('asistencia_' + becario_id);
       toast.info('Generando kárdex de asistencia mensual...', {
@@ -467,7 +480,9 @@ export function GestionBecarios() {
   const [becario_ficha_modal, set_becario_ficha_modal] = useState<BecarioVista | null>(null);
 
   // Estados y sincronización interactiva para Modal de Extracto Bancario de Horas (BKL-07)
-  const [modal_horas_mes_seleccionado, set_modal_horas_mes_seleccionado] = useState<string>("2026-10");
+  const [modal_horas_mes_seleccionado, set_modal_horas_mes_seleccionado] = useState<string>(
+    () => obtenerMesActualLaPaz()
+  );
   const [modal_horas_busqueda_mes, set_modal_horas_busqueda_mes] = useState<string>("");
   const [modal_horas_vista, set_modal_horas_vista] = useState<"extracto_diario" | "resumen_mensual">("extracto_diario");
   const [modal_horas_datos, set_modal_horas_datos] = useState<RespuestaExtractoMensual | null>(null);
@@ -2821,34 +2836,17 @@ export function GestionBecarios() {
               const lista_meses = datos_resueltos.extractos;
               const extracto_seleccionado = lista_meses.find((e) => e.periodo === modal_horas_mes_seleccionado) || datos_resueltos.extracto_actual || lista_meses[0];
 
-              const pildoras_meses_modal = [
-                { clave: "2026-11", etiqueta: "Nov 2026" },
-                { clave: "2026-10", etiqueta: "Oct 2026" },
-                { clave: "2026-09", etiqueta: "Sep 2026" },
-                { clave: "2026-08", etiqueta: "Ago 2026" },
-                { clave: "2026-07", etiqueta: "Jul 2026" },
-                { clave: "2026-06", etiqueta: "Jun 2026" },
-                { clave: "2026-05", etiqueta: "May 2026" },
-                { clave: "2026-04", etiqueta: "Abr 2026" },
-                { clave: "2026-03", etiqueta: "Mar 2026" },
-              ];
+              const pildoras_meses_modal = generarMesesGestion().map((m) => ({
+                clave: m.clave,
+                etiqueta: m.etiqueta_corta,
+              }));
 
               const manejarBusquedaMes = (texto: string) => {
                 set_modal_horas_busqueda_mes(texto);
                 if (!texto.trim()) return;
-                const busq = texto.trim().toLowerCase();
+                const busq = texto.trim();
                 const match = lista_meses.find((e) =>
-                  e.mes_nombre.toLowerCase().includes(busq) ||
-                  e.periodo.toLowerCase().includes(busq) ||
-                  (busq === "mayo" && e.periodo === "2026-05") ||
-                  (busq === "marzo" && e.periodo === "2026-03") ||
-                  (busq === "abril" && e.periodo === "2026-04") ||
-                  (busq === "junio" && e.periodo === "2026-06") ||
-                  (busq === "julio" && e.periodo === "2026-07") ||
-                  (busq === "agosto" && e.periodo === "2026-08") ||
-                  (busq === "septiembre" && e.periodo === "2026-09") ||
-                  (busq === "octubre" && e.periodo === "2026-10") ||
-                  (busq === "noviembre" && e.periodo === "2026-11")
+                  coincideTextoMesPeriodo(busq, e.periodo, e.mes_nombre)
                 );
                 if (match) {
                   set_modal_horas_mes_seleccionado(match.periodo);
@@ -2911,7 +2909,7 @@ export function GestionBecarios() {
                         <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                         <Input
                           type="text"
-                          placeholder="Buscar mes (ej. Mayo, Julio, Octubre)..."
+                          placeholder="Buscar mes (ej. Mayo, Octubre, Diciembre)..."
                           value={modal_horas_busqueda_mes}
                           onChange={(e) => manejarBusquedaMes(e.target.value)}
                           className="pl-8 h-8 text-xs rounded-lg border-[#E5E7EB] bg-white"
@@ -2945,7 +2943,7 @@ export function GestionBecarios() {
                       </div>
                     </div>
 
-                    {/* Píldoras Rápidas Interactivas de Meses (Marzo a Noviembre 2026) */}
+                    {/* Píldoras Rápidas Interactivas de Meses (Marzo a Diciembre 2026) */}
                     <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 border-t border-slate-200/60">
                       <span className="text-[11px] font-mono text-muted-foreground mr-1 shrink-0 font-bold">
                         Meses:

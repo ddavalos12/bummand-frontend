@@ -1,3 +1,5 @@
+import { obtenerMesActualLaPaz } from "./fechas-institucionales";
+
 export interface ConfiguracionDescargaExcel {
   nombre_archivo: string;
   titulo_reporte: string;
@@ -227,7 +229,7 @@ export async function descargarExcelInstitucional({
 
 export async function exportarFormularioContabilidadRsdExcel(
   solicitudes_entrada: readonly object[],
-  periodo = "2026-10",
+  periodo = obtenerMesActualLaPaz(),
   descontar_multas = false
 ): Promise<void> {
   let suma_total_100 = 0;
@@ -394,7 +396,7 @@ export async function exportarSabanaEvaluacionesExcel(
 
 export async function exportarAuditoriaAsistenciaExcel(
   registros_entrada: readonly object[],
-  periodo = "2026-10"
+  periodo = obtenerMesActualLaPaz()
 ): Promise<void> {
   const registros = registros_entrada.map(comoRegistro);
   const es_extracto_movimientos =

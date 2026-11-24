@@ -4,6 +4,11 @@
  */
 
 import { clienteApi } from "../lib/cliente-api";
+import {
+  coincideTextoMesPeriodo,
+  generarMesesGestion,
+  obtenerMesActualLaPaz,
+} from "../lib/fechas-institucionales";
 import { RUTAS_API } from "./rutas-api.constantes";
 
 export type EstadoAsistencia =
@@ -385,24 +390,19 @@ export interface RespuestaExtractoMensual {
 }
 
 /**
- * Generador determinístico local de extractos mensuales (Marzo 2026 - Noviembre 2026)
+ * Generador determinístico local de extractos mensuales (Marzo 2026 - Diciembre 2026)
  * Garantiza resiliencia 100% offline y visualización bancaria fiel.
  */
 export function generarExtractoMensualDeterminista(
   becario_id = 1,
   mes_filtro?: string
 ): RespuestaExtractoMensual {
-  const configuraciones_meses = [
-    { periodo: "2026-03", mes_nombre: "Marzo 2026", meta: 36.0, dias: [] as Array<{ d: number; dia: string; tipo: string; t_etiq: string; sede: string; ent: string; sal: string; h: number; dist: number }> },
-    { periodo: "2026-04", mes_nombre: "Abril 2026", meta: 36.0, dias: [] },
-    { periodo: "2026-05", mes_nombre: "Mayo 2026", meta: 36.0, dias: [] },
-    { periodo: "2026-06", mes_nombre: "Junio 2026", meta: 36.0, dias: [] },
-    { periodo: "2026-07", mes_nombre: "Julio 2026", meta: 36.0, dias: [] },
-    { periodo: "2026-08", mes_nombre: "Agosto 2026", meta: 36.0, dias: [] },
-    { periodo: "2026-09", mes_nombre: "Septiembre 2026", meta: 36.0, dias: [] },
-    { periodo: "2026-10", mes_nombre: "Octubre 2026", meta: 36.0, dias: [] },
-    { periodo: "2026-11", mes_nombre: "Noviembre 2026", meta: 36.0, dias: [] },
-  ];
+  const configuraciones_meses = generarMesesGestion({ orden: "asc" }).map((m) => ({
+    periodo: m.clave,
+    mes_nombre: m.mes_nombre,
+    meta: 36.0,
+    dias: [] as Array<{ d: number; dia: string; tipo: string; t_etiq: string; sede: string; ent: string; sal: string; h: number; dist: number }>,
+  }));
 
   let id_movimiento_gen = 100;
   let total_horas_gestion = 0;
@@ -466,23 +466,14 @@ export function generarExtractoMensualDeterminista(
     };
   });
 
-  // Selección de extracto_actual según filtro tecleable o clave de mes
-  let extracto_actual = extractos.find((e) => e.periodo === "2026-10") || extractos[extractos.length - 1];
+  const mes_actual = obtenerMesActualLaPaz();
+  let extracto_actual =
+    extractos.find((e) => e.periodo === mes_actual) || extractos[extractos.length - 1];
 
   if (mes_filtro && mes_filtro.trim() !== "") {
-    const texto = mes_filtro.trim().toLowerCase();
+    const texto = mes_filtro.trim();
     const encontrado = extractos.find((e) =>
-      e.periodo.toLowerCase().includes(texto) ||
-      e.mes_nombre.toLowerCase().includes(texto) ||
-      (texto === "mayo" && e.periodo === "2026-05") ||
-      (texto === "marzo" && e.periodo === "2026-03") ||
-      (texto === "abril" && e.periodo === "2026-04") ||
-      (texto === "junio" && e.periodo === "2026-06") ||
-      (texto === "julio" && e.periodo === "2026-07") ||
-      (texto === "agosto" && e.periodo === "2026-08") ||
-      (texto === "septiembre" && e.periodo === "2026-09") ||
-      (texto === "octubre" && e.periodo === "2026-10") ||
-      (texto === "noviembre" && e.periodo === "2026-11")
+      coincideTextoMesPeriodo(texto, e.periodo, e.mes_nombre)
     );
     if (encontrado) {
       extracto_actual = encontrado;
@@ -503,7 +494,7 @@ export function generarExtractoMensualDeterminista(
 
 /**
  * Consultar extracto mensual de asistencia estilo bancario del becario autenticado o por ID.
- * Implementa resiliencia total con fallback determinístico local de Marzo a Noviembre 2026.
+ * Implementa resiliencia total con fallback determinístico local de Marzo a Diciembre 2026.
  */
 export async function obtenerExtractoMensualAsistencia(
   mes?: string,

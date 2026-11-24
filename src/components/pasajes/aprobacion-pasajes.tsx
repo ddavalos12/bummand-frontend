@@ -57,6 +57,10 @@ import { toast } from "sonner";
 import { clienteApi } from "@/lib/cliente-api";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import { exportarFormularioContabilidadRsdExcel } from "@/lib/generador-excel-cliente";
+import {
+  obtenerMesActualLaPaz,
+  obtenerRangoMesActualLaPaz,
+} from "@/lib/fechas-institucionales";
 import { useConsulta } from "@/hooks/useConsulta";
 import { useTiempoReal } from "@/hooks/useTiempoReal";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
@@ -261,8 +265,12 @@ export function AprobacionPasajes() {
   const [subpestaña_detalle, set_subpestaña_detalle] = useState<"recorridos" | "firma">("recorridos");
   const [vista_dividida, set_vista_dividida] = useState<boolean>(false);
   const [descargando_pdf, set_descargando_pdf] = useState<boolean>(false);
-  const [fecha_inicio_auditoria, set_fecha_inicio_auditoria] = useState<string>("2026-10-01");
-  const [fecha_fin_auditoria, set_fecha_fin_auditoria] = useState<string>("2026-10-31");
+  const [fecha_inicio_auditoria, set_fecha_inicio_auditoria] = useState<string>(
+    () => obtenerRangoMesActualLaPaz().inicio
+  );
+  const [fecha_fin_auditoria, set_fecha_fin_auditoria] = useState<string>(
+    () => obtenerRangoMesActualLaPaz().fin
+  );
   const [descargando_pdf_auditoria, set_descargando_pdf_auditoria] = useState<boolean>(false);
   const [descargando_pdf_consolidado, set_descargando_pdf_consolidado] = useState<boolean>(false);
 
@@ -1443,7 +1451,7 @@ export function AprobacionPasajes() {
                     onClick={async () => {
                       await exportarFormularioContabilidadRsdExcel(
                         solicitudes_filtradas,
-                        solicitudes_filtradas[0]?.periodo || "2026-10",
+                        solicitudes_filtradas[0]?.periodo || obtenerMesActualLaPaz(),
                         false
                       );
                       toast.success("Planilla para Contabilidad y RSD exportada a Excel (.xlsx)");

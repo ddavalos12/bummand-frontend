@@ -1,5 +1,10 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import {
+  obtenerMesActualLaPaz,
+  obtenerRangoMes,
+  obtenerRangoMesActualLaPaz,
+} from "./fechas-institucionales";
 
 // ============================================================================
 // CONSTANTES Y PALETA DE COLORES CORPORATIVOS DIACONÍA / BUMAND
@@ -120,19 +125,6 @@ function sanitizarTextoPdf(valor: unknown, por_defecto = ""): string {
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-}
-
-function obtenerRangoMes(mes_iso?: string): { inicio: string; fin: string } {
-  const coincidencia = /^(\d{4})-(\d{2})$/.exec((mes_iso || "").trim());
-  const ahora = new Date();
-  const ano = coincidencia ? Number(coincidencia[1]) : ahora.getFullYear();
-  const mes_num = coincidencia ? Number(coincidencia[2]) : ahora.getMonth() + 1;
-  const ultimo_dia = new Date(ano, mes_num, 0).getDate();
-  const mes_pad = String(mes_num).padStart(2, "0");
-  return {
-    inicio: `${ano}-${mes_pad}-01`,
-    fin: `${ano}-${mes_pad}-${String(ultimo_dia).padStart(2, "0")}`,
-  };
 }
 
 function separarNombresApellidosCliente(nombre_completo: string): {
@@ -779,7 +771,7 @@ export function generarPdfActaEvento(
 // ============================================================================
 export function generarPdfExpedienteRecorridos(
   becario_id: number,
-  mes = new Date().toISOString().slice(0, 7),
+  mes = obtenerMesActualLaPaz(),
   datos_vivos?: {
     becario?: Partial<DatosBecarioPdfCliente>;
     recorridos?: RecorridoPdfCliente[];
@@ -905,7 +897,7 @@ export function generarPdfExpedienteRecorridos(
 // ============================================================================
 export function generarPdfAsistenciaMensual(
   becario_id: number,
-  mes = new Date().toISOString().slice(0, 7),
+  mes = obtenerMesActualLaPaz(),
   datos_vivos?: {
     becario?: Partial<DatosBecarioPdfCliente>;
     registros?: Array<{
@@ -1161,8 +1153,8 @@ export function generarPdfConsolidadoContabilidad(
 // 9. FORMULARIO PARA CONTABILIDAD Y RSD — LIQUIDACIÓN GENERAL DE PASAJES
 // ============================================================================
 export function generarPdfPasajesGeneral(
-  fecha_inicio = "2026-11-01",
-  fecha_fin = "2026-11-30",
+  fecha_inicio = obtenerRangoMesActualLaPaz().inicio,
+  fecha_fin = obtenerRangoMesActualLaPaz().fin,
   descontar_multas = false,
   filas_vivas: FilaPasajesGeneralPdfCliente[] = []
 ): Blob {
@@ -1246,8 +1238,8 @@ export function generarPdfPasajesGeneral(
 // 10. REPORTE GENERAL DE PERMISOS Y JUSTIFICACIONES
 // ============================================================================
 export function generarPdfJustificacionesGeneral(
-  fecha_inicio = "2026-10-01",
-  fecha_fin = "2026-10-31",
+  fecha_inicio = obtenerRangoMesActualLaPaz().inicio,
+  fecha_fin = obtenerRangoMesActualLaPaz().fin,
   filas_vivas: FilaJustificacionPdfCliente[] = []
 ): Blob {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
@@ -1310,8 +1302,8 @@ export function generarPdfJustificacionesGeneral(
 // 11. REPORTE CONSOLIDADO DE ASISTENCIAS Y HORAS
 // ============================================================================
 export function generarPdfAsistenciaGeneral(
-  fecha_inicio = "2026-10-01",
-  fecha_fin = "2026-10-31",
+  fecha_inicio = obtenerRangoMesActualLaPaz().inicio,
+  fecha_fin = obtenerRangoMesActualLaPaz().fin,
   filas_vivas: FilaAsistenciaGeneralPdfCliente[] = []
 ): Blob {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
@@ -1397,8 +1389,8 @@ export function generarPdfAsistenciaGeneral(
 // 11B. REPORTE DE ASISTENCIA DE ESCUELA DE LÍDERES (CON MULTAS Y PERMISOS)
 // ============================================================================
 export function generarPdfEscuelaLideres(
-  fecha_inicio = "2026-10-01",
-  fecha_fin = "2026-10-31",
+  fecha_inicio = obtenerRangoMesActualLaPaz().inicio,
+  fecha_fin = obtenerRangoMesActualLaPaz().fin,
   filas_vivas: FilaEscuelaLideresPdfCliente[] = []
 ): Blob {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
@@ -2018,7 +2010,7 @@ export async function descargarPdfConResiliencia(
   }
 ): Promise<void> {
   let blob: Blob | null = null;
-  const mes_defecto = new Date().toISOString().slice(0, 7);
+  const mes_defecto = obtenerMesActualLaPaz();
 
   // 1. Intento primario con servidor backend (con timeout ampliado a 90s para reportes complejos)
   try {

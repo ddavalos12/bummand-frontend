@@ -43,6 +43,12 @@ import {
 } from "@/components/ui/seleccionador-fecha";
 import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
 import { esRecorridoEscuelaLideres, obtenerEstiloTransporte } from "./pasajes-vista";
+import {
+  obtenerFechaHaceDiasLaPaz,
+  obtenerHoyLaPaz,
+  obtenerMesActualLaPaz,
+  obtenerRangoMesActualLaPaz,
+} from "@/lib/fechas-institucionales";
 
 export interface ItemParadaHistorial {
   id: number;
@@ -113,8 +119,12 @@ export function HistorialParadasEstudiante({
   );
 
   // Intervalo de fechas
-  const [fecha_inicio, set_fecha_inicio] = useState<string>("2026-10-01");
-  const [fecha_fin, set_fecha_fin] = useState<string>("2026-10-31");
+  const [fecha_inicio, set_fecha_inicio] = useState<string>(
+    () => obtenerRangoMesActualLaPaz().inicio
+  );
+  const [fecha_fin, set_fecha_fin] = useState<string>(
+    () => obtenerRangoMesActualLaPaz().fin
+  );
   const [filtro_tramo, set_filtro_tramo] = useState<string>("todos");
   const [busqueda_texto, set_busqueda_texto] = useState<string>("");
   const [descargando_pdf, set_descargando_pdf] = useState<boolean>(false);
@@ -346,18 +356,14 @@ export function HistorialParadasEstudiante({
 
   // Manejador para aplicar intervalo rápido
   const aplicarAtajoIntervalo = (dias: number) => {
-    const hoy = new Date();
-    const f_fin = hoy.toISOString().split("T")[0];
-    const fecha_pasada = new Date(hoy);
-    fecha_pasada.setDate(hoy.getDate() - dias);
-    const f_ini = fecha_pasada.toISOString().split("T")[0];
-    set_fecha_inicio(f_ini);
-    set_fecha_fin(f_fin);
+    set_fecha_inicio(obtenerFechaHaceDiasLaPaz(dias));
+    set_fecha_fin(obtenerHoyLaPaz());
   };
 
   const aplicarMesCompleto = () => {
-    set_fecha_inicio("2026-10-01");
-    set_fecha_fin("2026-10-31");
+    const rango_actual = obtenerRangoMesActualLaPaz();
+    set_fecha_inicio(rango_actual.inicio);
+    set_fecha_fin(rango_actual.fin);
   };
 
   const limpiarFiltros = () => {
@@ -374,7 +380,7 @@ export function HistorialParadasEstudiante({
       toast.info("Generando expediente mensual de recorridos con Puppeteer...", {
         description: "Compilando kárdex oficial con trazabilidad de sistema.",
       });
-      const mes_param = fecha_inicio ? fecha_inicio.substring(0, 7) : "2026-10";
+      const mes_param = fecha_inicio ? fecha_inicio.substring(0, 7) : obtenerMesActualLaPaz();
       const blob = await clienteApi.descargarBlob(
         `/pdf/recorridos-estudiante/${id_estudiante}?mes=${mes_param}`
       );

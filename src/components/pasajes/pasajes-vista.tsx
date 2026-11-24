@@ -29,6 +29,11 @@ import {
 import { clienteApi } from "@/lib/cliente-api";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import { exportarFormularioContabilidadRsdExcel } from "@/lib/generador-excel-cliente";
+import {
+  obtenerDiaActualLaPaz,
+  obtenerHoyLaPaz,
+  obtenerMesActualLaPaz,
+} from "@/lib/fechas-institucionales";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SeleccionadorFecha } from "@/components/ui/seleccionador-fecha";
@@ -226,7 +231,7 @@ export function PasajesVista() {
   const [recorridos, set_recorridos] = useState<RecorridoMensual[]>(RECORRIDOS_INICIALES);
   const [solicitud_actual, set_solicitud_actual] = useState<any | null>(null);
   const [cargando_recorridos, set_cargando_recorridos] = useState<boolean>(false);
-  const [fecha_recorrido, set_fecha_recorrido] = useState<string>(() => new Date().toISOString().split("T")[0]);
+  const [fecha_recorrido, set_fecha_recorrido] = useState<string>(() => obtenerHoyLaPaz());
   const [recorrido_seleccionado, set_recorrido_seleccionado] = useState<RecorridoMensual | null>(null);
   const [descargando_pdf, set_descargando_pdf] = useState<boolean>(false);
 
@@ -307,11 +312,15 @@ export function PasajesVista() {
         description: "Preparando documento oficial.",
       });
       const id_becario = usuario?.id || 1;
+      const mes_expediente =
+        solicitud_actual?.ano && solicitud_actual?.mes
+          ? `${solicitud_actual.ano}-${String(solicitud_actual.mes).padStart(2, "0")}`
+          : obtenerMesActualLaPaz();
       await descargarPdfConResiliencia(
-        "/pdf/recorridos-estudiante/" + id_becario + "?mes=2026-10",
-        "Expediente_Recorridos_Becario_" + id_becario + ".pdf",
+        "/pdf/recorridos-estudiante/" + id_becario + "?mes=" + mes_expediente,
+        "Expediente_Recorridos_Becario_" + id_becario + "_" + mes_expediente + ".pdf",
         "recorridos_estudiante",
-        { becario_id: String(id_becario), mes: "2026-10" }
+        { becario_id: String(id_becario), mes: mes_expediente }
       );
       toast.success("Expediente de recorridos descargado exitosamente");
     } catch (_error) {
@@ -328,7 +337,7 @@ export function PasajesVista() {
 
   // Restricción del día 24:
   // Permitimos conmutador de simulación para verificar en cualquier fecha
-  const dia_real = new Date().getDate();
+  const dia_real = obtenerDiaActualLaPaz();
   const [simular_dia_24, set_simular_dia_24] = useState<boolean>(dia_real === 24);
   const es_dia_habilitado = simular_dia_24 || dia_real === 24;
 
@@ -1437,7 +1446,7 @@ export function PasajesVista() {
                               estado: solicitud_actual?.estado || "borrador",
                             },
                           ],
-                          solicitud_actual?.periodo || "2026-10",
+                          solicitud_actual?.periodo || obtenerMesActualLaPaz(),
                           false
                         );
                         toast.success("Formulario Contabilidad/RSD exportado en Excel (.xlsx)");

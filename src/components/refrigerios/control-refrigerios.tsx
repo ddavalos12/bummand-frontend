@@ -65,6 +65,10 @@ import { useTiempoReal } from "@/hooks/useTiempoReal";
 import { toast } from "sonner";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import { SelectorPlanillaDonacion } from "@/components/reportes/selector-planilla-donacion";
+import {
+  obtenerHoyLaPaz,
+  obtenerRangoMesActualLaPaz,
+} from "@/lib/fechas-institucionales";
 
 export type ModalidadPreparacionRefrigerio =
   | "cocina_diaconia"
@@ -180,7 +184,7 @@ export function ControlRefrigerios() {
 
             return {
               id: item.id || idx + 1,
-              fecha: item.fecha ? String(item.fecha).split("T")[0] : new Date().toISOString().split("T")[0],
+              fecha: item.fecha ? String(item.fecha).split("T")[0] : obtenerHoyLaPaz(),
               evento_o_jornada: item.descripcion || item.evento_o_jornada || "Viernes Formativo - Escuela de Líderes",
               tipo_refrigerio: item.tipo_refrigerio || "refrigerio_tarde",
               becario_encargado: `${enc_1}${enc_2 ? ` y ${enc_2}` : ""}`,
@@ -231,8 +235,12 @@ export function ControlRefrigerios() {
   const [sedes_bd, set_sedes_bd] = useState<string[]>([]);
 
   // Estados para auditoría por intervalo de fechas
-  const [fecha_inicio_auditoria, set_fecha_inicio_auditoria] = useState("2026-10-01");
-  const [fecha_fin_auditoria, set_fecha_fin_auditoria] = useState("2026-10-31");
+  const [fecha_inicio_auditoria, set_fecha_inicio_auditoria] = useState(
+    () => obtenerRangoMesActualLaPaz().inicio
+  );
+  const [fecha_fin_auditoria, set_fecha_fin_auditoria] = useState(
+    () => obtenerRangoMesActualLaPaz().fin
+  );
   const [descargando_pdf_auditoria, set_descargando_pdf_auditoria] = useState(false);
   const [descargando_pdf_id, set_descargando_pdf_id] = useState<number | null>(null);
 
@@ -289,7 +297,8 @@ export function ControlRefrigerios() {
   }, []);
 
   // Formulario nuevo refrigerio (Escuela de Líderes - Dupla del Viernes)
-  const [nueva_fecha, set_nueva_fecha] = useState("2026-10-23");
+  const [fecha_defecto_refrigerio] = useState(() => obtenerHoyLaPaz());
+  const [nueva_fecha, set_nueva_fecha] = useState(fecha_defecto_refrigerio);
   const [nuevo_evento, set_nuevo_evento] = useState("Escuela de Líderes (Viernes Formativo)");
   const [nuevo_encargado_1, set_nuevo_encargado_1] = useState(
     BECARIOS_OFICIALES[0] || "Adai Belen Huayta Cardozo"
@@ -306,7 +315,7 @@ export function ControlRefrigerios() {
   const [nuevas_observaciones, set_nuevas_observaciones] = useState("");
 
   const resetearFormularioRefrigerio = () => {
-    set_nueva_fecha("2026-10-23");
+    set_nueva_fecha(fecha_defecto_refrigerio);
     set_nuevo_evento("Escuela de Líderes (Viernes Formativo)");
     set_nuevo_encargado_1(BECARIOS_OFICIALES[0] || "Adai Belen Huayta Cardozo");
     set_nuevo_encargado_2(BECARIOS_OFICIALES[1] || "Alejandro Roberth Paredes Tarquino");
@@ -320,7 +329,7 @@ export function ControlRefrigerios() {
   };
 
   const tiene_cambios_refrigerio =
-    nueva_fecha !== "2026-10-23" ||
+    nueva_fecha !== fecha_defecto_refrigerio ||
     nuevo_evento !== "Escuela de Líderes (Viernes Formativo)" ||
     nuevo_encargado_1 !== (BECARIOS_OFICIALES[0] || "Adai Belen Huayta Cardozo") ||
     nuevo_encargado_2 !== (BECARIOS_OFICIALES[1] || "Alejandro Roberth Paredes Tarquino") ||
@@ -413,7 +422,7 @@ export function ControlRefrigerios() {
   // Flujo de 2 pasos: Nivel 1 - Revisado por Supervisor
   const manejarRevisarSupervisor = async (item: RegistroRacionRefrigerio) => {
     const nombre_revisor = usuario?.nombre || "Mentor Diaconía";
-    const fecha_actual = new Date().toISOString().split("T")[0];
+    const fecha_actual = obtenerHoyLaPaz();
 
     try {
       await clienteApi.patch(`/api/refrigerios/${item.id}/revisar-supervisor`, {
@@ -456,7 +465,7 @@ export function ControlRefrigerios() {
     }
 
     const nombre_admin = usuario?.nombre || "Administración Central";
-    const fecha_actual = new Date().toISOString().split("T")[0];
+    const fecha_actual = obtenerHoyLaPaz();
 
     try {
       await clienteApi.patch(
