@@ -28,7 +28,7 @@ export interface AsignacionMentorSemilla {
  * Garantiza que un Mentor vea únicamente su subconjunto designado aun sin conexión al backend.
  */
 export const ASIGNACIONES_MENTOR_SEMILLA: AsignacionMentorSemilla[] = [
-  { id_semilla: 1, nombre: "Adai Belen Huayta Cardozo", ci: "13696496", supervisor_id: 6, tutor_nombre: "Rodrigo Solorzano San Martin", tutor_correo: "rodrigo.solorzano@diaconia.bo" },
+  { id_semilla: 1, nombre: "Adai Belen Huayta Cardozo", ci: "13696496", supervisor_id: 16, tutor_nombre: "Cheryl Lissett Zegarra Corminales", tutor_correo: "cheryl.zegarra@diaconia.bo" },
   { id_semilla: 2, nombre: "Daniel Davalos Quiñonez", ci: "9107373", supervisor_id: 4, tutor_nombre: "Angel Javier Ali Paz", tutor_correo: "angel.ali@bumand.bo" },
   { id_semilla: 3, nombre: "Edgar Elías Alarcon Huanca", ci: "9160054", supervisor_id: 5, tutor_nombre: "Claudia Consuelo Cabrera Delgado", tutor_correo: "claudia.cabrera@diaconia.bo" },
   { id_semilla: 4, nombre: "Nilda Amalia Churata Paye", ci: "10028341", supervisor_id: 4, tutor_nombre: "Angel Javier Ali Paz", tutor_correo: "angel.ali@bumand.bo" },

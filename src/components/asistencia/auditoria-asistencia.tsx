@@ -399,37 +399,58 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
       registrado_por: usuario?.nombre || "Administrador",
     };
 
+    let id_real: number | null = null;
     try {
-      await clienteApi.post("/asistencia/manual", payload);
-    } catch (err) {
-      console.warn("Aviso de sincronización remota (modo local/offline habilitado):", err);
+      const respuesta = await clienteApi.post<Record<string, unknown>>("/asistencia/manual", payload);
+      const registro_creado = (
+        respuesta &&
+        typeof respuesta === "object" &&
+        "data" in respuesta &&
+        respuesta.data &&
+        typeof respuesta.data === "object"
+          ? respuesta.data
+          : respuesta
+      ) as Record<string, unknown> | null;
+      const id_candidato = Number(registro_creado?.id);
+      if (Number.isSafeInteger(id_candidato) && id_candidato > 0 && id_candidato <= 2147483647) {
+        id_real = id_candidato;
+      }
+    } catch (error) {
+      toast.error("No se pudo registrar la asistencia manual", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "Error al guardar el registro en el servidor.",
+      });
+      set_manual_guardando(false);
+      return;
     }
 
-    // 1. Añadir el registro a registros_locales
-    const nuevo_registro: RegistroAuditoriaAsistencia = {
-      id: Date.now(),
-      becario_id: becario_encontrado.id,
-      becario_nombre: becario_encontrado.nombre,
-      carrera: becario_encontrado.carrera,
-      sede_nombre: manual_sede,
-      fecha: manual_fecha,
-      hora_ingreso: manual_hora_ingreso,
-      hora_salida: manual_hora_salida,
-      horas_trabajadas: horas_efectivas,
-      distancia_ingreso_m: 0,
-      dentro_de_radio: true,
-      dentro_de_horario: true,
-      estado: "conforme",
-      convalidado_por: usuario?.nombre || "Administrador",
-      motivo_convalidacion: `Registro Manual (Contingencia: ${motivo_final})`,
-      tipo_actividad: manual_tipo_actividad,
-      motivo_contingencia: motivo_final,
-      es_registro_manual: true,
-    };
+    if (id_real !== null) {
+      const nuevo_registro: RegistroAuditoriaAsistencia = {
+        id: id_real,
+        becario_id: becario_encontrado.id,
+        becario_nombre: becario_encontrado.nombre,
+        carrera: becario_encontrado.carrera,
+        sede_nombre: manual_sede,
+        fecha: manual_fecha,
+        hora_ingreso: manual_hora_ingreso,
+        hora_salida: manual_hora_salida,
+        horas_trabajadas: horas_efectivas,
+        distancia_ingreso_m: 0,
+        dentro_de_radio: true,
+        dentro_de_horario: true,
+        estado: "conforme",
+        convalidado_por: usuario?.nombre || "Administrador",
+        motivo_convalidacion: `Registro Manual (Contingencia: ${motivo_final})`,
+        tipo_actividad: manual_tipo_actividad,
+        motivo_contingencia: motivo_final,
+        es_registro_manual: true,
+      };
 
-    set_registros_locales((prev) => [nuevo_registro, ...prev]);
+      set_registros_locales((prev) => [nuevo_registro, ...prev]);
+    }
 
-    // 2. Actualizar las horas acumuladas mensuales del becario en el estado de la vista
     set_horas_mensuales_locales((prev) =>
       prev.map((item) =>
         item.becario_id === becario_encontrado.id
@@ -459,6 +480,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
     toast.success("Asistencia manual registrada", {
       description: `${becario_encontrado.nombre}: ${horas_efectivas} hrs en ${etiqueta_actividad} (${manual_sede}). Motivo: ${motivo_final}.`,
     });
+    await Promise.all([invalidar(), invalidarHorasMensuales()]);
   };
 
   // Modales
@@ -499,9 +521,11 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
 
   const manejarConfirmarEliminarAsistencia = async () => {
     if (!registro_eliminar) return;
-    set_eliminando_registro(true);
-    try {
-      await clienteApi.delete(`/asistencia/${registro_eliminar.id}`);
+    const id_registro = Number(registro_eliminar.id);
+    const es_id_valido_bd =
+      Number.isSafeInteger(id_registro) && id_registro > 0 && id_registro <= 2147483647;
+
+    const removerDeEstadoLocal = () => {
       set_registros_locales((prev) =>
         prev.filter((r) => r.id !== registro_eliminar.id)
       );
@@ -523,12 +547,37 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
           )
         );
       }
+    };
+
+    if (!es_id_valido_bd) {
+      removerDeEstadoLocal();
+      toast.success("Registro local eliminado", {
+        description: `Marcación local de ${registro_eliminar.becario_nombre} (${registro_eliminar.fecha}) retirada.`,
+      });
+      set_registro_eliminar(null);
+      return;
+    }
+
+    set_eliminando_registro(true);
+    try {
+      await clienteApi.delete(`/asistencia/${id_registro}`);
+      removerDeEstadoLocal();
       toast.success("Registro de asistencia eliminado", {
         description: `Marcación de ${registro_eliminar.becario_nombre} (${registro_eliminar.fecha}) eliminada permanentemente (Web + APK).`,
       });
       set_registro_eliminar(null);
       await Promise.all([invalidar(), invalidarHorasMensuales()]);
     } catch (error) {
+      const codigo_estado = (error as { codigo_estado?: number })?.codigo_estado ?? 0;
+      if (codigo_estado === 404) {
+        removerDeEstadoLocal();
+        set_registro_eliminar(null);
+        toast.info("El registro ya no existía en el servidor", {
+          description: "Se sincronizó la lista actualizada.",
+        });
+        await Promise.all([invalidar(), invalidarHorasMensuales()]);
+        return;
+      }
       toast.error("No se pudo eliminar el registro de asistencia", {
         description: error instanceof Error ? error.message : "Verifica tus permisos.",
       });

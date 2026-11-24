@@ -45,6 +45,8 @@ import {
 import { RUTAS_API } from "@/servicios/rutas-api.constantes";
 import { obtenerCalculoPagoPasajes } from "@/servicios/pasajes.servicio";
 import { SelectorPlanillaDonacion } from "@/components/reportes/selector-planilla-donacion";
+import { usarAutenticacion } from "@/contextos/autenticacion-contexto";
+import { esAdministradorAutenticado } from "@/lib/filtro-mentor";
 import {
   generarMesesGestion,
   obtenerMesActualLaPaz,
@@ -84,6 +86,8 @@ interface BecarioReporteItem {
 const REPORTES_DISPONIBLES: ReporteItem[] = [];
 
 export function VisorReportesPdf() {
+  const { usuario } = usarAutenticacion();
+  const es_admin = esAdministradorAutenticado(usuario);
   const mes_actual_iso = obtenerMesActualLaPaz();
   const { inicio: inicio_actual, fin: fin_actual } = obtenerRangoMesActualLaPaz();
   const opciones_meses = generarMesesGestion().map((m) => ({
@@ -558,19 +562,21 @@ export function VisorReportesPdf() {
         </CardContent>
       </Card>
 
-      <SelectorPlanillaDonacion
-        tipo_disponible="ambos"
-        fecha_inicio={fecha_inicio_global}
-        fecha_fin={fecha_fin_global}
-        al_cambiar_fechas={(ini, fin) => {
-          set_fecha_inicio_global(ini);
-          set_fecha_fin_global(fin);
-          set_fecha_inicio_auditoria(ini);
-          set_fecha_fin_auditoria(fin);
-        }}
-        titulo="Planillas Oficiales de Donación (Contabilidad y Archivo del Área)"
-        subtitulo="Emite las planillas oficiales de Donación para Refrigerio BUMAN-D y Donación para Transporte BUMAN-D eligiendo mes o rango de fechas, destino (Sin firma / Con firma) y los 2 firmantes."
-      />
+      {es_admin && (
+        <SelectorPlanillaDonacion
+          tipo_disponible="ambos"
+          fecha_inicio={fecha_inicio_global}
+          fecha_fin={fecha_fin_global}
+          al_cambiar_fechas={(ini, fin) => {
+            set_fecha_inicio_global(ini);
+            set_fecha_fin_global(fin);
+            set_fecha_inicio_auditoria(ini);
+            set_fecha_fin_auditoria(fin);
+          }}
+          titulo="Planillas Oficiales de Donación (Contabilidad y Archivo del Área)"
+          subtitulo="Emite las planillas oficiales de Donación para Refrigerio BUMAN-D y Donación para Transporte BUMAN-D eligiendo mes o rango de fechas, destino (Sin firma / Con firma) y los 2 firmantes."
+        />
+      )}
 
       {/* ============================================================== */}
       {/* PANEL DESTACADO: EXTRACCIÓN DE REPORTES POR INTERVALO DE FECHA */}

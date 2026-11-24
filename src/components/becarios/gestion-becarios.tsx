@@ -186,7 +186,6 @@ export const SUPERVISORES_CATALOGO_BASE: SupervisorInstitucional[] = [
   { id: 37, nombre: "Ramiro Riera", correo: "ramiro.riera@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
   { id: 35, nombre: "Reynaldo Alavi Paz", correo: "reynaldo.alavi@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
   { id: 41, nombre: "Ricardo Martin Menacho Salas", correo: "ricardo.menacho@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
-  { id: 29, nombre: "Rodrigo Solorzano San Martin", correo: "rodrigo.solorzano@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
   { id: 43, nombre: "Samuel Martín Durán Baspineiro", correo: "samuel.duran@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
   { id: 46, nombre: "Walter Laime Poma", correo: "walter.laime@diaconia.bo", sedes: ["Oficina Central Diaconía IFD - El Alto"] },
 ];
@@ -221,10 +220,6 @@ export function resolverSupervisor(
 
   if (str.includes("claudia") && str.includes("cabrera")) {
     const s = catalogo.find((item) => item.id === 28);
-    if (s) return s;
-  }
-  if (str.includes("rodrigo") && str.includes("solorzano")) {
-    const s = catalogo.find((item) => item.id === 29);
     if (s) return s;
   }
   if (str.includes("angel") && str.includes("ali")) {

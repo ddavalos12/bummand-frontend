@@ -1355,19 +1355,21 @@ export function AprobacionPasajes() {
         renderizarDetalleCard(true)
       ) : (
         <div className="space-y-6">
-          <SelectorPlanillaDonacion
-            tipo_disponible="transporte"
-            fecha_inicio={fecha_inicio_auditoria}
-            fecha_fin={fecha_fin_auditoria}
-            al_cambiar_fechas={(ini, fin) => {
-              set_fecha_inicio_auditoria(ini);
-              set_fecha_fin_auditoria(fin);
-            }}
-            mostrar_selector_periodo={false}
-            titulo="Planilla Donación Transporte BUMAN-D (80%)"
-            subtitulo="Emite la planilla oficial consolidada de transporte al 80% para Contabilidad (Sin firma de becarios) o Archivo del Área (Con firma de becarios)."
-            etiqueta_insignia="PLANILLA OFICIAL · TRANSPORTE 80%"
-          />
+          {es_admin && (
+            <SelectorPlanillaDonacion
+              tipo_disponible="transporte"
+              fecha_inicio={fecha_inicio_auditoria}
+              fecha_fin={fecha_fin_auditoria}
+              al_cambiar_fechas={(ini, fin) => {
+                set_fecha_inicio_auditoria(ini);
+                set_fecha_fin_auditoria(fin);
+              }}
+              mostrar_selector_periodo={false}
+              titulo="Planilla Donación Transporte BUMAN-D (80%)"
+              subtitulo="Emite la planilla oficial consolidada de transporte al 80% para Contabilidad (Sin firma de becarios) o Archivo del Área (Con firma de becarios)."
+              etiqueta_insignia="PLANILLA OFICIAL · TRANSPORTE 80%"
+            />
+          )}
 
           {/* ============================================================== */}
           {/* TARJETA 1: FORMULARIOS DEL MES (TABLA PRINCIPAL)              */}
