@@ -1,6 +1,9 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
+  formatearDuracionAsistencia,
+  formatearHorasDecimalAHhmmss,
+  formatearSegundosAHhmmss,
   obtenerMesActualLaPaz,
   obtenerRangoMes,
   obtenerRangoMesActualLaPaz,
@@ -949,9 +952,9 @@ export function generarPdfAsistenciaMensual(
   const filas: string[][] = registros.map((r, idx) => [
     String(idx + 1),
     String(r.fecha || "").slice(0, 10),
-    sanitizarTextoPdf(r.hora_programada || "08:00"),
+    sanitizarTextoPdf(r.hora_programada || "08:00:00"),
     sanitizarTextoPdf(r.hora_gps || "-"),
-    `${Number(r.horas || 0).toFixed(1)} h`,
+    formatearHorasDecimalAHhmmss(Number(r.horas || 0)),
     r.retraso_min > 0 ? `+${r.retraso_min}m` : "0m",
     sanitizarTextoPdf(r.estado || "Conforme"),
   ]);
@@ -962,7 +965,7 @@ export function generarPdfAsistenciaMensual(
     body:
       filas.length > 0
         ? filas
-        : [["-", "-", "-", "-", "0.0 h", "0m", "Sin marcaciones en el periodo"]],
+        : [["-", "-", "-", "-", "00:00:00", "0m", "Sin marcaciones en el periodo"]],
     theme: "striped",
     headStyles: {
       fillColor: COLOR_PRIMARIO,
@@ -1003,7 +1006,7 @@ export function generarPdfAsistenciaMensual(
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
   doc.text(
-    `TOTAL HORAS CUMPLIDAS: ${total_horas.toFixed(1)} HORAS · PUNTUALIDAD: ${pct_puntualidad}% · RETRASOS: ${retrasos_count}`,
+    `TOTAL HORAS CUMPLIDAS: ${formatearHorasDecimalAHhmmss(total_horas)} · PUNTUALIDAD: ${pct_puntualidad}% · RETRASOS: ${retrasos_count}`,
     18,
     y_resumen + 5.5
   );
@@ -1118,7 +1121,7 @@ export function generarPdfConsolidadoContabilidad(
     head: [["Módulo / Concepto Institucional", "Indicador", "Importe / Valor"]],
     body: [
       ["1. Asistencia y Prácticas Preprofesionales", "Marcaciones verificadas", `${resumen.total_asistencias} registros`],
-      ["1. Asistencia y Prácticas Preprofesionales", "Horas acumuladas acreditadas", `${resumen.total_horas.toFixed(2)} hrs`],
+      ["1. Asistencia y Prácticas Preprofesionales", "Horas acumuladas acreditadas", formatearHorasDecimalAHhmmss(resumen.total_horas)],
       ["2. Liquidación de Pasajes (80% RSD)", "Becarios / Expedientes con recorridos", `${resumen.total_solicitudes_pasajes} registros`],
       ["2. Liquidación de Pasajes (80% RSD)", "Total tarifa declarada (100%)", `Bs ${resumen.total_monto_pasajes_100.toFixed(2)}`],
       ["2. Liquidación de Pasajes (80% RSD)", "Líquido pagable reconocido (80% Neto RSD)", `Bs ${resumen.total_monto_pasajes_80.toFixed(2)}`],
@@ -1320,9 +1323,9 @@ export function generarPdfAsistenciaGeneral(
     sanitizarTextoPdf(f.ci || "S/N"),
     sanitizarTextoPdf(f.carrera || "-"),
     sanitizarTextoPdf(f.sede || "Oficina Central"),
-    `${Number(f.horas_practicas || 0).toFixed(1)} h`,
-    `${Number(f.horas_lideres || 0).toFixed(1)} h`,
-    `${Number(f.total_horas || 0).toFixed(1)} h`,
+    formatearHorasDecimalAHhmmss(Number(f.horas_practicas || 0)),
+    formatearHorasDecimalAHhmmss(Number(f.horas_lideres || 0)),
+    formatearHorasDecimalAHhmmss(Number(f.total_horas || 0)),
     f.retraso_min > 0 ? `+${f.retraso_min} m` : "0 m",
     sanitizarTextoPdf(f.estado || "CONFORME"),
   ]);
@@ -1338,9 +1341,9 @@ export function generarPdfAsistenciaGeneral(
       "",
       "",
       `${filas_vivas.length} becarios`,
-      `${sum_prac.toFixed(1)} h`,
-      `${sum_lid.toFixed(1)} h`,
-      `${sum_tot.toFixed(1)} h`,
+      formatearHorasDecimalAHhmmss(sum_prac),
+      formatearHorasDecimalAHhmmss(sum_lid),
+      formatearHorasDecimalAHhmmss(sum_tot),
       `${sum_ret} m`,
       "-",
     ]);
@@ -1352,7 +1355,7 @@ export function generarPdfAsistenciaGeneral(
     body:
       filas.length > 0
         ? filas
-        : [["-", "Sin registros de asistencia en el intervalo seleccionado", "-", "-", "-", "0.0 h", "0.0 h", "0.0 h", "0 m", "-"]],
+        : [["-", "Sin registros de asistencia en el intervalo seleccionado", "-", "-", "-", "00:00:00", "00:00:00", "00:00:00", "0 m", "-"]],
     theme: "striped",
     headStyles: {
       fillColor: COLOR_PRIMARIO,
@@ -1654,14 +1657,22 @@ async function generarCorteHorasVivo(
   const filas: FilaCorteHorasPdfCliente[] = registros.map((r) => {
     const es_lideres = r.tipo === "escuela_lideres";
     const retraso = Number(r.minutos_retraso || 0);
-    const horas = es_lideres ? 0 : Number(r.horas_trabajadas || 4);
     const fecha_str = r.fecha ? String(r.fecha).slice(0, 10) : ini;
-    const hora_prev = es_lideres ? "14:30" : r.hora_prevista || "08:00";
+    const hora_prev = es_lideres ? "14:30:00" : r.hora_prevista || "08:00:00";
+    const cumplido = es_lideres
+      ? "00:00:00"
+      : !r.hora_salida && !r.horas_trabajadas
+      ? "En curso"
+      : formatearDuracionAsistencia(
+          r.hora_ingreso,
+          r.hora_salida,
+          Number(r.horas_trabajadas || 0)
+        );
     return {
       becario_nombre: r.becario?.usuario?.nombre || r.becario?.nombre || `Becario #${r.becario_id}`,
       unidad: r.bloque || r.becario?.lugar_practica?.nombre || r.becario?.ubicacion || "Oficina Central",
       requerido: `${fecha_str} (${hora_prev})`,
-      cumplido: `${horas.toFixed(1)} h`,
+      cumplido,
       puntualidad: r.hora_ingreso || "-",
       retraso: retraso > 0 ? `+${retraso}m` : "0m",
       dictamen:

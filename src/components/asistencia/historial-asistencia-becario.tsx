@@ -53,6 +53,7 @@ import {
 } from "@/servicios/asistencia.servicio";
 import {
   coincideTextoMesPeriodo,
+  formatearHorasDecimalAHhmmss,
   generarMesesGestion,
   obtenerMesActualLaPaz,
 } from "@/lib/fechas-institucionales";
@@ -360,7 +361,7 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
               Horas del Mes
             </span>
             <div className="text-2xl sm:text-3xl font-extrabold font-mono text-white">
-              {extracto_activo.horas_acumuladas.toFixed(2)} hrs
+              {extracto_activo.horas_acumuladas_hms || formatearHorasDecimalAHhmmss(extracto_activo.horas_acumuladas)}
             </div>
             <p className="text-[11px] text-sky-200">Total acumulado acreditado</p>
           </div>
@@ -371,9 +372,9 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
               Meta Reglamentaria
             </span>
             <div className="text-2xl sm:text-3xl font-extrabold font-mono text-white">
-              {extracto_activo.meta_horas.toFixed(2)} hrs
+              {extracto_activo.meta_horas_hms || formatearHorasDecimalAHhmmss(extracto_activo.meta_horas)}
             </div>
-            <p className="text-[11px] text-sky-200">9.0 hrs / semana flexible</p>
+            <p className="text-[11px] text-sky-200">09:00:00 / semana flexible</p>
           </div>
 
           {/* Diferencia / Cumplimiento en #FFB600 */}
@@ -381,11 +382,10 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
             <span className="text-[11px] font-mono uppercase tracking-wider text-sky-100 font-semibold">
               Cumplimiento
             </span>
-            <div className="text-2xl sm:text-3xl font-extrabold font-mono text-[#FFB600]">
-              {extracto_activo.diferencia_horas >= 0
-                ? `+${extracto_activo.diferencia_horas.toFixed(2)}`
-                : extracto_activo.diferencia_horas.toFixed(2)}{" "}
-              hrs · {extracto_activo.porcentaje_cumplimiento}%
+            <div className="text-xl sm:text-2xl font-extrabold font-mono text-[#FFB600]">
+              {extracto_activo.diferencia_hms ||
+                `${extracto_activo.diferencia_horas >= 0 ? "+" : "-"}${formatearHorasDecimalAHhmmss(Math.abs(extracto_activo.diferencia_horas))}`}{" "}
+              · {extracto_activo.porcentaje_cumplimiento}%
             </div>
             <p className="text-[11px] text-[#FFB600]/95 font-medium">
               {extracto_activo.diferencia_horas >= 0 ? "Superávit consolidado" : "Pendiente de completar"}
@@ -432,17 +432,17 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
             <span className="text-[11px] font-mono font-bold uppercase text-muted-foreground">
               Horas Acumuladas
             </span>
-            <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] font-bold">
+            <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] font-bold font-mono">
               {extracto_activo.horas_acumuladas > extracto_activo.meta_horas
-                ? `Meta Superada (+${extracto_activo.diferencia_horas.toFixed(1)}h)`
+                ? `Meta Superada (+${formatearHorasDecimalAHhmmss(extracto_activo.diferencia_horas)})`
                 : `${extracto_activo.porcentaje_cumplimiento}%`}
             </Badge>
           </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-3xl font-bold font-display text-[#035683]">
-              <ContadorRodilloAnimado valor={extracto_activo.horas_acumuladas} sufijo=" hrs" decimales={1} />
+          <div className="flex items-baseline gap-1.5 flex-wrap">
+            <span className="text-2xl font-bold font-mono text-[#035683]">
+              {extracto_activo.horas_acumuladas_hms || formatearHorasDecimalAHhmmss(extracto_activo.horas_acumuladas)}
             </span>
-            <span className="text-xs text-muted-foreground font-mono">/ {extracto_activo.meta_horas} hrs</span>
+            <span className="text-xs text-muted-foreground font-mono">/ {extracto_activo.meta_horas_hms || formatearHorasDecimalAHhmmss(extracto_activo.meta_horas)}</span>
           </div>
           <Progress value={Math.min(100, extracto_activo.porcentaje_cumplimiento)} className="h-2 bg-slate-100" />
         </TarjetaSpotlight>
@@ -616,11 +616,15 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
                     <TableCell className="py-3.5 text-right">
                       {mov.tipo === "escuela_lideres" || (mov.tipo_etiqueta || "").toLowerCase().includes("lider") ? (
                         <span className="inline-flex items-center gap-1 font-semibold text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-                          ✓ Asistencia · Sin multa (0 hrs)
+                          ✓ Asistencia · Sin multa (00:00:00)
+                        </span>
+                      ) : mov.horas_dia_hms === "En curso" ? (
+                        <span className="font-mono font-bold text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg">
+                          En curso
                         </span>
                       ) : (
                         <span className="font-mono font-extrabold text-sm text-[#007BBE] bg-[#007BBE]/10 px-2.5 py-1 rounded-lg">
-                          +{mov.horas_dia.toFixed(2)} hrs
+                          +{mov.horas_dia_hms || formatearHorasDecimalAHhmmss(mov.horas_dia)}
                         </span>
                       )}
                     </TableCell>
@@ -628,12 +632,12 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
                     {/* 6. Saldo Acumulado Mes */}
                     <TableCell className="py-3.5 text-right">
                       {mov.tipo === "escuela_lideres" || (mov.tipo_etiqueta || "").toLowerCase().includes("lider") ? (
-                        <span className="font-sans text-[11px] font-medium text-emerald-700 bg-emerald-50/70 border border-emerald-200 px-2 py-1 rounded-lg">
-                          Prácticas acumuladas: {mov.saldo_acumulado.toFixed(2)} hrs
+                        <span className="font-sans text-[11px] font-medium text-emerald-700 bg-emerald-50/70 border border-emerald-200 px-2 py-1 rounded-lg font-mono">
+                          Prácticas acumuladas: {mov.saldo_acumulado_hms || formatearHorasDecimalAHhmmss(mov.saldo_acumulado)}
                         </span>
                       ) : (
                         <span className="font-mono font-bold text-xs text-[#035683] bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg shadow-2xs">
-                          {mov.saldo_acumulado.toFixed(2)} hrs
+                          {mov.saldo_acumulado_hms || formatearHorasDecimalAHhmmss(mov.saldo_acumulado)}
                         </span>
                       )}
                     </TableCell>
@@ -665,7 +669,7 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
             Resumen Comparativo de Gestión 2026 (Marzo a Diciembre)
           </h4>
           <span className="text-xs font-mono text-muted-foreground">
-            Total Gestión: <strong>{datos_extracto.total_horas_gestion.toFixed(1)} hrs</strong> · Promedio: <strong>{datos_extracto.promedio_mensual.toFixed(1)} h/mes</strong>
+            Total Gestión: <strong>{datos_extracto.total_horas_gestion_hms || formatearHorasDecimalAHhmmss(datos_extracto.total_horas_gestion)}</strong> · Promedio: <strong>{datos_extracto.promedio_mensual_hms || formatearHorasDecimalAHhmmss(datos_extracto.promedio_mensual)} / mes</strong>
           </span>
         </div>
 
@@ -700,15 +704,15 @@ export function HistorialAsistenciaBecario({ alAbrirMarcacion }: HistorialAsiste
                     }`}
                   >
                     {excedente > 0
-                      ? `META SUPERADA (+${excedente.toFixed(1)} h · ${avance_real}%)`
+                      ? `META SUPERADA (+${formatearHorasDecimalAHhmmss(excedente)} · ${avance_real}%)`
                       : h.estado_meta === "cumplido"
                       ? `${avance_real}% CUMPLIDO`
                       : `${avance_real}% AVANCE`}
                   </Badge>
                 </div>
                 <div className="flex items-baseline justify-between text-xs font-mono">
-                  <span className="font-bold text-sm text-[#035683]">{h.horas_acumuladas.toFixed(1)} hrs</span>
-                  <span className="text-muted-foreground text-[11px]">Meta: {h.meta_horas.toFixed(1)} hrs (9h/sem)</span>
+                  <span className="font-bold text-sm text-[#035683]">{h.horas_acumuladas_hms || formatearHorasDecimalAHhmmss(h.horas_acumuladas)}</span>
+                  <span className="text-muted-foreground text-[11px]">Meta: {h.meta_horas_hms || formatearHorasDecimalAHhmmss(h.meta_horas)} (09:00:00/sem)</span>
                 </div>
                 <Progress value={avance} className="h-1.5 mt-2 bg-slate-100" />
               </div>

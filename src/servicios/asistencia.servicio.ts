@@ -5,7 +5,9 @@
 
 import { clienteApi } from "../lib/cliente-api";
 import {
+  calcularSegundosEntreHoras,
   coincideTextoMesPeriodo,
+  formatearSegundosAHhmmss,
   generarMesesGestion,
   obtenerMesActualLaPaz,
 } from "../lib/fechas-institucionales";
@@ -357,12 +359,18 @@ export interface MovimientoExtractoAsistencia {
   tipo_etiqueta: string;
   sede: string;
   hora_entrada: string;
-  hora_salida: string;
+  hora_salida: string | null;
   horas_dia: number;
+  segundos_dia?: number;
+  horas_dia_hms?: string;
   saldo_acumulado: number;
+  saldo_acumulado_segundos?: number;
+  saldo_acumulado_hms?: string;
   minutos_retraso: number;
   dentro_de_radio: boolean;
   distancia_metros: number;
+  lat_ingreso?: number | null;
+  lng_ingreso?: number | null;
   estado: "acreditado" | "en_curso" | "convalidado" | "observado" | "falta";
   estado_aprobacion: "pendiente" | "aprobado" | "revisado";
   permiso_aprobado?: boolean;
@@ -371,9 +379,15 @@ export interface MovimientoExtractoAsistencia {
 export interface ExtractoMensualItem {
   periodo: string;
   mes_nombre: string;
+  fecha_inicio_corte?: string;
+  fecha_fin_corte?: string;
   horas_acumuladas: number;
+  segundos_acumulados?: number;
+  horas_acumuladas_hms?: string;
   meta_horas: number;
+  meta_horas_hms?: string;
   diferencia_horas: number;
+  diferencia_hms?: string;
   porcentaje_cumplimiento: number;
   estado_meta: "cumplido" | "en_progreso" | "en_riesgo";
   jornadas_totales: number;
@@ -386,7 +400,10 @@ export interface ExtractoMensualItem {
 export interface RespuestaExtractoMensual {
   becario_id: number;
   total_horas_gestion: number;
+  total_segundos_gestion?: number;
+  total_horas_gestion_hms?: string;
   promedio_mensual: number;
+  promedio_mensual_hms?: string;
   total_meses: number;
   extracto_actual: ExtractoMensualItem;
   extractos: ExtractoMensualItem[];
@@ -408,16 +425,19 @@ export function generarExtractoMensualDeterminista(
   }));
 
   let id_movimiento_gen = 100;
-  let total_horas_gestion = 0;
+  let total_segundos_gestion = 0;
 
   const extractos: ExtractoMensualItem[] = configuraciones_meses.map((mes_cfg) => {
-    let acumulado_mes = 0;
+    let acumulado_seg = 0;
     const movimientos: MovimientoExtractoAsistencia[] = mes_cfg.dias.map((dia_item) => {
       id_movimiento_gen += 1;
       const es_lideres = dia_item.tipo === "escuela_lideres";
-      const horas_dia = es_lideres ? 0 : dia_item.h;
+      const segs_calc = es_lideres
+        ? 0
+        : calcularSegundosEntreHoras(dia_item.ent, dia_item.sal) || Math.round(dia_item.h * 3600);
+      const horas_dia = es_lideres ? 0 : Number((segs_calc / 3600).toFixed(2));
       if (!es_lideres) {
-        acumulado_mes += horas_dia;
+        acumulado_seg += segs_calc;
       }
       const dia_dos_digitos = String(dia_item.d).padStart(2, "0");
       const mes_dos_digitos = mes_cfg.periodo.split("-")[1];
@@ -435,8 +455,12 @@ export function generarExtractoMensualDeterminista(
         sede: dia_item.sede,
         hora_entrada: dia_item.ent,
         hora_salida: dia_item.sal,
-        horas_dia: Number(horas_dia.toFixed(2)),
-        saldo_acumulado: Number(acumulado_mes.toFixed(2)),
+        horas_dia,
+        segundos_dia: segs_calc,
+        horas_dia_hms: formatearSegundosAHhmmss(segs_calc),
+        saldo_acumulado: Number((acumulado_seg / 3600).toFixed(2)),
+        saldo_acumulado_segundos: acumulado_seg,
+        saldo_acumulado_hms: formatearSegundosAHhmmss(acumulado_seg),
         minutos_retraso: dia_item.ent > "08:15" && dia_item.tipo === "practicas" ? 15 : 0,
         dentro_de_radio,
         distancia_metros: dia_item.dist,
@@ -445,11 +469,17 @@ export function generarExtractoMensualDeterminista(
       };
     });
 
-    const horas_acumuladas = Number(acumulado_mes.toFixed(2));
-    total_horas_gestion += horas_acumuladas;
+    const horas_acumuladas = Number((acumulado_seg / 3600).toFixed(2));
+    total_segundos_gestion += acumulado_seg;
     const meta_horas = mes_cfg.meta;
-    const diferencia_horas = Number((horas_acumuladas - meta_horas).toFixed(2));
-    const porcentaje_cumplimiento = Math.round((horas_acumuladas / meta_horas) * 100);
+    const meta_segs = Math.round(meta_horas * 3600);
+    const dif_segs = acumulado_seg - meta_segs;
+    const diferencia_horas = Number((dif_segs / 3600).toFixed(2));
+    const diferencia_hms =
+      dif_segs === 0
+        ? "00:00:00"
+        : `${dif_segs < 0 ? "-" : "+"}${formatearSegundosAHhmmss(Math.abs(dif_segs))}`;
+    const porcentaje_cumplimiento = Math.round((acumulado_seg / meta_segs) * 100);
     const estado_meta = horas_acumuladas >= meta_horas ? "cumplido" : (porcentaje_cumplimiento >= 75 ? "en_progreso" : "en_riesgo");
     const jornadas_totales = movimientos.length;
     const puntualidades = movimientos.filter((m) => m.minutos_retraso === 0).length;
@@ -459,8 +489,12 @@ export function generarExtractoMensualDeterminista(
       periodo: mes_cfg.periodo,
       mes_nombre: mes_cfg.mes_nombre,
       horas_acumuladas,
+      segundos_acumulados: acumulado_seg,
+      horas_acumuladas_hms: formatearSegundosAHhmmss(acumulado_seg),
       meta_horas,
+      meta_horas_hms: formatearSegundosAHhmmss(meta_segs),
       diferencia_horas,
+      diferencia_hms,
       porcentaje_cumplimiento,
       estado_meta,
       jornadas_totales,
@@ -483,12 +517,15 @@ export function generarExtractoMensualDeterminista(
     }
   }
 
-  const promedio_mensual = Number((total_horas_gestion / (extractos.length || 1)).toFixed(2));
+  const promedio_seg = Math.round(total_segundos_gestion / (extractos.length || 1));
 
   return {
     becario_id,
-    total_horas_gestion: Number(total_horas_gestion.toFixed(2)),
-    promedio_mensual,
+    total_horas_gestion: Number((total_segundos_gestion / 3600).toFixed(2)),
+    total_segundos_gestion,
+    total_horas_gestion_hms: formatearSegundosAHhmmss(total_segundos_gestion),
+    promedio_mensual: Number((promedio_seg / 3600).toFixed(2)),
+    promedio_mensual_hms: formatearSegundosAHhmmss(promedio_seg),
     total_meses: extractos.length,
     extracto_actual,
     extractos,
@@ -514,10 +551,11 @@ export async function obtenerExtractoMensualAsistencia(
   try {
     const respuesta = await clienteApi.get<RespuestaExtractoMensual>(ruta);
     if (respuesta && respuesta.extractos && respuesta.extractos.length > 0) {
+      let total_segs_gestion = 0;
       respuesta.extractos.forEach((ext) => {
-        let saldo_acum = 0;
+        let saldo_segs = 0;
         let dias_permiso = 0;
-        let horas_permiso = 0;
+        let segs_permiso = 0;
         let puntuales_compensados = 0;
 
         ext.movimientos.forEach((m) => {
@@ -528,37 +566,74 @@ export async function obtenerExtractoMensualAsistencia(
               (m.estado_aprobacion === "aprobado" && (m.estado === "falta" || (m.tipo_etiqueta || "").toLowerCase().includes("permiso")))
           );
 
+          let segs_dia =
+            typeof m.segundos_dia === "number" && m.segundos_dia > 0
+              ? m.segundos_dia
+              : m.hora_entrada && m.hora_salida
+              ? calcularSegundosEntreHoras(m.hora_entrada, m.hora_salida) ||
+                Math.round((m.horas_dia || 0) * 3600)
+              : Math.round((m.horas_dia || 0) * 3600);
+
           if (tiene_permiso_aprobado) {
             m.permiso_aprobado = true;
             m.minutos_retraso = 0;
             dias_permiso += 1;
-            if (!es_lideres && (m.horas_dia || 0) === 0) {
-              m.horas_dia = 4.0;
+            if (!es_lideres && segs_dia === 0) {
+              segs_dia = 4 * 3600;
             }
-            horas_permiso += m.horas_dia || 0;
+            segs_permiso += segs_dia;
           }
 
-          if (es_lideres) {
+          if (es_lideres && !tiene_permiso_aprobado) {
+            segs_dia = 0;
             m.horas_dia = 0;
           } else {
-            saldo_acum += (m.horas_dia || 0);
+            m.horas_dia = Number((segs_dia / 3600).toFixed(2));
+            saldo_segs += segs_dia;
           }
+
+          const es_abierto =
+            !tiene_permiso_aprobado &&
+            !m.hora_salida &&
+            !es_lideres &&
+            segs_dia === 0;
+          m.segundos_dia = segs_dia;
+          m.horas_dia_hms = es_abierto ? "En curso" : formatearSegundosAHhmmss(segs_dia);
 
           if ((m.minutos_retraso || 0) === 0 || tiene_permiso_aprobado) {
             puntuales_compensados += 1;
           }
-          m.saldo_acumulado = Number(saldo_acum.toFixed(2));
+          m.saldo_acumulado_segundos = saldo_segs;
+          m.saldo_acumulado_hms = formatearSegundosAHhmmss(saldo_segs);
+          m.saldo_acumulado = Number((saldo_segs / 3600).toFixed(2));
         });
 
+        const meta_segs = Math.round((ext.meta_horas || 36) * 3600);
+        const dif_segs = saldo_segs - meta_segs;
         ext.dias_permiso_aprobado = ext.dias_permiso_aprobado ?? dias_permiso;
-        ext.horas_compensadas_permiso = ext.horas_compensadas_permiso ?? Number(horas_permiso.toFixed(2));
-        ext.horas_acumuladas = Number(saldo_acum.toFixed(2));
-        ext.diferencia_horas = Number((ext.horas_acumuladas - ext.meta_horas).toFixed(2));
-        ext.porcentaje_cumplimiento = Math.round((ext.horas_acumuladas / (ext.meta_horas || 36)) * 100);
+        ext.horas_compensadas_permiso =
+          ext.horas_compensadas_permiso ?? Number((segs_permiso / 3600).toFixed(2));
+        ext.segundos_acumulados = saldo_segs;
+        ext.horas_acumuladas = Number((saldo_segs / 3600).toFixed(2));
+        ext.horas_acumuladas_hms = formatearSegundosAHhmmss(saldo_segs);
+        ext.meta_horas_hms = formatearSegundosAHhmmss(meta_segs);
+        ext.diferencia_horas = Number((dif_segs / 3600).toFixed(2));
+        ext.diferencia_hms =
+          dif_segs === 0
+            ? "00:00:00"
+            : `${dif_segs < 0 ? "-" : "+"}${formatearSegundosAHhmmss(Math.abs(dif_segs))}`;
+        ext.porcentaje_cumplimiento = Math.round((saldo_segs / meta_segs) * 100);
         if (ext.movimientos.length > 0) {
           ext.tasa_puntualidad = Math.round((puntuales_compensados / ext.movimientos.length) * 100);
         }
+        total_segs_gestion += saldo_segs;
       });
+      respuesta.total_segundos_gestion = total_segs_gestion;
+      respuesta.total_horas_gestion = Number((total_segs_gestion / 3600).toFixed(2));
+      respuesta.total_horas_gestion_hms = formatearSegundosAHhmmss(total_segs_gestion);
+      const prom_segs = Math.round(total_segs_gestion / (respuesta.extractos.length || 1));
+      respuesta.promedio_mensual = Number((prom_segs / 3600).toFixed(2));
+      respuesta.promedio_mensual_hms = formatearSegundosAHhmmss(prom_segs);
       return respuesta;
     }
     return generarExtractoMensualDeterminista(becario_id || 1, mes);

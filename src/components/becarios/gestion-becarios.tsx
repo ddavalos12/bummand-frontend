@@ -78,6 +78,7 @@ import { toast } from "sonner";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import {
   coincideTextoMesPeriodo,
+  formatearHorasDecimalAHhmmss,
   generarMesesGestion,
   obtenerMesActualLaPaz,
 } from "@/lib/fechas-institucionales";
@@ -1505,7 +1506,7 @@ export function GestionBecarios() {
               {pestaña_activa === "horas" && (
                 <Badge variant="outline" className="h-10 px-3 bg-slate-50 border-[#E5E7EB] text-[#035683] text-xs font-semibold flex items-center gap-1.5">
                   <Award className="w-3.5 h-3.5 text-[#00ABBD]" />
-                  <span>Meta Reglamentaria: 36.0 hrs / mes (9.0 hrs / sem flexibles)</span>
+                  <span>Meta Reglamentaria: 36:00:00 / mes (09:00:00 / sem flexibles)</span>
                 </Badge>
               )}
 
@@ -2102,8 +2103,8 @@ export function GestionBecarios() {
                         <TableCell>
                           <div className="space-y-1.5 min-w-[160px]">
                             <div className="flex items-center justify-between text-xs">
-                              <span className="font-bold text-[#035683]">
-                                {(b.horas_mes_actual ?? 0).toFixed(1)} / {(b.horas_meta_mes ?? 36).toFixed(1)} hrs
+                              <span className="font-bold font-mono text-[#035683]">
+                                {formatearHorasDecimalAHhmmss(b.horas_mes_actual ?? 0)} / {formatearHorasDecimalAHhmmss(b.horas_meta_mes ?? 36)}
                               </span>
                               <span className="text-[11px] font-semibold text-muted-foreground">
                                 {(b.horas_meta_mes ?? 0) > 0 ? Math.round(((b.horas_mes_actual ?? 0) / (b.horas_meta_mes || 36)) * 100) : 0}%
@@ -2115,8 +2116,8 @@ export function GestionBecarios() {
                             />
                             <div>
                               {(b.horas_mes_actual ?? 0) > (b.horas_meta_mes ?? 36) ? (
-                                <span className="inline-flex items-center text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                                  Meta Superada (+{((b.horas_mes_actual ?? 0) - (b.horas_meta_mes ?? 36)).toFixed(1)} hrs)
+                                <span className="inline-flex items-center text-[10px] font-bold font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                                  Meta Superada (+{formatearHorasDecimalAHhmmss((b.horas_mes_actual ?? 0) - (b.horas_meta_mes ?? 36))})
                                 </span>
                               ) : (b.horas_mes_actual ?? 0) === (b.horas_meta_mes ?? 36) ? (
                                 <span className="inline-flex items-center text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
@@ -2128,7 +2129,7 @@ export function GestionBecarios() {
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                                  En Riesgo (&lt;27 hrs)
+                                  En Riesgo (&lt;27:00:00)
                                 </span>
                               )}
                             </div>
@@ -2862,9 +2863,9 @@ export function GestionBecarios() {
                         </Badge>
                       </div>
                       <p className="text-2xl font-bold font-mono text-[#035683]">
-                        {extracto_seleccionado.horas_acumuladas.toFixed(1)}{" "}
+                        {extracto_seleccionado.horas_acumuladas_hms || formatearHorasDecimalAHhmmss(extracto_seleccionado.horas_acumuladas)}{" "}
                         <span className="text-sm font-normal text-muted-foreground">
-                          / {extracto_seleccionado.meta_horas.toFixed(1)} hrs
+                          / {extracto_seleccionado.meta_horas_hms || formatearHorasDecimalAHhmmss(extracto_seleccionado.meta_horas)}
                         </span>
                       </p>
                     </div>
@@ -2878,9 +2879,10 @@ export function GestionBecarios() {
                           {extracto_seleccionado.porcentaje_cumplimiento}%
                         </p>
                         <span className="text-[11px] font-mono text-muted-foreground">
-                          {extracto_seleccionado.diferencia_horas >= 0
-                            ? `+${extracto_seleccionado.diferencia_horas.toFixed(1)} hrs`
-                            : `${extracto_seleccionado.diferencia_horas.toFixed(1)} hrs`}
+                          {extracto_seleccionado.diferencia_hms ||
+                            (extracto_seleccionado.diferencia_horas >= 0
+                              ? `+${formatearHorasDecimalAHhmmss(extracto_seleccionado.diferencia_horas)}`
+                              : `-${formatearHorasDecimalAHhmmss(Math.abs(extracto_seleccionado.diferencia_horas))}`)}
                         </span>
                       </div>
 
@@ -2974,7 +2976,7 @@ export function GestionBecarios() {
                         <h4 className="text-xs font-bold uppercase tracking-wider text-[#035683] flex items-center gap-2">
                           <span>Movimientos Diarios · {extracto_seleccionado.mes_nombre}</span>
                           <Badge variant="outline" className="font-mono text-[10px] text-[#00ABBD] border-[#00ABBD]/30 bg-[#00ABBD]/10 font-bold">
-                            {extracto_seleccionado.horas_acumuladas.toFixed(2)} hrs computadas
+                            {extracto_seleccionado.horas_acumuladas_hms || formatearHorasDecimalAHhmmss(extracto_seleccionado.horas_acumuladas)} computadas
                           </Badge>
                         </h4>
                         <span className="text-xs font-mono text-muted-foreground">
@@ -3047,14 +3049,16 @@ export function GestionBecarios() {
                                   {/* Horas Día */}
                                   <TableCell className="text-right py-2.5">
                                     <span className="font-mono font-extrabold text-xs text-[#007BBE] bg-[#007BBE]/10 px-2 py-0.5 rounded">
-                                      +{m.horas_dia.toFixed(2)} hrs
+                                      {m.horas_dia_hms === "En curso"
+                                        ? "En curso"
+                                        : `+${m.horas_dia_hms || formatearHorasDecimalAHhmmss(m.horas_dia)}`}
                                     </span>
                                   </TableCell>
 
                                   {/* Saldo Acumulado */}
                                   <TableCell className="text-right py-2.5">
                                     <span className="font-mono font-bold text-xs text-[#035683] bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
-                                      {m.saldo_acumulado.toFixed(2)} hrs
+                                      {m.saldo_acumulado_hms || formatearHorasDecimalAHhmmss(m.saldo_acumulado)}
                                     </span>
                                   </TableCell>
 
@@ -3116,10 +3120,10 @@ export function GestionBecarios() {
                                     </div>
                                   </TableCell>
                                   <TableCell className="font-mono text-xs font-bold text-[#035683]">
-                                    {h.horas_acumuladas.toFixed(1)} hrs
+                                    {h.horas_acumuladas_hms || formatearHorasDecimalAHhmmss(h.horas_acumuladas)}
                                   </TableCell>
                                   <TableCell className="font-mono text-xs text-muted-foreground">
-                                    {h.meta_horas.toFixed(1)} hrs
+                                    {h.meta_horas_hms || formatearHorasDecimalAHhmmss(h.meta_horas)}
                                   </TableCell>
                                   <TableCell>
                                     <div className="flex items-center gap-2">
@@ -3131,8 +3135,8 @@ export function GestionBecarios() {
                                   </TableCell>
                                   <TableCell className="text-right">
                                     {h.horas_acumuladas > h.meta_horas ? (
-                                      <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-300 text-[10px] font-bold">
-                                        Meta Superada (+{(h.horas_acumuladas - h.meta_horas).toFixed(1)} hrs)
+                                      <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-300 text-[10px] font-bold font-mono">
+                                        Meta Superada (+{formatearHorasDecimalAHhmmss(h.horas_acumuladas - h.meta_horas)})
                                       </Badge>
                                     ) : h.estado_meta === "cumplido" ? (
                                       <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-300 text-[10px] font-bold">
@@ -3375,7 +3379,7 @@ export function GestionBecarios() {
                     <div>
                       <span className="text-muted-foreground block text-[11px]">Horas Acumuladas Mes Actual</span>
                       <p className="font-mono font-bold text-[#035683]">
-                        {(becario_ficha_modal.horas_mes_actual ?? 0).toFixed(1)} / {(becario_ficha_modal.horas_meta_mes ?? 36).toFixed(1)} hrs
+                        {formatearHorasDecimalAHhmmss(becario_ficha_modal.horas_mes_actual ?? 0)} / {formatearHorasDecimalAHhmmss(becario_ficha_modal.horas_meta_mes ?? 36)}
                       </p>
                     </div>
                     <div>

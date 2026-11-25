@@ -83,15 +83,20 @@ import {
   usarBecariosDesignadosMentor,
 } from "@/lib/filtro-mentor";
 import { InsigniaBecariosDesignados } from "@/components/ui/insignia-becarios-designados";
-import { toast } from "sonner";
-import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
-import { exportarAuditoriaAsistenciaExcel } from "@/lib/generador-excel-cliente";
 import {
+  calcularSegundosEntreHoras,
+  coincideTextoMesPeriodo,
+  formatearDuracionAsistencia,
+  formatearHorasDecimalAHhmmss,
+  formatearSegundosAHhmmss,
   generarMesesGestion,
   obtenerHoyLaPaz,
   obtenerMesActualLaPaz,
   obtenerRangoMesActualLaPaz,
 } from "@/lib/fechas-institucionales";
+import { toast } from "sonner";
+import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
+import { exportarAuditoriaAsistenciaExcel } from "@/lib/generador-excel-cliente";
 
 export interface RegistroAuditoriaAsistencia {
   id: number;
@@ -184,13 +189,9 @@ export const MOTIVOS_CONTINGENCIA = [
 ];
 
 export function calcularHorasTranscurridas(ingreso: string, salida: string): number {
-  if (!ingreso || !salida) return 0;
-  const [h_ing, m_ing] = ingreso.split(":").map(Number);
-  const [h_sal, m_sal] = salida.split(":").map(Number);
-  if (isNaN(h_ing) || isNaN(m_ing) || isNaN(h_sal) || isNaN(m_sal)) return 0;
-  const minutos = (h_sal * 60 + m_sal) - (h_ing * 60 + m_ing);
-  if (minutos <= 0) return 0;
-  return Math.round((minutos / 60) * 100) / 100;
+  const segundos = calcularSegundosEntreHoras(ingreso, salida);
+  if (segundos <= 0) return 0;
+  return Math.round((segundos / 3600) * 100) / 100;
 }
 
 const REGISTROS_AUDITORIA_INICIALES: RegistroAuditoriaAsistencia[] = [];
@@ -1378,9 +1379,11 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                             {item.hora_ingreso} &rarr; {item.hora_salida || "En Jornada"}
                           </div>
                           <div className="text-[11px] text-muted-foreground font-mono">
-                            {item.horas_trabajadas
-                              ? `${Number(item.horas_trabajadas).toFixed(2)} hrs computadas`
-                              : "Jornada no cerrada"}
+                            {item.tipo_actividad === "escuela_lideres"
+                              ? "00:00:00 (No suma a prácticas)"
+                              : item.hora_salida || item.horas_trabajadas
+                              ? `${formatearDuracionAsistencia(item.hora_ingreso, item.hora_salida, Number(item.horas_trabajadas))} computadas`
+                              : "Jornada en curso"}
                           </div>
                           <div className="text-[10px] font-mono flex items-center sm:justify-end gap-1">
                             <Navigation className="w-3 h-3 text-[#00ABBD]" />
@@ -1635,22 +1638,15 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
               <span className="text-[11px] font-mono font-bold uppercase text-muted-foreground block">
                 Promedio Horas / Becario
               </span>
-              <div className="text-3xl font-bold font-display text-emerald-600">
-                <ContadorRodilloAnimado
-                  valor={
-                    lista_horas_mensuales.length > 0
-                      ? Math.round(
-                          (lista_horas_mensuales.reduce((acc, b) => acc + b.horas_realizadas, 0) /
-                            lista_horas_mensuales.length) *
-                            10
-                        ) / 10
-                      : 0
-                  }
-                  sufijo=" hrs"
-                  decimales={1}
-                />
+              <div className="text-3xl font-bold font-display text-emerald-600 font-mono">
+                {formatearHorasDecimalAHhmmss(
+                  lista_horas_mensuales.length > 0
+                    ? lista_horas_mensuales.reduce((acc, b) => acc + b.horas_realizadas, 0) /
+                        lista_horas_mensuales.length
+                    : 0
+                )}
               </div>
-              <p className="text-[11px] text-emerald-700 font-medium">Meta estándar: 36.0 hrs/mes (9h/sem flexibles)</p>
+              <p className="text-[11px] text-emerald-700 font-medium">Meta estándar: 36:00:00/mes (09:00:00/sem flexibles)</p>
             </TarjetaSpotlight>
 
             <TarjetaSpotlight
@@ -1717,9 +1713,9 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                 </SelectTrigger>
                 <SelectContent className="bg-white border-[#E5E7EB] z-[100]">
                   <SelectItem value="todos">Todos los Estados</SelectItem>
-                  <SelectItem value="cumplido">Meta Cumplida (≥36 hrs)</SelectItem>
-                  <SelectItem value="en_progreso">En Progreso (27 a 35.9 hrs)</SelectItem>
-                  <SelectItem value="en_riesgo">En Riesgo (&lt;27 hrs)</SelectItem>
+                  <SelectItem value="cumplido">Meta Cumplida (≥36:00:00)</SelectItem>
+                  <SelectItem value="en_progreso">En Progreso (27:00:00 a 35:59:59)</SelectItem>
+                  <SelectItem value="en_riesgo">En Riesgo (&lt;27:00:00)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1809,10 +1805,10 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                               <div className="space-y-1.5">
                                 <div className="flex items-center justify-between text-[11px] font-mono">
                                   <span className="font-bold text-[#035683]">
-                                    {item.horas_realizadas.toFixed(1)} hrs
+                                    {formatearHorasDecimalAHhmmss(item.horas_realizadas)}
                                   </span>
                                   <span className="text-muted-foreground">
-                                    / {item.meta_horas.toFixed(1)} hrs ({porcentaje_real}%)
+                                    / {formatearHorasDecimalAHhmmss(item.meta_horas)} ({porcentaje_real}%)
                                   </span>
                                 </div>
                                 <Progress value={porcentaje_barra} className="h-2 bg-slate-100" />
@@ -1838,12 +1834,12 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                             </td>
                             <td className="py-3.5 px-3 text-center">
                               {excedente_horas > 0 ? (
-                                <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-[10px]">
-                                  Meta Superada (+{excedente_horas.toFixed(1)} hrs)
+                                <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold font-mono text-[10px]">
+                                  Meta Superada (+{formatearHorasDecimalAHhmmss(excedente_horas)})
                                 </Badge>
                               ) : item.horas_realizadas === item.meta_horas ? (
                                 <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-[10px]">
-                                  Meta Cumplida (36.0 hrs)
+                                  Meta Cumplida (36:00:00)
                                 </Badge>
                               ) : item.horas_realizadas >= 27 ? (
                                 <Badge className="bg-amber-100 text-amber-800 border-amber-300 font-bold text-[10px]">
@@ -1851,7 +1847,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                                 </Badge>
                               ) : (
                                 <Badge className="bg-rose-100 text-rose-800 border-rose-300 font-bold text-[10px]">
-                                  En Riesgo (&lt;27 hrs)
+                                  En Riesgo (&lt;27:00:00)
                                 </Badge>
                               )}
                             </td>
@@ -2142,10 +2138,16 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                   </div>
                   <div>
                     <span className="text-muted-foreground block">Horas Efectivas:</span>
-                    <span className="font-semibold">
-                      {registro_detalle.horas_trabajadas
-                        ? `${Number(registro_detalle.horas_trabajadas).toFixed(2)} hrs`
-                        : "Pendiente"}
+                    <span className="font-semibold font-mono">
+                      {registro_detalle.tipo_actividad === "escuela_lideres"
+                        ? "00:00:00 (No suma a prácticas)"
+                        : registro_detalle.hora_salida || registro_detalle.horas_trabajadas
+                        ? formatearDuracionAsistencia(
+                            registro_detalle.hora_ingreso,
+                            registro_detalle.hora_salida,
+                            Number(registro_detalle.horas_trabajadas)
+                          )
+                        : "En curso"}
                     </span>
                   </div>
                 </div>

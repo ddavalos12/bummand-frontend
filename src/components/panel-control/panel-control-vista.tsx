@@ -10,6 +10,8 @@ import { InsigniaBecariosDesignados } from "@/components/ui/insignia-becarios-de
 import { clienteApi } from "@/lib/cliente-api";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import {
+  formatearHorasDecimalAHhmmss,
+  obtenerMesActualLaPaz,
   obtenerRangoAnioActualLaPaz,
   obtenerRangoMesActualLaPaz,
   obtenerRangoSemestreActualLaPaz,
@@ -823,7 +825,10 @@ export function PanelControlVista() {
     const diff_dias = Math.max(1, Math.round((d_fin.getTime() - d_inicio.getTime()) / (1000 * 3600 * 24)));
 
     if (tipo_rango === "este_mes" || diff_dias <= 35) {
-      const mes_idx = d_inicio.getMonth();
+      const mes_idx =
+        tipo_rango === "este_mes"
+          ? Math.max(0, Number(obtenerMesActualLaPaz().slice(5, 7)) - 1)
+          : d_inicio.getMonth();
       const mes_obj = MESES_ANIO_BASE[mes_idx] || MESES_ANIO_BASE[9];
       const horas_mes = obtenerHorasMes(mes_obj.mes_corto);
       const meta_sem = Math.round(meta_mensual_dinamica / 4);

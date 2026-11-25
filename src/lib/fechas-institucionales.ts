@@ -115,26 +115,129 @@ export function obtenerDiaActualLaPaz(): number {
   return obtenerPartesFechaLaPaz().dia;
 }
 
-export function obtenerMesActualLaPaz(): string {
-  return obtenerPartesFechaLaPaz().mes_iso;
+export const DIA_CORTE_MENSUAL_BANCARIO = 24;
+
+export function obtenerPeriodoCorteDesdeComponentes(
+  ano: number,
+  mes: number,
+  dia: number
+): { ano: number; mes: number } {
+  if (dia >= DIA_CORTE_MENSUAL_BANCARIO) {
+    return mes === 12 ? { ano: ano + 1, mes: 1 } : { ano, mes: mes + 1 };
+  }
+  return { ano, mes };
 }
 
-export function esDiaCorteHabilitadoLaPaz(dia_corte = 24): boolean {
+export function obtenerPeriodoCorteDesdeFechaIso(fecha_iso?: string | null): string {
+  if (!fecha_iso) return obtenerMesActualLaPaz();
+  const limpia = String(fecha_iso).trim().slice(0, 10);
+  const coincidencia = /^(\d{4})-(\d{2})-(\d{2})$/.exec(limpia);
+  if (!coincidencia) return obtenerMesActualLaPaz();
+  const corte = obtenerPeriodoCorteDesdeComponentes(
+    Number(coincidencia[1]),
+    Number(coincidencia[2]),
+    Number(coincidencia[3])
+  );
+  return `${corte.ano}-${formatearDosDigitos(corte.mes)}`;
+}
+
+export function obtenerMesActualLaPaz(): string {
+  const { ano, mes, dia } = obtenerPartesFechaLaPaz();
+  const corte = obtenerPeriodoCorteDesdeComponentes(ano, mes, dia);
+  return `${corte.ano}-${formatearDosDigitos(corte.mes)}`;
+}
+
+export function esDiaCorteHabilitadoLaPaz(dia_corte = DIA_CORTE_MENSUAL_BANCARIO): boolean {
   return obtenerDiaActualLaPaz() >= dia_corte;
+}
+
+export function esPeriodoHabilitadoEnvio24LaPaz(
+  periodo?: string | null,
+  simular_dia_24 = false
+): boolean {
+  if (simular_dia_24) return true;
+  if (periodo && periodo.trim()) {
+    const parsed_iso = parsearMesIso(periodo);
+    if (parsed_iso) {
+      const apertura = `${parsed_iso.ano}-${formatearDosDigitos(parsed_iso.mes)}-24`;
+      return obtenerHoyLaPaz() >= apertura;
+    }
+    const partes = periodo.trim().split(/\s+/);
+    const ano_sol = Number(partes[partes.length - 1]);
+    const idx_mes = NOMBRES_MESES_LARGO.findIndex(
+      (m) => m.toLowerCase() === (partes[0] || "").toLowerCase()
+    );
+    if (!Number.isNaN(anioValido(ano_sol)) && idx_mes >= 0) {
+      const apertura = `${ano_sol}-${formatearDosDigitos(idx_mes + 1)}-24`;
+      return obtenerHoyLaPaz() >= apertura;
+    }
+  }
+  return esDiaCorteHabilitadoLaPaz();
+}
+
+function anioValido(val: number): number {
+  return Number.isFinite(val) && val > 2000 ? val : Number.NaN;
+}
+
+export function calcularSegundosEntreHoras(
+  hora_ingreso?: string | null,
+  hora_salida?: string | null
+): number {
+  if (!hora_ingreso || !hora_salida) return 0;
+  const parsearSegs = (h: string): number | null => {
+    const p = h.trim().split(":").map((x) => Number(x));
+    if (p.length < 2 || Number.isNaN(p[0]) || Number.isNaN(p[1])) return null;
+    const ss = Number.isNaN(p[2]) ? 0 : p[2];
+    return p[0] * 3600 + p[1] * 60 + ss;
+  };
+  const s_ini = parsearSegs(hora_ingreso);
+  const s_fin = parsearSegs(hora_salida);
+  if (s_ini === null || s_fin === null) return 0;
+  return s_fin > s_ini ? s_fin - s_ini : 0;
+}
+
+export function formatearSegundosAHhmmss(total_segundos: number): string {
+  const signo = total_segundos < 0 ? "-" : "";
+  const abs = Math.max(0, Math.round(Math.abs(total_segundos)));
+  const hh = Math.floor(abs / 3600);
+  const mm = Math.floor((abs % 3600) / 60);
+  const ss = abs % 60;
+  return `${signo}${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
+}
+
+export function formatearHorasDecimalAHhmmss(horas_decimal?: number | null): string {
+  if (horas_decimal === null || horas_decimal === undefined || Number.isNaN(Number(horas_decimal))) {
+    return "00:00:00";
+  }
+  return formatearSegundosAHhmmss(Math.round(Number(horas_decimal) * 3600));
+}
+
+export function formatearDuracionAsistencia(
+  hora_ingreso?: string | null,
+  hora_salida?: string | null,
+  horas_decimal?: number | null
+): string {
+  const segs = calcularSegundosEntreHoras(hora_ingreso, hora_salida);
+  if (segs > 0) return formatearSegundosAHhmmss(segs);
+  if (horas_decimal !== null && horas_decimal !== undefined && Number(horas_decimal) > 0) {
+    return formatearHorasDecimalAHhmmss(horas_decimal);
+  }
+  return "00:00:00";
 }
 
 export function obtenerRangoMes(mes_iso?: string): RangoMesInstitucional {
   const parsed = parsearMesIso(mes_iso);
-  const actual = obtenerPartesFechaLaPaz();
-  const ano = parsed ? parsed.ano : actual.ano;
-  const mes = parsed ? parsed.mes : actual.mes;
+  const mes_corte = parsearMesIso(obtenerMesActualLaPaz())!;
+  const ano = parsed ? parsed.ano : mes_corte.ano;
+  const mes = parsed ? parsed.mes : mes_corte.mes;
   const mes_pad = formatearDosDigitos(mes);
   const mes_norm = `${ano}-${mes_pad}`;
-  const ultimo_dia = obtenerUltimoDiaMes(ano, mes);
+  const ano_anterior = mes === 1 ? ano - 1 : ano;
+  const mes_anterior = mes === 1 ? 12 : mes - 1;
   return {
     mes_iso: mes_norm,
-    inicio: `${mes_norm}-01`,
-    fin: `${mes_norm}-${formatearDosDigitos(ultimo_dia)}`,
+    inicio: `${ano_anterior}-${formatearDosDigitos(mes_anterior)}-24`,
+    fin: `${mes_norm}-23`,
   };
 }
 
@@ -143,7 +246,8 @@ export function obtenerRangoMesActualLaPaz(): RangoMesInstitucional {
 }
 
 export function obtenerRangoMesAnteriorLaPaz(mes_referencia?: string): RangoMesInstitucional {
-  const parsed = parsearMesIso(mes_referencia) || obtenerPartesFechaLaPaz();
+  const base_iso = mes_referencia || obtenerMesActualLaPaz();
+  const parsed = parsearMesIso(base_iso) || parsearMesIso(obtenerMesActualLaPaz())!;
   const d = new Date(Date.UTC(parsed.ano, parsed.mes - 2, 1));
   const mes_iso = `${d.getUTCFullYear()}-${formatearDosDigitos(d.getUTCMonth() + 1)}`;
   return obtenerRangoMes(mes_iso);

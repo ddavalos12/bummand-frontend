@@ -1,4 +1,10 @@
-import { obtenerMesActualLaPaz } from "./fechas-institucionales";
+import {
+  calcularSegundosEntreHoras,
+  formatearDuracionAsistencia,
+  formatearHorasDecimalAHhmmss,
+  formatearSegundosAHhmmss,
+  obtenerMesActualLaPaz,
+} from "./fechas-institucionales";
 
 export interface ConfiguracionDescargaExcel {
   nombre_archivo: string;
@@ -405,19 +411,40 @@ export async function exportarAuditoriaAsistenciaExcel(
     registros[0].horas_dia !== undefined;
 
   if (es_extracto_movimientos) {
-    const total_horas = registros.reduce((acc, r) => acc + Number(r.horas_dia ?? 0), 0);
-    const filas = registros.map((r, idx) => [
-      String(idx + 1),
-      String(r.fecha || "-"),
-      String(r.dia_semana || "-"),
-      String(r.tipo_etiqueta || r.tipo || "Prácticas"),
-      String(r.sede || "-"),
-      String(r.hora_entrada || "-"),
-      String(r.hora_salida || "-"),
-      Number(r.horas_dia ?? 0),
-      Number(r.saldo_acumulado ?? 0),
-      r.permiso_aprobado ? "Permiso Compensado 100%" : String(r.estado || "acreditado").toUpperCase(),
-    ]);
+    const total_segs = registros.reduce((acc, r) => {
+      if (typeof r.segundos_dia === "number" && r.segundos_dia >= 0) return acc + r.segundos_dia;
+      const calc = calcularSegundosEntreHoras(String(r.hora_entrada || ""), r.hora_salida ? String(r.hora_salida) : null);
+      return acc + (calc > 0 ? calc : Math.round(Number(r.horas_dia ?? 0) * 3600));
+    }, 0);
+    const total_hms = formatearSegundosAHhmmss(total_segs);
+    const filas = registros.map((r, idx) => {
+      const h_dia =
+        typeof r.horas_dia_hms === "string" && r.horas_dia_hms
+          ? r.horas_dia_hms
+          : !r.hora_salida && Number(r.horas_dia ?? 0) === 0
+          ? "En curso"
+          : formatearDuracionAsistencia(
+              String(r.hora_entrada || ""),
+              r.hora_salida ? String(r.hora_salida) : null,
+              Number(r.horas_dia ?? 0)
+            );
+      const saldo_hms =
+        typeof r.saldo_acumulado_hms === "string" && r.saldo_acumulado_hms
+          ? r.saldo_acumulado_hms
+          : formatearHorasDecimalAHhmmss(Number(r.saldo_acumulado ?? 0));
+      return [
+        String(idx + 1),
+        String(r.fecha || "-"),
+        String(r.dia_semana || "-"),
+        String(r.tipo_etiqueta || r.tipo || "Prácticas"),
+        String(r.sede || "-"),
+        String(r.hora_entrada || "-"),
+        String(r.hora_salida || "En curso"),
+        h_dia,
+        saldo_hms,
+        r.permiso_aprobado ? "Permiso Compensado 100%" : String(r.estado || "acreditado").toUpperCase(),
+      ];
+    });
 
     await descargarExcelInstitucional({
       nombre_archivo: `Extracto_Asistencia_${periodo.replace(/\s+/g, "_")}.xlsx`,
@@ -432,8 +459,8 @@ export async function exportarAuditoriaAsistenciaExcel(
         "Sede",
         "Entrada",
         "Salida",
-        "Horas Día",
-        "Saldo Acumulado",
+        "Duración (hh:mm:ss)",
+        "Saldo Acumulado (hh:mm:ss)",
         "Estado",
       ],
       filas,
@@ -445,8 +472,8 @@ export async function exportarAuditoriaAsistenciaExcel(
         "",
         "",
         "",
-        Number(total_horas.toFixed(2)),
-        Number(total_horas.toFixed(2)),
+        total_hms,
+        total_hms,
         "",
       ],
     });
@@ -459,7 +486,11 @@ export async function exportarAuditoriaAsistenciaExcel(
     registros[0].meta_horas !== undefined;
 
   if (es_resumen_mensual) {
-    const total_horas = registros.reduce((acc, r) => acc + Number(r.horas_realizadas ?? 0), 0);
+    const total_segs = registros.reduce((acc, r) => {
+      if (typeof r.segundos_mes_actual === "number") return acc + r.segundos_mes_actual;
+      return acc + Math.round(Number(r.horas_realizadas ?? 0) * 3600);
+    }, 0);
+    const total_hms = formatearSegundosAHhmmss(total_segs);
     const total_multas = registros.reduce((acc, r) => acc + Number(r.multas_acumuladas_bs ?? 0), 0);
     const filas = registros.map((r, idx) => [
       String(idx + 1),
@@ -467,8 +498,10 @@ export async function exportarAuditoriaAsistenciaExcel(
       String(r.ci || "-"),
       String(r.carrera || "-"),
       String(r.sede || "-"),
-      Number(r.horas_realizadas ?? 0),
-      Number(r.meta_horas ?? 36),
+      typeof r.horas_realizadas_hms === "string" && r.horas_realizadas_hms
+        ? r.horas_realizadas_hms
+        : formatearHorasDecimalAHhmmss(Number(r.horas_realizadas ?? 0)),
+      formatearHorasDecimalAHhmmss(Number(r.meta_horas ?? 36)),
       String(r.dias_asistidos ?? 0),
       Number(r.multas_acumuladas_bs ?? 0),
       String(r.estado_meta || "en_progreso").toUpperCase(),
@@ -498,7 +531,7 @@ export async function exportarAuditoriaAsistenciaExcel(
         "",
         "",
         "",
-        Number(total_horas.toFixed(2)),
+        total_hms,
         "",
         "",
         Number(total_multas.toFixed(2)),
@@ -508,7 +541,13 @@ export async function exportarAuditoriaAsistenciaExcel(
     return;
   }
 
-  const total_horas_auditoria = registros.reduce((acc, r) => acc + Number(r.horas_trabajadas ?? 0), 0);
+  const total_segs_auditoria = registros.reduce((acc, r) => {
+    const calc = calcularSegundosEntreHoras(
+      r.hora_ingreso ? String(r.hora_ingreso) : null,
+      r.hora_salida ? String(r.hora_salida) : null
+    );
+    return acc + (calc > 0 ? calc : Math.round(Number(r.horas_trabajadas ?? 0) * 3600));
+  }, 0);
   const total_multas = registros.reduce((acc, r) => acc + Number(r.monto_multa_bs ?? 0), 0);
   const filas = registros.map((r, idx) => {
     const becario = comoRegistro(r.becario);
@@ -519,6 +558,16 @@ export async function exportarAuditoriaAsistenciaExcel(
       r.estado ||
       r.estado_aprobacion ||
       (r.dentro_de_radio === false ? "fuera_geocerca" : r.dentro_de_horario === false ? "tardanza" : "conforme");
+    const horas_fila_hms =
+      r.tipo === "escuela_lideres"
+        ? "00:00:00"
+        : !r.hora_salida && !r.horas_trabajadas
+        ? "En curso"
+        : formatearDuracionAsistencia(
+            r.hora_ingreso ? String(r.hora_ingreso) : null,
+            r.hora_salida ? String(r.hora_salida) : null,
+            Number(r.horas_trabajadas ?? 0)
+          );
 
     return [
       String(idx + 1),
@@ -527,8 +576,8 @@ export async function exportarAuditoriaAsistenciaExcel(
       String(r.sede_nombre || r.sede || becario_lugar.nombre || "-"),
       fecha_texto,
       String(r.hora_ingreso || "-"),
-      String(r.hora_salida || "-"),
-      Number(r.horas_trabajadas ?? 0),
+      String(r.hora_salida || "En curso"),
+      horas_fila_hms,
       Number(r.monto_multa_bs ?? 0),
       String(estado_texto).toUpperCase(),
     ];
@@ -547,7 +596,7 @@ export async function exportarAuditoriaAsistenciaExcel(
       "Fecha",
       "Ingreso",
       "Salida",
-      "Horas",
+      "Duración (hh:mm:ss)",
       "Multa Bs",
       "Estado",
     ],
@@ -560,7 +609,7 @@ export async function exportarAuditoriaAsistenciaExcel(
       "",
       "",
       "",
-      Number(total_horas_auditoria.toFixed(2)),
+      formatearSegundosAHhmmss(total_segs_auditoria),
       Number(total_multas.toFixed(2)),
       "",
     ],

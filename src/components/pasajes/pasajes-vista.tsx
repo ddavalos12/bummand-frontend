@@ -30,6 +30,7 @@ import { clienteApi } from "@/lib/cliente-api";
 import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import { exportarFormularioContabilidadRsdExcel } from "@/lib/generador-excel-cliente";
 import {
+  esPeriodoHabilitadoEnvio24LaPaz,
   obtenerDiaActualLaPaz,
   obtenerHoyLaPaz,
   obtenerMesActualLaPaz,
@@ -335,11 +336,13 @@ export function PasajesVista() {
     DialogoConfirmacionInstitucional,
   } = useConfirmacionDialogo();
 
-  // Restricción del día 24:
-  // Permitimos conmutador de simulación para verificar en cualquier fecha
+  // Restricción del día 24 (se habilita desde el día 24 del periodo):
   const dia_real = obtenerDiaActualLaPaz();
   const [simular_dia_24, set_simular_dia_24] = useState<boolean>(dia_real === 24);
-  const es_dia_habilitado = simular_dia_24 || dia_real === 24;
+  const es_dia_habilitado = esPeriodoHabilitadoEnvio24LaPaz(
+    solicitud_actual?.periodo,
+    simular_dia_24
+  );
 
   // Cálculos matemáticos de tarifas
   const calcularTotalTramos = (tramos: TramoTarifa[]): number => {
@@ -764,7 +767,7 @@ export function PasajesVista() {
   const manejarEnvioMensual = async () => {
     if (!es_dia_habilitado) {
       toast.error("Acción inhabilitada", {
-        description: "Se habilita el 24 de cada mes para el envío del formulario.",
+        description: "Se habilita a partir del día 24 del periodo correspondiente para el envío del formulario.",
       });
       return;
     }
