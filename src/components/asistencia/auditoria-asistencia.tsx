@@ -72,7 +72,7 @@ import {
   BotonJuicy,
   InsigniaPulsoVivo,
 } from "@/components/animaciones";
-import { clienteApi } from "@/lib/cliente-api";
+import { clienteApi, ErrorApi } from "@/lib/cliente-api";
 import { useConsulta } from "@/hooks/useConsulta";
 import { useTiempoReal } from "@/hooks/useTiempoReal";
 import { useConfirmacionDialogo } from "@/hooks/useConfirmacionDialogo";
@@ -88,6 +88,7 @@ import { descargarPdfConResiliencia } from "@/lib/generador-pdf-cliente";
 import { exportarAuditoriaAsistenciaExcel } from "@/lib/generador-excel-cliente";
 import {
   generarMesesGestion,
+  obtenerHoyLaPaz,
   obtenerMesActualLaPaz,
   obtenerRangoMesActualLaPaz,
 } from "@/lib/fechas-institucionales";
@@ -253,9 +254,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
   const [manual_tipo_actividad, set_manual_tipo_actividad] = useState<
     "practicas" | "escuela_lideres" | "acciones_servicio"
   >("practicas");
-  const [manual_fecha, set_manual_fecha] = useState<string>(() =>
-    new Date().toISOString().split("T")[0]
-  );
+  const [manual_fecha, set_manual_fecha] = useState<string>(() => obtenerHoyLaPaz());
   const [manual_hora_ingreso, set_manual_hora_ingreso] = useState<string>("08:30");
   const [manual_hora_salida, set_manual_hora_salida] = useState<string>("12:30");
   const [manual_sede, set_manual_sede] = useState<string>(SEDES_POR_ACTIVIDAD.practicas[0]);
@@ -267,24 +266,6 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
     confirmarCierreSinCompletar,
     DialogoConfirmacionInstitucional,
   } = useConfirmacionDialogo();
-
-  const tiene_cambios_manual =
-    manual_becario_id !== 1 ||
-    manual_tipo_actividad !== "practicas" ||
-    manual_motivo !== MOTIVOS_CONTINGENCIA[0] ||
-    manual_motivo_personalizado.trim() !== "" ||
-    manual_hora_ingreso !== "08:30" ||
-    manual_hora_salida !== "12:30";
-
-  const intentarCerrarModalManual = () => {
-    confirmarCierreSinCompletar(
-      tiene_cambios_manual,
-      () => {
-        set_modal_manual_abierto(false);
-      },
-      "Asistencia Manual"
-    );
-  };
 
   const [registros_locales, set_registros_locales] = useState<RegistroAuditoriaAsistencia[]>(
     REGISTROS_AUDITORIA_INICIALES
@@ -353,10 +334,73 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
     [horas_mensuales_locales, filtrarPorMentor]
   );
 
+  const [becarios_bd, set_becarios_bd] = useState<BecarioOficial[]>([]);
+  const [lugares_practica_bd, set_lugares_practica_bd] = useState<Array<{ id: number; nombre: string }>>([]);
+
+  useEffect(() => {
+    interface BecarioApiCrudo {
+      id?: number;
+      nombre?: string;
+      ci?: string;
+      carrera?: string;
+      unidad?: string;
+      usuario?: { nombre?: string };
+      iglesia?: { nombre?: string };
+      iglesia_nombre?: string;
+    }
+
+    clienteApi
+      .get<BecarioApiCrudo[]>("/api/becarios")
+      .then((res) => {
+        if (Array.isArray(res) && res.length > 0) {
+          const normalizados = res
+            .map((b) => {
+              const id = Number(b?.id);
+              const nombre = String(b?.nombre || b?.usuario?.nombre || "").trim();
+              if (!Number.isSafeInteger(id) || id <= 0 || !nombre) return null;
+              return {
+                id,
+                nombre,
+                ci: String(b?.ci || "—"),
+                carrera: String(b?.carrera || "Carrera BUMAND"),
+                unidad: String(b?.unidad || "Oficina Central"),
+                iglesia: String(b?.iglesia?.nombre || b?.iglesia_nombre || "Iglesia Institucional"),
+              } as BecarioOficial;
+            })
+            .filter((item): item is BecarioOficial => item !== null);
+          if (normalizados.length > 0) {
+            set_becarios_bd(normalizados);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const becarios_manual_disponibles = useMemo(
-    () => filtrarPorMentor(LISTA_23_BECARIOS_OFICIALES),
-    [filtrarPorMentor]
+    () =>
+      filtrarPorMentor(
+        becarios_bd.length > 0 ? becarios_bd : LISTA_23_BECARIOS_OFICIALES
+      ),
+    [becarios_bd, filtrarPorMentor]
   );
+
+  const tiene_cambios_manual =
+    manual_becario_id !== (becarios_manual_disponibles[0]?.id ?? 1) ||
+    manual_tipo_actividad !== "practicas" ||
+    manual_motivo !== MOTIVOS_CONTINGENCIA[0] ||
+    manual_motivo_personalizado.trim() !== "" ||
+    manual_hora_ingreso !== "08:30" ||
+    manual_hora_salida !== "12:30";
+
+  const intentarCerrarModalManual = () => {
+    confirmarCierreSinCompletar(
+      tiene_cambios_manual,
+      () => {
+        set_modal_manual_abierto(false);
+      },
+      "Asistencia Manual"
+    );
+  };
 
   useEffect(() => {
     if (
@@ -372,6 +416,28 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
       becarios_manual_disponibles.find((b) => b.id === Number(manual_becario_id)) ||
       becarios_manual_disponibles[0] ||
       LISTA_23_BECARIOS_OFICIALES[0];
+
+    if (!becario_encontrado?.id) {
+      toast.error("Becario requerido", {
+        description: "Seleccione un becario válido para registrar la asistencia manual.",
+      });
+      return;
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(manual_fecha)) {
+      toast.error("Fecha inválida", {
+        description: "Seleccione una fecha válida para registrar la asistencia.",
+      });
+      return;
+    }
+
+    if (!manual_hora_ingreso || !manual_hora_salida) {
+      toast.error("Horarios requeridos", {
+        description: "Ingrese tanto la hora de ingreso como la hora de salida.",
+      });
+      return;
+    }
+
     const motivo_final =
       manual_motivo === "otro"
         ? manual_motivo_personalizado.trim() || "Contingencia de marcación autorizada"
@@ -387,17 +453,22 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
 
     set_manual_guardando(true);
 
-    const payload = {
+    const lugar_coincidente = lugares_practica_bd.find(
+      (l) => l.nombre.trim().toLowerCase() === manual_sede.trim().toLowerCase()
+    );
+
+    const payload: Record<string, unknown> = {
       becario_id: becario_encontrado.id,
       tipo: manual_tipo_actividad,
       fecha: manual_fecha,
       hora_ingreso: manual_hora_ingreso,
       hora_salida: manual_hora_salida,
-      lugar_nombre: manual_sede,
       motivo_contingencia: motivo_final,
-      horas_trabajadas: horas_efectivas,
-      registrado_por: usuario?.nombre || "Administrador",
     };
+
+    if (lugar_coincidente) {
+      payload.lugar_practica_id = lugar_coincidente.id;
+    }
 
     let id_real: number | null = null;
     try {
@@ -416,10 +487,16 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
         id_real = id_candidato;
       }
     } catch (error) {
+      const detalles_validacion =
+        error instanceof ErrorApi && Array.isArray(error.detalles) && error.detalles.length > 0
+          ? error.detalles.map(String).join(" · ")
+          : null;
       toast.error("No se pudo registrar la asistencia manual", {
         description:
           error instanceof Error
-            ? error.message
+            ? detalles_validacion
+              ? `${error.message} (${detalles_validacion})`
+              : error.message
             : "Error al guardar el registro en el servidor.",
       });
       set_manual_guardando(false);
@@ -667,6 +744,14 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
       .then((res) => {
         if (Array.isArray(res) && res.length > 0) {
           set_sedes_bd(res.map((l) => l.nombre).filter(Boolean));
+          set_lugares_practica_bd(
+            res
+              .map((l) => ({
+                id: Number(l?.id),
+                nombre: String(l?.nombre || "").trim(),
+              }))
+              .filter((l) => Number.isSafeInteger(l.id) && l.id > 0 && l.nombre !== "")
+          );
         }
       })
       .catch(() => {});
@@ -2444,7 +2529,9 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                 <SeleccionadorFecha
                   id="manual-fecha"
                   valorString={manual_fecha}
-                  alCambiarString={(val) => set_manual_fecha(val)}
+                  alCambiarString={(val) => {
+                    if (val) set_manual_fecha(val);
+                  }}
                   className="h-10 text-xs rounded-xl border-[#E5E7EB]"
                 />
               </div>

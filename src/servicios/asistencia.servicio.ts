@@ -77,10 +77,13 @@ export interface PeticionConfirmarOrganizador {
 
 export interface PeticionAsistenciaManual {
   becario_id: number;
+  tipo?: 'practicas' | 'escuela_lideres' | 'acciones_servicio';
   fecha: string;
   hora_ingreso: string;
   hora_salida?: string;
-  motivo: string;
+  lugar_practica_id?: number;
+  evento_id?: number;
+  motivo_contingencia?: string;
 }
 
 export interface PeticionRectificarHora {
