@@ -57,6 +57,7 @@ import {
   usarAutenticacion,
   type CorreoAdicionalUsuario,
 } from "@/contextos/autenticacion-contexto";
+import { LogoGpsCpp } from "@/components/recorridos-gps-prueba/logo-gps-cpp";
 
 interface ElementoNavegacion {
   id: string;
@@ -439,6 +440,17 @@ export function MenuLateral({
                   },
                 ]
               : []),
+            ...(es_admin
+              ? [
+                  {
+                    id: "recorridos_gps_prueba",
+                    etiqueta: "GPS C++ (Prueba)",
+                    descripcion: "Recorridos offline y mapa por tramos",
+                    icono: MapPin,
+                    badge: "Prueba",
+                  },
+                ]
+              : []),
           ],
         },
         {
@@ -561,13 +573,17 @@ export function MenuLateral({
                       <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-[#00ABBD] rounded-r-full" />
                     )}
 
-                    <Icono
-                      className={`w-4 h-4 shrink-0 transition-colors ${
-                        esta_activo
-                          ? "text-[#FFB600]"
-                          : "text-[#808080] group-hover:text-[#035683]"
-                      }`}
-                    />
+                    {elem.id === "recorridos_gps_prueba" ? (
+                      <LogoGpsCpp variante="icono" />
+                    ) : (
+                      <Icono
+                        className={`w-4 h-4 shrink-0 transition-colors ${
+                          esta_activo
+                            ? "text-[#FFB600]"
+                            : "text-[#808080] group-hover:text-[#035683]"
+                        }`}
+                      />
+                    )}
 
                     {!colapsado && (
                       <div className="flex-1 min-w-0 flex items-center justify-between gap-1.5">

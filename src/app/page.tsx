@@ -43,6 +43,7 @@ import { RegistroDevocionales } from "@/components/devocionales/registro-devocio
 import { DialogoDocumentosBecario } from "@/components/becarios/dialogo-documentos-becario";
 import { GestionUsuariosAdmin } from "@/components/usuarios/gestion-usuarios-admin";
 import { MiPerfilCuenta } from "@/components/usuarios/mi-perfil-cuenta";
+import { VisorRecorridosGpsPrueba } from "@/components/recorridos-gps-prueba/visor-recorridos-gps-prueba";
 import { 
   Bus, 
   FileText, 
@@ -126,6 +127,10 @@ function obtenerDetallesSeccion(seccion: string, rol: string, subpestaña?: stri
       return {
         titulo: "Administración de Usuarios, Contraseñas y Accesos",
         subtitulo: "Control centralizado de cuentas, roles, correos de autenticación y credenciales institucionales",
+      };
+    case "recorridos_gps_prueba":
+      return {
+        titulo: "Recorridos GPS C++ (Modo Prueba)",
       };
     case "mi_perfil":
       return {
@@ -572,6 +577,13 @@ export default function PaginaInicio() {
             {es_admin && (
               <TabsContent value="usuarios" className="space-y-6">
                 <GestionUsuariosAdmin />
+              </TabsContent>
+            )}
+
+            {/* Módulo Temporal de Prueba: Recorridos GPS C++ (Exclusivo Administrador) */}
+            {es_admin && (
+              <TabsContent value="recorridos_gps_prueba" className="space-y-6">
+                <VisorRecorridosGpsPrueba />
               </TabsContent>
             )}
 

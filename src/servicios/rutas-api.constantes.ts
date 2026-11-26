@@ -210,4 +210,8 @@ export const RUTAS_API = {
     ESTADISTICAS: '/dashboard/estadisticas',
     SEGUIMIENTO_SEMANAL: '/dashboard/seguimiento-semanal',
   },
+  RECORRIDOS_GPS_PRUEBA: {
+    BASE: '/recorridos-gps-prueba',
+    POR_ID: (id: number) => `/recorridos-gps-prueba/${id}`,
+  },
 } as const;

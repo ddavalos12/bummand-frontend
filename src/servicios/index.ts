@@ -47,3 +47,6 @@ export * from "./notificaciones.servicio";
 
 // 15. Biblia, Versículos y Devocionales
 export * from "./biblia.servicio";
+
+// 16. Recorridos GPS C++ (Modo Prueba)
+export * from "./recorridos-gps-prueba.servicio";
