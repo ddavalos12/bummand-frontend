@@ -273,6 +273,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
   );
   const [termino_busqueda, set_termino_busqueda] = useState("");
   const [filtro_estado, set_filtro_estado] = useState("todos");
+  const [filtro_tipo_actividad, set_filtro_tipo_actividad] = useState("todos");
   const [filtro_sede, set_filtro_sede] = useState("todas");
 
   // Sub-vista de Control de Asistencia: En Vivo vs Consolidado Mensual
@@ -804,12 +805,49 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                 : "conforme"
             ) as RegistroAuditoriaAsistencia["estado"];
 
+            const tipo_actividad_real = (
+              item.tipo ||
+              item.tipo_actividad ||
+              "practicas"
+            ) as NonNullable<RegistroAuditoriaAsistencia["tipo_actividad"]>;
+
+            const fecha_str = item.fecha
+              ? String(item.fecha).split("T")[0]
+              : new Date().toISOString().split("T")[0];
+            const es_viernes_calc =
+              item.es_viernes ??
+              new Date(`${fecha_str}T12:00:00Z`).getUTCDay() === 5;
+            const minutos_retraso = Number(item.minutos_retraso ?? 0);
+            const exime_multa = Boolean(
+              item.exime_multa || estado_calculado === "convalidado"
+            );
+            const monto_multa_bs = exime_multa
+              ? 0
+              : Number(
+                  item.monto_multa_bs ??
+                    (tipo_actividad_real === "escuela_lideres" &&
+                    es_viernes_calc &&
+                    minutos_retraso > 0
+                      ? calcularMultaEscuelaLideres(minutos_retraso)
+                      : 0)
+                );
+
             const nombre_sede =
-              item.becario?.lugar_practica?.nombre ||
-              item.lugar_practica?.nombre ||
-              item.sede_nombre ||
-              item.lugar_practica ||
-              "Oficina Central Diaconía IFD - El Alto";
+              tipo_actividad_real === "escuela_lideres"
+                ? item.sede_nombre ||
+                  item.bloque ||
+                  "Escuela de Líderes Diaconales"
+                : tipo_actividad_real === "acciones_servicio"
+                ? item.sede_nombre ||
+                  item.bloque ||
+                  item.becario?.iglesia?.nombre ||
+                  "Acción de Servicio Diaconal"
+                : item.sede_nombre ||
+                  item.bloque ||
+                  item.becario?.lugar_practica?.nombre ||
+                  item.lugar_practica?.nombre ||
+                  item.lugar_practica ||
+                  "Oficina Central Diaconía IFD - El Alto";
 
             return {
               id: item.id,
@@ -822,7 +860,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                 "Becario Institucional",
               carrera: item.becario?.carrera || becario_match?.carrera || "Carrera BUMAND",
               sede_nombre: nombre_sede,
-              fecha: item.fecha ? String(item.fecha).split("T")[0] : new Date().toISOString().split("T")[0],
+              fecha: fecha_str,
               hora_ingreso: item.hora_ingreso || "08:00",
               hora_salida: item.hora_salida || null,
               horas_trabajadas: item.horas_trabajadas || null,
@@ -837,12 +875,12 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
               motivo_convalidacion: item.motivo_convalidacion || null,
               lat_ingreso: item.lat_ingreso,
               lng_ingreso: item.lng_ingreso,
-              minutos_retraso: item.minutos_retraso ?? 0,
-              monto_multa_bs: item.monto_multa_bs ?? 0,
-              es_viernes: item.es_viernes ?? false,
+              minutos_retraso,
+              monto_multa_bs,
+              es_viernes: es_viernes_calc,
               es_registro_manual: Boolean(item.es_registro_manual),
-              exime_multa: Boolean(item.exime_multa),
-              tipo_actividad: item.tipo_actividad || "practicas",
+              exime_multa,
+              tipo_actividad: tipo_actividad_real,
               ci: item.becario?.ci ? String(item.becario.ci) : becario_match?.ci,
               supervisor_id: item.becario?.supervisor_id ?? item.becario?.supervisor?.id ?? item.supervisor_id ?? null,
               supervisor_nombre: item.becario?.supervisor?.nombre ?? item.becario?.supervisor?.usuario?.nombre ?? null,
@@ -905,6 +943,11 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
         ? !r.dentro_de_radio || r.estado === "tardanza"
         : r.estado === filtro_estado;
 
+    const coincide_tipo =
+      filtro_tipo_actividad === "todos"
+        ? true
+        : (r.tipo_actividad || "practicas") === filtro_tipo_actividad;
+
     const coincide_sede = filtro_sede === "todas" ? true : r.sede_nombre === filtro_sede;
 
     const texto = termino_busqueda.toLowerCase().trim();
@@ -914,7 +957,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
       (r.carrera || "").toLowerCase().includes(texto) ||
       (r.sede_nombre || "").toLowerCase().includes(texto);
 
-    return coincide_estado && coincide_sede && coincide_busqueda;
+    return coincide_estado && coincide_tipo && coincide_sede && coincide_busqueda;
   });
 
   const manejarConvalidar = async () => {
@@ -1282,6 +1325,19 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
             </div>
 
             <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto">
+              {/* Filtro Tipo de Actividad */}
+              <Select value={filtro_tipo_actividad} onValueChange={(val: any) => val && set_filtro_tipo_actividad(val)}>
+                <SelectTrigger className="text-xs h-10 px-3 rounded-xl border border-[#E5E7EB] bg-white text-[#035683] font-medium min-w-[165px]">
+                  <SelectValue placeholder="Todas las Actividades" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-[#E5E7EB] z-[100]">
+                  <SelectItem value="todos">Todas las Actividades</SelectItem>
+                  <SelectItem value="practicas">Prácticas</SelectItem>
+                  <SelectItem value="escuela_lideres">Escuela de Líderes</SelectItem>
+                  <SelectItem value="acciones_servicio">Acciones de Servicio</SelectItem>
+                </SelectContent>
+              </Select>
+
               {/* Filtro Estado */}
               <Select value={filtro_estado} onValueChange={(val: any) => val && set_filtro_estado(val)}>
                 <SelectTrigger className="text-xs h-10 px-3 rounded-xl border border-[#E5E7EB] bg-white text-[#035683] font-medium min-w-[160px]">
@@ -1453,7 +1509,7 @@ export function AuditoriaAsistencia({ rol }: AuditoriaAsistenciaProps) {
                                 {item.tipo_actividad === "practicas"
                                   ? "Prácticas"
                                   : item.tipo_actividad === "escuela_lideres"
-                                  ? "Escuela Líderes"
+                                  ? "Escuela de Líderes"
                                   : "Acciones de Servicio"}
                               </Badge>
                             </div>

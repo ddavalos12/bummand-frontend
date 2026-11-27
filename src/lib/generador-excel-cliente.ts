@@ -558,8 +558,15 @@ export async function exportarAuditoriaAsistenciaExcel(
       r.estado ||
       r.estado_aprobacion ||
       (r.dentro_de_radio === false ? "fuera_geocerca" : r.dentro_de_horario === false ? "tardanza" : "conforme");
+    const tipo_crudo = String(r.tipo || r.tipo_actividad || "practicas");
+    const actividad_texto =
+      tipo_crudo === "escuela_lideres"
+        ? "Escuela de Líderes"
+        : tipo_crudo === "acciones_servicio"
+        ? "Acciones de Servicio"
+        : "Prácticas";
     const horas_fila_hms =
-      r.tipo === "escuela_lideres"
+      tipo_crudo === "escuela_lideres"
         ? "00:00:00"
         : !r.hora_salida && !r.horas_trabajadas
         ? "En curso"
@@ -573,6 +580,7 @@ export async function exportarAuditoriaAsistenciaExcel(
       String(idx + 1),
       String(r.becario_nombre || r.nombre || becario_usuario.nombre || becario.nombre || `Becario ${idx + 1}`),
       String(r.carrera || becario.carrera || "-"),
+      actividad_texto,
       String(r.sede_nombre || r.sede || becario_lugar.nombre || "-"),
       fecha_texto,
       String(r.hora_ingreso || "-"),
@@ -592,6 +600,7 @@ export async function exportarAuditoriaAsistenciaExcel(
       "N°",
       "Becario",
       "Carrera",
+      "Actividad",
       "Sede",
       "Fecha",
       "Ingreso",
@@ -604,6 +613,7 @@ export async function exportarAuditoriaAsistenciaExcel(
     fila_totales: [
       "",
       "TOTALES",
+      "",
       "",
       "",
       "",
