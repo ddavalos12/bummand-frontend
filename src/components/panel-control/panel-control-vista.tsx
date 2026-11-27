@@ -683,7 +683,11 @@ export function PanelControlVista() {
       try {
         const res = await clienteApi.get<{
           becarios_con_retraso?: Array<{
+            asistencia_id?: number;
             becario: { id: number; nombre: string; carrera?: string; unidad?: string | null };
+            tipo?: string;
+            tipo_actividad?: string;
+            sede?: string;
             hora_ingreso: string;
             hora_prevista: string;
             minutos_retraso: number;
@@ -705,18 +709,32 @@ export function PanelControlVista() {
         if (cancelado || !res) return;
 
         const retrasos_api = Array.isArray(res.becarios_con_retraso) ? res.becarios_con_retraso : [];
-        const retrasos_mapeados: BecarioRetrasoItem[] = retrasos_api.map((r, idx) => ({
-          id: r.becario?.id || idx + 1,
-          nombre: r.becario?.nombre || `Becario #${idx + 1}`,
-          avatar: construirInicialesAvatar(r.becario?.nombre),
-          carrera: r.becario?.carrera || "No registrada",
-          fecha: r.fecha || info_semana.inicio_iso,
-          hora_prevista: String(r.hora_prevista || "08:00").slice(0, 5),
-          hora_real: String(r.hora_ingreso || "--:--").slice(0, 5),
-          minutos_retraso: Number(r.minutos_retraso || 0),
-          sede: r.becario?.unidad || "Oficina Central",
-          tipo_asistencia: "Prácticas",
-        }));
+        const retrasos_mapeados: BecarioRetrasoItem[] = retrasos_api.map((r, idx) => {
+          const tipo_crudo = String(r.tipo || r.tipo_actividad || "practicas").toLowerCase();
+          const tipo_asistencia: BecarioRetrasoItem["tipo_asistencia"] =
+            tipo_crudo === "escuela_lideres"
+              ? "Escuela de Líderes"
+              : tipo_crudo === "acciones_servicio"
+                ? "Acciones de Servicio"
+                : "Prácticas";
+          const sede_resuelta =
+            r.sede ||
+            (tipo_crudo === "escuela_lideres"
+              ? "Escuela de Líderes Diaconales"
+              : r.becario?.unidad || "Oficina Central");
+          return {
+            id: r.becario?.id || idx + 1,
+            nombre: r.becario?.nombre || `Becario #${idx + 1}`,
+            avatar: construirInicialesAvatar(r.becario?.nombre),
+            carrera: r.becario?.carrera || "No registrada",
+            fecha: r.fecha || info_semana.inicio_iso,
+            hora_prevista: String(r.hora_prevista || (tipo_crudo === "escuela_lideres" ? "14:30" : "08:00")).slice(0, 5),
+            hora_real: String(r.hora_ingreso || "--:--").slice(0, 5),
+            minutos_retraso: Number(r.minutos_retraso || 0),
+            sede: sede_resuelta,
+            tipo_asistencia,
+          };
+        });
         set_lista_retrasos(retrasos_mapeados);
 
         const asistieron = Array.isArray(res.asistencia_semanal?.asistieron)
@@ -1749,7 +1767,17 @@ export function PanelControlVista() {
                             <td colSpan={7} className="py-8 text-center text-muted-foreground">
                               <CheckCircle2 className="w-6 h-6 text-emerald-600 mx-auto mb-1 opacity-70" />
                               <p className="font-semibold text-xs text-[#035683]">Sin incidencias de retraso</p>
-                              <p className="text-[11px]">Todos los becarios registrados cumplieron puntualidad en {filtro_tipo_actividad === 'todas' ? 'todas las actividades' : filtro_tipo_actividad}.</p>
+                              <p className="text-[11px]">
+                                Todos los becarios registrados cumplieron puntualidad en{" "}
+                                {filtro_tipo_actividad === "todas"
+                                  ? "todas las actividades"
+                                  : filtro_tipo_actividad === "practicas"
+                                    ? "Prácticas Institucionales"
+                                    : filtro_tipo_actividad === "escuela_lideres"
+                                      ? "Escuela de Líderes"
+                                      : "Acciones de Servicio"}
+                                .
+                              </p>
                             </td>
                           </tr>
                         ) : (
